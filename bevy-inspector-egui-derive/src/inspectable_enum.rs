@@ -21,7 +21,7 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
             type FieldOptions = ();
 
 
-            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Options<Self::FieldOptions>) {
+            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: bevy_inspector_egui::Options<Self::FieldOptions>) {
                 use bevy_inspector_egui::egui;
 
                 let id = ui.make_persistent_id(stringify!(#id));

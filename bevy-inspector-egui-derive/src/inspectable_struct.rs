@@ -13,7 +13,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
 
         let attributes = crate::attributes::inspectable_attributes(&field.attrs);
         let custom_options = attributes.fold(
-            quote! {let mut custom_options = <#ty as InspectableWidget>::FieldOptions::default();},
+            quote! {let mut custom_options = <#ty as bevy_inspector_egui::InspectableWidget>::FieldOptions::default();},
             |acc, (name, expr)| {
                 quote! {
                     #acc
@@ -25,8 +25,8 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         quote! {
             ui.label(#field_label);
             #custom_options
-            let options = Options::new(custom_options);
-            <#ty as InspectableWidget>::ui(&mut self.#accessor, ui, options);
+            let options = bevy_inspector_egui::Options::new(custom_options);
+            <#ty as bevy_inspector_egui::InspectableWidget>::ui(&mut self.#accessor, ui, options);
             ui.end_row();
         }
     });
@@ -36,7 +36,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
             type FieldOptions = ();
 
 
-            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Options<Self::FieldOptions>) {
+            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: bevy_inspector_egui::Options<Self::FieldOptions>) {
                 use bevy_inspector_egui::egui;
 
                 let grid = egui::Grid::new(stringify!(#id));

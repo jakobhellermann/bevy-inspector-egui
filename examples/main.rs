@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::{Inspectable, InspectableWidget, InspectorPlugin, Options};
+use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 
 #[derive(Inspectable, Debug, Default)]
 struct Data {
