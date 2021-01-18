@@ -1,0 +1,13 @@
+[package]
+name = "bevy-inspector-egui"
+version = "0.1.0"
+authors = ["Jakob Hellermann <jakob.hellermann@protonmail.com>"]
+edition = "2018"
+
+[dependencies]
+bevy = { version = "0.4", default-features = false }
+bevy_egui = "0.1"
+
+[dev-dependencies]
+bevy = { version = "0.4", default-features = false, features = ["render", "bevy_wgpu", "bevy_winit"] }
+# bevy = "0.4"
