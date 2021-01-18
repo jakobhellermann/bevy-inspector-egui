@@ -1,6 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
+use crate::attributes::InspectableAttribute;
+
 pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) -> TokenStream {
     let name = &derive_input.ident;
     let id = name;
@@ -11,24 +13,49 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         let field_label = field_label(field, i);
         let accessor = field_accessor(field, i);
 
-        let attributes = crate::attributes::inspectable_attributes(&field.attrs);
-        let custom_options = attributes.fold(
+        let (builtin_attributes, custom_attributes): (Vec<_>, Vec<_>) = crate::attributes::inspectable_attributes(&field.attrs)
+            .partition(InspectableAttribute::is_builtin);
+        
+
+        let mut collapse = false;
+        for builtin_attribute in builtin_attributes {
+            match builtin_attribute {
+                InspectableAttribute::Tag(ident) if ident == "collapse" => collapse = true,
+                InspectableAttribute::Tag(name) | InspectableAttribute::Assignment(name, _) => panic!("unknown attributes '{}'", name),
+            }
+        }
+
+        let custom_options = custom_attributes.iter().fold(
             quote! {let mut custom_options = <#ty as bevy_inspector_egui::Inspectable>::FieldOptions::default();},
-            |acc, (name, expr)| {
+            |acc,attribute| {
+                let assignment = match attribute {
+                    InspectableAttribute::Assignment(name, expr) => quote!{ custom_options.#name = #expr; },
+                    InspectableAttribute::Tag(name) => quote!{ custom_options.#name = true;}
+                };
                 quote! {
                     #acc
-                    custom_options.#name = #expr;
+                    #assignment
                 }
             },
         );
 
-        quote! {
-            ui.label(#field_label);
+        let ui = quote! {
             #custom_options
             let options = bevy_inspector_egui::Options::new(custom_options);
             <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options);
+        };
+
+        let ui = match collapse {
+            true => quote! { ui.collapsing(#field_label, |ui| {#ui}); },
+            false => ui,
+        };
+
+        quote! {
+            ui.label(#field_label);
+            #ui
             ui.end_row();
         }
+
     });
 
     quote! {

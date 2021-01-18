@@ -12,6 +12,8 @@ struct Data {
     position: Vec2,
     // list: [Vec2; 3],
     custom_enum: CustomEnum,
+    #[inspectable(collapse)]
+    noise_settings: NoiseSettings,
 }
 
 #[derive(Inspectable, Debug, PartialEq)]
@@ -24,6 +26,14 @@ impl Default for CustomEnum {
     fn default() -> Self {
         CustomEnum::A
     }
+}
+
+#[derive(Inspectable, Debug, Default)]
+struct NoiseSettings {
+    octaves: u8,
+    frequency: f32,
+    lacunarity: f32,
+    persistence: f32,
 }
 
 fn main() {

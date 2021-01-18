@@ -1,11 +1,30 @@
+pub enum InspectableAttribute {
+    Assignment(syn::Ident, syn::Expr),
+    Tag(syn::Ident),
+}
+impl InspectableAttribute {
+    pub fn is_builtin(&self) -> bool {
+        match self {
+            InspectableAttribute::Assignment(_, _) => false,
+            InspectableAttribute::Tag(ident) => ident == "collapse",
+        }
+    }
+}
+
 fn parse_inspectable_attributes(
     input: syn::parse::ParseStream,
-) -> syn::Result<impl Iterator<Item = (syn::Ident, syn::Expr)>> {
+) -> syn::Result<impl Iterator<Item = InspectableAttribute>> {
     let parse_attribute = |input: syn::parse::ParseStream| {
         let ident: syn::Ident = input.parse()?;
-        let _eq_token: syn::Token![=] = input.parse()?;
-        let expr: syn::Expr = input.parse()?;
-        Ok((ident, expr))
+        if input.peek(syn::Token![=]) {
+            let _eq_token: syn::Token![=] = input.parse()?;
+            let expr: syn::Expr = input.parse()?;
+            Ok(InspectableAttribute::Assignment(ident, expr))
+        } else if input.is_empty() {
+            Ok(InspectableAttribute::Tag(ident))
+        } else {
+            panic!("could not parse attribute {}", ident);
+        }
     };
 
     input
@@ -16,7 +35,7 @@ fn parse_inspectable_attributes(
 /// extracts [(min, 8), (field, vec2(1.0, 1.0))] from `#[inspectable(min = 8, field = vec2(1.0, 1.0))]`,
 pub fn inspectable_attributes(
     attrs: &[syn::Attribute],
-) -> impl Iterator<Item = (syn::Ident, syn::Expr)> + '_ {
+) -> impl Iterator<Item = InspectableAttribute> + '_ {
     attrs
         .iter()
         .filter(|attr| attr.path.get_ident().map_or(false, |p| p == "inspectable"))
