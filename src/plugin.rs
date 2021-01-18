@@ -6,6 +6,7 @@ use bevy_egui::{egui, EguiContext, EguiPlugin};
 use crate::{Inspectable, Options};
 
 #[derive(Default)]
+#[allow(missing_debug_implementations)]
 /// Bevy plugin for the inspector.
 /// See the [crate-level docs](index.html) for an example on how to use it.
 pub struct InspectorPlugin<T>(PhantomData<T>);

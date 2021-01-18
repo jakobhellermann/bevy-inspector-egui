@@ -1,5 +1,5 @@
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
+#![warn(missing_docs, unreachable_pub, missing_debug_implementations)]
 
 //! This crate provides the ability to annotate structs with a `#[derive(Inspectable)]`,
 //! which opens a debug interface using [egui](https://github.com/emilk/egui) where you can visually edit the values of your struct live.
@@ -55,7 +55,7 @@ pub mod options {
 }
 
 #[non_exhaustive]
-#[derive(Default)]
+#[derive(Default, Debug)]
 /// This type is passed to the [`Inspectable::ui`](Inspectable::ui) method
 /// to give access to the attributes specified in the `#[derive(Inspectable)]`.
 /// For an example of defining custom attributes, see the [docs of Inspectable](Inspectable::FieldOptions).

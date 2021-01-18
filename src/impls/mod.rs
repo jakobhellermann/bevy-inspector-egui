@@ -3,6 +3,7 @@ use bevy::render::color::Color;
 use bevy_egui::egui;
 use egui::widgets;
 
+#[derive(Debug)]
 pub struct NumberAttributes {
     pub min: f32,
     pub max: f32,
@@ -49,7 +50,7 @@ impl Inspectable for bool {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ColorOptions {
     pub alpha: bool,
 }
