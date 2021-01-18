@@ -17,14 +17,22 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
             .partition(InspectableAttribute::is_builtin);
         
 
+        // builtins
         let mut collapse = false;
+        let mut custom_label = None;
         for builtin_attribute in builtin_attributes {
             match builtin_attribute {
                 InspectableAttribute::Tag(ident) if ident == "collapse" => collapse = true,
+                InspectableAttribute::Assignment(ident, expr) if ident == "label" => custom_label = Some(expr),
                 InspectableAttribute::Tag(name) | InspectableAttribute::Assignment(name, _) => panic!("unknown attributes '{}'", name),
             }
         }
+        let field_label  = match custom_label {
+            Some(label) => label.to_token_stream(),
+            None => quote! { #field_label },
+        };
 
+        // user specified options
         let custom_options = custom_attributes.iter().fold(
             quote! {let mut custom_options = <#ty as bevy_inspector_egui::Inspectable>::FieldOptions::default();},
             |acc,attribute| {

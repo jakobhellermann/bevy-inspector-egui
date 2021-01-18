@@ -6,6 +6,7 @@ struct Data {
     #[inspectable(min = 10.0, max = 70.0)]
     font_size: f32,
     text: String,
+    #[inspectable(label = "Display Square")]
     show_square: bool,
     color: Color,
     #[inspectable(min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]

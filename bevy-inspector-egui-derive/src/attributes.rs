@@ -3,11 +3,15 @@ pub enum InspectableAttribute {
     Tag(syn::Ident),
 }
 impl InspectableAttribute {
-    pub fn is_builtin(&self) -> bool {
+    fn ident(&self) -> &syn::Ident {
         match self {
-            InspectableAttribute::Assignment(_, _) => false,
-            InspectableAttribute::Tag(ident) => ident == "collapse",
+            InspectableAttribute::Assignment(ident, _) => ident,
+            InspectableAttribute::Tag(ident) => ident,
         }
+    }
+    pub fn is_builtin(&self) -> bool {
+        let ident = self.ident();
+        ident == "label" || ident == "collapse"
     }
 }
 
