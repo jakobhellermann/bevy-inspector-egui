@@ -7,6 +7,10 @@ pub use bevy_egui::egui;
 pub use bevy_inspector_egui_derive::Inspectable;
 pub use plugin::InspectorPlugin;
 
+pub mod options {
+    pub use crate::impls::*;
+}
+
 #[non_exhaustive]
 #[derive(Default)]
 pub struct Options<T> {

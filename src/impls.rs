@@ -1,4 +1,5 @@
 use crate::{InspectableWidget, Options};
+use bevy::render::color::Color;
 use bevy_egui::egui;
 use egui::widgets;
 
@@ -45,5 +46,35 @@ impl InspectableWidget for bool {
     type FieldOptions = ();
     fn ui(&mut self, ui: &mut egui::Ui, _: Options<Self::FieldOptions>) {
         ui.checkbox(self, "");
+    }
+}
+
+#[derive(Default)]
+pub struct ColorOptions {
+    pub alpha: bool,
+}
+
+impl InspectableWidget for Color {
+    type FieldOptions = ColorOptions;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+        let old: [f32; 4] = (*self).into();
+
+        if options.custom.alpha {
+            let mut color = egui::color::Color32::from_rgba_premultiplied(
+                (old[0] * u8::MAX as f32) as u8,
+                (old[1] * u8::MAX as f32) as u8,
+                (old[2] * u8::MAX as f32) as u8,
+                (old[3] * u8::MAX as f32) as u8,
+            );
+            ui.color_edit_button_srgba(&mut color);
+            let [r, g, b, a] = color.to_array();
+            *self = Color::rgba_u8(r, g, b, a);
+        } else {
+            let mut color = [old[0], old[1], old[2]];
+            ui.color_edit_button_rgb(&mut color);
+            let [r, g, b] = color;
+            *self = Color::rgb(r, g, b);
+        }
     }
 }
