@@ -1,6 +1,6 @@
 [package]
 name = "bevy-inspector-egui"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Jakob Hellermann <jakob.hellermann@protonmail.com>"]
 edition = "2018"
 repository = "https://github.com/jakobhellermann/bevy-inspector-egui/"
@@ -16,7 +16,7 @@ nightly = []
 
 [dependencies]
 bevy = { version = "0.4", default-features = false }
-bevy_egui = "0.1"
+bevy_egui = { version = "0.1", default-features = false }
 
 bevy-inspector-egui-derive = { path = "bevy-inspector-egui-derive" }
 # bevy-inspector-egui-derive = "0.1"
