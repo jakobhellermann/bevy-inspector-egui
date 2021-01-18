@@ -75,11 +75,20 @@ macro_rules! impl_for_num {
 
 impl_for_num!(f32, f64, u8, i32);
 
-impl Inspectable for String {
-    type FieldOptions = ();
+#[derive(Clone, Debug, Default)]
+pub struct StringAttributes {
+    pub multiline: bool,
+}
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Options<Self::FieldOptions>) {
-        let widget = widgets::TextEdit::singleline(self);
+impl Inspectable for String {
+    type FieldOptions = StringAttributes;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+        let widget = match options.custom.multiline {
+            false => widgets::TextEdit::singleline(self),
+            true => widgets::TextEdit::multiline(self),
+        };
+
         ui.add(widget);
     }
 }
