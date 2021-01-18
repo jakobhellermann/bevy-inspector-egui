@@ -91,6 +91,27 @@ impl Inspectable for Color {
     }
 }
 
+impl<T> Inspectable for Vec<T>
+where
+    T: Inspectable + Default,
+    T::FieldOptions: Clone,
+{
+    type FieldOptions = <T as Inspectable>::FieldOptions;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+        ui.vertical(|ui| {
+            for val in self.iter_mut() {
+                val.ui(ui, options.clone());
+            }
+            ui.vertical_centered_justified(|ui| {
+                if ui.button("+").clicked {
+                    self.push(T::default());
+                }
+            });
+        });
+    }
+}
+
 #[cfg(feature = "nightly")]
 impl<T: Inspectable, const N: usize> Inspectable for [T; N]
 where

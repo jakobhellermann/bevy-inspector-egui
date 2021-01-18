@@ -14,6 +14,7 @@ struct Data {
     #[inspectable(min = 42.0, max = 100.0, speed = 2.0)] // attributes get passed to each child
     list: [f32; 2],
     custom_enum: CustomEnum,
+    vector: Vec<String>,
     #[inspectable(collapse)]
     noise_settings: NoiseSettings,
 }
