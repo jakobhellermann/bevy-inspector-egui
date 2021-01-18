@@ -1,20 +1,18 @@
 mod impls;
 
-use bevy_egui::egui;
+#[doc(hidden)]
+pub use bevy_egui::egui;
 
+pub use bevy_inspector_egui_derive::Inspectable;
+
+#[non_exhaustive]
+#[derive(Default)]
 pub struct Options<T> {
-    label: &'static str,
-    custom: T,
+    pub custom: T,
 }
 impl<T: Default> Options<T> {
-    pub fn default(label: &'static str) -> Self {
-        Options {
-            label,
-            custom: T::default(),
-        }
-    }
-    pub fn new(label: &'static str, custom: T) -> Self {
-        Options { label, custom }
+    pub fn new(custom: T) -> Self {
+        Options { custom }
     }
 }
 

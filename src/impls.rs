@@ -43,7 +43,7 @@ impl InspectableWidget for String {
 
 impl InspectableWidget for bool {
     type FieldOptions = ();
-    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
-        ui.checkbox(self, options.label);
+    fn ui(&mut self, ui: &mut egui::Ui, _: Options<Self::FieldOptions>) {
+        ui.checkbox(self, "");
     }
 }
