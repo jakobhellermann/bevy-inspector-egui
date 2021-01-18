@@ -1,3 +1,8 @@
+mod vec;
+
+#[allow(unreachable_pub)] // it _is_ imported, but rustc does not seem to realize that
+pub use vec::Vec2dAttributes;
+
 use crate::{Inspectable, Options};
 use bevy::render::color::Color;
 use bevy_egui::egui;

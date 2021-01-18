@@ -8,8 +8,8 @@ struct Data {
     text: String,
     show_square: bool,
     color: Color,
-    // #[inspectable(min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
-    // position: Vec2,
+    #[inspectable(min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
+    position: Vec2,
     // list: [Vec2; 3],
     custom_enum: CustomEnum,
 }
