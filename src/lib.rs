@@ -1,9 +1,11 @@
 mod impls;
+mod plugin;
 
 #[doc(hidden)]
 pub use bevy_egui::egui;
 
 pub use bevy_inspector_egui_derive::Inspectable;
+pub use plugin::InspectorPlugin;
 
 #[non_exhaustive]
 #[derive(Default)]
