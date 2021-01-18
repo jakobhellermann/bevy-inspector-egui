@@ -108,6 +108,8 @@ impl NumberAttributes<Vec3> {
             min: self.min.x,
             max: self.max.x,
             step: self.step.x,
+            prefix: self.prefix.clone(),
+            suffix: self.suffix.clone(),
         }
     }
     fn y(&self) -> NumberAttributes<f32> {
@@ -115,6 +117,8 @@ impl NumberAttributes<Vec3> {
             min: self.min.y,
             max: self.max.y,
             step: self.step.y,
+            prefix: self.prefix.clone(),
+            suffix: self.suffix.clone(),
         }
     }
     fn z(&self) -> NumberAttributes<f32> {
@@ -122,6 +126,8 @@ impl NumberAttributes<Vec3> {
             min: self.min.z,
             max: self.max.z,
             step: self.step.z,
+            prefix: self.prefix.clone(),
+            suffix: self.suffix.clone(),
         }
     }
 }

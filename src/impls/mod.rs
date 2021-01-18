@@ -13,6 +13,8 @@ pub struct NumberAttributes<T> {
     pub min: T,
     pub max: T,
     pub step: T,
+    pub prefix: String,
+    pub suffix: String,
 }
 impl<T: Default> Default for NumberAttributes<T> {
     fn default() -> Self {
@@ -20,6 +22,8 @@ impl<T: Default> Default for NumberAttributes<T> {
             min: T::default(),
             max: T::default(),
             step: T::default(),
+            prefix: "".into(),
+            suffix: "".into(),
         }
     }
 }
@@ -31,6 +35,13 @@ macro_rules! impl_for_num {
 
             fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
                 let mut widget = widgets::DragValue::$ty(self);
+
+                if !options.custom.prefix.is_empty() {
+                    widget = widget.prefix(options.custom.prefix);
+                }
+                if !options.custom.suffix.is_empty() {
+                    widget = widget.suffix(options.custom.suffix);
+                }
 
                 if options.custom.min != options.custom.max {
                     widget = widget.range(options.custom.min..=options.custom.max);
