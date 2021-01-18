@@ -13,7 +13,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
 
         let attributes = crate::attributes::inspectable_attributes(&field.attrs);
         let custom_options = attributes.fold(
-            quote! {let mut custom_options = <#ty as bevy_inspector_egui::InspectableWidget>::FieldOptions::default();},
+            quote! {let mut custom_options = <#ty as bevy_inspector_egui::Inspectable>::FieldOptions::default();},
             |acc, (name, expr)| {
                 quote! {
                     #acc
@@ -26,13 +26,13 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
             ui.label(#field_label);
             #custom_options
             let options = bevy_inspector_egui::Options::new(custom_options);
-            <#ty as bevy_inspector_egui::InspectableWidget>::ui(&mut self.#accessor, ui, options);
+            <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options);
             ui.end_row();
         }
     });
 
     quote! {
-        impl bevy_inspector_egui::InspectableWidget for #name {
+        impl bevy_inspector_egui::Inspectable for #name {
             type FieldOptions = ();
 
 

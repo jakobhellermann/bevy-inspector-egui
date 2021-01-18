@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
-use crate::{InspectableWidget, Options};
+use crate::{Inspectable, Options};
 
 #[derive(Default)]
 /// Bevy plugin for the inspector.
@@ -18,7 +18,7 @@ impl<T> InspectorPlugin<T> {
 
 impl<T> Plugin for InspectorPlugin<T>
 where
-    T: InspectableWidget + Default + Send + Sync + 'static,
+    T: Inspectable + Default + Send + Sync + 'static,
 {
     fn build(&self, app: &mut AppBuilder) {
         app.add_plugin(EguiPlugin)
@@ -29,7 +29,7 @@ where
 
 fn ui<T>(mut egui_context: ResMut<EguiContext>, mut data: ResMut<T>)
 where
-    T: InspectableWidget + Send + Sync + 'static,
+    T: Inspectable + Send + Sync + 'static,
 {
     let ctx = &mut egui_context.ctx;
 

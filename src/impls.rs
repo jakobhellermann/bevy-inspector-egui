@@ -1,4 +1,4 @@
-use crate::{InspectableWidget, Options};
+use crate::{Inspectable, Options};
 use bevy::render::color::Color;
 use bevy_egui::egui;
 use egui::widgets;
@@ -15,7 +15,7 @@ impl Default for NumberAttributes {
 
 macro_rules! impl_for_num {
     ($ty:ident) => {
-        impl InspectableWidget for $ty {
+        impl Inspectable for $ty {
             type FieldOptions = NumberAttributes;
 
             fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
@@ -33,7 +33,7 @@ macro_rules! impl_for_num {
 
 impl_for_num!(f32, f64, u8, i32);
 
-impl InspectableWidget for String {
+impl Inspectable for String {
     type FieldOptions = ();
 
     fn ui(&mut self, ui: &mut egui::Ui, _: Options<Self::FieldOptions>) {
@@ -42,7 +42,7 @@ impl InspectableWidget for String {
     }
 }
 
-impl InspectableWidget for bool {
+impl Inspectable for bool {
     type FieldOptions = ();
     fn ui(&mut self, ui: &mut egui::Ui, _: Options<Self::FieldOptions>) {
         ui.checkbox(self, "");
@@ -54,7 +54,7 @@ pub struct ColorOptions {
     pub alpha: bool,
 }
 
-impl InspectableWidget for Color {
+impl Inspectable for Color {
     type FieldOptions = ColorOptions;
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {

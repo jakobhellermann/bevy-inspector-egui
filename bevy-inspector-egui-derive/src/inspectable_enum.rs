@@ -17,7 +17,7 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
     });
 
     quote! {
-        impl bevy_inspector_egui::InspectableWidget for #name {
+        impl bevy_inspector_egui::Inspectable for #name {
             type FieldOptions = ();
 
 

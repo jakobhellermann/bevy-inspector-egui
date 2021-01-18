@@ -45,7 +45,7 @@ mod plugin;
 
 pub use bevy_egui::egui;
 
-/// Derives the [`InspectableWidget`](InspectableWidget) trait.
+/// Derives the [`Inspectable`](Inspectable) trait.
 pub use bevy_inspector_egui_derive::Inspectable;
 pub use plugin::InspectorPlugin;
 
@@ -56,9 +56,9 @@ pub mod options {
 
 #[non_exhaustive]
 #[derive(Default)]
-/// This type is passed to the [`InspectableWidget::ui`](InspectableWidget::ui) method
+/// This type is passed to the [`Inspectable::ui`](Inspectable::ui) method
 /// to give access to the attributes specified in the `#[derive(Inspectable)]`.
-/// For an example of defining custom attributes, see the [docs of InspectableWidget](InspectableWidget::FieldOptions).
+/// For an example of defining custom attributes, see the [docs of Inspectable](Inspectable::FieldOptions).
 pub struct Options<T> {
     /// The user defined options
     pub custom: T,
@@ -72,16 +72,16 @@ impl<T: Default> Options<T> {
 
 /// This trait describes how a struct should be displayed.
 /// It can be derived for structs and enums, see the [crate-level docs](index.html) for how to do that.
-pub trait InspectableWidget {
+pub trait Inspectable {
     /// The `FieldOptions` associated type specifies what attributes can be passed to a field.
     /// See the following snippet for an example:
     /// ```rust
-    /// # use bevy_inspector_egui::{egui, InspectableWidget, Inspectable, Options};
+    /// # use bevy_inspector_egui::{egui, Inspectable, Options};
     /// struct MyCustomType;
     /// # #[derive(Default)]
     /// struct MyWidgetOptions { a: f32, b: Option<String> }
     ///
-    /// impl InspectableWidget for MyCustomType {
+    /// impl Inspectable for MyCustomType {
     ///   type FieldOptions = MyWidgetOptions;
     ///
     ///   fn ui(&mut self, _: &mut egui::Ui, options: Options<MyWidgetOptions>) {
