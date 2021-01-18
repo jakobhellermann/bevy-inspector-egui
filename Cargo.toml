@@ -3,6 +3,13 @@ name = "bevy-inspector-egui"
 version = "0.1.0"
 authors = ["Jakob Hellermann <jakob.hellermann@protonmail.com>"]
 edition = "2018"
+repository = "https://github.com/jakobhellermann/bevy-inspector-egui/"
+readme = "README.md"
+license = "MIT"
+description = "Inspector plugin for the bevy game engine"
+keywords = ["bevy", "inspector", "visual", "editor", "game"]
+categories = ["development-tools::procedural-macro-helpers", "game-development", "gui", "visualization"]
+
 
 [features]
 nightly = []
