@@ -1,3 +1,4 @@
+mod bevy_impls;
 mod vec;
 
 #[allow(unreachable_pub)] // it _is_ imported, but rustc does not seem to realize that
@@ -24,6 +25,17 @@ impl<T: Default> Default for NumberAttributes<T> {
             step: T::default(),
             prefix: "".into(),
             suffix: "".into(),
+        }
+    }
+}
+impl<T> NumberAttributes<T> {
+    fn map<U>(&self, f: impl Fn(&T) -> U) -> NumberAttributes<U> {
+        NumberAttributes {
+            min: f(&self.min),
+            max: f(&self.max),
+            step: f(&self.step),
+            prefix: self.prefix.clone(),
+            suffix: self.suffix.clone(),
         }
     }
 }

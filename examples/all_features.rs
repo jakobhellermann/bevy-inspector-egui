@@ -3,7 +3,7 @@ use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 
 #[derive(Inspectable, Debug, Default)]
 struct Data {
-    #[inspectable(min = 10.0, max = 70.0)]
+    #[inspectable(min = 10.0, max = 70.0, suffix = "pt".into())]
     font_size: f32,
     text: String,
     #[inspectable(label = "Display Square")]
@@ -15,7 +15,7 @@ struct Data {
     list: [f32; 2],
     custom_enum: CustomEnum,
     vector: Vec<String>,
-    #[inspectable(min = Vec3::zero(), max = Vec3::splat(128.0), step = Vec3::new(0.0, 1.0, 0.0), suffix = "m".into())]
+    #[inspectable(min = Vec3::zero(), max = Vec3::splat(128.0), step = Vec3::new(0.0, 1.0, 0.0))]
     vec3: Vec3,
     #[inspectable(collapse)]
     noise_settings: NoiseSettings,

@@ -70,7 +70,7 @@ impl<T: Default> Options<T> {
     }
 }
 impl<T> Options<T> {
-    fn map_ref<U>(&self, f: impl Fn(&T) -> U) -> Options<U> {
+    fn map<U>(&self, f: impl Fn(&T) -> U) -> Options<U> {
         Options {
             custom: f(&self.custom),
         }
