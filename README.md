@@ -22,6 +22,8 @@ which opens a debug interface using [egui](https://github.com/emilk/egui) where 
 
 Your struct will then be available to you as a bevy resource.
 
+<img src="./docs/inspector.jpg" alt="demonstration with a running bevy app" width="500"/>
+
 ## Example
 ```rust
 use bevy_inspector_egui::Inspectable;
