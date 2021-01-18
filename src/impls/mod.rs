@@ -101,12 +101,12 @@ impl Inspectable for bool {
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct ColorOptions {
+pub struct ColorAttributes {
     pub alpha: bool,
 }
 
 impl Inspectable for Color {
-    type FieldOptions = ColorOptions;
+    type FieldOptions = ColorAttributes;
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
         let old: [f32; 4] = (*self).into();

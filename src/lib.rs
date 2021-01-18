@@ -37,8 +37,6 @@
 //! ```
 //!
 
-// TODO document attributes
-
 #![allow(missing_docs)]
 mod impls;
 mod plugin;
@@ -49,7 +47,7 @@ pub use bevy_egui::egui;
 pub use bevy_inspector_egui_derive::Inspectable;
 pub use plugin::InspectorPlugin;
 
-/// Option types for the built-in widget implementations
+/// Attributes for the built-in [`Inspectable`](Inspectable) implementations
 pub mod options {
     pub use crate::impls::*;
 }
