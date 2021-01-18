@@ -11,6 +11,19 @@ struct Data {
     // #[inspectable(min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
     // position: Vec2,
     // list: [Vec2; 3],
+    custom_enum: CustomEnum,
+}
+
+#[derive(Inspectable, Debug, PartialEq)]
+enum CustomEnum {
+    A,
+    B,
+    C,
+}
+impl Default for CustomEnum {
+    fn default() -> Self {
+        CustomEnum::A
+    }
 }
 
 fn main() {
