@@ -12,14 +12,14 @@ use egui::widgets;
 pub struct NumberAttributes {
     pub min: f32,
     pub max: f32,
-    pub speed: f32,
+    pub step: f32,
 }
 impl Default for NumberAttributes {
     fn default() -> Self {
         NumberAttributes {
             min: 0.0,
             max: 1.0,
-            speed: 0.1,
+            step: 0.1,
         }
     }
 }
@@ -32,7 +32,7 @@ macro_rules! impl_for_num {
             fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
                 let widget = widgets::DragValue::$ty(self)
                     .range(options.custom.min..=options.custom.max)
-                    .speed(options.custom.speed);
+                    .speed(options.custom.step);
                 ui.add(widget);
             }
         }

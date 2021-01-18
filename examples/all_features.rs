@@ -11,7 +11,7 @@ struct Data {
     color: Color,
     #[inspectable(min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
     position: Vec2,
-    #[inspectable(min = 42.0, max = 100.0, speed = 2.0)] // attributes get passed to each child
+    #[inspectable(min = 42.0, max = 100.0, step = 2.0)] // attributes get passed to each child
     list: [f32; 2],
     custom_enum: CustomEnum,
     vector: Vec<String>,
