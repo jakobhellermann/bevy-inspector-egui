@@ -9,17 +9,17 @@ use bevy_egui::egui;
 use egui::widgets;
 
 #[derive(Debug, Clone)]
-pub struct NumberAttributes {
-    pub min: f32,
-    pub max: f32,
-    pub step: f32,
+pub struct NumberAttributes<T> {
+    pub min: T,
+    pub max: T,
+    pub step: T,
 }
-impl Default for NumberAttributes {
+impl<T: Default> Default for NumberAttributes<T> {
     fn default() -> Self {
         NumberAttributes {
-            min: 0.0,
-            max: 1.0,
-            step: 0.1,
+            min: T::default(),
+            max: T::default(),
+            step: T::default(),
         }
     }
 }
@@ -27,12 +27,19 @@ impl Default for NumberAttributes {
 macro_rules! impl_for_num {
     ($ty:ident) => {
         impl Inspectable for $ty {
-            type FieldOptions = NumberAttributes;
+            type FieldOptions = NumberAttributes<f32>;
 
             fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
-                let widget = widgets::DragValue::$ty(self)
-                    .range(options.custom.min..=options.custom.max)
-                    .speed(options.custom.step);
+                let mut widget = widgets::DragValue::$ty(self);
+
+                if options.custom.min != options.custom.max {
+                    widget = widget.range(options.custom.min..=options.custom.max);
+                }
+
+                if options.custom.step != 0. {
+                    widget = widget.speed(options.custom.step);
+                }
+
                 ui.add(widget);
             }
         }

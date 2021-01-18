@@ -69,6 +69,13 @@ impl<T: Default> Options<T> {
         Options { custom }
     }
 }
+impl<T> Options<T> {
+    fn map_ref<U>(&self, f: impl Fn(&T) -> U) -> Options<U> {
+        Options {
+            custom: f(&self.custom),
+        }
+    }
+}
 
 /// This trait describes how a struct should be displayed.
 /// It can be derived for structs and enums, see the [crate-level docs](index.html) for how to do that.

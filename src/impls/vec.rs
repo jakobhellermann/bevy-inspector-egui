@@ -1,9 +1,11 @@
 use std::ops::RangeInclusive;
 
-use crate::Inspectable;
-use bevy::math::Vec2;
+use crate::{Inspectable, Options};
+use bevy::math::{Vec2, Vec3};
 use bevy_egui::egui::{self, containers, Rect};
 use egui::{Pos2, Sense, Widget};
+
+use super::NumberAttributes;
 
 #[derive(Debug, Clone)]
 pub struct Vec2dAttributes {
@@ -22,7 +24,7 @@ impl Default for Vec2dAttributes {
 impl Inspectable for Vec2 {
     type FieldOptions = Vec2dAttributes;
 
-    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: crate::Options<Self::FieldOptions>) {
+    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Options<Self::FieldOptions>) {
         let mut frame = containers::Frame::dark_canvas(&ui.style());
         frame.margin = egui::Vec2::zero();
 
@@ -97,5 +99,45 @@ impl Widget for PointSelect<'_> {
         }
 
         response
+    }
+}
+
+impl NumberAttributes<Vec3> {
+    fn x(&self) -> NumberAttributes<f32> {
+        NumberAttributes {
+            min: self.min.x,
+            max: self.max.x,
+            step: self.step.x,
+        }
+    }
+    fn y(&self) -> NumberAttributes<f32> {
+        NumberAttributes {
+            min: self.min.y,
+            max: self.max.y,
+            step: self.step.y,
+        }
+    }
+    fn z(&self) -> NumberAttributes<f32> {
+        NumberAttributes {
+            min: self.min.z,
+            max: self.max.z,
+            step: self.step.z,
+        }
+    }
+}
+
+impl Inspectable for Vec3 {
+    type FieldOptions = NumberAttributes<Vec3>;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+        ui.wrap(|ui| {
+            ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
+
+            ui.columns(3, |ui| {
+                self.x.ui(&mut ui[0], options.map_ref(NumberAttributes::x));
+                self.y.ui(&mut ui[1], options.map_ref(NumberAttributes::y));
+                self.z.ui(&mut ui[2], options.map_ref(NumberAttributes::z));
+            });
+        });
     }
 }
