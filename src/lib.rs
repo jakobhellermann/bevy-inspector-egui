@@ -55,7 +55,7 @@ pub mod options {
 }
 
 #[non_exhaustive]
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 /// This type is passed to the [`Inspectable::ui`](Inspectable::ui) method
 /// to give access to the attributes specified in the `#[derive(Inspectable)]`.
 /// For an example of defining custom attributes, see the [docs of Inspectable](Inspectable::FieldOptions).

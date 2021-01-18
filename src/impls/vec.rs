@@ -5,7 +5,7 @@ use bevy::math::Vec2;
 use bevy_egui::egui::{self, containers, Rect};
 use egui::{Pos2, Sense, Widget};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Vec2dAttributes {
     pub min: Vec2,
     pub max: Vec2,

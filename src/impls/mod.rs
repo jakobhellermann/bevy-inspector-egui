@@ -8,7 +8,7 @@ use bevy::render::color::Color;
 use bevy_egui::egui;
 use egui::widgets;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NumberAttributes {
     pub min: f32,
     pub max: f32,
@@ -61,7 +61,7 @@ impl Inspectable for bool {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct ColorOptions {
     pub alpha: bool,
 }
@@ -88,5 +88,24 @@ impl Inspectable for Color {
             let [r, g, b] = color;
             *self = Color::rgb(r, g, b);
         }
+    }
+}
+
+#[cfg(feature = "nightly")]
+impl<T: Inspectable, const N: usize> Inspectable for [T; N]
+where
+    T::FieldOptions: Clone,
+{
+    type FieldOptions = <T as Inspectable>::FieldOptions;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+        ui.vertical(|ui| {
+            for (i, val) in self.iter_mut().enumerate() {
+                ui.horizontal(|ui| {
+                    ui.label(i.to_string());
+                    val.ui(ui, options.clone());
+                });
+            }
+        });
     }
 }

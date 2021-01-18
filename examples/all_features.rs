@@ -11,7 +11,8 @@ struct Data {
     color: Color,
     #[inspectable(min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
     position: Vec2,
-    // list: [Vec2; 3],
+    #[inspectable(min = 42.0, max = 100.0, speed = 2.0)] // attributes get passed to each child
+    list: [f32; 2],
     custom_enum: CustomEnum,
     #[inspectable(collapse)]
     noise_settings: NoiseSettings,

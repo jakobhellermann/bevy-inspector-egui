@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Jakob Hellermann <jakob.hellermann@protonmail.com>"]
 edition = "2018"
 
+[features]
+nightly = []
+
 [dependencies]
 bevy = { version = "0.4", default-features = false }
 bevy_egui = "0.1"
@@ -12,3 +15,7 @@ bevy-inspector-egui-derive = { path = "bevy-inspector-egui-derive" }
 
 [dev-dependencies]
 bevy = { version = "0.4", default-features = false, features = ["x11", "render", "bevy_wgpu", "bevy_winit"] }
+
+[[example]]
+name = "all_features"
+required-features = ["nightly"]
