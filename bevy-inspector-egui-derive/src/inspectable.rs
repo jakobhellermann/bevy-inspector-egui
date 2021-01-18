@@ -11,9 +11,20 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         let field_label = field_label(field, i);
         let accessor = field_accessor(field, i);
 
+        let attributes = crate::attributes::inspectable_attributes(&field.attrs);
+        let custom_options = attributes.fold(
+            quote! {let mut custom_options = <#ty as InspectableWidget>::FieldOptions::default();},
+            |acc, (name, expr)| {
+                quote! {
+                    #acc
+                    custom_options.#name = #expr;
+                }
+            },
+        );
+
         quote! {
             ui.label(#field_label);
-            let custom_options = <#ty as InspectableWidget>::FieldOptions::default();
+            #custom_options
             let options = Options::new(custom_options);
             <#ty as InspectableWidget>::ui(&mut self.#accessor, ui, options);
             ui.end_row();

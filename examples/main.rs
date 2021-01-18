@@ -3,8 +3,8 @@ use bevy_inspector_egui::{Inspectable, InspectableWidget, InspectorPlugin, Optio
 
 #[derive(Inspectable, Debug, Default)]
 struct Data {
+    #[inspectable(min = 10.0, max = 70.0)]
     font_size: f32,
-    // #[inspectable(min = 10.0, max = 70.0)]
     text: String,
     show_square: bool,
     // text_color: TextColor,

@@ -1,3 +1,4 @@
+mod attributes;
 mod inspectable;
 
 #[proc_macro_derive(Inspectable, attributes(inspectable))]
