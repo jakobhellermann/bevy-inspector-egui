@@ -9,6 +9,8 @@ struct Data {
     #[inspectable(label = "Display Square")]
     show_square: bool,
     color: Color,
+    #[inspectable(collapse)]
+    noise_settings: NoiseSettings,
     #[inspectable(min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
     position: Vec2,
     #[inspectable(min = 42.0, max = 100.0, step = 2.0)] // attributes get passed to each child
@@ -17,8 +19,7 @@ struct Data {
     vector: Vec<String>,
     #[inspectable(min = Vec3::zero(), max = Vec3::splat(128.0), step = Vec3::new(0.0, 1.0, 0.0))]
     vec3: Vec3,
-    #[inspectable(collapse)]
-    noise_settings: NoiseSettings,
+    transform: Transform,
 }
 
 #[derive(Inspectable, Debug, PartialEq)]
