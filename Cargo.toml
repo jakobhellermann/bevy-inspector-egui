@@ -19,6 +19,7 @@ bevy = { version = "0.4", default-features = false }
 bevy_egui = "0.1"
 
 bevy-inspector-egui-derive = { path = "bevy-inspector-egui-derive" }
+# bevy-inspector-egui-derive = "0.1"
 
 [dev-dependencies]
 bevy = { version = "0.4", default-features = false, features = ["x11", "render", "bevy_wgpu", "bevy_winit"] }
