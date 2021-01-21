@@ -15,6 +15,9 @@
   }
   ```
 
+### Fixed
+- [normalize quaternion in `Transform` so that it stays a valid rotation](https://github.com/jakobhellermann/bevy-inspector-egui/commit/48fce89f7692408bad4841b126f7e68d8995fffd)
+
 ## Version 0.1.0 (2021-01-18)
 
 ### Added
