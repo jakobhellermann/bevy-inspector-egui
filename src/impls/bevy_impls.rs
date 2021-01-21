@@ -18,20 +18,21 @@ impl Inspectable for Transform {
     type Attributes = ();
 
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, _options: Self::Attributes) {
-        let id = "asdf";
-        Grid::new(id).show(ui, |ui| {
-            ui.label("Translation");
-            self.translation.ui(ui, Default::default());
-            ui.end_row();
+        ui.vertical_centered(|ui| {
+            Grid::new(std::any::TypeId::of::<Transform>()).show(ui, |ui| {
+                ui.label("Translation");
+                self.translation.ui(ui, Default::default());
+                ui.end_row();
 
-            ui.label("Rotation");
-            self.rotation.ui(ui, Default::default());
-            self.rotation = self.rotation.normalize();
-            ui.end_row();
+                ui.label("Rotation");
+                self.rotation.ui(ui, Default::default());
+                self.rotation = self.rotation.normalize();
+                ui.end_row();
 
-            ui.label("Scale");
-            self.scale.ui(ui, Default::default());
-            ui.end_row();
+                ui.label("Scale");
+                self.scale.ui(ui, Default::default());
+                ui.end_row();
+            });
         });
     }
 }
