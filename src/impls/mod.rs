@@ -13,7 +13,8 @@ use egui::widgets;
 pub struct NumberAttributes<T> {
     pub min: T,
     pub max: T,
-    pub step: T,
+    /// How much the value changes when dragged one logical pixel.
+    pub speed: f32,
     pub prefix: String,
     pub suffix: String,
 }
@@ -22,7 +23,7 @@ impl<T: Default> Default for NumberAttributes<T> {
         NumberAttributes {
             min: T::default(),
             max: T::default(),
-            step: T::default(),
+            speed: 0.0,
             prefix: "".into(),
             suffix: "".into(),
         }
@@ -33,7 +34,7 @@ impl<T> NumberAttributes<T> {
         NumberAttributes {
             min: f(&self.min),
             max: f(&self.max),
-            step: f(&self.step),
+            speed: self.speed,
             prefix: self.prefix.clone(),
             suffix: self.suffix.clone(),
         }
@@ -41,7 +42,7 @@ impl<T> NumberAttributes<T> {
 }
 
 macro_rules! impl_for_num {
-    ($ty:ident) => {
+    ($ty:ident $(default_speed=$default_speed:expr)? ) => {
         impl Inspectable for $ty {
             type FieldOptions = NumberAttributes<f32>;
 
@@ -56,24 +57,26 @@ macro_rules! impl_for_num {
                 }
 
                 if options.custom.min != options.custom.max {
-                    widget = widget.range(options.custom.min..=options.custom.max);
+                    widget = widget.range(options.custom.min as f32..=options.custom.max as f32);
                 }
 
-                if options.custom.step != 0. {
-                    widget = widget.speed(options.custom.step);
-                }
+                if options.custom.speed != 0.0 {
+                    widget = widget.speed(options.custom.speed);
+                } $(else {
+                    widget = widget.speed($default_speed);
+                })?
 
                 ui.add(widget);
             }
         }
     };
-
-    ($($ty:ident),*) => {
-        $(impl_for_num!($ty);)*
-    }
 }
 
-impl_for_num!(f32, f64, u8, i32);
+impl_for_num!(f32 default_speed = 0.1);
+impl_for_num!(f64 default_speed = 0.1);
+
+impl_for_num!(u8);
+impl_for_num!(i32);
 
 #[derive(Clone, Debug, Default)]
 pub struct StringAttributes {

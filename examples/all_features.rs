@@ -13,11 +13,11 @@ struct Data {
     noise_settings: NoiseSettings,
     #[inspectable(min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
     position: Vec2,
-    #[inspectable(min = 42.0, max = 100.0, step = 2.0)] // attributes get passed to each child
+    #[inspectable(min = 42.0, max = 100.0)] // attributes get passed to each child
     list: [f32; 2],
     custom_enum: CustomEnum,
     vector: Vec<String>,
-    #[inspectable(min = Vec3::zero(), max = Vec3::splat(128.0), step = Vec3::new(0.0, 1.0, 0.0))]
+    #[inspectable(min = Vec3::zero(), max = Vec3::splat(128.0))]
     vec3: Vec3,
     transform: Transform,
 }
