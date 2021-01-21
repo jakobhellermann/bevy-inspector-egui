@@ -52,45 +52,22 @@ pub mod options {
     pub use crate::impls::*;
 }
 
-#[non_exhaustive]
-#[derive(Default, Debug, Clone)]
-/// This type is passed to the [`Inspectable::ui`](Inspectable::ui) method
-/// to give access to the attributes specified in the `#[derive(Inspectable)]`.
-/// For an example of defining custom attributes, see the [docs of Inspectable](Inspectable::FieldOptions).
-pub struct Options<T> {
-    /// The user defined options
-    pub custom: T,
-}
-impl<T: Default> Options<T> {
-    /// Create new options
-    pub fn new(custom: T) -> Self {
-        Options { custom }
-    }
-}
-impl<T> Options<T> {
-    fn map<U>(&self, f: impl Fn(&T) -> U) -> Options<U> {
-        Options {
-            custom: f(&self.custom),
-        }
-    }
-}
-
 /// This trait describes how a struct should be displayed.
 /// It can be derived for structs and enums, see the [crate-level docs](index.html) for how to do that.
 pub trait Inspectable {
-    /// The `FieldOptions` associated type specifies what attributes can be passed to a field.
+    /// The `Attributes` associated type specifies what attributes can be passed to a field.
     /// See the following snippet for an example:
     /// ```rust
-    /// # use bevy_inspector_egui::{egui, Inspectable, Options};
+    /// # use bevy_inspector_egui::{egui, Inspectable};
     /// struct MyCustomType;
     /// # #[derive(Default)]
-    /// struct MyWidgetOptions { a: f32, b: Option<String> }
+    /// struct MyWidgetAttributes { a: f32, b: Option<String> }
     ///
     /// impl Inspectable for MyCustomType {
-    ///   type FieldOptions = MyWidgetOptions;
+    ///   type Attributes = MyWidgetAttributes;
     ///
-    ///   fn ui(&mut self, _: &mut egui::Ui, options: Options<MyWidgetOptions>) {
-    ///     println!("a = {}, b = {:?}", options.custom.a, options.custom.b);
+    ///   fn ui(&mut self, _: &mut egui::Ui, options: MyWidgetAttributes) {
+    ///     println!("a = {}, b = {:?}", options.a, options.b);
     ///   }
     /// }
     ///
@@ -102,8 +79,8 @@ pub trait Inspectable {
     ///   value: MyCustomType,
     /// }
     /// ```
-    type FieldOptions: Default;
+    type Attributes: Default;
 
     /// This methods is responsible for building the egui ui.
-    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>);
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes);
 }

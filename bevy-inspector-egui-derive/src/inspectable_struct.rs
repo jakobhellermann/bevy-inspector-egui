@@ -33,12 +33,12 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         };
 
         // user specified options
-        let custom_options = custom_attributes.iter().fold(
-            quote! {let mut custom_options = <#ty as bevy_inspector_egui::Inspectable>::FieldOptions::default();},
+        let options = custom_attributes.iter().fold(
+            quote! { let mut options = <#ty as bevy_inspector_egui::Inspectable>::Attributes::default(); },
             |acc,attribute| {
                 let assignment = match attribute {
-                    InspectableAttribute::Assignment(name, expr) => quote!{ custom_options.#name = #expr; },
-                    InspectableAttribute::Tag(name) => quote!{ custom_options.#name = true;}
+                    InspectableAttribute::Assignment(name, expr) => quote!{ options.#name = #expr; },
+                    InspectableAttribute::Tag(name) => quote!{ options.#name = true;}
                 };
                 quote! {
                     #acc
@@ -48,8 +48,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         );
 
         let ui = quote! {
-            #custom_options
-            let options = bevy_inspector_egui::Options::new(custom_options);
+            #options
             <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options);
         };
 
@@ -68,10 +67,10 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
 
     quote! {
         impl bevy_inspector_egui::Inspectable for #name {
-            type FieldOptions = ();
+            type Attributes = ();
 
 
-            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: bevy_inspector_egui::Options<Self::FieldOptions>) {
+            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes) {
                 use bevy_inspector_egui::egui;
 
                 let grid = egui::Grid::new(stringify!(#id));

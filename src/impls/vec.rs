@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use crate::{Inspectable, Options};
+use crate::Inspectable;
 use bevy::math::{Vec2, Vec3, Vec4};
 use bevy_egui::egui::{self, containers, Rect};
 use egui::{Pos2, Sense, Widget};
@@ -22,14 +22,14 @@ impl Default for Vec2dAttributes {
 }
 
 impl Inspectable for Vec2 {
-    type FieldOptions = Vec2dAttributes;
+    type Attributes = Vec2dAttributes;
 
-    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Options<Self::FieldOptions>) {
+    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes) {
         let mut frame = containers::Frame::dark_canvas(&ui.style());
         frame.margin = egui::Vec2::zero();
 
         frame.show(ui, |ui| {
-            let range = options.custom.min..=options.custom.max;
+            let range = options.min..=options.max;
             let widget = PointSelect::new(self, range, 80.0);
             ui.add(widget);
         });
@@ -103,40 +103,33 @@ impl Widget for PointSelect<'_> {
 }
 
 impl Inspectable for Vec3 {
-    type FieldOptions = NumberAttributes<Vec3>;
+    type Attributes = NumberAttributes<Vec3>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
         ui.wrap(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
 
             ui.columns(3, |ui| {
-                self.x
-                    .ui(&mut ui[0], options.map(|opt| opt.map(|vec| vec.x)));
-                self.y
-                    .ui(&mut ui[1], options.map(|opt| opt.map(|vec| vec.x)));
-                self.z
-                    .ui(&mut ui[2], options.map(|opt| opt.map(|vec| vec.x)));
+                self.x.ui(&mut ui[0], options.map(|vec| vec.x));
+                self.y.ui(&mut ui[1], options.map(|vec| vec.x));
+                self.z.ui(&mut ui[2], options.map(|vec| vec.x));
             });
         });
     }
 }
 
 impl Inspectable for Vec4 {
-    type FieldOptions = NumberAttributes<Vec4>;
+    type Attributes = NumberAttributes<Vec4>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
         ui.wrap(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
 
             ui.columns(4, |ui| {
-                self.x
-                    .ui(&mut ui[0], options.map(|opt| opt.map(|vec| vec.x)));
-                self.y
-                    .ui(&mut ui[1], options.map(|opt| opt.map(|vec| vec.x)));
-                self.z
-                    .ui(&mut ui[2], options.map(|opt| opt.map(|vec| vec.x)));
-                self.w
-                    .ui(&mut ui[3], options.map(|opt| opt.map(|vec| vec.x)));
+                self.x.ui(&mut ui[0], options.map(|vec| vec.x));
+                self.y.ui(&mut ui[1], options.map(|vec| vec.x));
+                self.z.ui(&mut ui[2], options.map(|vec| vec.x));
+                self.w.ui(&mut ui[3], options.map(|vec| vec.x));
             });
         });
     }

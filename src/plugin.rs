@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
-use crate::{Inspectable, Options};
+use crate::Inspectable;
 
 #[derive(Default)]
 #[allow(missing_debug_implementations)]
@@ -37,6 +37,6 @@ where
     egui::Window::new("Inspector")
         .resizable(false)
         .show(ctx, |ui| {
-            data.ui(ui, Options::default());
+            data.ui(ui, T::Attributes::default());
         });
 }

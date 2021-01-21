@@ -4,7 +4,7 @@ mod vec;
 #[allow(unreachable_pub)] // it _is_ imported, but rustc does not seem to realize that
 pub use vec::Vec2dAttributes;
 
-use crate::{Inspectable, Options};
+use crate::Inspectable;
 use bevy::render::color::Color;
 use bevy_egui::egui;
 use egui::widgets;
@@ -44,24 +44,24 @@ impl<T> NumberAttributes<T> {
 macro_rules! impl_for_num {
     ($ty:ident $(default_speed=$default_speed:expr)? ) => {
         impl Inspectable for $ty {
-            type FieldOptions = NumberAttributes<$ty>;
+            type Attributes = NumberAttributes<$ty>;
 
-            fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
                 let mut widget = widgets::DragValue::$ty(self);
 
-                if !options.custom.prefix.is_empty() {
-                    widget = widget.prefix(options.custom.prefix);
+                if !options.prefix.is_empty() {
+                    widget = widget.prefix(options.prefix);
                 }
-                if !options.custom.suffix.is_empty() {
-                    widget = widget.suffix(options.custom.suffix);
-                }
-
-                if options.custom.min != options.custom.max {
-                    widget = widget.range(options.custom.min as f32..=options.custom.max as f32);
+                if !options.suffix.is_empty() {
+                    widget = widget.suffix(options.suffix);
                 }
 
-                if options.custom.speed != 0.0 {
-                    widget = widget.speed(options.custom.speed);
+                if options.min != options.max {
+                    widget = widget.range(options.min as f32..=options.max as f32);
+                }
+
+                if options.speed != 0.0 {
+                    widget = widget.speed(options.speed);
                 } $(else {
                     widget = widget.speed($default_speed);
                 })?
@@ -75,16 +75,13 @@ macro_rules! impl_for_num {
 macro_rules! impl_for_num_delegate_f64 {
     ($ty:ty) => {
         impl Inspectable for $ty {
-            type FieldOptions = NumberAttributes<$ty>;
+            type Attributes = NumberAttributes<$ty>;
 
-            fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
-                let options_f64 = options.map(|custom| {
-                    let mut custom = custom.map(|v| *v as f64);
-                    if custom.speed == 0.0 {
-                        custom.speed = 1.0;
+            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
+                let mut options_f64 = options.map(|val| *val as f64);
+                    if options_f64.speed == 0.0 {
+                        options_f64.speed = 1.0;
                     }
-                    custom
-                });
 
                 let mut value = *self as f64;
                 <f64 as Inspectable>::ui(&mut value, ui, options_f64);
@@ -114,10 +111,10 @@ pub struct StringAttributes {
 }
 
 impl Inspectable for String {
-    type FieldOptions = StringAttributes;
+    type Attributes = StringAttributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
-        let widget = match options.custom.multiline {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
+        let widget = match options.multiline {
             false => widgets::TextEdit::singleline(self),
             true => widgets::TextEdit::multiline(self),
         };
@@ -127,8 +124,8 @@ impl Inspectable for String {
 }
 
 impl Inspectable for bool {
-    type FieldOptions = ();
-    fn ui(&mut self, ui: &mut egui::Ui, _: Options<Self::FieldOptions>) {
+    type Attributes = ();
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes) {
         ui.checkbox(self, "");
     }
 }
@@ -139,12 +136,12 @@ pub struct ColorAttributes {
 }
 
 impl Inspectable for Color {
-    type FieldOptions = ColorAttributes;
+    type Attributes = ColorAttributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
         let old: [f32; 4] = (*self).into();
 
-        if options.custom.alpha {
+        if options.alpha {
             let mut color = egui::color::Color32::from_rgba_premultiplied(
                 (old[0] * u8::MAX as f32) as u8,
                 (old[1] * u8::MAX as f32) as u8,
@@ -166,11 +163,11 @@ impl Inspectable for Color {
 impl<T> Inspectable for Vec<T>
 where
     T: Inspectable + Default,
-    T::FieldOptions: Clone,
+    T::Attributes: Clone,
 {
-    type FieldOptions = <T as Inspectable>::FieldOptions;
+    type Attributes = <T as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
         ui.vertical(|ui| {
             let mut to_delete = None;
 
@@ -200,11 +197,11 @@ where
 #[cfg(feature = "nightly")]
 impl<T: Inspectable, const N: usize> Inspectable for [T; N]
 where
-    T::FieldOptions: Clone,
+    T::Attributes: Clone,
 {
-    type FieldOptions = <T as Inspectable>::FieldOptions;
+    type Attributes = <T as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
         ui.vertical(|ui| {
             for (i, val) in self.iter_mut().enumerate() {
                 ui.horizontal(|ui| {

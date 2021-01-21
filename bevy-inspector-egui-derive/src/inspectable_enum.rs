@@ -18,10 +18,10 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
 
     quote! {
         impl bevy_inspector_egui::Inspectable for #name {
-            type FieldOptions = ();
+            type Attributes = ();
 
 
-            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: bevy_inspector_egui::Options<Self::FieldOptions>) {
+            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes) {
                 use bevy_inspector_egui::egui;
 
                 let id = ui.make_persistent_id(stringify!(#id));
