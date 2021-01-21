@@ -44,7 +44,7 @@ impl<T> NumberAttributes<T> {
 macro_rules! impl_for_num {
     ($ty:ident $(default_speed=$default_speed:expr)? ) => {
         impl Inspectable for $ty {
-            type FieldOptions = NumberAttributes<f32>;
+            type FieldOptions = NumberAttributes<$ty>;
 
             fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
                 let mut widget = widgets::DragValue::$ty(self);

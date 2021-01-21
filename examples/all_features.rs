@@ -36,6 +36,7 @@ impl Default for CustomEnum {
 
 #[derive(Inspectable, Debug, Default)]
 struct NoiseSettings {
+    #[inspectable(max = 8)]
     octaves: u8,
     frequency: f32,
     lacunarity: f32,
@@ -51,6 +52,6 @@ fn main() {
 }
 
 // TODO: make ChangedRes work
-fn data(data: Res<Data>) {
-    dbg!(data);
+fn data(_data: Res<Data>) {
+    // dbg!(data);
 }
