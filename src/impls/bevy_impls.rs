@@ -26,6 +26,7 @@ impl Inspectable for Transform {
 
             ui.label("Rotation");
             self.rotation.ui(ui, Default::default());
+            self.rotation = self.rotation.normalize();
             ui.end_row();
 
             ui.label("Scale");
