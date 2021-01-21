@@ -72,11 +72,41 @@ macro_rules! impl_for_num {
     };
 }
 
+macro_rules! impl_for_num_delegate_f64 {
+    ($ty:ty) => {
+        impl Inspectable for $ty {
+            type FieldOptions = NumberAttributes<$ty>;
+
+            fn ui(&mut self, ui: &mut egui::Ui, options: Options<Self::FieldOptions>) {
+                let options_f64 = options.map(|custom| {
+                    let mut custom = custom.map(|v| *v as f64);
+                    if custom.speed == 0.0 {
+                        custom.speed = 1.0;
+                    }
+                    custom
+                });
+
+                let mut value = *self as f64;
+                <f64 as Inspectable>::ui(&mut value, ui, options_f64);
+
+                *self = value as $ty;
+            }
+        }
+    };
+
+    ( $($ty:ty),* ) => {
+        $( impl_for_num_delegate_f64!($ty); )*
+    }
+}
+
 impl_for_num!(f32 default_speed = 0.1);
 impl_for_num!(f64 default_speed = 0.1);
 
 impl_for_num!(u8);
 impl_for_num!(i32);
+
+impl_for_num_delegate_f64!(u16, u32, u64);
+impl_for_num_delegate_f64!(i8, i16, i64);
 
 #[derive(Clone, Debug, Default)]
 pub struct StringAttributes {
