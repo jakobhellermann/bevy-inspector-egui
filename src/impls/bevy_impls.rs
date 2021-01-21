@@ -35,3 +35,32 @@ impl Inspectable for Transform {
         });
     }
 }
+
+impl Inspectable for Mat3 {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes) {
+        ui.wrap(|ui| {
+            ui.vertical(|ui| {
+                self.x_axis.ui(ui, Default::default());
+                self.y_axis.ui(ui, Default::default());
+                self.z_axis.ui(ui, Default::default());
+            });
+        });
+    }
+}
+
+impl Inspectable for Mat4 {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes) {
+        ui.wrap(|ui| {
+            ui.vertical(|ui| {
+                self.x_axis.ui(ui, Default::default());
+                self.y_axis.ui(ui, Default::default());
+                self.z_axis.ui(ui, Default::default());
+                self.w_axis.ui(ui, Default::default());
+            });
+        });
+    }
+}
