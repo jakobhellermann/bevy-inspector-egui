@@ -50,3 +50,9 @@ fn main() {
 
 // fn your_system(data: Res<Data>) { /* */ }
 ```
+
+## Bevy support table
+
+|bevy|bevy-inspector-egui|
+|---|---|
+|0.4|0.1|

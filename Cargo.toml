@@ -9,6 +9,7 @@ license = "MIT"
 description = "Inspector plugin for the bevy game engine"
 keywords = ["bevy", "inspector", "visual", "editor", "game"]
 categories = ["development-tools::procedural-macro-helpers", "game-development", "gui", "visualization"]
+exclude = ["docs/*"]
 
 
 [features]
