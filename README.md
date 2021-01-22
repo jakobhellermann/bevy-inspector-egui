@@ -55,4 +55,4 @@ fn main() {
 
 |bevy|bevy-inspector-egui|
 |---|---|
-|0.4|0.1|
+|0.4|0.1-0.2|
