@@ -30,7 +30,11 @@ impl Inspectable for Transform {
                 ui.end_row();
 
                 ui.label("Scale");
-                self.scale.ui(ui, Default::default());
+                let scale_attributes = NumberAttributes {
+                    min: Some(Vec3::splat(0.0)),
+                    ..Default::default()
+                };
+                self.scale.ui(ui, scale_attributes);
                 ui.end_row();
             });
         });
