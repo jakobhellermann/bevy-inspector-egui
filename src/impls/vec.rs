@@ -7,29 +7,27 @@ use egui::{Pos2, Sense, Widget};
 
 use super::NumberAttributes;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Vec2dAttributes {
-    pub min: Vec2,
-    pub max: Vec2,
-}
-impl Default for Vec2dAttributes {
-    fn default() -> Self {
-        Vec2dAttributes {
-            min: Vec2::new(-100.0, -100.0),
-            max: Vec2::new(100.0, 100.0),
-        }
-    }
+    pub min: Option<Vec2>,
+    pub max: Option<Vec2>,
 }
 
 impl Inspectable for Vec2 {
     type Attributes = Vec2dAttributes;
 
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes) {
+        let range = match (options.min, options.max) {
+            (Some(min), Some(max)) => min..=max,
+            (Some(min), None) => min..=Vec2::splat(0.0),
+            (None, Some(max)) => Vec2::splat(0.0)..=max,
+            (None, None) => Vec2::splat(-100.0)..=Vec2::splat(100.0),
+        };
+
         let mut frame = containers::Frame::dark_canvas(&ui.style());
         frame.margin = egui::Vec2::zero();
 
         frame.show(ui, |ui| {
-            let range = options.min..=options.max;
             let widget = PointSelect::new(self, range, 80.0);
             ui.add(widget);
         });

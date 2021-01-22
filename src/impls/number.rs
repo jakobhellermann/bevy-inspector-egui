@@ -1,31 +1,20 @@
 use crate::egui::{self, widgets};
 use crate::Inspectable;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct NumberAttributes<T> {
-    pub min: T,
-    pub max: T,
+    pub min: Option<T>,
+    pub max: Option<T>,
     /// How much the value changes when dragged one logical pixel.
     pub speed: f32,
     pub prefix: String,
     pub suffix: String,
 }
-impl<T: Default> Default for NumberAttributes<T> {
-    fn default() -> Self {
-        NumberAttributes {
-            min: T::default(),
-            max: T::default(),
-            speed: 0.0,
-            prefix: "".into(),
-            suffix: "".into(),
-        }
-    }
-}
 impl<T> NumberAttributes<T> {
     pub(crate) fn map<U>(&self, f: impl Fn(&T) -> U) -> NumberAttributes<U> {
         NumberAttributes {
-            min: f(&self.min),
-            max: f(&self.max),
+            min: self.min.as_ref().map(|v| f(v)),
+            max: self.max.as_ref().map(f),
             speed: self.speed,
             prefix: self.prefix.clone(),
             suffix: self.suffix.clone(),
@@ -48,8 +37,11 @@ macro_rules! impl_for_num {
                     widget = widget.suffix(options.suffix);
                 }
 
-                if options.min != options.max {
-                    widget = widget.range(options.min as f32..=options.max as f32);
+                match (options.min, options.max) {
+                    (Some(min), Some(max)) => widget = widget.range(min as f32..=max as f32),
+                    (Some(min), None) => widget = widget.range(min as f32..=f32::MAX),
+                    (None, Some(max)) => widget = widget.range(f32::MIN..=max as f32),
+                    (None, None) => {},
                 }
 
                 if options.speed != 0.0 {
