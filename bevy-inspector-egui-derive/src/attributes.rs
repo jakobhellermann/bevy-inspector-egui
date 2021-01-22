@@ -1,14 +1,25 @@
+use proc_macro2::TokenStream;
+use quote::quote;
+
 pub enum InspectableAttribute {
     Assignment(syn::Ident, syn::Expr),
     Tag(syn::Ident),
 }
 impl InspectableAttribute {
-    fn ident(&self) -> &syn::Ident {
+    pub fn ident(&self) -> &syn::Ident {
         match self {
             InspectableAttribute::Assignment(ident, _) => ident,
             InspectableAttribute::Tag(ident) => ident,
         }
     }
+
+    pub fn as_expr(&self) -> TokenStream {
+        match self {
+            InspectableAttribute::Assignment(_, expr) => quote! { #expr },
+            InspectableAttribute::Tag(_) => quote! { true },
+        }
+    }
+
     pub fn is_builtin(&self) -> bool {
         let ident = self.ident();
         ident == "label" || ident == "collapse"

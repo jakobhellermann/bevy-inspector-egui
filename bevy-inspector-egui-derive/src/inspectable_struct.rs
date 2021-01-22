@@ -36,13 +36,12 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         let options = custom_attributes.iter().fold(
             quote! { let mut options = <#ty as bevy_inspector_egui::Inspectable>::Attributes::default(); },
             |acc,attribute| {
-                let assignment = match attribute {
-                    InspectableAttribute::Assignment(name, expr) => quote!{ options.#name = #expr; },
-                    InspectableAttribute::Tag(name) => quote!{ options.#name = true;}
-                };
+                let value = attribute.as_expr();
+                let name = attribute.ident();
+
                 quote! {
                     #acc
-                    #assignment
+                    options.#name = std::convert::From::from(#value);
                 }
             },
         );

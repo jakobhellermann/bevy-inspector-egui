@@ -3,7 +3,7 @@ use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 
 #[derive(Inspectable, Debug, Default)]
 struct Data {
-    #[inspectable(min = 10.0, max = 70.0, suffix = "pt".into())]
+    #[inspectable(min = 10.0, max = 70.0, suffix = "pt")]
     font_size: f32,
     #[inspectable(label = "Display Square")]
     show_square: bool,
