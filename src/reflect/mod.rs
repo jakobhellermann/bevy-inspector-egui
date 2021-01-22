@@ -75,7 +75,11 @@ macro_rules! try_downcast_ui {
     };
 }
 
-fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui) {
+/// Draws the inspector UI for the given value.
+///
+/// This function gets used for the implementation of [`Inspectable`](crate::Inspectable)
+/// for [`ReflectedUI`](ReflectedUI).
+pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui) {
     try_downcast_ui!(value ui => Color);
 
     match value.reflect_mut() {
