@@ -10,6 +10,7 @@
   #[derive(Inspectable, Default, Debug)]
   struct Data { timer: ReflectedUI<Timer> }
   ```
+- [allow multiple inspector windows](https://github.com/jakobhellermann/bevy-inspector-egui/commit/980de51e181fe486ac74312474c33a34e0a77293)
 
 ### Changed
 - [rename NumberAttributes::step to speed](https://github.com/jakobhellermann/bevy-inspector-egui/commit/b2aeb1735bdf0b5d8d68386e22f1e73437cbf733)
