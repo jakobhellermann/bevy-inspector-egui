@@ -65,3 +65,33 @@ impl Inspectable for Mat4 {
         });
     }
 }
+
+#[derive(Default, Debug, Clone)]
+pub struct ColorAttributes {
+    pub alpha: bool,
+}
+
+impl Inspectable for Color {
+    type Attributes = ColorAttributes;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
+        let old: [f32; 4] = (*self).into();
+
+        if options.alpha {
+            let mut color = egui::color::Color32::from_rgba_premultiplied(
+                (old[0] * u8::MAX as f32) as u8,
+                (old[1] * u8::MAX as f32) as u8,
+                (old[2] * u8::MAX as f32) as u8,
+                (old[3] * u8::MAX as f32) as u8,
+            );
+            ui.color_edit_button_srgba(&mut color);
+            let [r, g, b, a] = color.to_array();
+            *self = Color::rgba_u8(r, g, b, a);
+        } else {
+            let mut color = [old[0], old[1], old[2]];
+            ui.color_edit_button_rgb(&mut color);
+            let [r, g, b] = color;
+            *self = Color::rgb(r, g, b);
+        }
+    }
+}
