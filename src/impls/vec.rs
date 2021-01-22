@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use crate::Inspectable;
+use crate::{Context, Inspectable};
 use bevy::math::{Vec2, Vec3, Vec4};
 use bevy_egui::egui::{self, containers, Rect};
 use egui::{Pos2, Sense, Widget};
@@ -16,7 +16,7 @@ pub struct Vec2dAttributes {
 impl Inspectable for Vec2 {
     type Attributes = Vec2dAttributes;
 
-    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes) {
+    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes, _: &Context) {
         let range = match (options.min, options.max) {
             (Some(min), Some(max)) => min..=max,
             (Some(min), None) => min..=Vec2::splat(0.0),
@@ -103,14 +103,14 @@ impl Widget for PointSelect<'_> {
 impl Inspectable for Vec3 {
     type Attributes = NumberAttributes<Vec3>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
         ui.wrap(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
 
             ui.columns(3, |ui| {
-                self.x.ui(&mut ui[0], options.map(|vec| vec.x));
-                self.y.ui(&mut ui[1], options.map(|vec| vec.x));
-                self.z.ui(&mut ui[2], options.map(|vec| vec.x));
+                self.x.ui(&mut ui[0], options.map(|vec| vec.x), context);
+                self.y.ui(&mut ui[1], options.map(|vec| vec.x), context);
+                self.z.ui(&mut ui[2], options.map(|vec| vec.x), context);
             });
         });
     }
@@ -119,15 +119,15 @@ impl Inspectable for Vec3 {
 impl Inspectable for Vec4 {
     type Attributes = NumberAttributes<Vec4>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
         ui.wrap(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
 
             ui.columns(4, |ui| {
-                self.x.ui(&mut ui[0], options.map(|vec| vec.x));
-                self.y.ui(&mut ui[1], options.map(|vec| vec.x));
-                self.z.ui(&mut ui[2], options.map(|vec| vec.x));
-                self.w.ui(&mut ui[3], options.map(|vec| vec.x));
+                self.x.ui(&mut ui[0], options.map(|vec| vec.x), context);
+                self.y.ui(&mut ui[1], options.map(|vec| vec.x), context);
+                self.z.ui(&mut ui[2], options.map(|vec| vec.x), context);
+                self.w.ui(&mut ui[3], options.map(|vec| vec.x), context);
             });
         });
     }

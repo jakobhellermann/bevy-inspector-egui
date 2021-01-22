@@ -1,5 +1,5 @@
-use crate::egui;
 use crate::Inspectable;
+use crate::{egui, Context};
 
 impl<T> Inspectable for Vec<T>
 where
@@ -8,14 +8,14 @@ where
 {
     type Attributes = <T as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
         ui.vertical(|ui| {
             let mut to_delete = None;
 
             for (i, val) in self.iter_mut().enumerate() {
                 ui.horizontal(|ui| {
                     ui.label(i.to_string());
-                    val.ui(ui, options.clone());
+                    val.ui(ui, options.clone(), context);
                     if ui.button("-").clicked {
                         to_delete = Some(i);
                     }
@@ -42,12 +42,12 @@ where
 {
     type Attributes = <T as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
         ui.vertical(|ui| {
             for (i, val) in self.iter_mut().enumerate() {
                 ui.horizontal(|ui| {
                     ui.label(i.to_string());
-                    val.ui(ui, options.clone());
+                    val.ui(ui, options.clone(), context);
                 });
             }
         });

@@ -3,17 +3,33 @@ use std::{any::TypeId, marker::PhantomData};
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
-use crate::Inspectable;
+use crate::{Context, Inspectable};
 
 #[derive(Default)]
 #[allow(missing_debug_implementations)]
 /// Bevy plugin for the inspector.
 /// See the [crate-level docs](index.html) for an example on how to use it.
-pub struct InspectorPlugin<T>(PhantomData<T>);
+pub struct InspectorPlugin<T> {
+    marker: PhantomData<T>,
+    thread_local: bool,
+}
 
 impl<T> InspectorPlugin<T> {
+    /// Creates a new inspector plugin, where the <Inspectable> implementations
+    /// *do not* have access to `bevy::ecs::Resources` in the [`Context`](crate::Context::resources)
     pub fn new() -> Self {
-        InspectorPlugin(PhantomData)
+        InspectorPlugin {
+            thread_local: false,
+            marker: PhantomData,
+        }
+    }
+    /// Creates a new inspector plugin wich access to `bevy::ecs::Resources`.
+    /// The disadvantage is, that the ui system has to run in a thread local system, which may hurt performance a bit.
+    pub fn thread_local() -> Self {
+        InspectorPlugin {
+            thread_local: true,
+            marker: PhantomData,
+        }
     }
 }
 
@@ -26,6 +42,11 @@ impl InspectorWindows {
     fn contains_name(&self, name: &str) -> bool {
         self.0.iter().any(|(_, n)| n == name)
     }
+    fn get_unwrap<T: 'static>(&self) -> &str {
+        self.0
+            .get(&TypeId::of::<T>())
+            .expect("inspector window not properly initialized")
+    }
 }
 
 impl<T> Plugin for InspectorPlugin<T>
@@ -33,8 +54,14 @@ where
     T: Inspectable + Default + Send + Sync + 'static,
 {
     fn build(&self, app: &mut AppBuilder) {
+        app.init_resource::<T>();
+
         // init inspector ui and data resource
-        app.init_resource::<T>().add_system(ui::<T>.system());
+        if self.thread_local {
+            app.add_system(thread_local_ui::<T>.system());
+        } else {
+            app.add_system(ui::<T>.system());
+        }
 
         // init egui
         if !app.resources().contains::<EguiContext>() {
@@ -70,22 +97,41 @@ where
 }
 
 fn ui<T>(
+    mut data: ResMut<T>,
     mut egui_context: ResMut<EguiContext>,
     inspector_windows: Res<InspectorWindows>,
-    mut data: ResMut<T>,
 ) where
     T: Inspectable + Send + Sync + 'static,
 {
     let ctx = &mut egui_context.ctx;
 
-    let type_name = inspector_windows
-        .0
-        .get(&TypeId::of::<T>())
-        .expect("inspector window not properly initialized");
+    let type_name = inspector_windows.get_unwrap::<T>();
 
     egui::Window::new(type_name)
         .resizable(false)
         .show(ctx, |ui| {
-            data.ui(ui, T::Attributes::default());
+            let context = Context::default();
+            data.ui(ui, T::Attributes::default(), &context);
+        });
+}
+
+fn thread_local_ui<T>(_world: &mut World, resources: &mut Resources)
+where
+    T: Inspectable + Send + Sync + 'static,
+{
+    let mut egui_context = resources.get_mut::<EguiContext>().unwrap();
+    let inspector_windows = resources.get::<InspectorWindows>().unwrap();
+
+    let mut data = resources.get_mut::<T>().unwrap();
+
+    let ctx = &mut egui_context.ctx;
+
+    let type_name = inspector_windows.get_unwrap::<T>();
+
+    egui::Window::new(type_name)
+        .resizable(false)
+        .show(ctx, |ui| {
+            let context = Context::new(resources);
+            data.ui(ui, T::Attributes::default(), &context);
         });
 }

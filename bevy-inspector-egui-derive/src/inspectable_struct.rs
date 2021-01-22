@@ -48,7 +48,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
 
         let ui = quote! {
             #options
-            <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options);
+            <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options, context);
         };
 
         let ui = match collapse {
@@ -69,7 +69,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
             type Attributes = ();
 
 
-            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes) {
+            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes, context: &bevy_inspector_egui::Context) {
                 use bevy_inspector_egui::egui;
 
                 let grid = egui::Grid::new(stringify!(#id));

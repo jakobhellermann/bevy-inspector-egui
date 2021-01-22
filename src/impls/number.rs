@@ -1,4 +1,5 @@
 use crate::egui::{self, widgets};
+use crate::Context;
 use crate::Inspectable;
 
 #[derive(Debug, Default, Clone)]
@@ -27,7 +28,7 @@ macro_rules! impl_for_num {
         impl Inspectable for $ty {
             type Attributes = NumberAttributes<$ty>;
 
-            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
+            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) {
                 let mut widget = widgets::DragValue::$ty(self);
 
                 if !options.prefix.is_empty() {
@@ -61,14 +62,14 @@ macro_rules! impl_for_num_delegate_f64 {
         impl Inspectable for $ty {
             type Attributes = NumberAttributes<$ty>;
 
-            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
+            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
                 let mut options_f64 = options.map(|val| *val as f64);
                     if options_f64.speed == 0.0 {
                         options_f64.speed = 1.0;
                     }
 
                 let mut value = *self as f64;
-                <f64 as Inspectable>::ui(&mut value, ui, options_f64);
+                <f64 as Inspectable>::ui(&mut value, ui, options_f64, context);
 
                 *self = value as $ty;
             }

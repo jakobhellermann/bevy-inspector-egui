@@ -56,13 +56,42 @@ pub mod options {
     pub use crate::impls::*;
 }
 
+#[non_exhaustive]
+#[derive(Default)]
+pub struct Context<'a> {
+    pub resources: Option<&'a bevy::ecs::Resources>,
+}
+
+impl<'a> Context<'a> {
+    pub fn new(resources: &'a bevy::ecs::Resources) -> Self {
+        Context {
+            resources: Some(resources),
+        }
+    }
+}
+
+impl std::fmt::Debug for Context<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        struct ResourcesDebug;
+        impl std::fmt::Debug for ResourcesDebug {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "<bevy::ecs::Resources>")
+            }
+        }
+
+        f.debug_struct("Context")
+            .field("resources", &self.resources.map(|_| ResourcesDebug))
+            .finish()
+    }
+}
+
 /// This trait describes how a struct should be displayed.
 /// It can be derived for structs and enums, see the [crate-level docs](index.html) for how to do that.
 pub trait Inspectable {
     /// The `Attributes` associated type specifies what attributes can be passed to a field.
     /// See the following snippet for an example:
     /// ```rust
-    /// # use bevy_inspector_egui::{egui, Inspectable};
+    /// # use bevy_inspector_egui::{egui, Inspectable, Context};
     /// struct MyCustomType;
     /// # #[derive(Default)]
     /// struct MyWidgetAttributes { a: f32, b: Option<String> }
@@ -70,7 +99,7 @@ pub trait Inspectable {
     /// impl Inspectable for MyCustomType {
     ///   type Attributes = MyWidgetAttributes;
     ///
-    ///   fn ui(&mut self, _: &mut egui::Ui, options: MyWidgetAttributes) {
+    ///   fn ui(&mut self, _: &mut egui::Ui, options: MyWidgetAttributes, context: &Context) {
     ///     println!("a = {}, b = {:?}", options.a, options.b);
     ///   }
     /// }
@@ -86,5 +115,5 @@ pub trait Inspectable {
     type Attributes: Default;
 
     /// This methods is responsible for building the egui ui.
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes);
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context);
 }

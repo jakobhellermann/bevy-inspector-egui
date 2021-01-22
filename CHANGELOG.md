@@ -20,7 +20,7 @@
   ```rust
   trait Inspectable {
       type Attributes: Default;
-      fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes);
+      fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context);
   }
   ```
 - [try to convert Attributes using From::from](https://github.com/jakobhellermann/bevy-inspector-egui/commit/43e84d885ca080a6f2e62bbcfb396f27f92237fd)

@@ -5,7 +5,7 @@ use bevy::reflect::{List, Map};
 use bevy_egui::egui;
 use egui::Grid;
 
-use crate::Inspectable;
+use crate::{Context, Inspectable};
 
 /// Wrapper type for displaying inspector UI based on the types [`Reflect`](bevy::reflect::Reflect) implementation.
 ///
@@ -57,21 +57,21 @@ impl<T> DerefMut for ReflectedUI<T> {
 impl<T: Reflect> Inspectable for ReflectedUI<T> {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes) {
-        ui_for_reflect(&mut self.0, ui);
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+        ui_for_reflect(&mut self.0, ui, context);
     }
 }
 
 macro_rules! try_downcast_ui {
-    ($value:ident $ui:ident => $ty:ty) => {
+    ($value:ident $ui:ident $context:ident => $ty:ty) => {
         if let Some(v) = $value.downcast_mut::<$ty>() {
-            <$ty as Inspectable>::ui(v, $ui, <$ty as Inspectable>::Attributes::default());
+            <$ty as Inspectable>::ui(v, $ui, <$ty as Inspectable>::Attributes::default(), $context);
             return;
         }
     };
 
-    ( $value:ident $ui:ident => $( $ty:ty ),+ $(,)? ) => {
-        $(try_downcast_ui!($value $ui => $ty);)*
+    ( $value:ident $ui:ident $context:ident => $( $ty:ty ),+ $(,)? ) => {
+        $(try_downcast_ui!($value $ui $context => $ty);)*
     };
 }
 
@@ -79,19 +79,19 @@ macro_rules! try_downcast_ui {
 ///
 /// This function gets used for the implementation of [`Inspectable`](crate::Inspectable)
 /// for [`ReflectedUI`](ReflectedUI).
-pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui) {
-    try_downcast_ui!(value ui => Color);
+pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Context) {
+    try_downcast_ui!(value ui context => Color);
 
     match value.reflect_mut() {
-        bevy::reflect::ReflectMut::Struct(s) => ui_for_reflect_struct(s, ui),
-        bevy::reflect::ReflectMut::TupleStruct(value) => ui_for_tuple_struct(value, ui),
+        bevy::reflect::ReflectMut::Struct(s) => ui_for_reflect_struct(s, ui, context),
+        bevy::reflect::ReflectMut::TupleStruct(value) => ui_for_tuple_struct(value, ui, context),
         bevy::reflect::ReflectMut::List(value) => ui_for_list(value, ui),
         bevy::reflect::ReflectMut::Map(value) => ui_for_map(value, ui),
-        bevy::reflect::ReflectMut::Value(value) => ui_for_reflect_value(value, ui),
+        bevy::reflect::ReflectMut::Value(value) => ui_for_reflect_value(value, ui, context),
     }
 }
 
-fn ui_for_reflect_struct(value: &mut dyn Struct, ui: &mut egui::Ui) {
+fn ui_for_reflect_struct(value: &mut dyn Struct, ui: &mut egui::Ui, context: &Context) {
     ui.vertical_centered(|ui| {
         let grid = Grid::new(value.type_id());
         grid.show(ui, |ui| {
@@ -101,7 +101,7 @@ fn ui_for_reflect_struct(value: &mut dyn Struct, ui: &mut egui::Ui) {
                     None => ui.label("<missing>"),
                 };
                 if let Some(field) = value.field_at_mut(i) {
-                    ui_for_reflect(field, ui);
+                    ui_for_reflect(field, ui, context);
                 } else {
                     ui.label("<missing>");
                 }
@@ -111,13 +111,13 @@ fn ui_for_reflect_struct(value: &mut dyn Struct, ui: &mut egui::Ui) {
     });
 }
 
-fn ui_for_tuple_struct(value: &mut dyn TupleStruct, ui: &mut egui::Ui) {
+fn ui_for_tuple_struct(value: &mut dyn TupleStruct, ui: &mut egui::Ui, context: &Context) {
     let grid = Grid::new(value.type_id());
     grid.show(ui, |ui| {
         for i in 0..value.field_len() {
             ui.label(i.to_string());
             if let Some(field) = value.field_mut(i) {
-                ui_for_reflect(field, ui);
+                ui_for_reflect(field, ui, context);
             } else {
                 ui.label("<missing>");
             }
@@ -134,9 +134,9 @@ fn ui_for_map(_value: &mut dyn Map, ui: &mut egui::Ui) {
     ui.label("Map not yet implemented");
 }
 
-fn ui_for_reflect_value(value: &mut dyn Reflect, ui: &mut egui::Ui) {
+fn ui_for_reflect_value(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Context) {
     try_downcast_ui!(
-        value ui =>
+        value ui context =>
         f32, f64, u8, u16, u32, u64, i8, i16, i32, i64,
         String, bool,
         Vec2, Vec3, Vec4, Mat3, Mat4,
