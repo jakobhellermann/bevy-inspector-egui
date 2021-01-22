@@ -22,9 +22,11 @@
       fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes);
   }
   ```
+- [try to convert Attributes using From::from](https://github.com/jakobhellermann/bevy-inspector-egui/commit/43e84d885ca080a6f2e62bbcfb396f27f92237fd)
 
 ### Fixed
 - [normalize quaternion in `Transform` so that it stays a valid rotation](https://github.com/jakobhellermann/bevy-inspector-egui/commit/48fce89f7692408bad4841b126f7e68d8995fffd)
+- [disallow negative scale](https://github.com/jakobhellermann/bevy-inspector-egui/commit/c1ffc5d8898d2db882d60f88f8010c6121ca41ad)
 
 ## Version 0.1.0 (2021-01-18)
 
