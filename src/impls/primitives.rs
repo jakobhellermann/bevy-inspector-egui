@@ -22,8 +22,7 @@ impl Inspectable for String {
 
 impl Inspectable for bool {
     type Attributes = ();
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
-        dbg!(context);
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) {
         ui.checkbox(self, "");
     }
 }

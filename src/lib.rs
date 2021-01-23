@@ -40,6 +40,7 @@
 #![allow(missing_docs)]
 mod impls;
 mod plugin;
+mod utils;
 
 /// `Inspectable` implementation for foreign types implementing `Reflect`
 pub mod reflect;
