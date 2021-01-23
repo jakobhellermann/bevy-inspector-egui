@@ -3,9 +3,29 @@ use quote::{quote, ToTokens};
 
 use crate::attributes::InspectableAttribute;
 
-pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) -> TokenStream {
+pub fn expand_struct(
+    derive_input: &syn::DeriveInput,
+    data: &syn::DataStruct,
+    with_context: bool,
+) -> TokenStream {
     let name = &derive_input.ident;
     let id = name;
+
+    let inspectable_trait = match with_context {
+        false => quote! { bevy_inspector_egui::Inspectable },
+        true => quote! { bevy_inspector_egui::InspectableWithContext },
+    };
+    let inspectable_ui_fn = match with_context {
+        false => quote! { ui },
+        true => quote! { ui_with_context },
+    };
+    let (context_param_decl, context_param) = match with_context {
+        false => (quote! {}, quote! {}),
+        true => (
+            quote! { context: &bevy_inspector_egui::Context },
+            quote! { context},
+        ),
+    };
 
     let fields = data.fields.iter().enumerate().map(|(i, field)| {
         let ty = &field.ty;
@@ -13,9 +33,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         let field_label = field_label(field, i);
         let accessor = field_accessor(field, i);
 
-        let (builtin_attributes, custom_attributes): (Vec<_>, Vec<_>) = crate::attributes::inspectable_attributes(&field.attrs)
-            .partition(InspectableAttribute::is_builtin);
-        
+        let (builtin_attributes, custom_attributes): (Vec<_>, Vec<_>) = crate::attributes::inspectable_attributes(&field.attrs).partition(InspectableAttribute::is_builtin);
 
         // builtins
         let mut collapse = false;
@@ -34,7 +52,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
 
         // user specified options
         let options = custom_attributes.iter().fold(
-            quote! { let mut options = <#ty as bevy_inspector_egui::Inspectable>::Attributes::default(); },
+            quote! { let mut options = <#ty as #inspectable_trait>::Attributes::default(); },
             |acc,attribute| {
                 let value = attribute.as_expr();
                 let name = attribute.ident();
@@ -48,7 +66,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
 
         let ui = quote! {
             #options
-            <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options);
+            <#ty as #inspectable_trait>::#inspectable_ui_fn(&mut self.#accessor, ui, options, #context_param);
         };
 
         let ui = match collapse {
@@ -65,11 +83,11 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
     });
 
     quote! {
-        impl bevy_inspector_egui::Inspectable for #name {
+        impl #inspectable_trait for #name {
             type Attributes = ();
 
 
-            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes) {
+            fn #inspectable_ui_fn(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes, #context_param_decl) {
                 use bevy_inspector_egui::egui;
 
                 let grid = egui::Grid::new(stringify!(#id));
