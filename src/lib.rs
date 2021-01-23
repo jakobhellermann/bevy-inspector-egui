@@ -87,3 +87,36 @@ pub trait Inspectable {
     /// This methods is responsible for building the egui ui.
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes);
 }
+
+/// Gives implementors of [`InspectableWithContext`](InspectableWithContext) access to bevy resources.
+///
+/// This is needed for example for the displaying `Handle<T>`'s.
+pub struct Context<'a> {
+    pub resources: &'a bevy::ecs::Resources,
+}
+impl std::fmt::Debug for Context<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Context").field("resources", &"..").finish()
+    }
+}
+
+/// Similar to [`Inspectable`](Inspectable), but also passes a [`Context`](Context),
+/// from which bevy's [`Resources`](bevy::ecs::Resources) can be accessed and modified.
+///
+/// The disadvantage is, that any system using these resources must run as a thread-local system,
+/// so you need to add the [`ThreadLocalInspectorPlugin`] when using it.
+pub trait InspectableWithContext {
+    /// See [Inspectable::Attributes](Inspectable::Attributes)
+    type Attributes: Default;
+
+    /// Same as [Inspectable::ui](Inspectable::ui) but with [`Context`](Context)
+    fn ui_with_context(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context);
+}
+
+impl<T: Inspectable> InspectableWithContext for T {
+    type Attributes = T::Attributes;
+
+    fn ui_with_context(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) {
+        self.ui(ui, options);
+    }
+}
