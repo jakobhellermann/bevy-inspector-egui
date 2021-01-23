@@ -47,8 +47,8 @@ pub mod reflect;
 pub use bevy_egui::egui;
 
 /// Derives the [`Inspectable`](Inspectable) trait.
-pub use bevy_inspector_egui_derive::Inspectable;
-pub use plugin::InspectorPlugin;
+pub use bevy_inspector_egui_derive::{Inspectable, InspectableWithContext};
+pub use plugin::{InspectorPlugin, ThreadLocalInspectorPlugin};
 
 /// Attributes for the built-in [`Inspectable`](Inspectable) implementations
 pub mod options {
