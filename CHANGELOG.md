@@ -11,6 +11,9 @@
   struct Data { timer: ReflectedUI<Timer> }
   ```
 - [allow multiple inspector windows](https://github.com/jakobhellermann/bevy-inspector-egui/commit/980de51e181fe486ac74312474c33a34e0a77293)
+- add `InspectableWithContext` trait which exposes `bevy::ecs::Resources` to the ui function
+  This is used to display things like `Asset<T>`.
+  To use this trait the plugin needs to be initialized using `app.add_plugin(ThreadLocalInspectorPlugin::<T>::new())`
 
 ### Changed
 - [rename NumberAttributes::step to speed](https://github.com/jakobhellermann/bevy-inspector-egui/commit/b2aeb1735bdf0b5d8d68386e22f1e73437cbf733)
