@@ -99,3 +99,25 @@ impl Inspectable for Color {
         }
     }
 }
+
+impl Inspectable for StandardMaterial {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes) {
+        ui.vertical_centered(|ui| {
+            crate::egui::Grid::new(std::any::TypeId::of::<StandardMaterial>()).show(ui, |ui| {
+                ui.label("albedo");
+                self.albedo.ui(ui, Default::default());
+                ui.end_row();
+
+                ui.label("albedo_texture");
+                ui.label("<todo>");
+                ui.end_row();
+
+                ui.label("shaded");
+                self.shaded.ui(ui, Default::default());
+                ui.end_row();
+            });
+        });
+    }
+}
