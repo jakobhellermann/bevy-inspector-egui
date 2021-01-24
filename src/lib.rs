@@ -44,6 +44,7 @@ mod plugin;
 /// `Inspectable` implementation for foreign types implementing `Reflect`
 pub mod reflect;
 
+pub use bevy_egui;
 pub use bevy_egui::egui;
 
 /// Derives the [`Inspectable`](Inspectable) trait.
