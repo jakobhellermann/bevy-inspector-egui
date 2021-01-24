@@ -1,6 +1,28 @@
 # Changelog
 
-## Version 0.2.0 (unreleased)
+## Version 0.3.0
+- another change to the `Inspectable` trait, it now gets a context from which bevy's `Resources` can be access (provided it is started in thread-local mode)
+  ```rust
+  struct Context<'a> {
+    resources: Option<&'a bevy::ecs::Resources>
+  }
+
+  trait Inspectable {
+      type Attributes: Default;
+      fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context);
+  }
+  ```
+  This allows implementations for things like `Handle<T>` that need access so more information.
+
+  When acces to the resources is needed, add the plugin like 
+
+  ```rust
+  add.add_plugin(InspectorPlugin::<T>::thread_local())
+  ```
+
+- implementations of `Inspectable` for `StandardMaterial` and `Range{,Inclusive}<T>`
+
+## Version 0.2.0
 
 ### Added
 - [impl Inspectable for the remaining number types](https://github.com/jakobhellermann/bevy-inspector-egui/commit/b072035c1f14baf189274e9a166f2bae1adf2f70)
@@ -20,7 +42,7 @@
   ```rust
   trait Inspectable {
       type Attributes: Default;
-      fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context);
+      fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes);
   }
   ```
 - [try to convert Attributes using From::from](https://github.com/jakobhellermann/bevy-inspector-egui/commit/43e84d885ca080a6f2e62bbcfb396f27f92237fd)
@@ -29,7 +51,7 @@
 - [normalize quaternion in `Transform` so that it stays a valid rotation](https://github.com/jakobhellermann/bevy-inspector-egui/commit/48fce89f7692408bad4841b126f7e68d8995fffd)
 - [disallow negative scale](https://github.com/jakobhellermann/bevy-inspector-egui/commit/c1ffc5d8898d2db882d60f88f8010c6121ca41ad)
 
-## Version 0.1.0 (2021-01-18)
+## Version 0.1.0
 
 ### Added
 - first version with `Inspectable` support for number types `u8`, `i32` and `f{32,64}`, `String` and `Vec<T>` and bevy's `Color`, `Transform`, `Quat`, `Vec{2,3,4}`
