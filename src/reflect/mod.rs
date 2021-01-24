@@ -1,7 +1,7 @@
 use std::ops::{Deref, DerefMut};
 
 use bevy::prelude::*;
-use bevy::reflect::{List, Map};
+use bevy::reflect::{List, Map, Tuple};
 use bevy_egui::egui;
 use egui::Grid;
 
@@ -85,6 +85,7 @@ pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Cont
     match value.reflect_mut() {
         bevy::reflect::ReflectMut::Struct(s) => ui_for_reflect_struct(s, ui, context),
         bevy::reflect::ReflectMut::TupleStruct(value) => ui_for_tuple_struct(value, ui, context),
+        bevy::reflect::ReflectMut::Tuple(value) => ui_for_tuple(value, ui, context),
         bevy::reflect::ReflectMut::List(value) => ui_for_list(value, ui),
         bevy::reflect::ReflectMut::Map(value) => ui_for_map(value, ui),
         bevy::reflect::ReflectMut::Value(value) => ui_for_reflect_value(value, ui, context),
@@ -112,6 +113,21 @@ fn ui_for_reflect_struct(value: &mut dyn Struct, ui: &mut egui::Ui, context: &Co
 }
 
 fn ui_for_tuple_struct(value: &mut dyn TupleStruct, ui: &mut egui::Ui, context: &Context) {
+    let grid = Grid::new(value.type_id());
+    grid.show(ui, |ui| {
+        for i in 0..value.field_len() {
+            ui.label(i.to_string());
+            if let Some(field) = value.field_mut(i) {
+                ui_for_reflect(field, ui, context);
+            } else {
+                ui.label("<missing>");
+            }
+            ui.end_row();
+        }
+    });
+}
+
+fn ui_for_tuple(value: &mut dyn Tuple, ui: &mut egui::Ui, context: &Context) {
     let grid = Grid::new(value.type_id());
     grid.show(ui, |ui| {
         for i in 0..value.field_len() {
