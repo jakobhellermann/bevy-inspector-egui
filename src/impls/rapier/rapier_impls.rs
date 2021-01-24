@@ -19,7 +19,7 @@ impl Inspectable for MassProperties {
                 min: Some(0.001),
                 ..Default::default()
             },
-            context
+            context,
         );
         self.inv_mass = 1. / mass;
 
@@ -70,17 +70,12 @@ impl Inspectable for RigidBody {
 impl Inspectable for RigidBodyHandleComponent {
     type Attributes = <RigidBody as Inspectable>::Attributes;
 
-    fn ui(
-        &mut self,
-        ui: &mut bevy_egui::egui::Ui,
-        options: Self::Attributes,
-        context: &Context,
-    ) {
+    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes, context: &Context) {
         let resources = if let Some(resources) = context.resources.as_ref() {
-          resources
+            resources
         } else {
-          ui.label("RigidBodyHandleComponent requires &Resources in Inspectable Context");
-          return;
+            ui.label("RigidBodyHandleComponent requires &Resources in Inspectable Context");
+            return;
         };
 
         let mut bodies = match resources.get_mut::<RigidBodySet>() {
