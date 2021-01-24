@@ -63,3 +63,18 @@ where
         });
     }
 }
+
+impl<T: Inspectable> Inspectable for Option<T> {
+    type Attributes = T::Attributes;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+        match self {
+            Some(val) => {
+                val.ui(ui, options, context);
+            }
+            None => {
+                ui.label("None");
+            }
+        }
+    }
+}
