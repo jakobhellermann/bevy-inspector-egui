@@ -1,5 +1,6 @@
 use super::nalgebra_conversions::*;
-use crate::impls::NumberAttributes;
+use crate::egui::Grid;
+use crate::{impls::NumberAttributes, utils};
 use crate::{Context, Inspectable};
 use bevy_rapier3d::{
     na::Isometry3,
@@ -13,7 +14,7 @@ impl Inspectable for MassProperties {
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, _options: Self::Attributes, context: &Context) {
         ui.label("Mass");
         let mut mass = 1. / self.inv_mass;
-        (&mut mass).ui(
+        mass.ui(
             ui,
             NumberAttributes {
                 min: Some(0.001),
@@ -34,36 +35,48 @@ impl Inspectable for RigidBody {
     type Attributes = ();
 
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, _options: Self::Attributes, context: &Context) {
-        let mut mass_properties = self.mass_properties().clone();
-        mass_properties.ui(ui, Default::default(), context);
-        self.set_mass_properties(mass_properties, false);
+        ui.vertical_centered(|ui| {
+            Grid::new(std::any::TypeId::of::<RigidBody>()).show(ui, |ui| {
+                let mut mass_properties = self.mass_properties().clone();
+                mass_properties.ui(ui, Default::default(), context);
+                self.set_mass_properties(mass_properties, false);
+                ui.end_row();
 
-        let position = self.position();
+                let position = self.position();
 
-        ui.label("Translation");
-        let mut translation = position.translation.vector.to_glam_vec3();
-        translation.ui(ui, Default::default(), context);
+                ui.label("Translation");
+                let mut translation = position.translation.vector.to_glam_vec3();
+                translation.ui(ui, Default::default(), context);
+                ui.end_row();
 
-        ui.label("Rotation");
-        let mut rotation = position.rotation.to_glam_quat();
-        rotation.ui(ui, Default::default(), context);
+                ui.label("Rotation");
+                let mut rotation = position.rotation.to_glam_quat();
+                rotation.ui(ui, Default::default(), context);
+                ui.end_row();
 
-        self.set_position(
-            Isometry3::from_parts(translation.to_na_translation(), rotation.to_na_unit_quat()),
-            false,
-        );
+                self.set_position(
+                    Isometry3::from_parts(
+                        translation.to_na_translation(),
+                        rotation.to_na_unit_quat(),
+                    ),
+                    false,
+                );
 
-        ui.label("Linear velocity");
-        let mut linvel = self.linvel().to_glam_vec3();
-        linvel.ui(ui, Default::default(), context);
-        self.set_linvel(linvel.to_na_vector3(), false);
+                ui.label("Linear velocity");
+                let mut linvel = self.linvel().to_glam_vec3();
+                linvel.ui(ui, Default::default(), context);
+                self.set_linvel(linvel.to_na_vector3(), false);
+                ui.end_row();
 
-        ui.label("Angular velocity");
-        let mut angvel = self.angvel().to_glam_vec3();
-        angvel.ui(ui, Default::default(), context);
-        self.set_angvel(angvel.to_na_vector3(), false);
+                ui.label("Angular velocity");
+                let mut angvel = self.angvel().to_glam_vec3();
+                angvel.ui(ui, Default::default(), context);
+                self.set_angvel(angvel.to_na_vector3(), false);
+                ui.end_row();
 
-        self.wake_up(false);
+                self.wake_up(false);
+            });
+        });
     }
 }
 
@@ -74,14 +87,17 @@ impl Inspectable for RigidBodyHandleComponent {
         let resources = if let Some(resources) = context.resources.as_ref() {
             resources
         } else {
-            ui.label("RigidBodyHandleComponent requires &Resources in Inspectable Context");
+            utils::error_label(
+                ui,
+                "RigidBodyHandleComponent<T> needs to get run via InspectorPlugin::thread_local",
+            );
             return;
         };
 
         let mut bodies = match resources.get_mut::<RigidBodySet>() {
             Some(bodies) => bodies,
             None => {
-                ui.label("RigidBodySet is a required resource but is missing");
+                utils::error_label(ui, "RigidBodySet is a required resource but is missing");
                 return;
             }
         };
@@ -89,7 +105,7 @@ impl Inspectable for RigidBodyHandleComponent {
         let body = match bodies.get_mut(self.handle()) {
             Some(body) => body,
             None => {
-                ui.label("This handle does not exist on RigidBodySet");
+                utils::error_label(ui, "This handle does not exist on RigidBodySet");
                 return;
             }
         };
