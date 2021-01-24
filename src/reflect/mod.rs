@@ -36,6 +36,7 @@ use crate::{Context, Inspectable};
 #[derive(Debug, Default)]
 pub struct ReflectedUI<T>(T);
 impl<T> ReflectedUI<T> {
+    #[allow(missing_docs)]
     pub fn new(val: T) -> Self {
         ReflectedUI(val)
     }

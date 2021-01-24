@@ -61,11 +61,14 @@ pub mod options {
 
 #[non_exhaustive]
 #[derive(Default)]
+/// The context passed to [`Inspectable::ui`].
 pub struct Context<'a> {
+    /// The resources are only available when the plugin is initialized using `app.add_plugin(InspectablePlugin::thread_local())`
     pub resources: Option<&'a bevy::ecs::Resources>,
 }
 
 impl<'a> Context<'a> {
+    /// Create new resources
     pub fn new(resources: &'a bevy::ecs::Resources) -> Self {
         Context {
             resources: Some(resources),
