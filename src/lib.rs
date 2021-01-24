@@ -37,10 +37,12 @@
 //! ```
 //!
 
-#![allow(missing_docs)]
+#[macro_use]
+mod utils;
+
+#[allow(missing_docs)]
 mod impls;
 mod plugin;
-mod utils;
 
 /// `Inspectable` implementation for foreign types implementing `Reflect`
 pub mod reflect;

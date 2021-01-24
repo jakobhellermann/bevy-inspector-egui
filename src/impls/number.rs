@@ -21,6 +21,16 @@ impl<T> NumberAttributes<T> {
             suffix: self.suffix.clone(),
         }
     }
+
+    pub fn min(min: T) -> Self {
+        NumberAttributes {
+            min: Some(min),
+            max: None,
+            speed: 0.0,
+            prefix: "".into(),
+            suffix: "".into(),
+        }
+    }
 }
 
 macro_rules! impl_for_num {

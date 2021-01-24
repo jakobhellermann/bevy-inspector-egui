@@ -1,12 +1,14 @@
 use super::nalgebra_conversions::*;
 use crate::egui::Grid;
-use crate::{impls::NumberAttributes, utils};
-use crate::{Context, Inspectable};
+use crate::impls::NumberAttributes;
+use crate::{utils, Context, Inspectable};
 use bevy_rapier3d::{
     na::Isometry3,
     physics::RigidBodyHandleComponent,
-    rapier::dynamics::{MassProperties, RigidBody, RigidBodySet},
+    rapier::dynamics::{BodyStatus, MassProperties, RigidBody, RigidBodySet},
 };
+
+impl_for_simple_enum!(BodyStatus with Dynamic, Static, Kinematic);
 
 impl Inspectable for MassProperties {
     type Attributes = ();
@@ -14,14 +16,7 @@ impl Inspectable for MassProperties {
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, _options: Self::Attributes, context: &Context) {
         ui.label("Mass");
         let mut mass = 1. / self.inv_mass;
-        mass.ui(
-            ui,
-            NumberAttributes {
-                min: Some(0.001),
-                ..Default::default()
-            },
-            context,
-        );
+        mass.ui(ui, NumberAttributes::min(0.001), context);
         self.inv_mass = 1. / mass;
 
         ui.label("Center of mass");
@@ -37,6 +32,10 @@ impl Inspectable for RigidBody {
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, _options: Self::Attributes, context: &Context) {
         ui.vertical_centered(|ui| {
             Grid::new(std::any::TypeId::of::<RigidBody>()).show(ui, |ui| {
+                ui.label("Body Status");
+                self.body_status.ui(ui, Default::default(), context);
+                ui.end_row();
+
                 let mut mass_properties = self.mass_properties().clone();
                 mass_properties.ui(ui, Default::default(), context);
                 self.set_mass_properties(mass_properties, false);
