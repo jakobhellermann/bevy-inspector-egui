@@ -1,5 +1,11 @@
 # Changelog
 
+## (unreleased)
+### Added
+### Changed
+- require `FromResources` instead of `Default` on the inspectable data
+### Fixed
+
 ## Version 0.3.0
 - another change to the `Inspectable` trait, it now gets a context from which bevy's `Resources` can be access (provided it is started in thread-local mode)
   ```rust

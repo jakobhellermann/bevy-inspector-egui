@@ -5,13 +5,18 @@ use bevy_egui::{egui, EguiContext, EguiPlugin};
 
 use crate::{Context, Inspectable};
 
-#[derive(Default)]
 #[allow(missing_debug_implementations)]
 /// Bevy plugin for the inspector.
 /// See the [crate-level docs](index.html) for an example on how to use it.
 pub struct InspectorPlugin<T> {
     marker: PhantomData<T>,
     thread_local: bool,
+}
+
+impl<T> Default for InspectorPlugin<T> {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<T> InspectorPlugin<T> {
@@ -51,7 +56,7 @@ impl InspectorWindows {
 
 impl<T> Plugin for InspectorPlugin<T>
 where
-    T: Inspectable + Default + Send + Sync + 'static,
+    T: Inspectable + FromResources + Send + Sync + 'static,
 {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<T>();

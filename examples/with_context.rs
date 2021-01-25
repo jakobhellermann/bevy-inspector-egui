@@ -2,9 +2,17 @@ use bevy::prelude::*;
 use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 
 // #[derive(Inspectable, Debug)]
-#[derive(Inspectable, Default, Debug)]
+#[derive(Inspectable, Debug)]
 struct Data {
     material: Handle<StandardMaterial>,
+}
+
+impl FromResources for Data {
+    fn from_resources(resources: &Resources) -> Self {
+        let mut materials = resources.get_mut::<Assets<StandardMaterial>>().unwrap();
+        let material = materials.add(Color::rgb(0.8, 0.7, 0.6).into());
+        Data { material }
+    }
 }
 
 fn main() {
@@ -19,13 +27,10 @@ struct Cube;
 
 fn setup(
     commands: &mut Commands,
-    mut data: ResMut<Data>,
+    data: ResMut<Data>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let material = materials.add(Color::rgb(0.8, 0.7, 0.6).into());
-    data.material = material.clone();
-
     commands
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Plane { size: 5.0 })),
@@ -34,7 +39,7 @@ fn setup(
         })
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-            material,
+            material: data.material.clone(),
             transform: Transform::from_translation(Vec3::new(0.0, 0.5, 0.0)),
             ..Default::default()
         })
