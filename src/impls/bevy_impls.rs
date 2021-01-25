@@ -111,7 +111,7 @@ impl Inspectable for StandardMaterial {
                 ui.end_row();
 
                 ui.label("albedo_texture");
-                ui.label("<todo>");
+                self.albedo_texture.ui(ui, Default::default(), context);
                 ui.end_row();
 
                 ui.label("shaded");

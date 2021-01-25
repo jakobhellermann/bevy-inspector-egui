@@ -10,7 +10,15 @@ struct Data {
 impl FromResources for Data {
     fn from_resources(resources: &Resources) -> Self {
         let mut materials = resources.get_mut::<Assets<StandardMaterial>>().unwrap();
-        let material = materials.add(Color::rgb(0.8, 0.7, 0.6).into());
+        let asset_server = resources.get::<AssetServer>().unwrap();
+
+        let texture_handle = asset_server.load("texture-128.png");
+        let material = materials.add(StandardMaterial {
+            albedo: Color::WHITE,
+            albedo_texture: Some(texture_handle),
+            ..Default::default()
+        });
+
         Data { material }
     }
 }

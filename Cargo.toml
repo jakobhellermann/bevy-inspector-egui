@@ -35,3 +35,7 @@ required-features = ["nightly"]
 [[example]]
 name = "rapier"
 required-features = ["rapier"]
+
+[[example]]
+name = "with_context"
+required-features = ["bevy/png"]
