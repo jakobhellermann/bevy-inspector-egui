@@ -44,6 +44,7 @@ fn main() {
 
 fn text_update_system(data: Res<Data>, mut query: Query<&mut Text>) {
     for mut text in query.iter_mut() {
+        let text = &mut text.sections[0];
         text.value = format!("{}", data.text);
         text.style.font_size = data.font_size;
         text.style.color = match &data.text_color {
@@ -89,15 +90,15 @@ fn setup(
                 align_self: AlignSelf::FlexEnd,
                 ..Default::default()
             },
-            text: Text {
-                value: "".to_string(),
-                font: font_handle,
-                style: TextStyle {
+            text: Text::with_section(
+                "",
+                TextStyle {
                     font_size: 50.0,
+                    font: font_handle,
                     ..Default::default()
                 },
-                ..Default::default()
-            },
+                Default::default(),
+            ),
             ..Default::default()
         })
         .spawn(SpriteBundle {
