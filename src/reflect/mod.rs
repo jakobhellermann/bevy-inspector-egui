@@ -5,7 +5,7 @@ use bevy::reflect::{List, Map, Tuple};
 use bevy_egui::egui;
 use egui::Grid;
 
-use crate::{Context, Inspectable};
+use crate::{Context, Inspectable, InspectableRegistry};
 
 /// Wrapper type for displaying inspector UI based on the types [`Reflect`](bevy::reflect::Reflect) implementation.
 ///
@@ -81,6 +81,14 @@ macro_rules! try_downcast_ui {
 /// This function gets used for the implementation of [`Inspectable`](crate::Inspectable)
 /// for [`ReflectedUI`](ReflectedUI).
 pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Context) {
+    if let Some(resources) = context.resources {
+        if let Some(inspect_registry) = resources.get::<InspectableRegistry>() {
+            if inspect_registry.try_execute(value, ui, resources) {
+                return;
+            }
+        }
+    }
+
     try_downcast_ui!(value ui context => Color);
     try_downcast_ui!(value ui context => Handle<Texture>, Handle<StandardMaterial>);
 

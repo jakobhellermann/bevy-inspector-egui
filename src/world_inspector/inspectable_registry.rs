@@ -20,6 +20,8 @@ impl Default for InspectableRegistry {
             impls: HashMap::default(),
         };
 
+        this.register::<std::ops::Range<f32>>();
+
         this.register::<Transform>();
         this.register::<GlobalTransform>();
         this.register::<Quat>();
@@ -48,6 +50,21 @@ impl InspectableRegistry {
             )
         }) as InspectCallback;
         self.impls.insert(type_id, callback);
+    }
+
+    pub(crate) fn try_execute(
+        &self,
+        value: &mut dyn Reflect,
+        ui: &mut egui::Ui,
+        resources: &Resources,
+    ) -> bool {
+        if let Some(inspect_callback) = self.impls.get(&value.type_id()) {
+            let ptr = value as *mut dyn Reflect as *mut u8;
+            inspect_callback(ptr, ui, resources);
+            true
+        } else {
+            false
+        }
     }
 
     pub(crate) fn generate(
