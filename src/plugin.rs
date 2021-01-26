@@ -3,7 +3,7 @@ use std::{any::TypeId, marker::PhantomData};
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
-use crate::{Context, Inspectable};
+use crate::{Context, Inspectable, InspectableRegistry};
 
 #[allow(missing_debug_implementations)]
 /// Bevy plugin for the inspector.
@@ -76,10 +76,11 @@ where
         // registeres egui textures
         app.add_system(egui_texture_setup.system());
 
+        let resources = app.resources_mut();
+
         // add entry to `InspectorWindows`
-        let mut inspector_windows = app
-            .resources_mut()
-            .get_or_insert_with(InspectorWindows::default);
+        resources.get_or_insert_with(InspectableRegistry::default);
+        let mut inspector_windows = resources.get_or_insert_with(InspectorWindows::default);
 
         let type_id = TypeId::of::<T>();
         let full_type_name = std::any::type_name::<T>();
@@ -144,7 +145,7 @@ fn ui<T>(
         });
 }
 
-fn thread_local_ui<T>(_world: &mut World, resources: &mut Resources)
+fn thread_local_ui<T>(world: &mut World, resources: &mut Resources)
 where
     T: Inspectable + Send + Sync + 'static,
 {
@@ -160,7 +161,7 @@ where
     egui::Window::new(type_name)
         .resizable(false)
         .show(ctx, |ui| {
-            let context = Context::new(resources);
+            let context = Context::new(world, resources);
             data.ui(ui, T::Attributes::default(), &context);
         });
 }

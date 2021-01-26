@@ -1,4 +1,4 @@
-#![warn(missing_docs, missing_debug_implementations)]
+#![warn(missing_docs)]
 
 //! This crate provides the ability to annotate structs with a `#[derive(Inspectable)]`,
 //! which opens a debug interface using [egui](https://github.com/emilk/egui) where you can visually edit the values of your struct live.
@@ -43,7 +43,10 @@ mod utils;
 mod impls;
 mod plugin;
 
-mod world_inspector;
+/// configuration for the [`WorldInspectorPlugin`](crate::world_inspector::WorldInspectorPlugin)
+pub mod world_inspector;
+use bevy::prelude::{Resources, World};
+#[doc(inline)]
 pub use world_inspector::{InspectableRegistry, WorldInspectorPlugin};
 
 /// `Inspectable` implementation for foreign types implementing `Reflect`
@@ -61,35 +64,22 @@ pub mod options {
     pub use crate::impls::*;
 }
 
-#[non_exhaustive]
 #[derive(Default)]
 /// The context passed to [`Inspectable::ui`].
 pub struct Context<'a> {
     /// The resources are only available when the plugin is initialized using `app.add_plugin(InspectablePlugin::thread_local())`
-    pub resources: Option<&'a bevy::ecs::Resources>,
+    pub resources: Option<&'a Resources>,
+    /// The resources are only available when the plugin is initialized using `app.add_plugin(InspectablePlugin::thread_local())`
+    pub world: Option<&'a World>,
 }
 
 impl<'a> Context<'a> {
     /// Create new resources
-    pub fn new(resources: &'a bevy::ecs::Resources) -> Self {
+    pub fn new(world: &'a World, resources: &'a Resources) -> Self {
         Context {
             resources: Some(resources),
+            world: Some(world),
         }
-    }
-}
-
-impl std::fmt::Debug for Context<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        struct ResourcesDebug;
-        impl std::fmt::Debug for ResourcesDebug {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "<bevy::ecs::Resources>")
-            }
-        }
-
-        f.debug_struct("Context")
-            .field("resources", &self.resources.map(|_| ResourcesDebug))
-            .finish()
     }
 }
 

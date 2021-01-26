@@ -7,28 +7,6 @@ use bevy::{
 use bevy_egui::egui;
 use egui::TextureId;
 
-macro_rules! expect_resources {
-    ($ui:ident, $context:ident) => {
-        match $context.resources {
-            Some(resources) => resources,
-            None => {
-                let msg = "Handle<T> needs to get run via InspectorPlugin::thread_local";
-                return utils::error_label($ui, msg);
-            }
-        }
-    };
-}
-macro_rules! expect_resource {
-    ($ui:ident, $resources:ident, $method:ident $ty:ty) => {
-        match $resources.$method::<$ty>() {
-            Some(res) => res,
-            None => {
-                let msg = format!("No {} resource found", std::any::type_name::<$ty>());
-                return utils::error_label($ui, msg);
-            }
-        }
-    };
-}
 macro_rules! expect_handle {
     ($ui:ident, $assets:ident, $method:ident $asset:ident) => {
         match $assets.$method($asset.clone()) {
@@ -49,7 +27,7 @@ impl<T: Asset + Inspectable> Inspectable for Handle<T> {
             return;
         }
 
-        let resources = expect_resources!(ui, context);
+        let resources = expect_context!(ui, context.resources, "Handle<T>");
         let mut assets = expect_resource!(ui, resources, get_mut Assets<T>);
 
         let value = expect_handle!(ui, assets, get_mut self);
@@ -62,7 +40,7 @@ impl Inspectable for Handle<Texture> {
     type Attributes = ();
 
     fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
-        let resources = expect_resources!(ui, context);
+        let resources = expect_context!(ui, context.resources, "Handle<Texture>");
 
         // let mut egui_context = resources.get_mut::<EguiContext>().unwrap();
         let textures = expect_resource!(ui, resources, get Assets<Texture>);

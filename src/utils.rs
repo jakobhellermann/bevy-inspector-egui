@@ -27,3 +27,29 @@ macro_rules! impl_for_simple_enum {
         }
     }
 }
+
+macro_rules! expect_context {
+    ($ui:ident, $context:ident.$field:ident, $ty:literal) => {
+        match $context.$field {
+            Some(val) => val,
+            None => {
+                let msg = format!(
+                    "'{}' needs unique access via InspectorPlugin::thread_local",
+                    $ty
+                );
+                return utils::error_label($ui, msg);
+            }
+        }
+    };
+}
+macro_rules! expect_resource {
+    ($ui:ident, $resources:ident, $method:ident $ty:ty) => {
+        match $resources.$method::<$ty>() {
+            Some(res) => res,
+            None => {
+                let msg = format!("No {} resource found", std::any::type_name::<$ty>());
+                return utils::error_label($ui, msg);
+            }
+        }
+    };
+}

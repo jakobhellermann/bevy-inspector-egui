@@ -1,13 +1,12 @@
 use crate::{Context, Inspectable};
-use bevy::reflect::TypeRegistryInternal;
 use bevy::utils::HashMap;
+use bevy::{ecs::Location, reflect::TypeRegistryInternal};
 use bevy::{ecs::TypeInfo, prelude::*};
 use bevy_egui::egui;
 use std::any::TypeId;
 
-type InspectCallback = Box<dyn Fn(*mut u8, &mut egui::Ui, &Resources) -> () + Send + Sync>;
+type InspectCallback = Box<dyn Fn(*mut u8, &mut egui::Ui, &Context) -> () + Send + Sync>;
 
-#[allow(missing_debug_implementations)]
 /// The `InspectableRegistry` can be used to tell the [`WorldInspectorPlugin`](crate::WorldInspectorPlugin)
 /// that a type implements [`Inspectable`](crate::Inspectable).
 pub struct InspectableRegistry {
@@ -41,13 +40,9 @@ impl InspectableRegistry {
     /// Register type `T` so that it can be displayed by the [`WorldInspectorPlugin`](crate::WorldInspectorPlugin).
     pub fn register<T: Inspectable + 'static>(&mut self) {
         let type_id = TypeId::of::<T>();
-        let callback = Box::new(|ptr: *mut u8, ui: &mut egui::Ui, resources: &Resources| {
+        let callback = Box::new(|ptr: *mut u8, ui: &mut egui::Ui, context: &Context| {
             let value: &mut T = unsafe { std::mem::transmute(ptr) };
-            value.ui(
-                ui,
-                <T as Inspectable>::Attributes::default(),
-                &Context::new(resources),
-            )
+            value.ui(ui, <T as Inspectable>::Attributes::default(), context)
         }) as InspectCallback;
         self.impls.insert(type_id, callback);
     }
@@ -56,11 +51,11 @@ impl InspectableRegistry {
         &self,
         value: &mut dyn Reflect,
         ui: &mut egui::Ui,
-        resources: &Resources,
+        context: &Context,
     ) -> bool {
         if let Some(inspect_callback) = self.impls.get(&value.type_id()) {
             let ptr = value as *mut dyn Reflect as *mut u8;
-            inspect_callback(ptr, ui, resources);
+            inspect_callback(ptr, ui, context);
             true
         } else {
             false
@@ -71,23 +66,24 @@ impl InspectableRegistry {
         &self,
         world: &World,
         resources: &Resources,
-        archetype_index: usize,
-        entity_index: usize,
+        location: Location,
         type_info: &TypeInfo,
         type_registry: &TypeRegistryInternal,
         ui: &mut egui::Ui,
     ) -> bool {
-        let archetype = &world.archetypes[archetype_index];
+        let archetype = &world.archetypes[location.archetype as usize];
 
         let ptr = unsafe {
             archetype
-                .get_dynamic(type_info.id(), type_info.layout().size(), entity_index)
+                .get_dynamic(type_info.id(), type_info.layout().size(), location.index)
                 .unwrap()
                 .as_ptr()
         };
 
+        let context = Context::new(world, resources);
+
         if let Some(f) = self.impls.get(&type_info.id()) {
-            f(ptr, ui, resources);
+            f(ptr, ui, &context);
             return true;
         }
 
@@ -95,8 +91,8 @@ impl InspectableRegistry {
             let registration = type_registry.get(type_info.id())?;
             let reflect_component = registration.data::<ReflectComponent>()?;
             let reflected =
-                unsafe { reflect_component.reflect_component_mut(archetype, entity_index) };
-            crate::reflect::ui_for_reflect(reflected, ui, &Context::new(resources));
+                unsafe { reflect_component.reflect_component_mut(archetype, location.index) };
+            crate::reflect::ui_for_reflect(reflected, ui, &context);
             Some(())
         })();
 

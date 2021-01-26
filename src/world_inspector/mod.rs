@@ -1,81 +1,50 @@
+mod impls;
 mod inspectable_registry;
-
-use std::{any::TypeId, borrow::Cow};
+mod plugin;
 
 pub use inspectable_registry::InspectableRegistry;
+pub use plugin::WorldInspectorPlugin;
 
-use bevy::{ecs::ResourceRef, utils::HashMap};
+use bevy::ecs::{Location, ResourceRef};
+use bevy::reflect::TypeRegistryArc;
+use bevy::render::render_graph::base::MainPass;
+use bevy::utils::{HashMap, HashSet};
 use bevy::{ecs::TypeInfo, prelude::*};
-use bevy::{reflect::TypeRegistryArc, render::render_graph::base::MainPass};
-use bevy_egui::{egui, EguiContext, EguiPlugin};
+use bevy_egui::egui;
+use std::{any::TypeId, borrow::Cow};
 
-/// Plugin for displaying an inspector window of all entites in the world and their components.
-/// ```rust,no_run
-/// use bevy::prelude::*;
-/// use bevy_inspector_egui::WorldInspectorPlugin;
-///
-/// fn main() {
-///     App::build()
-///         .add_plugins(DefaultPlugins)
-///         .add_plugin(WorldInspectorPlugin)
-///         .add_startup_system(setup.system())
-///         .run();
-/// }
-///
-/// fn setup(commands: &mut Commands) {
-///   // setup your scene
-///   // adding `Name` components will make the inspector more readable
-/// }
-/// ```
-#[allow(missing_debug_implementations)]
-pub struct WorldInspectorPlugin;
-
-impl Plugin for WorldInspectorPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        if app.resources().get::<EguiContext>().is_none() {
-            app.add_plugin(EguiPlugin);
-        }
-
-        app.init_resource::<InspectableRegistry>()
-            .add_system(world_inspector_ui.system());
-    }
-}
-
-fn world_inspector_ui(world: &mut World, resources: &mut Resources) {
-    let egui_context = resources.get::<EguiContext>().expect("EguiContext");
-    let ctx = &egui_context.ctx;
-
-    egui::Window::new("World").scroll(true).show(ctx, |ui| {
-        let ui_context = WorldUIContext::new(world, resources);
-        ui_context.ui(ui);
-    });
-}
-struct ComponentInfo {
-    entity_index: usize,
-    archetype_index: usize,
-    types: Vec<TypeInfo>,
+/// Resource which controls the way the world inspector is shown.
+#[derive(Debug)]
+pub struct WorldInspectorParams {
+    /// these components will be ignored
+    pub ignore_components: HashSet<TypeId>,
 }
 
 struct WorldUIContext<'a> {
-    world: &'a mut World,
+    world: &'a World,
     resources: &'a Resources,
     inspectable_registry: ResourceRef<'a, InspectableRegistry>,
     type_registry: ResourceRef<'a, TypeRegistryArc>,
-    components: HashMap<Entity, Vec<ComponentInfo>>,
+    components: HashMap<Entity, (Location, Vec<TypeInfo>)>,
 }
 impl<'a> WorldUIContext<'a> {
-    fn new(world: &'a mut World, resources: &'a Resources) -> WorldUIContext<'a> {
-        let mut components = HashMap::default();
+    fn new(world: &'a World, resources: &'a Resources) -> WorldUIContext<'a> {
+        let mut components: HashMap<Entity, (Location, Vec<TypeInfo>)> = HashMap::default();
         for (archetype_index, archetype) in world.archetypes().enumerate() {
             for (entity_index, entity) in archetype.iter_entities().enumerate() {
-                let cs = components.entry(*entity).or_insert_with(Vec::new);
-                let types = archetype.types().iter().cloned().collect::<Vec<_>>();
-                let component_info = ComponentInfo {
-                    entity_index,
-                    archetype_index,
-                    types,
+                let location = Location {
+                    archetype: archetype_index as u32,
+                    index: entity_index,
                 };
-                cs.push(component_info);
+
+                let entity_components = components
+                    .entry(*entity)
+                    .or_insert_with(|| (location, Vec::new()));
+
+                assert_eq!(location.archetype, entity_components.0.archetype);
+                assert_eq!(location.index, entity_components.0.index);
+
+                entity_components.1.extend(archetype.types());
             }
         }
 
@@ -91,15 +60,9 @@ impl<'a> WorldUIContext<'a> {
         }
     }
 
-    fn components_of(
-        &self,
-        entity: Entity,
-    ) -> impl Iterator<Item = (usize, usize, &TypeInfo)> + '_ {
-        self.components[&entity].iter().flat_map(|info| {
-            info.types
-                .iter()
-                .map(move |type_info| (info.entity_index, info.archetype_index, type_info))
-        })
+    fn components_of(&self, entity: Entity) -> impl Iterator<Item = (Location, &TypeInfo)> + '_ {
+        let (location, types) = &self.components[&entity];
+        types.iter().map(move |type_info| (*location, type_info))
     }
 
     fn entity_name(&self, entity: Entity) -> Cow<'_, str> {
@@ -111,20 +74,20 @@ impl<'a> WorldUIContext<'a> {
 }
 
 impl WorldUIContext<'_> {
-    fn ui(&self, ui: &mut egui::Ui) {
+    fn ui(&self, ui: &mut egui::Ui, params: &WorldInspectorParams) {
         let root_entities = self.world.query_filtered::<Entity, Without<Parent>>();
 
         for entity in root_entities {
-            self.entity_ui(ui, entity);
+            self.entity_ui(ui, entity, params);
         }
     }
 
-    fn entity_ui(&self, ui: &mut egui::Ui, entity: Entity) {
+    fn entity_ui(&self, ui: &mut egui::Ui, entity: Entity, params: &WorldInspectorParams) {
         ui.collapsing(self.entity_name(entity), |ui| {
             ui.label("Components");
 
-            for (entity_index, archetype_index, type_info) in self.components_of(entity) {
-                if ignore_component(type_info) {
+            for (location, type_info) in self.components_of(entity) {
+                if params.should_ignore_component(type_info.id()) {
                     continue;
                 }
 
@@ -133,10 +96,9 @@ impl WorldUIContext<'_> {
 
                 ui.collapsing(short_name, |ui| {
                     let could_display = self.inspectable_registry.generate(
-                        &self.world,
+                        self.world,
                         &self.resources,
-                        archetype_index,
-                        entity_index,
+                        location,
                         type_info,
                         &*self.type_registry.read(),
                         ui,
@@ -154,7 +116,7 @@ impl WorldUIContext<'_> {
             if let Some(children) = children.ok() {
                 ui.label("Children");
                 for &child in children.iter() {
-                    self.entity_ui(ui, child);
+                    self.entity_ui(ui, child, params);
                 }
             } else {
                 ui.label("No children");
@@ -163,18 +125,34 @@ impl WorldUIContext<'_> {
     }
 }
 
-fn ignore_component(type_info: &TypeInfo) -> bool {
-    let type_id = type_info.id();
-    [
-        TypeId::of::<Name>(),
-        TypeId::of::<Children>(),
-        TypeId::of::<Parent>(),
-        TypeId::of::<PreviousParent>(),
-        TypeId::of::<MainPass>(),
-        TypeId::of::<Draw>(),
-        TypeId::of::<RenderPipelines>(),
-    ]
-    .contains(&type_id)
+impl WorldInspectorParams {
+    /// Add `T` to component ignore list
+    pub fn ignore_component<T: 'static>(&mut self) {
+        self.ignore_components.insert(TypeId::of::<T>());
+    }
+
+    fn should_ignore_component(&self, type_id: TypeId) -> bool {
+        self.ignore_components.contains(&type_id)
+    }
+}
+
+impl Default for WorldInspectorParams {
+    fn default() -> Self {
+        let ignore_components = [
+            TypeId::of::<Name>(),
+            TypeId::of::<Children>(),
+            TypeId::of::<Parent>(),
+            TypeId::of::<PreviousParent>(),
+            TypeId::of::<MainPass>(),
+            TypeId::of::<Draw>(),
+            TypeId::of::<RenderPipelines>(),
+        ]
+        .iter()
+        .copied()
+        .collect();
+
+        WorldInspectorParams { ignore_components }
+    }
 }
 
 fn short_name(type_name: &str) -> String {

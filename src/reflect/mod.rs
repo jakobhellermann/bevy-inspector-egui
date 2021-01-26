@@ -83,7 +83,7 @@ macro_rules! try_downcast_ui {
 pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Context) {
     if let Some(resources) = context.resources {
         if let Some(inspect_registry) = resources.get::<InspectableRegistry>() {
-            if inspect_registry.try_execute(value, ui, resources) {
+            if inspect_registry.try_execute(value, ui, context) {
                 return;
             }
         }
