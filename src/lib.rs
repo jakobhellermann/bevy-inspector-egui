@@ -1,5 +1,4 @@
-#![forbid(unsafe_code)]
-#![warn(missing_docs, unreachable_pub, missing_debug_implementations)]
+#![warn(missing_docs, missing_debug_implementations)]
 
 //! This crate provides the ability to annotate structs with a `#[derive(Inspectable)]`,
 //! which opens a debug interface using [egui](https://github.com/emilk/egui) where you can visually edit the values of your struct live.
@@ -43,6 +42,9 @@ mod utils;
 #[allow(missing_docs)]
 mod impls;
 mod plugin;
+
+mod world_inspector;
+pub use world_inspector::{InspectableRegistry, WorldInspectorPlugin};
 
 /// `Inspectable` implementation for foreign types implementing `Reflect`
 pub mod reflect;
@@ -96,7 +98,7 @@ impl std::fmt::Debug for Context<'_> {
 pub trait Inspectable {
     /// The `Attributes` associated type specifies what attributes can be passed to a field.
     /// See the following snippet for an example:
-    /// ```rust
+    /// ```rust,no_run
     /// # use bevy_inspector_egui::{egui, Inspectable, Context};
     /// struct MyCustomType;
     /// # #[derive(Default)]

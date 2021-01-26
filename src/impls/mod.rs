@@ -1,5 +1,3 @@
-#![allow(unreachable_pub)]
-
 mod bevy_impls;
 mod list;
 mod number;

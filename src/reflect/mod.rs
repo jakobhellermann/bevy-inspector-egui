@@ -158,8 +158,9 @@ fn ui_for_reflect_value(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Co
         f32, f64, u8, u16, u32, u64, i8, i16, i32, i64,
         String, bool,
         Vec2, Vec3, Vec4, Mat3, Mat4,
-        Transform, Quat,
     );
+
+    try_downcast_ui!(value ui context => Option<String>);
 
     ui.label(format!("Not implemented: {}", value.type_name()));
 }
