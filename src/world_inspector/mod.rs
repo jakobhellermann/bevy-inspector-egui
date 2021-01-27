@@ -18,6 +18,8 @@ use std::{any::TypeId, borrow::Cow};
 pub struct WorldInspectorParams {
     /// these components will be ignored
     pub ignore_components: HashSet<TypeId>,
+    /// if this option is enabled, the inspector will cluster the entities by archetype
+    pub cluster_by_archetype: bool,
 }
 
 struct WorldUIContext<'a> {
@@ -75,10 +77,44 @@ impl<'a> WorldUIContext<'a> {
 
 impl WorldUIContext<'_> {
     fn ui(&self, ui: &mut egui::Ui, params: &WorldInspectorParams) {
+        if params.cluster_by_archetype {
+            self.ui_split_archetypes(ui, params);
+        } else {
+            self.ui_all_entities(ui, params);
+        }
+    }
+
+    fn ui_all_entities(&self, ui: &mut egui::Ui, params: &WorldInspectorParams) {
         let root_entities = self.world.query_filtered::<Entity, Without<Parent>>();
 
         for entity in root_entities {
             self.entity_ui(ui, entity, params);
+        }
+    }
+
+    fn ui_split_archetypes(&self, ui: &mut egui::Ui, params: &WorldInspectorParams) {
+        let root_entities = self.world.query_filtered::<Entity, Without<Parent>>();
+
+        let mut archetypes: Vec<u32> = Vec::new();
+        let entities: Vec<_> = root_entities
+            .map(|entity| {
+                let (location, _) = &self.components[&entity];
+                if !archetypes.contains(&location.archetype) {
+                    archetypes.push(location.archetype);
+                }
+                (*location, entity)
+            })
+            .collect();
+
+        for archetype in archetypes {
+            let archetype_label = format!("Archetype {}", archetype);
+            ui.collapsing(archetype_label, |ui| {
+                for (location, entity) in &entities {
+                    if location.archetype == archetype {
+                        self.entity_ui(ui, *entity, params);
+                    }
+                }
+            });
         }
     }
 
@@ -151,7 +187,10 @@ impl Default for WorldInspectorParams {
         .copied()
         .collect();
 
-        WorldInspectorParams { ignore_components }
+        WorldInspectorParams {
+            ignore_components,
+            cluster_by_archetype: true,
+        }
     }
 }
 

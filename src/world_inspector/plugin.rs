@@ -24,6 +24,13 @@ use crate::InspectableRegistry;
 /// ```
 pub struct WorldInspectorPlugin;
 
+impl WorldInspectorPlugin {
+    /// Create new `WorldInpsectorPlugin`
+    pub fn new() -> Self {
+        WorldInspectorPlugin
+    }
+}
+
 impl Plugin for WorldInspectorPlugin {
     fn build(&self, app: &mut AppBuilder) {
         if app.resources().get::<EguiContext>().is_none() {

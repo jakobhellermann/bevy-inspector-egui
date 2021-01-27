@@ -1,9 +1,13 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::WorldInspectorPlugin;
+use bevy_inspector_egui::{world_inspector::WorldInspectorParams, WorldInspectorPlugin};
 
 fn main() {
     App::build()
         .add_resource(Msaa { samples: 4 })
+        .add_resource(WorldInspectorParams {
+            cluster_by_archetype: false,
+            ..Default::default()
+        })
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin)
         .add_startup_system(setup.system())
