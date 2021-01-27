@@ -25,6 +25,11 @@ impl Default for InspectableRegistry {
         this.register::<GlobalTransform>();
         this.register::<Quat>();
 
+        this.register::<Color>();
+        this.register::<Handle<Texture>>();
+        this.register::<Handle<StandardMaterial>>();
+        this.register::<Handle<ColorMaterial>>();
+
         #[cfg(feature = "rapier")]
         {
             this.register::<bevy_rapier3d::rapier::dynamics::MassProperties>();

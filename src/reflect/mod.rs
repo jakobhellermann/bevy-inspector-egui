@@ -89,9 +89,6 @@ pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Cont
         }
     }
 
-    try_downcast_ui!(value ui context => Color);
-    try_downcast_ui!(value ui context => Handle<Texture>, Handle<StandardMaterial>);
-
     match value.reflect_mut() {
         bevy::reflect::ReflectMut::Struct(s) => ui_for_reflect_struct(s, ui, context),
         bevy::reflect::ReflectMut::TupleStruct(value) => ui_for_tuple_struct(value, ui, context),

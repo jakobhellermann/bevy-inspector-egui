@@ -143,3 +143,21 @@ impl Inspectable for StandardMaterial {
         });
     }
 }
+
+impl Inspectable for ColorMaterial {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+        ui.vertical_centered(|ui| {
+            crate::egui::Grid::new(std::any::TypeId::of::<ColorMaterial>()).show(ui, |ui| {
+                ui.label("color");
+                self.color.ui(ui, Default::default(), context);
+                ui.end_row();
+
+                ui.label("texture");
+                self.texture.ui(ui, Default::default(), context);
+                ui.end_row();
+            });
+        });
+    }
+}
