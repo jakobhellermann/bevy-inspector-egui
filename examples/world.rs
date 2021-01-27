@@ -1,13 +1,9 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::{WorldInspectorParams, WorldInspectorPlugin};
+use bevy_inspector_egui::WorldInspectorPlugin;
 
 fn main() {
     App::build()
         .add_resource(Msaa { samples: 4 })
-        .add_resource(WorldInspectorParams {
-            cluster_by_archetype: false,
-            ..Default::default()
-        })
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin)
         .add_startup_system(setup.system())
@@ -44,12 +40,21 @@ fn setup(
         })
         .with(Name::new("Cube"))
         .with_children(|commands| {
-            commands.spawn(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
-                transform: Transform::from_translation(Vec3::new(0.0, 1.0, 0.0)),
-                material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
-                ..Default::default()
-            });
+            commands
+                .spawn(PbrBundle {
+                    mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
+                    transform: Transform::from_translation(Vec3::new(0.0, 1.0, 0.0)),
+                    material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
+                    ..Default::default()
+                })
+                .with(Name::new("Child"))
+                .spawn(PbrBundle {
+                    mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
+                    transform: Transform::from_translation(Vec3::new(0.0, 1.5, 0.0)),
+                    material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
+                    ..Default::default()
+                })
+                .with(Name::new("Child"));
         })
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Icosphere {

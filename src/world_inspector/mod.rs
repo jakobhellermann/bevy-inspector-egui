@@ -2,6 +2,7 @@ mod impls;
 mod inspectable_registry;
 mod plugin;
 
+use egui::CollapsingHeader;
 pub use inspectable_registry::InspectableRegistry;
 pub use plugin::WorldInspectorPlugin;
 
@@ -123,45 +124,47 @@ impl WorldUIContext<'_> {
     }
 
     fn entity_ui(&self, ui: &mut egui::Ui, entity: Entity, params: &WorldInspectorParams) {
-        ui.collapsing(self.entity_name(entity), |ui| {
-            ui.label("Components");
+        CollapsingHeader::new(self.entity_name(entity))
+            .id_source(entity)
+            .show(ui, |ui| {
+                ui.label("Components");
 
-            for (location, type_info) in self.components_of(entity) {
-                if params.should_ignore_component(type_info.id()) {
-                    continue;
-                }
-
-                let type_name = type_info.type_name();
-                let short_name = utils::short_name(type_name);
-
-                ui.collapsing(short_name, |ui| {
-                    let could_display = self.inspectable_registry.generate(
-                        self.world,
-                        &self.resources,
-                        location,
-                        type_info,
-                        &*self.type_registry.read(),
-                        ui,
-                    );
-
-                    if !could_display {
-                        ui.label("Inspectable has not been defined for this component");
+                for (location, type_info) in self.components_of(entity) {
+                    if params.should_ignore_component(type_info.id()) {
+                        continue;
                     }
-                });
-            }
 
-            ui.separator();
+                    let type_name = type_info.type_name();
+                    let short_name = utils::short_name(type_name);
 
-            let children = self.world.get::<Children>(entity);
-            if let Some(children) = children.ok() {
-                ui.label("Children");
-                for &child in children.iter() {
-                    self.entity_ui(ui, child, params);
+                    ui.collapsing(short_name, |ui| {
+                        let could_display = self.inspectable_registry.generate(
+                            self.world,
+                            &self.resources,
+                            location,
+                            type_info,
+                            &*self.type_registry.read(),
+                            ui,
+                        );
+
+                        if !could_display {
+                            ui.label("Inspectable has not been defined for this component");
+                        }
+                    });
                 }
-            } else {
-                ui.label("No children");
-            }
-        });
+
+                ui.separator();
+
+                let children = self.world.get::<Children>(entity);
+                if let Some(children) = children.ok() {
+                    ui.label("Children");
+                    for &child in children.iter() {
+                        self.entity_ui(ui, child, params);
+                    }
+                } else {
+                    ui.label("No children");
+                }
+            });
     }
 }
 
@@ -193,7 +196,7 @@ impl Default for WorldInspectorParams {
 
         WorldInspectorParams {
             ignore_components,
-            cluster_by_archetype: true,
+            cluster_by_archetype: false,
         }
     }
 }
