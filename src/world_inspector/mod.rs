@@ -5,6 +5,8 @@ mod plugin;
 pub use inspectable_registry::InspectableRegistry;
 pub use plugin::WorldInspectorPlugin;
 
+pub use impls::InspectorQuery;
+
 use bevy::ecs::{Location, ResourceRef};
 use bevy::reflect::TypeRegistryArc;
 use bevy::render::render_graph::base::MainPass;
