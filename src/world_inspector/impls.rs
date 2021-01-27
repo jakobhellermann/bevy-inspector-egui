@@ -1,4 +1,4 @@
-use super::{short_name, WorldInspectorParams, WorldUIContext};
+use super::{WorldInspectorParams, WorldUIContext};
 use crate::{utils, Inspectable};
 use bevy::{ecs::QueryFilter, prelude::*};
 use std::{any::type_name, marker::PhantomData};
@@ -93,7 +93,7 @@ impl<F: QueryFilter> Inspectable for InspectorQuery<F> {
         let params = WorldInspectorParams::default();
         ui.vertical_centered(|ui| {
             if options.collapse {
-                let name = short_name(type_name::<F>());
+                let name = utils::short_name(type_name::<F>());
                 ui.collapsing(name, |ui| {
                     for entity in entities {
                         ui_ctx.entity_ui(ui, entity, &params);

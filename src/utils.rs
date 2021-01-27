@@ -7,6 +7,30 @@ pub(crate) fn error_label(ui: &mut egui::Ui, msg: impl Into<Label>) {
     ui.colored_label(ERROR_COLOR, msg);
 }
 
+pub(crate) fn short_name(type_name: &str) -> String {
+    match type_name.find('<') {
+        // no generics
+        None => type_name.rsplit("::").next().unwrap_or(type_name).into(),
+        // generics a::b::c<d>
+        Some(angle_open) => {
+            let angle_close = type_name.rfind('>').unwrap();
+
+            let before_generics = &type_name[..angle_open];
+            let after = &type_name[angle_close + 1..];
+            let in_between = &type_name[angle_open + 1..angle_close];
+
+            let before_generics = match before_generics.rfind("::") {
+                None => before_generics,
+                Some(i) => &before_generics[i + 2..],
+            };
+
+            let in_between = short_name(in_between);
+
+            format!("{}<{}>{}", before_generics, in_between, after)
+        }
+    }
+}
+
 #[allow(unused)]
 macro_rules! impl_for_simple_enum {
     ($name:ident with $($variant:ident),* ) => {
@@ -53,4 +77,28 @@ macro_rules! expect_resource {
             }
         }
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::short_name;
+
+    #[test]
+    fn shorten_name_basic() {
+        assert_eq!(short_name("path::to::some::Type"), "Type".to_string());
+    }
+    #[test]
+    fn shorten_name_generic() {
+        assert_eq!(
+            short_name("bevy::ecs::Handle<bevy::render::StandardMaterial>"),
+            "Handle<StandardMaterial>".to_string()
+        );
+    }
+    #[test]
+    fn shorten_name_nested_generic() {
+        assert_eq!(
+            short_name("foo::bar::quux<qaax<p::t::b>>"),
+            "quux<qaax<b>>".to_string()
+        );
+    }
 }

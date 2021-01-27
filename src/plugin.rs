@@ -3,7 +3,7 @@ use std::{any::TypeId, marker::PhantomData};
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
-use crate::{Context, Inspectable, InspectableRegistry};
+use crate::{utils, Context, Inspectable, InspectableRegistry};
 
 #[allow(missing_debug_implementations)]
 /// Bevy plugin for the inspector.
@@ -91,8 +91,8 @@ where
             );
         }
 
-        let type_name = full_type_name.rsplit("::").next().unwrap_or("Inspector");
-        if inspector_windows.contains_name(type_name) {
+        let type_name = utils::short_name(full_type_name);
+        if inspector_windows.contains_name(&type_name) {
             if inspector_windows.contains_name(full_type_name) {
                 panic!("two types with different type_id but same type_name");
             } else {
