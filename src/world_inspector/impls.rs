@@ -39,7 +39,8 @@ impl Inspectable for Entity {
 /// Queries for entities matching the filter `F` and displays their entity trees.
 /// ```rust,no_run
 /// use bevy::prelude::*;
-/// use bevy_inspector_egui::{Inspectable, world_inspector::InspectorQuery, InspectorPlugin};
+/// use bevy_inspector_egui::{Inspectable, InspectorPlugin};
+/// use bevy_inspector_egui::widgets::InspectorQuery;
 ///
 /// struct Collider;
 ///

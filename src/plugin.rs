@@ -10,7 +10,7 @@ use crate::{Context, Inspectable, InspectableRegistry};
 /// See the [crate-level docs](index.html) for an example on how to use it.
 pub struct InspectorPlugin<T> {
     marker: PhantomData<T>,
-    thread_local: bool,
+    exclusive_access: bool,
 }
 
 impl<T> Default for InspectorPlugin<T> {
@@ -20,19 +20,18 @@ impl<T> Default for InspectorPlugin<T> {
 }
 
 impl<T> InspectorPlugin<T> {
-    /// Creates a new inspector plugin, where the <Inspectable> implementations
-    /// *do not* have access to `bevy::ecs::Resources` in the [`Context`](crate::Context::resources)
+    /// Creates a new inspector plugin with access to `World` and `Resources` in the [`Context`](crate::Context).
     pub fn new() -> Self {
         InspectorPlugin {
-            thread_local: false,
+            exclusive_access: true,
             marker: PhantomData,
         }
     }
-    /// Creates a new inspector plugin wich access to `bevy::ecs::Resources`.
-    /// The disadvantage is, that the ui system has to run in a thread local system, which may hurt performance a bit.
-    pub fn thread_local() -> Self {
+    /// Creates a new inspector plugin *without+ access to `World` and `Resources` in the [`Context`](crate::Context).
+    /// This has the advantage that the system can be scheduled concurrently to others and may be faster.
+    pub fn shared() -> Self {
         InspectorPlugin {
-            thread_local: true,
+            exclusive_access: false,
             marker: PhantomData,
         }
     }
@@ -62,10 +61,10 @@ where
         app.init_resource::<T>();
 
         // init inspector ui and data resource
-        if self.thread_local {
-            app.add_system(thread_local_ui::<T>.system());
+        if self.exclusive_access {
+            app.add_system(exclusive_access_ui::<T>.system());
         } else {
-            app.add_system(ui::<T>.system());
+            app.add_system(shared_access_ui::<T>.system());
         }
 
         // init egui
@@ -126,7 +125,7 @@ fn egui_texture_setup(
     }
 }
 
-fn ui<T>(
+fn shared_access_ui<T>(
     mut data: ResMut<T>,
     mut egui_context: ResMut<EguiContext>,
     inspector_windows: Res<InspectorWindows>,
@@ -145,7 +144,7 @@ fn ui<T>(
         });
 }
 
-fn thread_local_ui<T>(world: &mut World, resources: &mut Resources)
+fn exclusive_access_ui<T>(world: &mut World, resources: &mut Resources)
 where
     T: Inspectable + Send + Sync + 'static,
 {

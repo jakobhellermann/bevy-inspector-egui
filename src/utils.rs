@@ -34,8 +34,9 @@ macro_rules! expect_context {
             Some(val) => val,
             None => {
                 let msg = format!(
-                    "'{}' needs unique access via InspectorPlugin::thread_local",
-                    $ty
+                    "'{}' needs exclusive access to the {}",
+                    $ty,
+                    stringify!($field)
                 );
                 return utils::error_label($ui, msg);
             }

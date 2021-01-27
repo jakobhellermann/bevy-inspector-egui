@@ -44,13 +44,12 @@ mod impls;
 mod plugin;
 
 /// configuration for the [`WorldInspectorPlugin`](crate::world_inspector::WorldInspectorPlugin)
-pub mod world_inspector;
+mod world_inspector;
 use bevy::prelude::{Resources, World};
-#[doc(inline)]
-pub use world_inspector::{InspectableRegistry, WorldInspectorPlugin};
+pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 
 /// `Inspectable` implementation for foreign types implementing `Reflect`
-pub mod reflect;
+mod reflect;
 
 pub use bevy_egui;
 pub use bevy_egui::egui;
@@ -58,6 +57,12 @@ pub use bevy_egui::egui;
 /// Derives the [`Inspectable`](Inspectable) trait.
 pub use bevy_inspector_egui_derive::Inspectable;
 pub use plugin::InspectorPlugin;
+
+/// Utitly types implementing `Inspectable`
+pub mod widgets {
+    pub use crate::reflect::ReflectedUI;
+    pub use crate::world_inspector::InspectorQuery;
+}
 
 /// Attributes for the built-in [`Inspectable`](Inspectable) implementations
 pub mod options {
@@ -67,14 +72,14 @@ pub mod options {
 #[derive(Default)]
 /// The context passed to [`Inspectable::ui`].
 pub struct Context<'a> {
-    /// The resources are only available when the plugin is initialized using `app.add_plugin(InspectablePlugin::thread_local())`
+    /// The resources are only available when not using `InspectablePlugin::shared()`
     pub resources: Option<&'a Resources>,
-    /// The resources are only available when the plugin is initialized using `app.add_plugin(InspectablePlugin::thread_local())`
+    /// The world is only available when not using `InspectablePlugin::shared()`
     pub world: Option<&'a World>,
 }
 
 impl<'a> Context<'a> {
-    /// Create new resources
+    /// Create new context with access to the `World` and `Resources`
     pub fn new(world: &'a World, resources: &'a Resources) -> Self {
         Context {
             resources: Some(resources),

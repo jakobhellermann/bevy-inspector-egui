@@ -24,7 +24,7 @@ use crate::{Context, Inspectable, InspectableRegistry};
 ///
 /// ```rust
 /// # use bevy::prelude::*;
-/// # use bevy_inspector_egui::{Inspectable, reflect::ReflectedUI};
+/// # use bevy_inspector_egui::{Inspectable, widgets::ReflectedUI};
 /// # #[derive(Reflect, Default)] struct SomeComponent;
 /// #[derive(Inspectable, Default)]
 /// struct Data {

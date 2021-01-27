@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::{world_inspector::WorldInspectorParams, WorldInspectorPlugin};
+use bevy_inspector_egui::{WorldInspectorParams, WorldInspectorPlugin};
 
 fn main() {
     App::build()

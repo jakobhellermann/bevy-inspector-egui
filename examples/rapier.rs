@@ -11,7 +11,7 @@ struct Data {
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
-        .add_plugin(InspectorPlugin::<Data>::thread_local())
+        .add_plugin(InspectorPlugin::<Data>::new())
         .add_plugin(RapierPhysicsPlugin)
         .add_startup_system(setup.system())
         .add_system(set_rigidbody_handle.system())
