@@ -138,6 +138,7 @@ fn shared_access_ui<T>(
 
     egui::Window::new(type_name)
         .resizable(false)
+        .scroll(true)
         .show(ctx, |ui| {
             let context = Context::default();
             data.ui(ui, T::Attributes::default(), &context);
@@ -159,6 +160,7 @@ where
 
     egui::Window::new(type_name)
         .resizable(false)
+        .scroll(true)
         .show(ctx, |ui| {
             let context = Context::new(world, resources);
             data.ui(ui, T::Attributes::default(), &context);

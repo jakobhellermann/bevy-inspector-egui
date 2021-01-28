@@ -1,3 +1,5 @@
+pub mod ui;
+
 use bevy_egui::egui;
 use egui::{Color32, Label};
 

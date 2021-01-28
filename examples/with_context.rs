@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 
-// #[derive(Inspectable, Debug)]
 #[derive(Inspectable, Debug)]
 struct Data {
     material: Handle<StandardMaterial>,
@@ -31,8 +30,6 @@ fn main() {
         .run();
 }
 
-struct Cube;
-
 fn setup(
     commands: &mut Commands,
     data: ResMut<Data>,
@@ -51,7 +48,6 @@ fn setup(
             transform: Transform::from_translation(Vec3::new(0.0, 0.5, 0.0)),
             ..Default::default()
         })
-        .with(Cube)
         .spawn(LightBundle {
             transform: Transform::from_translation(Vec3::new(4.0, 8.0, 4.0)),
             ..Default::default()

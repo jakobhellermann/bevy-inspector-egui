@@ -42,22 +42,39 @@ impl Inspectable for Handle<Texture> {
     fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
         let resources = expect_context!(ui, context.resources, "Handle<Texture>");
 
-        // let mut egui_context = resources.get_mut::<EguiContext>().unwrap();
+        let asset_server = expect_resource!(ui, resources, get AssetServer);
+        let file_events = resources.get::<Events<FileDragAndDrop>>().unwrap();
+
         let textures = expect_resource!(ui, resources, get Assets<Texture>);
-        let texture = expect_handle!(ui, textures, get self);
+        let texture = textures.get(self.clone());
 
-        let size = texture.size;
-        let size = [size.width as f32, size.height as f32];
+        let response = match texture {
+            Some(texture) => show_texture(self, texture, ui),
+            None => Some(utils::ui::drag_and_drop_target(ui)),
+        };
 
-        let id = id_of_handle(self);
-        let texture_id = TextureId::User(id);
+        utils::ui::replace_handle_if_dropped(self, response, &*file_events, &*asset_server);
+    }
+}
 
-        let max = size[0].max(size[1]);
-        if max > 256.0 {
-            ui.collapsing("Texture", |ui| ui.image(texture_id, size));
-        } else {
-            ui.image(texture_id, size);
-        }
+fn show_texture(
+    handle: &Handle<Texture>,
+    texture: &Texture,
+    ui: &mut egui::Ui,
+) -> Option<egui::Response> {
+    let size = texture.size;
+    let size = [size.width as f32, size.height as f32];
+
+    let id = id_of_handle(handle);
+    let texture_id = TextureId::User(id);
+
+    let max = size[0].max(size[1]);
+    if max >= 256.0 {
+        let response = ui.collapsing("Texture", |ui| ui.image(texture_id, size));
+        response.body_response
+    } else {
+        let response = ui.image(texture_id, size);
+        Some(response)
     }
 }
 
