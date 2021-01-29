@@ -16,7 +16,7 @@ use bevy::{ecs::TypeInfo, prelude::*};
 use bevy_egui::egui;
 use std::{any::TypeId, borrow::Cow};
 
-use crate::utils;
+use crate::{utils, Context};
 
 /// Resource which controls the way the world inspector is shown.
 #[derive(Debug, Clone)]
@@ -156,16 +156,18 @@ impl WorldUIContext<'_> {
                     }
 
                     ui.collapsing(short_name, |ui| {
+                        let context = Context::new(self.ui_ctx, self.world, self.resources)
+                            .with_id(entity.id() as u64);
+
                         // SAFETY: we have unique access to the world
                         let could_display = unsafe {
                             self.inspectable_registry.generate(
                                 self.world,
-                                &self.resources,
                                 *location,
                                 type_info,
                                 &*self.type_registry.read(),
                                 ui,
-                                self.ui_ctx,
+                                &context,
                             )
                         };
 

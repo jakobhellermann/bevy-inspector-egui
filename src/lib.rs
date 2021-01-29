@@ -50,6 +50,8 @@ mod plugin;
 /// configuration for the [`WorldInspectorPlugin`](crate::world_inspector::WorldInspectorPlugin)
 mod world_inspector;
 
+use std::hash::Hasher;
+
 use bevy::prelude::{AppBuilder, Resources, World};
 use egui::CtxRef;
 pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
@@ -107,6 +109,13 @@ impl<'a> Context<'a> {
 
     /// Same context but with a specified `id`
     pub fn with_id(&self, id: u64) -> Self {
+        let mut hasher = std::collections::hash_map::DefaultHasher::default();
+        if let Some(id) = self.id {
+            hasher.write_u64(id);
+        }
+        hasher.write_u64(id);
+        let id = hasher.finish();
+
         Context {
             id: Some(id),
             ..*self

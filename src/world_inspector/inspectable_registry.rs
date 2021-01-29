@@ -7,6 +7,12 @@ use std::any::TypeId;
 
 type InspectCallback = Box<dyn Fn(*mut u8, &mut egui::Ui, &Context) + Send + Sync>;
 
+macro_rules! register {
+    ($this:ident $($ty:ty),* $(,)?) => {
+        $($this.register::<$ty>();)*
+    };
+}
+
 /// The `InspectableRegistry` can be used to tell the [`WorldInspectorPlugin`](crate::WorldInspectorPlugin)
 /// how to display a type.
 pub struct InspectableRegistry {
@@ -31,12 +37,12 @@ impl Default for InspectableRegistry {
         this.register::<Handle<StandardMaterial>>();
         this.register::<Handle<ColorMaterial>>();
 
+        register!(this Display, Style, Size<f32>, Size<Val>, Val, bevy::ui::FocusPolicy);
+        register!(this VerticalAlign, HorizontalAlign, TextAlignment, TextStyle, TextSection, Text);
+        register!(this PositionType, Direction, FlexDirection, FlexWrap, AlignItems, AlignSelf, JustifyContent);
+
         #[cfg(feature = "rapier")]
-        {
-            this.register::<bevy_rapier3d::rapier::dynamics::MassProperties>();
-            this.register::<bevy_rapier3d::rapier::dynamics::RigidBody>();
-            this.register::<bevy_rapier3d::physics::RigidBodyHandleComponent>();
-        }
+        register!(this bevy_rapier3d::rapier::dynamics::MassProperties, bevy_rapier3d::rapier::dynamics::RigidBody, bevy_rapier3d::physics::RigidBodyHandleComponent);
 
         this
     }
@@ -100,12 +106,11 @@ impl InspectableRegistry {
     pub(crate) unsafe fn generate(
         &self,
         world: &World,
-        resources: &Resources,
         location: Location,
         type_info: &TypeInfo,
         type_registry: &TypeRegistryInternal,
         ui: &mut egui::Ui,
-        ui_ctx: &egui::CtxRef,
+        context: &Context,
     ) -> bool {
         let archetype = &world.archetypes[location.archetype as usize];
 
@@ -121,8 +126,6 @@ impl InspectableRegistry {
                 .unwrap()
                 .as_ptr()
         };
-
-        let context = Context::new(ui_ctx, world, resources);
 
         if let Some(f) = self.impls.get(&type_info.id()) {
             f(ptr, ui, &context);

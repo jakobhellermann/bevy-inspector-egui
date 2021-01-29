@@ -2,6 +2,7 @@ mod bevy_impls;
 mod list;
 mod number;
 mod primitives;
+mod ui;
 mod vec;
 pub(crate) mod with_context;
 

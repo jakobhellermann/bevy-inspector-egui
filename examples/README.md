@@ -24,6 +24,9 @@ fn main() {
 ```
 </details>
 
+### UI ([source](ui.rs))
+<img src="../docs/examples/ui.png" alt="example" width="500" />
+
 ### Texture ([source](with_context.rs))
 <img src="../docs/examples/texture.png" alt="example" width="500" />
 

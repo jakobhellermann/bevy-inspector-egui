@@ -32,6 +32,11 @@ impl<T> NumberAttributes<T> {
         }
     }
 }
+impl NumberAttributes<f32> {
+    pub(crate) fn positive() -> Self {
+        NumberAttributes::min(0.0)
+    }
+}
 
 macro_rules! impl_for_num {
     ($ty:ident $(default_speed=$default_speed:expr)? ) => {
