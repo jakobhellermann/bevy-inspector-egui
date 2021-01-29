@@ -54,6 +54,27 @@ macro_rules! impl_for_simple_enum {
     }
 }
 
+macro_rules! impl_for_struct_delegate_fields {
+    ($ty:ty: $($field:ident),+ $(,)?) => {
+        impl $crate::Inspectable for $ty {
+            type Attributes = ();
+
+            fn ui(&mut self, ui: &mut $crate::egui::Ui, _: Self::Attributes, context: &$crate::Context) {
+                let id = std::any::TypeId::of::<$ty>();
+                ui.vertical_centered(|ui| {
+                    $crate::egui::Grid::new(id).show(ui, |ui| {
+                        $(
+                            ui.label(stringify!($field));
+                            self.$field.ui(ui, Default::default(), context);
+                            ui.end_row();
+                        )*
+                    });
+                });
+            }
+        }
+    };
+}
+
 macro_rules! expect_context {
     ($ui:ident, $context:ident.$field:ident, $ty:literal) => {
         match $context.$field {

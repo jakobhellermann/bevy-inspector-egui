@@ -3,6 +3,9 @@ use bevy::prelude::*;
 use bevy_egui::egui;
 use egui::Grid;
 
+impl_for_struct_delegate_fields!(StandardMaterial: albedo, albedo_texture, shaded);
+impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
+
 impl Inspectable for Quat {
     type Attributes = NumberAttributes<[f32; 4]>;
 
@@ -119,45 +122,5 @@ impl Inspectable for Color {
             let [r, g, b] = color;
             *self = Color::rgb(r, g, b);
         }
-    }
-}
-
-impl Inspectable for StandardMaterial {
-    type Attributes = ();
-
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
-        ui.vertical_centered(|ui| {
-            crate::egui::Grid::new(std::any::TypeId::of::<StandardMaterial>()).show(ui, |ui| {
-                ui.label("albedo");
-                self.albedo.ui(ui, Default::default(), context);
-                ui.end_row();
-
-                ui.label("albedo_texture");
-                self.albedo_texture.ui(ui, Default::default(), context);
-                ui.end_row();
-
-                ui.label("shaded");
-                self.shaded.ui(ui, Default::default(), context);
-                ui.end_row();
-            });
-        });
-    }
-}
-
-impl Inspectable for ColorMaterial {
-    type Attributes = ();
-
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
-        ui.vertical_centered(|ui| {
-            crate::egui::Grid::new(std::any::TypeId::of::<ColorMaterial>()).show(ui, |ui| {
-                ui.label("color");
-                self.color.ui(ui, Default::default(), context);
-                ui.end_row();
-
-                ui.label("texture");
-                self.texture.ui(ui, Default::default(), context);
-                ui.end_row();
-            });
-        });
     }
 }
