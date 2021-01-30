@@ -17,7 +17,7 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands
-        .spawn(Camera3dBundle {
+        .spawn(PerspectiveCameraBundle {
             transform: Transform::from_matrix(Mat4::face_toward(
                 Vec3::new(-3.0, 5.0, 8.0),
                 Vec3::new(0.0, 0.0, 0.0),

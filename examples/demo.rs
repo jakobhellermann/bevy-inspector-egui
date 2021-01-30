@@ -83,8 +83,8 @@ fn setup(
     let color = materials.add(Color::BLUE.into());
 
     commands
-        .spawn(Camera2dBundle::default())
-        .spawn(CameraUiBundle::default())
+        .spawn(OrthographicCameraBundle::new_2d())
+        .spawn(UiCameraBundle::default())
         .spawn(TextBundle {
             style: Style {
                 align_self: AlignSelf::FlexEnd,
