@@ -138,14 +138,17 @@ impl WorldUIContext<'_> {
                     let short_name = utils::short_name(type_name);
 
                     ui.collapsing(short_name, |ui| {
-                        let could_display = self.inspectable_registry.generate(
-                            self.world,
-                            &self.resources,
-                            location,
-                            type_info,
-                            &*self.type_registry.read(),
-                            ui,
-                        );
+                        // SAFETY: we have unique access to the world
+                        let could_display = unsafe {
+                            self.inspectable_registry.generate(
+                                self.world,
+                                &self.resources,
+                                location,
+                                type_info,
+                                &*self.type_registry.read(),
+                                ui,
+                            )
+                        };
 
                         if !could_display {
                             ui.label("Inspectable has not been defined for this component");

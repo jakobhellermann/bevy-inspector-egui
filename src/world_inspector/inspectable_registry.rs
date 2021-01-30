@@ -1,5 +1,5 @@
 use crate::{Context, Inspectable};
-use bevy::utils::HashMap;
+use bevy::{ecs::ComponentFlags, utils::HashMap};
 use bevy::{ecs::Location, reflect::TypeRegistryInternal};
 use bevy::{ecs::TypeInfo, prelude::*};
 use bevy_egui::egui;
@@ -67,7 +67,11 @@ impl InspectableRegistry {
         }
     }
 
-    pub(crate) fn generate(
+    /// Safety:
+    /// The `location` must point to a valid archetype and index,
+    /// and the function must have unique access to the components.
+    #[allow(unused_unsafe)]
+    pub(crate) unsafe fn generate(
         &self,
         world: &World,
         resources: &Resources,
@@ -77,6 +81,12 @@ impl InspectableRegistry {
         ui: &mut egui::Ui,
     ) -> bool {
         let archetype = &world.archetypes[location.archetype as usize];
+
+        unsafe {
+            let type_state = archetype.get_type_state(type_info.id()).unwrap();
+            let flags = &mut *type_state.component_flags().as_ptr().add(location.index);
+            flags.insert(ComponentFlags::MUTATED);
+        };
 
         let ptr = unsafe {
             archetype
