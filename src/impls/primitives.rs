@@ -39,9 +39,9 @@ where
             let replacement = T::default()..=T::default();
             let (mut start, mut end) = std::mem::replace(self, replacement).into_inner();
 
-            start.ui(ui, options.clone(), context);
+            start.ui(ui, options.clone(), &context.with_id(0));
             ui.label("..=");
-            end.ui(ui, options, context);
+            end.ui(ui, options, &context.with_id(1));
 
             *self = start..=end;
         });
@@ -57,9 +57,9 @@ where
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
         ui.horizontal(|ui| {
-            self.start.ui(ui, options.clone(), context);
+            self.start.ui(ui, options.clone(), &context.with_id(0));
             ui.label("..");
-            self.end.ui(ui, options, context);
+            self.end.ui(ui, options, &context.with_id(1));
         });
     }
 }

@@ -5,7 +5,6 @@ use crate::attributes::InspectableAttribute;
 
 pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) -> TokenStream {
     let name = &derive_input.ident;
-    let id = name;
 
     let fields = data.fields.iter().enumerate().map(|(i, field)| {
         let ty = &field.ty;
@@ -48,11 +47,13 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
 
         let ui = quote! {
             #options
-            <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options, context);
+            <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options, &context.with_id(#i as u64));
         };
 
         let ui = match collapse {
-            true => quote! { ui.collapsing(#field_label, |ui| {#ui}); },
+            true => quote! { 
+                bevy_inspector_egui::egui::CollapsingHeader::new(#field_label).id_source(#i as u64).show(ui, |ui| { #ui });
+            },
             false => ui,
         };
 
@@ -72,7 +73,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
             fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes, context: &bevy_inspector_egui::Context) {
                 use bevy_inspector_egui::egui;
 
-                let grid = egui::Grid::new(stringify!(#id));
+                let grid = egui::Grid::new(context.id());
                 grid.show(ui, |ui| {
                     #(#fields)*
                 });

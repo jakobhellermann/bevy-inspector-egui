@@ -45,6 +45,7 @@ mod plugin;
 
 /// configuration for the [`WorldInspectorPlugin`](crate::world_inspector::WorldInspectorPlugin)
 mod world_inspector;
+
 use bevy::prelude::{Resources, World};
 pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 
@@ -76,6 +77,9 @@ pub struct Context<'a> {
     pub resources: Option<&'a Resources>,
     /// The world is only available when not using `InspectablePlugin::shared()`
     pub world: Option<&'a World>,
+
+    /// Something to distinguish between siblings.
+    pub id: Option<u64>,
 }
 
 impl<'a> Context<'a> {
@@ -84,6 +88,24 @@ impl<'a> Context<'a> {
         Context {
             resources: Some(resources),
             world: Some(world),
+            id: None,
+        }
+    }
+
+    /// Same context but with a specified `id`
+    pub fn with_id(&self, id: u64) -> Self {
+        Context {
+            id: Some(id),
+            ..*self
+        }
+    }
+
+    /// Returns the [id](struct.Context.html#structfield.id) if present, otherwise a dummy id.
+    pub fn id(&self) -> egui::Id {
+        let dummy_id = egui::Id::new(42);
+        match self.id {
+            Some(id) => egui::Id::new(id),
+            None => dummy_id,
         }
     }
 }

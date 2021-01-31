@@ -109,7 +109,7 @@ fn ui_for_reflect_struct(value: &mut dyn Struct, ui: &mut egui::Ui, context: &Co
                     None => ui.label("<missing>"),
                 };
                 if let Some(field) = value.field_at_mut(i) {
-                    ui_for_reflect(field, ui, context);
+                    ui_for_reflect(field, ui, &context.with_id(i as u64));
                 } else {
                     ui.label("<missing>");
                 }
@@ -125,7 +125,7 @@ fn ui_for_tuple_struct(value: &mut dyn TupleStruct, ui: &mut egui::Ui, context: 
         for i in 0..value.field_len() {
             ui.label(i.to_string());
             if let Some(field) = value.field_mut(i) {
-                ui_for_reflect(field, ui, context);
+                ui_for_reflect(field, ui, &context.with_id(i as u64));
             } else {
                 ui.label("<missing>");
             }
@@ -140,7 +140,7 @@ fn ui_for_tuple(value: &mut dyn Tuple, ui: &mut egui::Ui, context: &Context) {
         for i in 0..value.field_len() {
             ui.label(i.to_string());
             if let Some(field) = value.field_mut(i) {
-                ui_for_reflect(field, ui, context);
+                ui_for_reflect(field, ui, &context.with_id(i as u64));
             } else {
                 ui.label("<missing>");
             }

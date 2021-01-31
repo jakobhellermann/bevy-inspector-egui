@@ -1,6 +1,7 @@
 use super::{WorldInspectorParams, WorldUIContext};
 use crate::{utils, Inspectable};
 use bevy::{ecs::QueryFilter, prelude::*};
+use bevy_egui::egui::CollapsingHeader;
 use std::{any::type_name, marker::PhantomData};
 
 impl Inspectable for World {
@@ -32,7 +33,7 @@ impl Inspectable for Entity {
         let world = expect_context!(ui, context.world, "Entity");
 
         let ui_ctx = WorldUIContext::new(world, resources);
-        ui_ctx.entity_ui(ui, *self, &options);
+        ui_ctx.entity_ui(ui, *self, &options, context.id());
     }
 }
 
@@ -94,15 +95,17 @@ impl<F: QueryFilter> Inspectable for InspectorQuery<F> {
         ui.vertical_centered(|ui| {
             if options.collapse {
                 let name = utils::short_name(type_name::<F>());
-                ui.collapsing(name, |ui| {
-                    for entity in entities {
-                        ui_ctx.entity_ui(ui, entity, &params);
-                        ui.end_row();
-                    }
-                });
+                CollapsingHeader::new(name)
+                    .id_source(context.id())
+                    .show(ui, |ui| {
+                        for entity in entities {
+                            ui_ctx.entity_ui(ui, entity, &params, context.id());
+                            ui.end_row();
+                        }
+                    });
             } else {
                 for entity in entities {
-                    ui_ctx.entity_ui(ui, entity, &params);
+                    ui_ctx.entity_ui(ui, entity, &params, context.id());
                     ui.end_row();
                 }
             }

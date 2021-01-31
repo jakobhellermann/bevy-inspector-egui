@@ -15,7 +15,7 @@ where
             for (i, val) in self.iter_mut().enumerate() {
                 ui.horizontal(|ui| {
                     ui.label(i.to_string());
-                    val.ui(ui, options.clone(), context);
+                    val.ui(ui, options.clone(), &context.with_id(i as u64));
                     if ui.button("-").clicked {
                         to_delete = Some(i);
                     }
@@ -47,7 +47,7 @@ where
             for (i, val) in self.iter_mut().enumerate() {
                 ui.horizontal(|ui| {
                     ui.label(i.to_string());
-                    val.ui(ui, options.clone(), context);
+                    val.ui(ui, options.clone(), &context.with_id(i as u64));
                 });
             }
         });

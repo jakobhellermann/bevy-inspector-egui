@@ -49,7 +49,7 @@ impl Inspectable for Handle<Texture> {
         let texture = textures.get(self.clone());
 
         let response = match texture {
-            Some(texture) => show_texture(self, texture, ui),
+            Some(texture) => show_texture(self, texture, ui, context),
             None => Some(utils::ui::drag_and_drop_target(ui)),
         };
 
@@ -61,6 +61,7 @@ fn show_texture(
     handle: &Handle<Texture>,
     texture: &Texture,
     ui: &mut egui::Ui,
+    context: &Context,
 ) -> Option<egui::Response> {
     let size = texture.size;
     let size = [size.width as f32, size.height as f32];
@@ -70,7 +71,9 @@ fn show_texture(
 
     let max = size[0].max(size[1]);
     if max >= 256.0 {
-        let response = ui.collapsing("Texture", |ui| ui.image(texture_id, size));
+        let response = egui::CollapsingHeader::new("Texture")
+            .id_source(context.id())
+            .show(ui, |ui| ui.image(texture_id, size));
         response.body_response
     } else {
         let response = ui.image(texture_id, size);

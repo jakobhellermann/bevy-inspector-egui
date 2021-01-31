@@ -3,7 +3,6 @@ use quote::quote;
 
 pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> TokenStream {
     let name = &derive_input.ident;
-    let id = name;
 
     let variants = data.variants.iter().map(|variant| match variant.fields {
         syn::Fields::Named(_) => todo!("named fields"),
@@ -21,11 +20,10 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
             type Attributes = ();
 
 
-            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes, _: &bevy_inspector_egui::Context) {
+            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes, context: &bevy_inspector_egui::Context) {
                 use bevy_inspector_egui::egui;
 
-                let id = ui.make_persistent_id(stringify!(#id));
-                egui::combo_box(ui, id, format!("{:?}", self), |ui| {
+                egui::combo_box(ui, context.id(), format!("{:?}", self), |ui| {
                     #(#variants)*
                 });
             }

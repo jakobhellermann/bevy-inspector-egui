@@ -92,13 +92,19 @@ impl WorldUIContext<'_> {
     fn ui_all_entities(&self, ui: &mut egui::Ui, params: &WorldInspectorParams) {
         let root_entities = self.world.query_filtered::<Entity, Without<Parent>>();
 
+        // the entities are unique themselves, because only one WorldInspector can exist
+        let dummy_id = egui::Id::new(42);
+
         for entity in root_entities {
-            self.entity_ui(ui, entity, params);
+            self.entity_ui(ui, entity, params, dummy_id);
         }
     }
 
     fn ui_split_archetypes(&self, ui: &mut egui::Ui, params: &WorldInspectorParams) {
         let root_entities = self.world.query_filtered::<Entity, Without<Parent>>();
+
+        // the entities are unique themselves, because only one WorldInspector can exist
+        let dummy_id = egui::Id::new(42);
 
         let mut archetypes: Vec<u32> = Vec::new();
         let entities: Vec<_> = root_entities
@@ -116,16 +122,22 @@ impl WorldUIContext<'_> {
             ui.collapsing(archetype_label, |ui| {
                 for (location, entity) in &entities {
                     if location.archetype == archetype {
-                        self.entity_ui(ui, *entity, params);
+                        self.entity_ui(ui, *entity, params, dummy_id);
                     }
                 }
             });
         }
     }
 
-    fn entity_ui(&self, ui: &mut egui::Ui, entity: Entity, params: &WorldInspectorParams) {
+    fn entity_ui(
+        &self,
+        ui: &mut egui::Ui,
+        entity: Entity,
+        params: &WorldInspectorParams,
+        id: egui::Id,
+    ) {
         CollapsingHeader::new(self.entity_name(entity))
-            .id_source(entity)
+            .id_source(id.with(entity))
             .show(ui, |ui| {
                 ui.label("Components");
 
@@ -162,7 +174,7 @@ impl WorldUIContext<'_> {
                 if let Some(children) = children.ok() {
                     ui.label("Children");
                     for &child in children.iter() {
-                        self.entity_ui(ui, child, params);
+                        self.entity_ui(ui, child, params, id);
                     }
                 } else {
                     ui.label("No children");
