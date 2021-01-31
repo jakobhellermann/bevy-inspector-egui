@@ -85,7 +85,7 @@ macro_rules! expect_context {
                     $ty,
                     stringify!($field)
                 );
-                return utils::error_label($ui, msg);
+                return $crate::utils::error_label($ui, msg);
             }
         }
     };
@@ -96,7 +96,7 @@ macro_rules! expect_resource {
             Some(res) => res,
             None => {
                 let msg = format!("No {} resource found", std::any::type_name::<$ty>());
-                return utils::error_label($ui, msg);
+                return $crate::utils::error_label($ui, msg);
             }
         }
     };

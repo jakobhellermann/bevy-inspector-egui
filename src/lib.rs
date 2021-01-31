@@ -39,6 +39,9 @@
 #[macro_use]
 mod utils;
 
+/// Utitly types implementing [`Inspectable`](crate::Inspectable)
+pub mod widgets;
+
 #[allow(missing_docs)]
 mod impls;
 mod plugin;
@@ -59,15 +62,10 @@ pub use bevy_egui::egui;
 pub use bevy_inspector_egui_derive::Inspectable;
 pub use plugin::InspectorPlugin;
 
-/// Utitly types implementing `Inspectable`
-pub mod widgets {
-    pub use crate::reflect::ReflectedUI;
-    pub use crate::world_inspector::InspectorQuery;
-}
-
 /// Attributes for the built-in [`Inspectable`](Inspectable) implementations
 pub mod options {
     pub use crate::impls::*;
+    pub use crate::widgets::button::ButtonAttributes;
 }
 
 #[derive(Default)]
