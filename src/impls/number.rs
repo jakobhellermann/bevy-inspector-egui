@@ -62,6 +62,14 @@ macro_rules! impl_for_num {
                 })?
 
                 ui.add(widget);
+
+
+                if let Some(min) = options.min {
+                    *self = (*self).max(min);
+                }
+                if let Some(max) = options.max {
+                    *self = (*self).min(max);
+                }
             }
         }
     };
