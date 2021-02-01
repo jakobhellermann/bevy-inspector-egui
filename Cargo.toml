@@ -30,6 +30,7 @@ bevy-inspector-egui-derive = { path = "bevy-inspector-egui-derive" }
 [dev-dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy", default-features = false, features = ["x11", "render", "bevy_wgpu", "bevy_winit"] }
 bevy_rapier3d = { git = "https://github.com/jakobhellermann/bevy_rapier", branch = "bevy-0.5" }
+noise = "0.7"
 
 [[example]]
 name = "all_features"
