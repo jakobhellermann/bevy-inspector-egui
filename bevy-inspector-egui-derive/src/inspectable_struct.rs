@@ -73,9 +73,11 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
             fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes, context: &bevy_inspector_egui::Context) {
                 use bevy_inspector_egui::egui;
 
-                let grid = egui::Grid::new(context.id());
-                grid.show(ui, |ui| {
-                    #(#fields)*
+                ui.vertical_centered(|ui| {
+                    let grid = egui::Grid::new(context.id());
+                    grid.show(ui, |ui| {
+                        #(#fields)*
+                    });
                 });
             }
         }
