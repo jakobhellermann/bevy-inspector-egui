@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use bevy_egui::egui;
 use egui::Grid;
 
-impl_for_struct_delegate_fields!(StandardMaterial: albedo, albedo_texture, shaded);
+impl_for_struct_delegate_fields!(StandardMaterial: albedo, albedo_texture, unlit);
 impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
 
 impl Inspectable for Quat {
