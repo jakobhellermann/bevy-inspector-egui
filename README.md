@@ -24,6 +24,9 @@ Your struct will then be available to you as a bevy resource.
 
 <img src="./docs/inspector.jpg" alt="demonstration with a running bevy app" width="500"/>
 
+
+More examples (with pictures) can be found in the [`examples folder`](examples).
+
 ## Example
 ```rust
 use bevy_inspector_egui::Inspectable;
