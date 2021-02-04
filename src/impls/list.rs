@@ -63,3 +63,32 @@ where
         T::setup(app);
     }
 }
+
+macro_rules! impl_for_tuple {
+    ( $($ty:ident : $i:tt),* ) => {
+        #[allow(unused_variables, non_snake_case)]
+        impl<$($ty: Inspectable),*> Inspectable for ($($ty,)*) {
+            type Attributes = ($(<$ty as Inspectable>::Attributes,)*);
+
+            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+                ui.horizontal(|ui| {
+                    let ($($ty,)*) = options;
+
+                    ui.label("(");
+                    $(self.$i.ui(ui, $ty, &context.with_id($i));)*
+                    ui.label(")");
+                });
+            }
+
+            fn setup(app: &mut AppBuilder) {
+                $($ty::setup(app);)*
+            }
+        }
+    };
+}
+
+impl_for_tuple!();
+impl_for_tuple!(A:0);
+impl_for_tuple!(A:0, B:1);
+impl_for_tuple!(A:0, B:1, C:2);
+impl_for_tuple!(A:0, B:1, C:2, D:3);
