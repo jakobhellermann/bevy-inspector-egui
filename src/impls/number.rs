@@ -105,5 +105,5 @@ impl_for_num!(f64 default_speed = 0.1);
 impl_for_num!(u8);
 impl_for_num!(i32);
 
-impl_for_num_delegate_f64!(u16, u32, u64);
-impl_for_num_delegate_f64!(i8, i16, i64);
+impl_for_num_delegate_f64!(u16, u32, u64, usize);
+impl_for_num_delegate_f64!(i8, i16, i64, isize);
