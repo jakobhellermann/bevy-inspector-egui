@@ -60,6 +60,8 @@ where
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<T>();
 
+        T::setup(app);
+
         // init inspector ui and data resource
         if self.exclusive_access {
             app.add_system(exclusive_access_ui::<T>.system());

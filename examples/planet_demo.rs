@@ -79,7 +79,6 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.058, 0.078, 0.098)))
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
-        .init_resource::<Events<GenerateEvent>>()
         .add_startup_system(setup.system())
         .add_system(generate.system())
         .run();

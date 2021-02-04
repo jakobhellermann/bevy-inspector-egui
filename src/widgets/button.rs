@@ -43,4 +43,8 @@ impl<E: Resource + Default> Inspectable for InspectableButton<E> {
             events.send(E::default());
         }
     }
+
+    fn setup(app: &mut AppBuilder) {
+        app.init_resource::<Events<E>>();
+    }
 }

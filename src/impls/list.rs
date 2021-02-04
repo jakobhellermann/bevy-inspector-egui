@@ -1,3 +1,5 @@
+use bevy::prelude::AppBuilder;
+
 use crate::Inspectable;
 use crate::{egui, Context};
 
@@ -33,6 +35,10 @@ where
             }
         });
     }
+
+    fn setup(app: &mut AppBuilder) {
+        T::setup(app);
+    }
 }
 
 #[cfg(feature = "nightly")]
@@ -51,5 +57,9 @@ where
                 });
             }
         });
+    }
+
+    fn setup(app: &mut AppBuilder) {
+        T::setup(app);
     }
 }

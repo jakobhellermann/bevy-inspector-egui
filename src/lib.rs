@@ -49,7 +49,7 @@ mod plugin;
 /// configuration for the [`WorldInspectorPlugin`](crate::world_inspector::WorldInspectorPlugin)
 mod world_inspector;
 
-use bevy::prelude::{Resources, World};
+use bevy::prelude::{AppBuilder, Resources, World};
 pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 
 /// `Inspectable` implementation for foreign types implementing `Reflect`
@@ -139,4 +139,8 @@ pub trait Inspectable {
 
     /// This methods is responsible for building the egui ui.
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context);
+
+    /// Required setup for the bevy application, e.g. registering Resources.
+    #[allow(unused_variables)]
+    fn setup(app: &mut AppBuilder) {}
 }

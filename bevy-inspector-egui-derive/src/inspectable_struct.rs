@@ -6,6 +6,14 @@ use crate::attributes::InspectableAttribute;
 pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) -> TokenStream {
     let name = &derive_input.ident;
 
+    let field_setup = data.fields.iter().map(|field| {
+        let ty = &field.ty;
+
+        quote! {
+            <#ty as bevy_inspector_egui::Inspectable>::setup(app);
+        }
+    });
+
     let fields = data.fields.iter().enumerate().map(|(i, field)| {
         let ty = &field.ty;
 
@@ -62,7 +70,6 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
             #ui
             ui.end_row();
         }
-
     });
 
     quote! {
@@ -79,6 +86,10 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
                         #(#fields)*
                     });
                 });
+            }
+
+            fn setup(app: &mut bevy::prelude::AppBuilder) {
+                #(#field_setup)*
             }
         }
     }
