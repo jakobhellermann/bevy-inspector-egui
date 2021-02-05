@@ -171,7 +171,7 @@ impl WorldUIContext<'_> {
                 ui.separator();
 
                 let children = self.world.get::<Children>(entity);
-                if let Some(children) = children.ok() {
+                if let Ok(children) = children {
                     ui.label("Children");
                     for &child in children.iter() {
                         self.entity_ui(ui, child, params, id);

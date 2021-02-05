@@ -5,7 +5,7 @@ use bevy::{ecs::TypeInfo, prelude::*};
 use bevy_egui::egui;
 use std::any::TypeId;
 
-type InspectCallback = Box<dyn Fn(*mut u8, &mut egui::Ui, &Context) -> () + Send + Sync>;
+type InspectCallback = Box<dyn Fn(*mut u8, &mut egui::Ui, &Context) + Send + Sync>;
 
 /// The `InspectableRegistry` can be used to tell the [`WorldInspectorPlugin`](crate::WorldInspectorPlugin)
 /// that a type implements [`Inspectable`](crate::Inspectable).
@@ -46,7 +46,7 @@ impl InspectableRegistry {
     pub fn register<T: Inspectable + 'static>(&mut self) {
         let type_id = TypeId::of::<T>();
         let callback = Box::new(|ptr: *mut u8, ui: &mut egui::Ui, context: &Context| {
-            let value: &mut T = unsafe { std::mem::transmute(ptr) };
+            let value: &mut T = unsafe { &mut *(ptr as *mut T) };
             value.ui(ui, <T as Inspectable>::Attributes::default(), context)
         }) as InspectCallback;
         self.impls.insert(type_id, callback);

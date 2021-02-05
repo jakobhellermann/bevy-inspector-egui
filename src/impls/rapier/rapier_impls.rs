@@ -36,7 +36,7 @@ impl Inspectable for RigidBody {
                 self.body_status.ui(ui, Default::default(), context);
                 ui.end_row();
 
-                let mut mass_properties = self.mass_properties().clone();
+                let mut mass_properties = *self.mass_properties();
                 mass_properties.ui(ui, Default::default(), context);
                 self.set_mass_properties(mass_properties, false);
                 ui.end_row();

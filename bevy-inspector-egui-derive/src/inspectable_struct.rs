@@ -22,7 +22,6 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
 
         let (builtin_attributes, custom_attributes): (Vec<_>, Vec<_>) = crate::attributes::inspectable_attributes(&field.attrs)
             .partition(InspectableAttribute::is_builtin);
-        
 
         // builtins
         let mut collapse = false;
@@ -62,7 +61,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         };
 
         let ui = match collapse {
-            true => quote! { 
+            true => quote! {
                 bevy_inspector_egui::egui::CollapsingHeader::new(#field_label).id_source(#i as u64).show(ui, |ui| { #ui });
             },
             false => ui,
@@ -76,6 +75,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
     });
 
     quote! {
+        #[allow(clippy::all)]
         impl bevy_inspector_egui::Inspectable for #name {
             type Attributes = ();
 

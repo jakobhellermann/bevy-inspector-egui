@@ -22,6 +22,7 @@ use crate::InspectableRegistry;
 ///   // adding `Name` components will make the inspector more readable
 /// }
 /// ```
+#[derive(Default)]
 pub struct WorldInspectorPlugin;
 
 impl WorldInspectorPlugin {

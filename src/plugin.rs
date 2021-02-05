@@ -101,7 +101,7 @@ where
                 inspector_windows.0.insert(type_id, full_type_name.into());
             }
         } else {
-            inspector_windows.0.insert(type_id, type_name.into());
+            inspector_windows.0.insert(type_id, type_name);
         }
     }
 }

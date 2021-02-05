@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+#![allow(clippy::unit_arg, clippy::clippy::needless_doctest_main)]
 
 //! This crate provides the ability to annotate structs with a `#[derive(Inspectable)]`,
 //! which opens a debug interface using [egui](https://github.com/emilk/egui) where you can visually edit the values of your struct live.
