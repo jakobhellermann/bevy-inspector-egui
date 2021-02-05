@@ -2,18 +2,18 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 pub enum InspectableAttribute {
-    Assignment(syn::Ident, syn::Expr),
-    Tag(syn::Ident),
+    Assignment(syn::Member, syn::Expr),
+    Tag(syn::Member),
 }
 impl InspectableAttribute {
-    pub fn ident(&self) -> &syn::Ident {
+    pub fn lhs(&self) -> &syn::Member {
         match self {
-            InspectableAttribute::Assignment(ident, _) => ident,
-            InspectableAttribute::Tag(ident) => ident,
+            InspectableAttribute::Assignment(member, _) => member,
+            InspectableAttribute::Tag(member) => member,
         }
     }
 
-    pub fn as_expr(&self) -> TokenStream {
+    pub fn rhs(&self) -> TokenStream {
         match self {
             InspectableAttribute::Assignment(_, expr) => quote! { #expr },
             InspectableAttribute::Tag(_) => quote! { true },
@@ -21,7 +21,11 @@ impl InspectableAttribute {
     }
 
     pub fn is_builtin(&self) -> bool {
-        let ident = self.ident();
+        let ident = match self.lhs() {
+            syn::Member::Named(ident) => ident,
+            syn::Member::Unnamed(_) => return false,
+        };
+
         ident == "label" || ident == "collapse"
     }
 }
@@ -30,7 +34,7 @@ fn parse_inspectable_attributes(
     input: syn::parse::ParseStream,
 ) -> syn::Result<impl Iterator<Item = InspectableAttribute>> {
     let parse_attribute = |input: syn::parse::ParseStream| {
-        let ident: syn::Ident = input.parse()?;
+        let ident: syn::Member = input.parse()?;
         if input.peek(syn::Token![=]) {
             let _eq_token: syn::Token![=] = input.parse()?;
             let expr: syn::Expr = input.parse()?;
@@ -38,7 +42,7 @@ fn parse_inspectable_attributes(
         } else if input.is_empty() {
             Ok(InspectableAttribute::Tag(ident))
         } else {
-            panic!("could not parse attribute {}", ident);
+            panic!("could not parse attribute {:?}", ident);
         }
     };
 

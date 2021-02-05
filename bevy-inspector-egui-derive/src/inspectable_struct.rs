@@ -29,9 +29,12 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         let mut custom_label = None;
         for builtin_attribute in builtin_attributes {
             match builtin_attribute {
-                InspectableAttribute::Tag(ident) if ident == "collapse" => collapse = true,
-                InspectableAttribute::Assignment(ident, expr) if ident == "label" => custom_label = Some(expr),
-                InspectableAttribute::Tag(name) | InspectableAttribute::Assignment(name, _) => panic!("unknown attributes '{}'", name),
+                InspectableAttribute::Tag(syn::Member::Named(ident)) if ident == "collapse" => collapse = true,
+                InspectableAttribute::Assignment(syn::Member::Named(ident), expr) if ident == "label" => custom_label = Some(expr),
+                InspectableAttribute::Tag(name) | InspectableAttribute::Assignment(name, _) => match name {
+                    syn::Member::Named(name) => panic!("unknown attributes '{}'", name),
+                    syn::Member::Unnamed(_) => unreachable!(),
+                }
             }
         }
         let field_label  = match custom_label {
@@ -43,8 +46,8 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         let options = custom_attributes.iter().fold(
             quote! { let mut options = <#ty as bevy_inspector_egui::Inspectable>::Attributes::default(); },
             |acc,attribute| {
-                let value = attribute.as_expr();
-                let name = attribute.ident();
+                let value = attribute.rhs();
+                let name = attribute.lhs();
 
                 quote! {
                     #acc
