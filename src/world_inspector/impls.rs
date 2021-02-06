@@ -15,7 +15,7 @@ impl Inspectable for World {
     ) {
         let resources = expect_context!(ui, context.resources, "World");
 
-        let ui_ctx = WorldUIContext::new(self, resources);
+        let ui_ctx = WorldUIContext::new(context.ui_ctx, self, resources);
         ui_ctx.ui(ui, &options);
     }
 }
@@ -32,7 +32,7 @@ impl Inspectable for Entity {
         let resources = expect_context!(ui, context.resources, "Entity");
         let world = expect_context!(ui, context.world, "Entity");
 
-        let ui_ctx = WorldUIContext::new(world, resources);
+        let ui_ctx = WorldUIContext::new(context.ui_ctx, world, resources);
         ui_ctx.entity_ui(ui, *self, &options, context.id());
     }
 }
@@ -87,7 +87,7 @@ impl<F: QueryFilter> Inspectable for InspectorQuery<F> {
         let resources = expect_context!(ui, context.resources, "InspectorQuery");
         let world = expect_context!(ui, context.world, "InspectorQuery");
 
-        let ui_ctx = WorldUIContext::new(world, resources);
+        let ui_ctx = WorldUIContext::new(context.ui_ctx, world, resources);
 
         let entities: Vec<Entity> = world.query_filtered::<Entity, F>().collect();
 

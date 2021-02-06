@@ -39,10 +39,8 @@ fn parse_inspectable_attributes(
             let _eq_token: syn::Token![=] = input.parse()?;
             let expr: syn::Expr = input.parse()?;
             Ok(InspectableAttribute::Assignment(ident, expr))
-        } else if input.is_empty() {
-            Ok(InspectableAttribute::Tag(ident))
         } else {
-            panic!("could not parse attribute {:?}", ident);
+            Ok(InspectableAttribute::Tag(ident))
         }
     };
 

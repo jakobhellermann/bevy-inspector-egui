@@ -79,6 +79,7 @@ impl InspectableRegistry {
         type_info: &TypeInfo,
         type_registry: &TypeRegistryInternal,
         ui: &mut egui::Ui,
+        ui_ctx: &egui::CtxRef,
     ) -> bool {
         let archetype = &world.archetypes[location.archetype as usize];
 
@@ -95,7 +96,7 @@ impl InspectableRegistry {
                 .as_ptr()
         };
 
-        let context = Context::new(world, resources);
+        let context = Context::new(ui_ctx, world, resources);
 
         if let Some(f) = self.impls.get(&type_info.id()) {
             f(ptr, ui, &context);

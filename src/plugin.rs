@@ -129,12 +129,12 @@ fn egui_texture_setup(
 
 fn shared_access_ui<T>(
     mut data: ResMut<T>,
-    mut egui_context: ResMut<EguiContext>,
+    egui_context: ResMut<EguiContext>,
     inspector_windows: Res<InspectorWindows>,
 ) where
     T: Inspectable + Send + Sync + 'static,
 {
-    let ctx = &mut egui_context.ctx;
+    let ctx = &egui_context.ctx;
 
     let type_name = inspector_windows.get_unwrap::<T>();
 
@@ -142,7 +142,7 @@ fn shared_access_ui<T>(
         .resizable(false)
         .scroll(true)
         .show(ctx, |ui| {
-            let context = Context::default();
+            let context = Context::new_shared(ctx);
             data.ui(ui, T::Attributes::default(), &context);
         });
 }
@@ -151,12 +151,12 @@ fn exclusive_access_ui<T>(world: &mut World, resources: &mut Resources)
 where
     T: Inspectable + Send + Sync + 'static,
 {
-    let mut egui_context = resources.get_mut::<EguiContext>().unwrap();
+    let egui_context = resources.get_mut::<EguiContext>().unwrap();
     let inspector_windows = resources.get::<InspectorWindows>().unwrap();
 
     let mut data = resources.get_mut::<T>().unwrap();
 
-    let ctx = &mut egui_context.ctx;
+    let ctx = &egui_context.ctx;
 
     let type_name = inspector_windows.get_unwrap::<T>();
 
@@ -164,7 +164,7 @@ where
         .resizable(false)
         .scroll(true)
         .show(ctx, |ui| {
-            let context = Context::new(world, resources);
+            let context = Context::new(ctx, world, resources);
             data.ui(ui, T::Attributes::default(), &context);
         });
 }

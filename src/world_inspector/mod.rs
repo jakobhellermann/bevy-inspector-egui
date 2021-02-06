@@ -33,9 +33,14 @@ struct WorldUIContext<'a> {
     inspectable_registry: ResourceRef<'a, InspectableRegistry>,
     type_registry: ResourceRef<'a, TypeRegistryArc>,
     components: HashMap<Entity, (Location, Vec<TypeInfo>)>,
+    ui_ctx: &'a egui::CtxRef,
 }
 impl<'a> WorldUIContext<'a> {
-    fn new(world: &'a World, resources: &'a Resources) -> WorldUIContext<'a> {
+    fn new(
+        ui_ctx: &'a egui::CtxRef,
+        world: &'a World,
+        resources: &'a Resources,
+    ) -> WorldUIContext<'a> {
         let mut components: HashMap<Entity, (Location, Vec<TypeInfo>)> = HashMap::default();
         for (archetype_index, archetype) in world.archetypes().enumerate() {
             for (entity_index, entity) in archetype.iter_entities().enumerate() {
@@ -59,6 +64,7 @@ impl<'a> WorldUIContext<'a> {
         let type_registry = resources.get::<TypeRegistryArc>().unwrap();
 
         WorldUIContext {
+            ui_ctx,
             world,
             resources,
             inspectable_registry,
@@ -159,6 +165,7 @@ impl WorldUIContext<'_> {
                                 type_info,
                                 &*self.type_registry.read(),
                                 ui,
+                                self.ui_ctx,
                             )
                         };
 

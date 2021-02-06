@@ -55,6 +55,9 @@ struct Inspector {
 ### Multiple Inspectors ([source](multiple_inspectors.rs))
 <img src="../docs/examples/multiple_inspectors.png" alt="example" width="500" />
 
+### New egui window ([source](new_egui_window.rs))
+<img src="../docs/examples/new_egui_window.png" alt="example" width="500" />
+
 ### Reflected UI ([source](reflected_ui.rs))
 <img src="../docs/examples/reflected_ui.png" alt="example" width="500" />
 

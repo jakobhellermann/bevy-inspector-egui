@@ -51,6 +51,7 @@ mod plugin;
 mod world_inspector;
 
 use bevy::prelude::{AppBuilder, Resources, World};
+use egui::CtxRef;
 pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 
 /// `Inspectable` implementation for foreign types implementing `Reflect`
@@ -67,11 +68,13 @@ pub use plugin::InspectorPlugin;
 pub mod options {
     pub use crate::impls::*;
     pub use crate::widgets::button::ButtonAttributes;
+    pub use crate::widgets::new_window::WindowAttributes;
 }
 
-#[derive(Default)]
 /// The context passed to [`Inspectable::ui`].
 pub struct Context<'a> {
+    /// egui ui context
+    pub ui_ctx: &'a CtxRef,
     /// The resources are only available when not using `InspectablePlugin::shared()`
     pub resources: Option<&'a Resources>,
     /// The world is only available when not using `InspectablePlugin::shared()`
@@ -83,10 +86,21 @@ pub struct Context<'a> {
 
 impl<'a> Context<'a> {
     /// Create new context with access to the `World` and `Resources`
-    pub fn new(world: &'a World, resources: &'a Resources) -> Self {
+    pub fn new(ui_ctx: &'a CtxRef, world: &'a World, resources: &'a Resources) -> Self {
         Context {
+            ui_ctx,
             resources: Some(resources),
             world: Some(world),
+            id: None,
+        }
+    }
+
+    /// Creates a context without access to `World` and `Resources`
+    pub fn new_shared(ui_ctx: &'a CtxRef) -> Self {
+        Context {
+            ui_ctx,
+            resources: None,
+            world: None,
             id: None,
         }
     }
