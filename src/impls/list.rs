@@ -18,14 +18,14 @@ where
                 ui.horizontal(|ui| {
                     ui.label(i.to_string());
                     val.ui(ui, options.clone(), &context.with_id(i as u64));
-                    if ui.button("-").clicked {
+                    if ui.button("-").clicked() {
                         to_delete = Some(i);
                     }
                 });
             }
 
             ui.vertical_centered_justified(|ui| {
-                if ui.button("+").clicked {
+                if ui.button("+").clicked() {
                     self.push(T::default());
                 }
             });

@@ -49,9 +49,9 @@ macro_rules! impl_for_num {
                 }
 
                 match (options.min, options.max) {
-                    (Some(min), Some(max)) => widget = widget.range(min as f32..=max as f32),
-                    (Some(min), None) => widget = widget.range(min as f32..=f32::MAX),
-                    (None, Some(max)) => widget = widget.range(f32::MIN..=max as f32),
+                    (Some(min), Some(max)) => widget = widget.clamp_range(min as f32..=max as f32),
+                    (Some(min), None) => widget = widget.clamp_range(min as f32..=f32::MAX),
+                    (None, Some(max)) => widget = widget.clamp_range(f32::MIN..=max as f32),
                     (None, None) => {},
                 }
 

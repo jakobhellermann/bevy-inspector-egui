@@ -39,7 +39,7 @@ impl<E: Resource + Default> Inspectable for InspectableButton<E> {
         let resources = expect_context!(ui, context.resources, "InspectableButton");
         let mut events = expect_resource!(ui, resources, get_mut Events<E>);
 
-        if ui.button(options.text).clicked {
+        if ui.button(options.text).clicked() {
             events.send(E::default());
         }
     }

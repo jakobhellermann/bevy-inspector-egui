@@ -25,7 +25,7 @@ impl Inspectable for Vec2 {
         };
 
         let mut frame = containers::Frame::dark_canvas(&ui.style());
-        frame.margin = egui::Vec2::zero();
+        frame.margin = egui::Vec2::ZERO;
 
         frame.show(ui, |ui| {
             let widget = PointSelect::new(self, range, 80.0);
@@ -90,8 +90,8 @@ impl Widget for PointSelect<'_> {
         let circle_pos = self.value_to_ui_pos(&rect);
         painter.circle_filled(circle_pos, self.circle_radius, circle_color);
 
-        if response.active {
-            if let Some(mouse_pos) = ui.input().mouse.pos {
+        if response.dragged() {
+            if let Some(mouse_pos) = ui.input().pointer.interact_pos() {
                 *self.value = self.ui_pos_to_value(&rect, mouse_pos);
             }
         }
