@@ -42,7 +42,7 @@ impl Plugin for WorldInspectorPlugin {
         resources.get_or_insert_with(WorldInspectorParams::default);
         resources.get_or_insert_with(InspectableRegistry::default);
 
-        app.add_system(world_inspector_ui.system());
+        app.add_system(world_inspector_ui.exclusive_system());
     }
 }
 

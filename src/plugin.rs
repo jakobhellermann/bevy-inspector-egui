@@ -64,9 +64,9 @@ where
 
         // init inspector ui and data resource
         if self.exclusive_access {
-            app.add_system(exclusive_access_ui::<T>.system());
+            app.add_system(exclusive_access_ui::<T>.exclusive_system());
         } else {
-            app.add_system(shared_access_ui::<T>.system());
+            app.add_system(shared_access_ui::<T>.exclusive_system());
         }
 
         // init egui
