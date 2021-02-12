@@ -34,7 +34,7 @@ fn setup(
         .with(Name::new("Floor"))
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-            transform: Transform::from_translation(Vec3::new(0.0, 1.0, 0.0)),
+            transform: Transform::from_xyz(0.0, 1.0, 0.0),
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
             ..Default::default()
         })
@@ -43,14 +43,14 @@ fn setup(
             commands
                 .spawn(PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
-                    transform: Transform::from_translation(Vec3::new(0.0, 1.0, 0.0)),
+                    transform: Transform::from_xyz(0.0, 1.0, 0.0),
                     material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
                     ..Default::default()
                 })
                 .with(Name::new("Child"))
                 .spawn(PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
-                    transform: Transform::from_translation(Vec3::new(0.0, 1.5, 0.0)),
+                    transform: Transform::from_xyz(0.0, 1.5, 0.0),
                     material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
                     ..Default::default()
                 })
@@ -61,13 +61,13 @@ fn setup(
                 subdivisions: 20,
                 radius: 0.5,
             })),
-            transform: Transform::from_translation(Vec3::new(1.5, 1.5, 1.5)),
+            transform: Transform::from_xyz(1.5, 1.5, 1.5),
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
             ..Default::default()
         })
         .with(Name::new("Sphere"))
         .spawn(LightBundle {
-            transform: Transform::from_translation(Vec3::new(4.0, 8.0, 4.0)),
+            transform: Transform::from_xyz(4.0, 8.0, 4.0),
             ..Default::default()
         })
         .with(Name::new("Light"));
