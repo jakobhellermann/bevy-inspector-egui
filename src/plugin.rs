@@ -142,6 +142,8 @@ fn shared_access_ui<T>(
         .resizable(false)
         .scroll(true)
         .show(ctx, |ui| {
+            default_settings(ui);
+
             let context = Context::new_shared(ctx);
             data.ui(ui, T::Attributes::default(), &context);
         });
@@ -164,7 +166,13 @@ where
         .resizable(false)
         .scroll(true)
         .show(ctx, |ui| {
+            default_settings(ui);
+
             let context = Context::new(ctx, world, resources);
             data.ui(ui, T::Attributes::default(), &context);
         });
+}
+
+pub(crate) fn default_settings(ui: &mut egui::Ui) {
+    ui.style_mut().wrap = Some(false);
 }

@@ -70,12 +70,10 @@ impl Inspectable for Mat3 {
     type Attributes = ();
 
     fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
-        ui.wrap(|ui| {
-            ui.vertical(|ui| {
-                self.x_axis.ui(ui, Default::default(), context);
-                self.y_axis.ui(ui, Default::default(), context);
-                self.z_axis.ui(ui, Default::default(), context);
-            });
+        ui.vertical(|ui| {
+            self.x_axis.ui(ui, Default::default(), context);
+            self.y_axis.ui(ui, Default::default(), context);
+            self.z_axis.ui(ui, Default::default(), context);
         });
     }
 }
@@ -84,13 +82,11 @@ impl Inspectable for Mat4 {
     type Attributes = ();
 
     fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
-        ui.wrap(|ui| {
-            ui.vertical(|ui| {
-                self.x_axis.ui(ui, Default::default(), context);
-                self.y_axis.ui(ui, Default::default(), context);
-                self.z_axis.ui(ui, Default::default(), context);
-                self.w_axis.ui(ui, Default::default(), context);
-            });
+        ui.vertical(|ui| {
+            self.x_axis.ui(ui, Default::default(), context);
+            self.y_axis.ui(ui, Default::default(), context);
+            self.z_axis.ui(ui, Default::default(), context);
+            self.w_axis.ui(ui, Default::default(), context);
         });
     }
 }

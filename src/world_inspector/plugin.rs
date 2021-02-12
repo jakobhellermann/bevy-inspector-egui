@@ -53,6 +53,8 @@ fn world_inspector_ui(world: &mut World, resources: &mut Resources) {
     let ctx = &egui_context.ctx;
 
     egui::Window::new("World").scroll(true).show(ctx, |ui| {
+        crate::plugin::default_settings(ui);
+
         let ui_context = WorldUIContext::new(ctx, world, resources);
         ui_context.ui(ui, params);
     });
