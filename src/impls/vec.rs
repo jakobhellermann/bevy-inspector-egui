@@ -109,8 +109,8 @@ impl Inspectable for Vec3 {
 
             ui.columns(3, |ui| {
                 self.x.ui(&mut ui[0], options.map(|vec| vec.x), context);
-                self.y.ui(&mut ui[1], options.map(|vec| vec.x), context);
-                self.z.ui(&mut ui[2], options.map(|vec| vec.x), context);
+                self.y.ui(&mut ui[1], options.map(|vec| vec.y), context);
+                self.z.ui(&mut ui[2], options.map(|vec| vec.z), context);
             });
         });
     }
@@ -125,9 +125,9 @@ impl Inspectable for Vec4 {
 
             ui.columns(4, |ui| {
                 self.x.ui(&mut ui[0], options.map(|vec| vec.x), context);
-                self.y.ui(&mut ui[1], options.map(|vec| vec.x), context);
-                self.z.ui(&mut ui[2], options.map(|vec| vec.x), context);
-                self.w.ui(&mut ui[3], options.map(|vec| vec.x), context);
+                self.y.ui(&mut ui[1], options.map(|vec| vec.y), context);
+                self.z.ui(&mut ui[2], options.map(|vec| vec.z), context);
+                self.w.ui(&mut ui[3], options.map(|vec| vec.w), context);
             });
         });
     }
