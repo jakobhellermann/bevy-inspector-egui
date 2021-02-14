@@ -116,7 +116,7 @@ impl Inspectable for Color {
             let mut color = [old[0], old[1], old[2]];
             ui.color_edit_button_rgb(&mut color);
             let [r, g, b] = color;
-            *self = Color::rgb(r, g, b);
+            *self = Color::rgba(r, g, b, old[3]);
         }
     }
 }
