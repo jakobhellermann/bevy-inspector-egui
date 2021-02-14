@@ -22,7 +22,7 @@ impl Inspectable for Transform {
 
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, _options: Self::Attributes, context: &Context) {
         ui.vertical_centered(|ui| {
-            Grid::new(std::any::TypeId::of::<Transform>()).show(ui, |ui| {
+            Grid::new(context.id()).show(ui, |ui| {
                 ui.label("Translation");
                 self.translation.ui(ui, Default::default(), context);
                 ui.end_row();

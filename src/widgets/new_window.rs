@@ -56,7 +56,7 @@ impl<T: Inspectable + 'static> Inspectable for InNewWindow<T> {
             .map(|title| title.to_string())
             .unwrap_or_else(|| short_name(std::any::type_name::<T>()));
 
-        let id = Id::new(std::any::TypeId::of::<T>()).with(context.id);
+        let id = Id::new(context.id()).with(context.id);
         egui::Window::new(window_title)
             .id(id)
             .resizable(options.resizable)
