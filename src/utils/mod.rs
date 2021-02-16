@@ -10,25 +10,43 @@ pub(crate) fn error_label(ui: &mut egui::Ui, msg: impl Into<Label>) {
 }
 
 pub(crate) fn short_name(type_name: &str) -> String {
-    match type_name.find('<') {
-        // no generics
-        None => type_name.rsplit("::").next().unwrap_or(type_name).into(),
-        // generics a::b::c<d>
-        Some(angle_open) => {
-            let angle_close = type_name.rfind('>').unwrap();
+    // handle tuple structs separately
+    if let Some(inner) = type_name
+        .strip_prefix('(')
+        .and_then(|name| name.strip_suffix(')'))
+    {
+        let ty = inner
+            .split(", ")
+            .map(short_name)
+            .collect::<Vec<_>>()
+            .join(", ");
+        return format!("({})", ty);
+    }
 
-            let before_generics = &type_name[..angle_open];
-            let after = &type_name[angle_close + 1..];
-            let in_between = &type_name[angle_open + 1..angle_close];
+    match find_group_in_string(type_name, '<', '>') {
+        Ok((before, in_between, after)) => {
+            let before = before.rsplit("::").next().unwrap_or(before);
+            format!("{}<{}>{}", before, short_name(in_between), after)
+        }
+        Err(_) => type_name.rsplit("::").next().unwrap_or(type_name).into(),
+    }
+}
 
-            let before_generics = match before_generics.rfind("::") {
-                None => before_generics,
-                Some(i) => &before_generics[i + 2..],
-            };
+fn find_group_in_string<'a>(
+    input: &'a str,
+    left_terminator: char,
+    right_terminator: char,
+) -> Result<(&'a str, &'a str, &'a str), &'a str> {
+    match input.find(left_terminator) {
+        None => Err(input),
+        Some(start) => {
+            let end = input.rfind(right_terminator).unwrap();
 
-            let in_between = short_name(in_between);
+            let before = &input[..start];
+            let after = &input[end + 1..];
+            let in_between = &input[start + 1..end];
 
-            format!("{}<{}>{}", before_generics, in_between, after)
+            Ok((before, in_between, after))
         }
     }
 }
@@ -122,5 +140,17 @@ mod tests {
             short_name("foo::bar::quux<qaax<p::t::b>>"),
             "quux<qaax<b>>".to_string()
         );
+    }
+
+    #[test]
+    fn tuple() {
+        assert_eq!(short_name("(x::a, x::b)"), "(a, b)".to_string());
+    }
+
+    #[test]
+    fn complex_name() {
+        assert_eq!(
+            short_name("bevy_inspector_egui::world_inspector::impls::InspectorQuery<(bevy_ecs::core::filter::With<bevy_ui::node::Node>, bevy_ecs::core::filter::Without<bevy_transform::components::parent::Parent>)>"),
+            "InspectorQuery<(With<Node>, Without<Parent>)>".to_string());
     }
 }
