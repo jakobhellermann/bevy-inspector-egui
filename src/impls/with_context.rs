@@ -87,3 +87,11 @@ pub(crate) fn id_of_handle(handle: &Handle<Texture>) -> u64 {
     handle.hash(&mut hasher);
     hasher.finish()
 }
+
+impl Inspectable for HandleId {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) {
+        ui.label("<handle id>");
+    }
+}
