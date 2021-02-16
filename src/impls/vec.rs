@@ -9,29 +9,58 @@ use super::NumberAttributes;
 
 #[derive(Debug, Default, Clone)]
 pub struct Vec2dAttributes {
+    pub visual: bool,
     pub min: Option<Vec2>,
     pub max: Option<Vec2>,
+    pub speed: f32,
 }
 
 impl Inspectable for Vec2 {
     type Attributes = Vec2dAttributes;
 
-    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes, _: &Context) {
-        let range = match (options.min, options.max) {
-            (Some(min), Some(max)) => min..=max,
-            (Some(min), None) => min..=Vec2::splat(0.0),
-            (None, Some(max)) => Vec2::splat(0.0)..=max,
-            (None, None) => Vec2::splat(-100.0)..=Vec2::splat(100.0),
-        };
+    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes, context: &Context) {
+        if options.visual {
+            point_select(self, ui, options);
+        } else {
+            ui.wrap(|ui| {
+                ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
 
-        let mut frame = containers::Frame::dark_canvas(&ui.style());
-        frame.margin = egui::Vec2::ZERO;
-
-        frame.show(ui, |ui| {
-            let widget = PointSelect::new(self, range, 80.0);
-            ui.add(widget);
-        });
+                ui.columns(2, |ui| {
+                    let x_attrs = NumberAttributes {
+                        min: options.min.map(|vec| vec.x),
+                        max: options.max.map(|vec| vec.x),
+                        speed: options.speed,
+                        ..Default::default()
+                    };
+                    let y_attrs = NumberAttributes {
+                        min: options.min.map(|vec| vec.y),
+                        max: options.max.map(|vec| vec.y),
+                        speed: options.speed,
+                        ..Default::default()
+                    };
+                    self.x.ui(&mut ui[0], x_attrs, context);
+                    self.y.ui(&mut ui[1], y_attrs, context);
+                });
+            });
+        }
     }
+}
+
+fn point_select(value: &mut Vec2, ui: &mut egui::Ui, options: Vec2dAttributes) {
+    let range = match (options.min, options.max) {
+        (Some(min), Some(max)) => min..=max,
+        (Some(min), None) => min..=Vec2::splat(0.0),
+        (None, Some(max)) => Vec2::splat(0.0)..=max,
+        (None, None) => Vec2::splat(-100.0)..=Vec2::splat(100.0),
+    };
+
+    let mut frame = containers::Frame::dark_canvas(&ui.style());
+    frame.margin = egui::Vec2::ZERO;
+
+    frame.show(ui, |ui| {
+        let widget = PointSelect::new(value, range, 80.0);
+        ui.add(widget);
+    });
 }
 
 struct PointSelect<'a> {
