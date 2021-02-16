@@ -30,7 +30,6 @@ impl Inspectable for bool {
 impl<T> Inspectable for RangeInclusive<T>
 where
     T: Inspectable + Default,
-    T::Attributes: Clone,
 {
     type Attributes = T::Attributes;
 
@@ -51,7 +50,6 @@ where
 impl<T> Inspectable for Range<T>
 where
     T: Inspectable + Default,
-    T::Attributes: Clone,
 {
     type Attributes = T::Attributes;
 

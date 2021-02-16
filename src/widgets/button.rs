@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use std::marker::PhantomData;
 
 #[allow(missing_docs)]
+#[derive(Clone)]
 pub struct ButtonAttributes {
     pub text: String,
 }

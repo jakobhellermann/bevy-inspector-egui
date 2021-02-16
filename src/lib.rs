@@ -131,7 +131,7 @@ pub trait Inspectable {
     /// ```rust,no_run
     /// # use bevy_inspector_egui::{egui, Inspectable, Context};
     /// struct MyCustomType;
-    /// # #[derive(Default)]
+    /// # #[derive(Clone, Default)]
     /// struct MyWidgetAttributes { a: f32, b: Option<String> }
     ///
     /// impl Inspectable for MyCustomType {
@@ -150,7 +150,7 @@ pub trait Inspectable {
     ///   value: MyCustomType,
     /// }
     /// ```
-    type Attributes: Default;
+    type Attributes: Default + Clone;
 
     /// This methods is responsible for building the egui ui.
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context);

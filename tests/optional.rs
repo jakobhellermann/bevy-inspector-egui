@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use bevy_inspector_egui::{Context, Inspectable};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct CustomAttributes {
     optional: Option<u8>,
     defaulted: f32,

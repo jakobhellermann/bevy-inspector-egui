@@ -13,6 +13,18 @@ pub struct WindowAttributes<T: Inspectable> {
     pub collapsible: bool,
     pub inner_attributes: <T as Inspectable>::Attributes,
 }
+impl<T: Inspectable> Clone for WindowAttributes<T> {
+    fn clone(&self) -> Self {
+        Self {
+            title: self.title,
+            title_bar: self.title_bar,
+            scrollable: self.scrollable,
+            resizable: self.resizable,
+            collapsible: self.collapsible,
+            inner_attributes: self.inner_attributes.clone(),
+        }
+    }
+}
 impl<T: Inspectable> Default for WindowAttributes<T> {
     fn default() -> Self {
         WindowAttributes {

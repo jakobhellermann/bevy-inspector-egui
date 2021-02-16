@@ -6,7 +6,6 @@ use crate::{egui, Context};
 impl<T> Inspectable for Vec<T>
 where
     T: Inspectable + Default,
-    T::Attributes: Clone,
 {
     type Attributes = <T as Inspectable>::Attributes;
 
@@ -42,10 +41,7 @@ where
 }
 
 #[cfg(feature = "nightly")]
-impl<T: Inspectable, const N: usize> Inspectable for [T; N]
-where
-    T::Attributes: Clone,
-{
+impl<T: Inspectable, const N: usize> Inspectable for [T; N] {
     type Attributes = <T as Inspectable>::Attributes;
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {

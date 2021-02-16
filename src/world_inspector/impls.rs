@@ -66,6 +66,7 @@ impl<F> Default for InspectorQuery<F> {
     }
 }
 
+#[derive(Clone)]
 pub struct InspectorQueryAttributes {
     collapse: bool,
 }

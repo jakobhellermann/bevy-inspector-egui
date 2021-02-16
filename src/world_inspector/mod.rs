@@ -19,7 +19,7 @@ use std::{any::TypeId, borrow::Cow};
 use crate::utils;
 
 /// Resource which controls the way the world inspector is shown.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WorldInspectorParams {
     /// these components will be ignored
     pub ignore_components: HashSet<TypeId>,
