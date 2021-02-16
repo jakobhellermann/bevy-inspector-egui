@@ -25,6 +25,8 @@ pub struct WorldInspectorParams {
     pub ignore_components: HashSet<TypeId>,
     /// if this option is enabled, the inspector will cluster the entities by archetype
     pub cluster_by_archetype: bool,
+    /// Whether to sort the components alphabetically
+    pub sort_components: bool,
 }
 
 struct WorldUIContext<'a> {
@@ -71,11 +73,6 @@ impl<'a> WorldUIContext<'a> {
             type_registry,
             components,
         }
-    }
-
-    fn components_of(&self, entity: Entity) -> impl Iterator<Item = (Location, &TypeInfo)> + '_ {
-        let (location, types) = &self.components[&entity];
-        types.iter().map(move |type_info| (*location, type_info))
     }
 
     fn entity_name(&self, entity: Entity) -> Cow<'_, str> {
@@ -147,13 +144,16 @@ impl WorldUIContext<'_> {
             .show(ui, |ui| {
                 ui.label("Components");
 
-                for (location, type_info) in self.components_of(entity) {
+                let (location, components) = &self.components[&entity];
+                let components = components
+                    .iter()
+                    .map(|type_info| (utils::short_name(type_info.type_name()), type_info));
+                let components = sort_iter_if(components, params.sort_components);
+
+                for (short_name, type_info) in components {
                     if params.should_ignore_component(type_info.id()) {
                         continue;
                     }
-
-                    let type_name = type_info.type_name();
-                    let short_name = utils::short_name(type_name);
 
                     ui.collapsing(short_name, |ui| {
                         // SAFETY: we have unique access to the world
@@ -161,7 +161,7 @@ impl WorldUIContext<'_> {
                             self.inspectable_registry.generate(
                                 self.world,
                                 &self.resources,
-                                location,
+                                *location,
                                 type_info,
                                 &*self.type_registry.read(),
                                 ui,
@@ -219,6 +219,44 @@ impl Default for WorldInspectorParams {
         WorldInspectorParams {
             ignore_components,
             cluster_by_archetype: false,
+            sort_components: false,
+        }
+    }
+}
+
+/// Sorts an iterator if a condition is met.
+/// This avoids collecting the iterator
+/// if it shouldn't be sorted.
+// Overenginereed? Yes. Had fun implementing? Also yes.
+fn sort_iter_if<T, I>(iter: I, sort: bool) -> impl Iterator<Item = T>
+where
+    I: Iterator<Item = T>,
+    T: Ord,
+{
+    if sort {
+        let mut items: Vec<_> = iter.collect();
+        items.sort();
+        TwoIter::I(items.into_iter())
+    } else {
+        TwoIter::J(iter)
+    }
+}
+
+enum TwoIter<I, J> {
+    I(I),
+    J(J),
+}
+impl<T, I, J> Iterator for TwoIter<I, J>
+where
+    I: Iterator<Item = T>,
+    J: Iterator<Item = T>,
+{
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            TwoIter::I(i) => i.next(),
+            TwoIter::J(j) => j.next(),
         }
     }
 }

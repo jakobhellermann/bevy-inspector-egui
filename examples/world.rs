@@ -1,10 +1,15 @@
 use bevy::prelude::*;
+use bevy_inspector_egui::WorldInspectorParams;
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 fn main() {
     App::build()
         .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
+        .insert_resource(WorldInspectorParams {
+            // sort_components: true,
+            ..Default::default()
+        })
         .add_plugin(WorldInspectorPlugin)
         .add_startup_system(setup.system())
         .run();
