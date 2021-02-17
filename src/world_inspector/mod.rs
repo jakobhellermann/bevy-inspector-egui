@@ -23,6 +23,8 @@ use crate::{utils, Context};
 pub struct WorldInspectorParams {
     /// these components will be ignored
     pub ignore_components: HashSet<TypeId>,
+    /// these components will be read only
+    pub read_only_components: HashSet<TypeId>,
     /// if this option is enabled, the inspector will cluster the entities by archetype
     pub cluster_by_archetype: bool,
     /// Whether to sort the components alphabetically
@@ -156,6 +158,10 @@ impl WorldUIContext<'_> {
                     }
 
                     ui.collapsing(short_name, |ui| {
+                        if params.is_read_only(type_info.id()) {
+                            ui.set_enabled(false);
+                        }
+
                         let context = Context::new(self.ui_ctx, self.world, self.resources)
                             .with_id(entity.id() as u64);
 
@@ -201,6 +207,10 @@ impl WorldInspectorParams {
     fn should_ignore_component(&self, type_id: TypeId) -> bool {
         self.ignore_components.contains(&type_id)
     }
+
+    fn is_read_only(&self, type_id: TypeId) -> bool {
+        self.read_only_components.contains(&type_id)
+    }
 }
 
 impl Default for WorldInspectorParams {
@@ -217,9 +227,11 @@ impl Default for WorldInspectorParams {
         .iter()
         .copied()
         .collect();
+        let read_only_components = [TypeId::of::<GlobalTransform>()].iter().copied().collect();
 
         WorldInspectorParams {
             ignore_components,
+            read_only_components,
             cluster_by_archetype: false,
             sort_components: false,
         }
