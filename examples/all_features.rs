@@ -8,7 +8,7 @@ struct Data {
     #[inspectable(label = "Display Square")]
     show_square: bool,
     color: Color,
-    #[inspectable(min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
+    #[inspectable(visual, min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
     position: Vec2,
     #[inspectable(min = 42.0, max = 100.0)] // attributes get passed to each child
     list: [f32; 2],

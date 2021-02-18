@@ -50,11 +50,51 @@ fn parse_inspectable_attributes(
 }
 
 /// extracts [(min, 8), (field, vec2(1.0, 1.0))] from `#[inspectable(min = 8, field = vec2(1.0, 1.0))]`,
-pub fn inspectable_attributes(
+fn extract_inspectable_attributes(
     attrs: &[syn::Attribute],
 ) -> impl Iterator<Item = InspectableAttribute> + '_ {
     attrs
         .iter()
         .filter(|attr| attr.path.get_ident().map_or(false, |p| p == "inspectable"))
         .flat_map(|attr| attr.parse_args_with(parse_inspectable_attributes).unwrap())
+}
+
+#[derive(Default)]
+pub struct InspectableAttributes {
+    pub collapse: bool,
+    pub label: Option<String>,
+    pub custom_attributes: Vec<InspectableAttribute>,
+}
+
+pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> InspectableAttributes {
+    let mut all = InspectableAttributes::default();
+
+    let (builtin_attributes, custom_attributes): (Vec<_>, Vec<_>) =
+        extract_inspectable_attributes(attrs).partition(InspectableAttribute::is_builtin);
+
+    // builtins
+    for builtin_attribute in builtin_attributes {
+        match builtin_attribute {
+            InspectableAttribute::Tag(syn::Member::Named(ident)) if ident == "collapse" => {
+                all.collapse = true;
+            }
+            #[rustfmt::skip]
+            InspectableAttribute::Assignment(syn::Member::Named(ident), expr) if ident == "label" => {
+                if let syn::Expr::Lit(syn::ExprLit { lit: syn::Lit::Str(str), .. }) = expr {
+                    all.label = Some(str.value());
+                } else {
+                    panic!("label needs to be a string literal");
+                };
+            }
+            InspectableAttribute::Tag(name) | InspectableAttribute::Assignment(name, _) => {
+                match name {
+                    syn::Member::Named(name) => panic!("unknown attributes '{}'", name),
+                    syn::Member::Unnamed(_) => unreachable!(),
+                }
+            }
+        }
+    }
+
+    all.custom_attributes = custom_attributes;
+    all
 }

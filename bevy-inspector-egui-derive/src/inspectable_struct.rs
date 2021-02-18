@@ -1,8 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
-use crate::attributes::InspectableAttribute;
-
 pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) -> TokenStream {
     let name = &derive_input.ident;
 
@@ -20,29 +18,15 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         let field_label = field_label(field, i);
         let accessor = field_accessor(field, i);
 
-        let (builtin_attributes, custom_attributes): (Vec<_>, Vec<_>) = crate::attributes::inspectable_attributes(&field.attrs)
-            .partition(InspectableAttribute::is_builtin);
+        let attributes = crate::attributes::inspectable_attributes(&field.attrs);
 
-        // builtins
-        let mut collapse = false;
-        let mut custom_label = None;
-        for builtin_attribute in builtin_attributes {
-            match builtin_attribute {
-                InspectableAttribute::Tag(syn::Member::Named(ident)) if ident == "collapse" => collapse = true,
-                InspectableAttribute::Assignment(syn::Member::Named(ident), expr) if ident == "label" => custom_label = Some(expr),
-                InspectableAttribute::Tag(name) | InspectableAttribute::Assignment(name, _) => match name {
-                    syn::Member::Named(name) => panic!("unknown attributes '{}'", name),
-                    syn::Member::Unnamed(_) => unreachable!(),
-                }
-            }
-        }
-        let field_label  = match custom_label {
+        let field_label  = match &attributes.label {
             Some(label) => label.to_token_stream(),
             None => quote! { #field_label },
         };
 
         // user specified options
-        let options = custom_attributes.iter().fold(
+        let options = attributes.custom_attributes.iter().fold(
             quote! { let mut options = <#ty as bevy_inspector_egui::Inspectable>::Attributes::default(); },
             |acc,attribute| {
                 let value = attribute.rhs();
@@ -60,11 +44,10 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
             <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options, &context.with_id(#i as u64));
         };
 
-        let ui = match collapse {
-            true => quote! {
-                bevy_inspector_egui::egui::CollapsingHeader::new(#field_label).id_source(#i as u64).show(ui, |ui| { #ui });
-            },
-            false => ui,
+        let ui = if attributes.collapse {
+            quote! { bevy_inspector_egui::egui::CollapsingHeader::new(#field_label).id_source(#i as u64).show(ui, |ui| { #ui }); }
+        } else {
+            ui
         };
 
         quote! {
@@ -98,10 +81,10 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
     }
 }
 
-fn field_accessor(field: &syn::Field, i: usize) -> TokenStream {
+fn field_accessor(field: &syn::Field, i: usize) -> syn::Member {
     match &field.ident {
-        Some(name) => name.to_token_stream(),
-        None => syn::Index::from(i).to_token_stream(),
+        Some(name) => syn::Member::Named(name.clone()),
+        None => syn::Member::Unnamed(syn::Index::from(i)),
     }
 }
 
