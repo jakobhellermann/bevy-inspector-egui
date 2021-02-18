@@ -52,6 +52,10 @@ struct Inspector {
 ```
 </details>
 
+### Enum derive ([source](enum.rs))
+<img src="../docs/examples/enum.png" alt="enum example" width="500"/>
+
+
 ### Entity ([source](entity.rs))
 <img src="../docs/examples/entity.png" alt="example" width="500" />
 

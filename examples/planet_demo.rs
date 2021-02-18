@@ -15,7 +15,7 @@ struct Data {
     #[inspectable(collapse)]
     noise_settings: NoiseSettings,
     update_live: bool,
-    #[inspectable(text = "Generate")]
+    #[inspectable(label = "", text = "Generate")]
     generate: InspectableButton<GenerateEvent>,
 }
 
