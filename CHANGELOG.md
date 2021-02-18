@@ -4,7 +4,7 @@
 
 ### Added
 
-- many new implementations (`Handle<Texture>`, `ColorMaterial`, `Entity`, `World`)
+- many new implementations (`Handle<Texture>`, `ColorMaterial`, `Entity`, `World`, UI stuff, tuples)
 - `WorldInspectorPlugin` for displaying the whole entity tree in a UI panel
   TODO screenshot
 - `widgets::InspectorQuery`: display entity tree for select entities
@@ -17,6 +17,7 @@
   }
   ```
 - `widgets::InspectableButton`: sends event upon button click. Usage looks like
+- derive `Inspectable` for enums with data
 
   ```rust
   #[derive(Default)]
@@ -34,12 +35,17 @@
     }
   }
   ```
+- drag and drop into texture
 
 ### Changed
 
 - rename `InspectorPlugin::thread_local -> new, InspectorPlugin::new -> shared`
 - require `FromResources` instead of `Default` on the inspectable data
 - update to `bevy 0.5`
+- `Inspectable::Attributes` require `Clone`
+- show `Vec2` as two number fields by default, use `#[inspectable(visual)]` for old behaviour
+- properly give ids to egui
+- mark inspected components in the world inspector as mutated
 
 ### Fixed
 
