@@ -33,24 +33,19 @@ pub struct NoiseSettings {
     roughness: f32,
     #[inspectable(min = 0.0, max = 3.0)]
     min_value: f32,
-    #[inspectable(min = Vec2::splat(-2.0), max = Vec2::splat(2.0))]
+    #[inspectable(visual, min = Vec2::splat(-2.0), max = Vec2::splat(2.0))]
     offset: Vec2,
 }
 
 impl Default for Data {
     fn default() -> Self {
-        #[cfg(debug_assertions)]
-        let update_live = false;
-        #[cfg(not(debug_assertions))]
-        let update_live = true;
-
         Data {
             radius: 1.4,
             resolution: 16,
             color: Color::rgb(0.4, 0.2, 0.6),
 
             noise_settings: Default::default(),
-            update_live,
+            update_live: !cfg!(debug_assertions),
             generate: Default::default(),
         }
     }
