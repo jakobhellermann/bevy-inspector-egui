@@ -1,6 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
+use crate::utils;
+
 pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) -> TokenStream {
     let name = &derive_input.ident;
 
@@ -16,7 +18,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         let ty = &field.ty;
 
         let field_label = field_label(field, i);
-        let accessor = field_accessor(field, i);
+        let accessor = utils::field_accessor(field, i);
 
         let attributes = crate::attributes::inspectable_attributes(&field.attrs);
 
@@ -26,21 +28,10 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         };
 
         // user specified options
-        let options = attributes.custom_attributes.iter().fold(
-            quote! { let mut options = <#ty as bevy_inspector_egui::Inspectable>::Attributes::default(); },
-            |acc,attribute| {
-                let value = attribute.rhs();
-                let name = attribute.lhs();
-
-                quote! {
-                    #acc
-                    options.#name = std::convert::From::from(#value);
-                }
-            },
-        );
+        let options = attributes.create_options_struct(ty);
 
         let ui = quote! {
-            #options
+            let options = #options;
             <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options, &context.with_id(#i as u64));
         };
 
@@ -78,13 +69,6 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
                 #(#field_setup)*
             }
         }
-    }
-}
-
-fn field_accessor(field: &syn::Field, i: usize) -> syn::Member {
-    match &field.ident {
-        Some(name) => syn::Member::Named(name.clone()),
-        None => syn::Member::Unnamed(syn::Index::from(i)),
     }
 }
 

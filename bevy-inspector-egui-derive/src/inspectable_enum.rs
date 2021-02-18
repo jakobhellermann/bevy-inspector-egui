@@ -1,5 +1,9 @@
+use proc_macro2::Span;
 use proc_macro2::TokenStream;
 use quote::quote;
+use std::borrow::Cow;
+
+use crate::{attributes::inspectable_attributes, utils};
 
 pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> TokenStream {
     let name = &derive_input.ident;
@@ -15,13 +19,17 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
     });
 
     let ui_match_arms = enum_variants(data).map(|(variant, fields)| {
+        let members = fields
+            .iter()
+            .map(|(i, field)| utils::field_accessor(field, *i));
         let set_variant = quote! {
             if let Self::#variant { .. } = self {} else {
                 *self = Self::#variant {
-                    #(#fields: Default::default()),*
+                    #(#members: Default::default()),*
                 }
             }
         };
+
         let field_ui = (!fields.is_empty()).then(|| field_ui(variant, &fields));
 
         quote! {
@@ -69,22 +77,20 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
     }
 }
 
-fn enum_variants(data: &syn::DataEnum) -> impl Iterator<Item = (&syn::Ident, Vec<syn::Member>)> {
+fn enum_variants(
+    data: &syn::DataEnum,
+) -> impl Iterator<Item = (&syn::Ident, Vec<(usize, &syn::Field)>)> {
     data.variants.iter().map(|variant| {
+        assert!(
+            variant.attrs.is_empty(),
+            "attributes are not supported on enum variants"
+        );
         let fields = match &variant.fields {
             syn::Fields::Named(fields) => Some(fields.named.iter()),
             syn::Fields::Unnamed(fields) => Some(fields.unnamed.iter()),
             syn::Fields::Unit => None,
         };
-        let fields = fields.into_iter().flatten();
-        let fields: Vec<_> = fields
-            .enumerate()
-            .map(|(i, field)| match &field.ident {
-                Some(ident) => syn::Member::Named(ident.clone()),
-                None => syn::Member::Unnamed(syn::Index::from(i)),
-            })
-            .collect();
-
+        let fields = fields.into_iter().flatten().enumerate().collect();
         (&variant.ident, fields)
     })
 }
@@ -93,33 +99,49 @@ fn enum_variants(data: &syn::DataEnum) -> impl Iterator<Item = (&syn::Ident, Vec
 // if let Self::A { a: a, b: b } = self {
 //     ui.horizontal(|ui| {
 //         ui.label(stringify!(a));
-//         a.ui(ui, Default::default(), context);
+//         let options = <#ty as Inspectable>::Attributes::default();
+//         a.ui(ui, options, context);
 //     });
 //     ui.horizontal(|ui| {
 //         ui.label(stringify!(b));
-//         b.ui(ui, Default::default(), context);
+//         let options = <#ty as Inspectable>::Attributes::default();
+//         b.ui(ui, options, context);
 //     });
 // }
-fn field_ui(variant: &syn::Ident, fields: &[syn::Member]) -> TokenStream {
-    let field_names: Vec<_> = fields
-        .iter()
-        .map(|member| match member {
-            syn::Member::Named(ident) => quote! { #ident },
-            syn::Member::Unnamed(syn::Index { index, span }) => {
-                let name = syn::Ident::new(&format!("field_{}", index), *span);
-                quote! { #name }
-            }
-        })
-        .collect();
+fn field_ui(variant: &syn::Ident, f: &[(usize, &syn::Field)]) -> TokenStream {
+    let field_names = f.iter().map(|(i, field)| name_for_member(field, *i));
+    let members = f.iter().map(|(i, field)| utils::field_accessor(field, *i));
+
+    let field_ui = f.iter().map(|(i, field)| {
+        let binding_name = name_for_member(field, *i);
+        let member = utils::field_accessor(field, *i);
+        let attributes = inspectable_attributes(&field.attrs);
+        let options = attributes.create_options_struct(&field.ty);
+
+        quote! {
+            ui.horizontal(|ui| {
+                ui.label(stringify!(#member));
+                let options = #options;
+                #binding_name.ui(ui, options, context);
+            });
+        }
+    });
 
     quote! {
         ui.separator();
         #[allow(non_shorthand_field_patterns)]
-        if let Self::#variant { #(#fields: #field_names),* } = self {
-            #(ui.horizontal(|ui| {
-                ui.label(stringify!(#fields));
-                #field_names.ui(ui, Default::default(), context);
-            });)*
+        if let Self::#variant { #(#members: #field_names),* } = self {
+            #(#field_ui)*
+        }
+    }
+}
+
+fn name_for_member(field: &syn::Field, i: usize) -> Cow<'_, syn::Ident> {
+    match &field.ident {
+        Some(name) => Cow::Borrowed(name),
+        None => {
+            let name = syn::Ident::new(&format!("field_{}", i), Span::call_site());
+            Cow::Owned(name)
         }
     }
 }

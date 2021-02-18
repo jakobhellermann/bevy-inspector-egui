@@ -66,6 +66,24 @@ pub struct InspectableAttributes {
     pub custom_attributes: Vec<InspectableAttribute>,
 }
 
+impl InspectableAttributes {
+    pub fn create_options_struct(&self, ty: &syn::Type) -> TokenStream {
+        let fields = self.custom_attributes.iter().map(|attribute| {
+            let name = attribute.lhs();
+            let value = attribute.rhs();
+            quote! { options.#name = std::convert::From::from(#value); }
+        });
+
+        quote! {
+            {
+                let mut options = <#ty as bevy_inspector_egui::Inspectable>::Attributes::default();
+                #(#fields)*
+                options
+            }
+        }
+    }
+}
+
 pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> InspectableAttributes {
     let mut all = InspectableAttributes::default();
 

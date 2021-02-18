@@ -1,6 +1,7 @@
 mod attributes;
 mod inspectable_enum;
 mod inspectable_struct;
+mod utils;
 
 #[proc_macro_derive(Inspectable, attributes(inspectable))]
 pub fn inspectable(input: proc_macro::TokenStream) -> proc_macro::TokenStream {

@@ -14,8 +14,15 @@ struct Inspector {
 
 #[derive(Inspectable, Debug)]
 enum Shape {
-    Box { size: Vec3 },
-    Icosphere { subdivisions: usize, radius: f32 },
+    Box {
+        size: Vec3,
+    },
+    Icosphere {
+        #[inspectable(min = 1)]
+        subdivisions: usize,
+        #[inspectable(min = 0.1)]
+        radius: f32,
+    },
     Line(Vec2, Vec2),
     UnitSphere,
 }
