@@ -23,6 +23,7 @@ rapier = ["bevy_rapier3d"]
 bevy = { git = "https://github.com/bevyengine/bevy", default-features = false }
 bevy_egui = { git = "https://github.com/jakobhellermann/bevy_egui", branch = "bevy-0.5", default-features = false }
 bevy_rapier3d = { git = "https://github.com/alec-deason/bevy_rapier", branch = "tracking_changes_for_bevy_0.5", optional = true }
+pretty-type-name = "0.1"
 
 bevy-inspector-egui-derive = { path = "bevy-inspector-egui-derive" }
 # bevy-inspector-egui-derive = "0.3"

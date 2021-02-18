@@ -5,6 +5,7 @@ mod plugin;
 use egui::CollapsingHeader;
 pub use inspectable_registry::InspectableRegistry;
 pub use plugin::WorldInspectorPlugin;
+use pretty_type_name::pretty_type_name_str;
 
 pub use impls::InspectorQuery;
 
@@ -16,7 +17,7 @@ use bevy::{ecs::TypeInfo, prelude::*};
 use bevy_egui::egui;
 use std::{any::TypeId, borrow::Cow};
 
-use crate::{utils, Context};
+use crate::Context;
 
 /// Resource which controls the way the world inspector is shown.
 #[derive(Debug, Clone)]
@@ -149,7 +150,7 @@ impl WorldUIContext<'_> {
                 let (location, components) = &self.components[&entity];
                 let components = components
                     .iter()
-                    .map(|type_info| (utils::short_name(type_info.type_name()), type_info));
+                    .map(|type_info| (pretty_type_name_str(type_info.type_name()), type_info));
                 let components = sort_iter_if(components, params.sort_components);
 
                 for (short_name, type_info) in components {

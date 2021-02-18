@@ -1,7 +1,8 @@
 use std::ops::{Deref, DerefMut};
 
-use crate::{utils::short_name, Context, Inspectable};
+use crate::{Context, Inspectable};
 use bevy_egui::egui::{self, Id};
+use pretty_type_name::pretty_type_name;
 
 /// The attributes for [`InNewWindow`]
 #[allow(missing_docs)]
@@ -66,7 +67,7 @@ impl<T: Inspectable + 'static> Inspectable for InNewWindow<T> {
         let window_title = options
             .title
             .map(|title| title.to_string())
-            .unwrap_or_else(|| short_name(std::any::type_name::<T>()));
+            .unwrap_or_else(|| pretty_type_name::<T>());
 
         let id = Id::new(context.id()).with(context.id);
         egui::Window::new(window_title)
