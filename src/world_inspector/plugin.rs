@@ -49,6 +49,10 @@ impl Plugin for WorldInspectorPlugin {
 fn world_inspector_ui(world: &mut World, resources: &mut Resources) {
     let params = &*resources.get::<WorldInspectorParams>().unwrap();
 
+    if !params.enabled {
+        return;
+    }
+
     let egui_context = resources.get::<EguiContext>().expect("EguiContext");
     let ctx = &egui_context.ctx;
 

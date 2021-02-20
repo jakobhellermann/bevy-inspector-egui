@@ -30,6 +30,8 @@ pub struct WorldInspectorParams {
     pub cluster_by_archetype: bool,
     /// Whether to sort the components alphabetically
     pub sort_components: bool,
+    /// Controls whether the world inspector is shown
+    pub enabled: bool,
 }
 
 struct WorldUIContext<'a> {
@@ -235,6 +237,7 @@ impl Default for WorldInspectorParams {
             read_only_components,
             cluster_by_archetype: false,
             sort_components: false,
+            enabled: true,
         }
     }
 }
