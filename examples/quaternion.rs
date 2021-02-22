@@ -1,15 +1,29 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::{Inspectable, InspectorPlugin};
+use bevy_inspector_egui::{options::QuatDisplay, Inspectable, InspectorPlugin};
 
-#[derive(Inspectable, Debug)]
+#[derive(Inspectable, Default)]
 struct Data {
-    transform: Transform,
+    #[inspectable(display = QuatDisplay::Euler)]
+    euler: Quat,
+    #[inspectable(display = QuatDisplay::YawPitchRoll)]
+    ypr: Quat,
+    #[inspectable(display = QuatDisplay::AxisAngle)]
+    axis_angle: Quat,
+    #[inspectable(display = QuatDisplay::Raw)]
+    raw: Quat,
+    which_one: WhichOne,
 }
-impl Default for Data {
+
+#[derive(Inspectable)]
+enum WhichOne {
+    Euler,
+    YawPitchRoll,
+    AxisAngle,
+    Raw,
+}
+impl Default for WhichOne {
     fn default() -> Self {
-        Data {
-            transform: Transform::from_xyz(0.0, 1.0, 0.0),
-        }
+        WhichOne::Euler
     }
 }
 
@@ -25,7 +39,12 @@ fn main() {
 
 fn update(data: Res<Data>, mut query: Query<(&Cube, &mut Transform)>) {
     for (_, mut transform) in query.iter_mut() {
-        *transform = data.transform;
+        match data.which_one {
+            WhichOne::Euler => transform.rotation = data.euler,
+            WhichOne::Raw => transform.rotation = data.raw,
+            WhichOne::YawPitchRoll => transform.rotation = data.ypr,
+            WhichOne::AxisAngle => transform.rotation = data.axis_angle,
+        }
     }
 }
 
@@ -54,7 +73,7 @@ fn setup(
         ..Default::default()
     });
     commands.spawn_bundle(PerspectiveCameraBundle {
-        transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::default(), Vec3::Y),
+        transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..Default::default()
     });
 }

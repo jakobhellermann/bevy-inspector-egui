@@ -89,17 +89,6 @@ impl Inspectable for shape::Box {
 
 //////// COMPONENTS ////////
 
-impl Inspectable for Quat {
-    type Attributes = NumberAttributes<[f32; 4]>;
-
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
-        let options = options.map(|arr| Vec4::from(*arr));
-        let mut vec4 = Vec4::from(*self);
-        vec4.ui(ui, options, context);
-        *self = vec4.into();
-    }
-}
-
 impl Inspectable for Transform {
     type Attributes = ();
 

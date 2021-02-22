@@ -46,6 +46,7 @@
 - show `Vec2` as two number fields by default, use `#[inspectable(visual)]` for old behaviour
 - properly give ids to egui
 - mark inspected components in the world inspector as mutated
+- quaternions are now displayed as euler angles by default
 
 ### Fixed
 
