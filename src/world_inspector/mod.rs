@@ -158,9 +158,16 @@ impl WorldUIContext<'_> {
         params: &WorldInspectorParams,
         id: egui::Id,
     ) {
+        let (location, components) = match &self.components.get(&entity) {
+            Some(value) => value,
+            None => {
+                ui.label("Entity does not exist");
+                return;
+            }
+        };
+
         ui.label("Components");
 
-        let (location, components) = &self.components[&entity];
         let components = components
             .iter()
             .map(|type_info| (pretty_type_name_str(type_info.type_name()), type_info));
