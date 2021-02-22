@@ -147,57 +147,67 @@ impl WorldUIContext<'_> {
         CollapsingHeader::new(self.entity_name(entity))
             .id_source(id.with(entity))
             .show(ui, |ui| {
-                ui.label("Components");
+                self.entity_ui_inner(ui, entity, params, id);
+            });
+    }
 
-                let (location, components) = &self.components[&entity];
-                let components = components
-                    .iter()
-                    .map(|type_info| (pretty_type_name_str(type_info.type_name()), type_info));
-                let components = sort_iter_if(components, params.sort_components);
+    fn entity_ui_inner(
+        &self,
+        ui: &mut egui::Ui,
+        entity: Entity,
+        params: &WorldInspectorParams,
+        id: egui::Id,
+    ) {
+        ui.label("Components");
 
-                for (short_name, type_info) in components {
-                    if params.should_ignore_component(type_info.id()) {
-                        continue;
-                    }
+        let (location, components) = &self.components[&entity];
+        let components = components
+            .iter()
+            .map(|type_info| (pretty_type_name_str(type_info.type_name()), type_info));
+        let components = sort_iter_if(components, params.sort_components);
 
-                    ui.collapsing(short_name, |ui| {
-                        if params.is_read_only(type_info.id()) {
-                            ui.set_enabled(false);
-                        }
+        for (short_name, type_info) in components {
+            if params.should_ignore_component(type_info.id()) {
+                continue;
+            }
 
-                        let context = Context::new(self.ui_ctx, self.world, self.resources)
-                            .with_id(entity.id() as u64);
-
-                        // SAFETY: we have unique access to the world
-                        let could_display = unsafe {
-                            self.inspectable_registry.generate(
-                                self.world,
-                                *location,
-                                type_info,
-                                &*self.type_registry.read(),
-                                ui,
-                                &context,
-                            )
-                        };
-
-                        if !could_display {
-                            ui.label("Inspectable has not been defined for this component");
-                        }
-                    });
+            ui.collapsing(short_name, |ui| {
+                if params.is_read_only(type_info.id()) {
+                    ui.set_enabled(false);
                 }
 
-                ui.separator();
+                let context = Context::new(self.ui_ctx, self.world, self.resources)
+                    .with_id(entity.id() as u64);
 
-                let children = self.world.get::<Children>(entity);
-                if let Ok(children) = children {
-                    ui.label("Children");
-                    for &child in children.iter() {
-                        self.entity_ui(ui, child, params, id);
-                    }
-                } else {
-                    ui.label("No children");
+                // SAFETY: we have unique access to the world
+                let could_display = unsafe {
+                    self.inspectable_registry.generate(
+                        self.world,
+                        *location,
+                        type_info,
+                        &*self.type_registry.read(),
+                        ui,
+                        &context,
+                    )
+                };
+
+                if !could_display {
+                    ui.label("Inspectable has not been defined for this component");
                 }
             });
+        }
+
+        ui.separator();
+
+        let children = self.world.get::<Children>(entity);
+        if let Ok(children) = children {
+            ui.label("Children");
+            for &child in children.iter() {
+                self.entity_ui(ui, child, params, id);
+            }
+        } else {
+            ui.label("No children");
+        }
     }
 }
 

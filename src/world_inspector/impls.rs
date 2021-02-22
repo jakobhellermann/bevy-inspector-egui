@@ -34,7 +34,9 @@ impl Inspectable for Entity {
         let world = expect_context!(ui, context.world, "Entity");
 
         let ui_ctx = WorldUIContext::new(context.ui_ctx, world, resources);
-        ui_ctx.entity_ui(ui, *self, &options, context.id());
+        ui.vertical(|ui| {
+            ui_ctx.entity_ui_inner(ui, *self, &options, context.id());
+        });
     }
 }
 
@@ -94,7 +96,7 @@ impl<F: QueryFilter> Inspectable for InspectorQuery<F> {
         let entities: Vec<Entity> = world.query_filtered::<Entity, F>().collect();
 
         let params = WorldInspectorParams::default();
-        ui.vertical_centered(|ui| {
+        ui.vertical(|ui| {
             if options.collapse {
                 let name = pretty_type_name::<F>();
                 CollapsingHeader::new(name)
@@ -108,7 +110,6 @@ impl<F: QueryFilter> Inspectable for InspectorQuery<F> {
             } else {
                 for entity in entities {
                     ui_ctx.entity_ui(ui, entity, &params, context.id());
-                    ui.end_row();
                 }
             }
         });
