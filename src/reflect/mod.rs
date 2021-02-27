@@ -81,8 +81,8 @@ macro_rules! try_downcast_ui {
 /// This function gets used for the implementation of [`Inspectable`](crate::Inspectable)
 /// for [`ReflectedUI`](ReflectedUI).
 pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Context) {
-    if let Some(resources) = context.resources {
-        if let Some(inspect_registry) = resources.get::<InspectableRegistry>() {
+    if let Some(world) = unsafe { context.world() } {
+        if let Some(inspect_registry) = world.get_resource::<InspectableRegistry>() {
             if inspect_registry.try_execute(value, ui, context) {
                 return;
             }

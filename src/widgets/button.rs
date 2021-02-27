@@ -1,5 +1,5 @@
 use crate::{Context, Inspectable};
-use bevy::prelude::*;
+use bevy::{ecs::component::Component, prelude::*};
 use std::marker::PhantomData;
 
 #[allow(missing_docs)]
@@ -33,12 +33,12 @@ impl<E> std::fmt::Debug for InspectableButton<E> {
     }
 }
 
-impl<E: Resource + Default> Inspectable for InspectableButton<E> {
+impl<E: Component + Default> Inspectable for InspectableButton<E> {
     type Attributes = ButtonAttributes;
 
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes, context: &Context) {
-        let resources = expect_context!(ui, context.resources, "InspectableButton");
-        let mut events = expect_resource!(ui, resources, get_mut Events<E>);
+        let resources = expect_world!(ui, context, "InspectableButton");
+        let mut events = expect_resource!(ui, resources, get_resource_mut Events<E>);
 
         if ui.button(options.text).clicked() {
             events.send(E::default());

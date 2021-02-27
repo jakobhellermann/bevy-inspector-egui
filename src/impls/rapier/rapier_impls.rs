@@ -83,7 +83,7 @@ impl Inspectable for RigidBodyHandleComponent {
     type Attributes = <RigidBody as Inspectable>::Attributes;
 
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes, context: &Context) {
-        let resources = expect_context!(ui, context.resources, "RigidBodyHandleComponent");
+        let resources = expect_world!(ui, context, "RigidBodyHandleComponent");
         let mut bodies = expect_resource!(ui, resources, get_mut RigidBodySet);
 
         let body = match bodies.get_mut(self.handle()) {

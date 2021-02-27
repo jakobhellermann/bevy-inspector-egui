@@ -27,8 +27,8 @@ impl<T: Asset + Inspectable> Inspectable for Handle<T> {
             return;
         }
 
-        let resources = expect_context!(ui, context.resources, "Handle<T>");
-        let mut assets = expect_resource!(ui, resources, get_mut Assets<T>);
+        let world = expect_world!(ui, context, "Handle<T>");
+        let mut assets = expect_resource!(ui, world, get_resource_mut Assets<T>);
 
         let value = expect_handle!(ui, assets, get_mut self);
 
@@ -40,12 +40,11 @@ impl Inspectable for Handle<Texture> {
     type Attributes = ();
 
     fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
-        let resources = expect_context!(ui, context.resources, "Handle<Texture>");
+        let world = expect_world!(ui, context, "Handle<Texture>");
+        let asset_server = expect_resource!(ui, world, get_resource AssetServer);
+        let file_events = world.get_resource::<Events<FileDragAndDrop>>().unwrap();
 
-        let asset_server = expect_resource!(ui, resources, get AssetServer);
-        let file_events = resources.get::<Events<FileDragAndDrop>>().unwrap();
-
-        let textures = expect_resource!(ui, resources, get Assets<Texture>);
+        let textures = expect_resource!(ui, world, get_resource Assets<Texture>);
         let texture = textures.get(self.clone());
 
         let response = match texture {

@@ -17,7 +17,7 @@ use crate::InspectableRegistry;
 ///         .run();
 /// }
 ///
-/// fn setup(commands: &mut Commands) {
+/// fn setup(mut commands: Commands) {
 ///   // setup your scene
 ///   // adding `Name` components will make the inspector more readable
 /// }
@@ -34,32 +34,36 @@ impl WorldInspectorPlugin {
 
 impl Plugin for WorldInspectorPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        if app.resources().get::<EguiContext>().is_none() {
+        if !app.world_mut().contains_resource::<EguiContext>() {
             app.add_plugin(EguiPlugin);
         }
 
-        let resources = app.resources_mut();
-        resources.get_or_insert_with(WorldInspectorParams::default);
-        resources.get_or_insert_with(InspectableRegistry::default);
+        let world = app.world_mut();
+        world.get_resource_or_insert_with(WorldInspectorParams::default);
+        world.get_resource_or_insert_with(InspectableRegistry::default);
 
         app.add_system(world_inspector_ui.exclusive_system());
     }
 }
 
-fn world_inspector_ui(world: &mut World, resources: &mut Resources) {
-    let params = &*resources.get::<WorldInspectorParams>().unwrap();
-
+fn world_inspector_ui(world: &mut World) {
+    let mut params = world.get_resource_mut::<WorldInspectorParams>().unwrap();
+    let params = std::mem::replace(&mut *params, WorldInspectorParams::empty());
     if !params.enabled {
         return;
     }
 
-    let egui_context = resources.get::<EguiContext>().expect("EguiContext");
+    let world_ptr = world as *mut _;
+
+    let egui_context = world.get_resource::<EguiContext>().expect("EguiContext");
     let ctx = &egui_context.ctx;
 
     egui::Window::new("World").scroll(true).show(ctx, |ui| {
         crate::plugin::default_settings(ui);
-
-        let ui_context = WorldUIContext::new(ctx, world, resources);
-        ui_context.ui(ui, params);
+        let world: &mut World = unsafe { &mut *world_ptr };
+        let mut ui_context = WorldUIContext::new(ctx, world);
+        ui_context.world_ui(ui, &params);
     });
+
+    *world.get_resource_mut::<WorldInspectorParams>().unwrap() = params;
 }

@@ -56,7 +56,7 @@ impl InspectorWindows {
 
 impl<T> Plugin for InspectorPlugin<T>
 where
-    T: Inspectable + FromResources + Send + Sync + 'static,
+    T: Inspectable + FromWorld + Send + Sync + 'static,
 {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<T>();
@@ -71,18 +71,18 @@ where
         }
 
         // init egui
-        if !app.resources().contains::<EguiContext>() {
+        if !app.world().contains_resource::<EguiContext>() {
             app.add_plugin(EguiPlugin);
         }
 
         // registeres egui textures
         app.add_system(egui_texture_setup.system());
 
-        let resources = app.resources_mut();
+        let world = app.world_mut();
 
         // add entry to `InspectorWindows`
-        resources.get_or_insert_with(InspectableRegistry::default);
-        let mut inspector_windows = resources.get_or_insert_with(InspectorWindows::default);
+        world.get_resource_or_insert_with(InspectableRegistry::default);
+        let mut inspector_windows = world.get_resource_or_insert_with(InspectorWindows::default);
 
         let type_id = TypeId::of::<T>();
         let full_type_name = std::any::type_name::<T>();
@@ -150,18 +150,25 @@ fn shared_access_ui<T>(
         });
 }
 
-fn exclusive_access_ui<T>(world: &mut World, resources: &mut Resources)
+fn exclusive_access_ui<T>(world: &mut World)
 where
     T: Inspectable + Send + Sync + 'static,
 {
-    let egui_context = resources.get_mut::<EguiContext>().unwrap();
-    let inspector_windows = resources.get::<InspectorWindows>().unwrap();
+    let type_name = {
+        let inspector_windows = world.get_resource_mut::<InspectorWindows>().unwrap();
+        let type_name = inspector_windows.get_unwrap::<T>();
+        type_name.to_string()
+    };
 
-    let mut data = resources.get_mut::<T>().unwrap();
+    let world_ptr = world as *mut _;
 
+    let world = world.cell();
+
+    let egui_context = world.get_resource::<EguiContext>().unwrap();
     let ctx = &egui_context.ctx;
 
-    let type_name = inspector_windows.get_unwrap::<T>();
+    let context = unsafe { Context::new_ptr(ctx, world_ptr) };
+    let mut data = world.get_resource_mut::<T>().unwrap();
 
     egui::Window::new(type_name)
         .resizable(false)
@@ -169,7 +176,6 @@ where
         .show(ctx, |ui| {
             default_settings(ui);
 
-            let context = Context::new(ctx, world, resources);
             data.ui(ui, T::Attributes::default(), &context);
         });
 }

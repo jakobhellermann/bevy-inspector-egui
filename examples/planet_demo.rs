@@ -102,7 +102,7 @@ fn generate(
 struct Planet;
 
 fn setup(
-    commands: &mut Commands,
+    mut commands: Commands,
     data: Res<Data>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,

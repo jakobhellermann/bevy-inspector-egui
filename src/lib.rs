@@ -52,7 +52,7 @@ mod world_inspector;
 
 use std::hash::Hasher;
 
-use bevy::prelude::{AppBuilder, Resources, World};
+use bevy::prelude::{AppBuilder, World};
 use egui::CtxRef;
 pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 
@@ -77,21 +77,34 @@ pub mod options {
 pub struct Context<'a> {
     /// egui ui context
     pub ui_ctx: &'a CtxRef,
-    /// The resources are only available when not using `InspectablePlugin::shared()`
-    pub resources: Option<&'a Resources>,
     /// The world is only available when not using `InspectablePlugin::shared()`
-    pub world: Option<&'a World>,
+    world: Option<*mut World>,
 
     /// Something to distinguish between siblings.
     pub id: Option<u64>,
 }
+impl<'a> Context<'a> {
+    /// Gives mutable access to the [bevy::ecs::world::World]
+    /// # Safety
+    /// The pointer provided in `Context::new_raw` must give unique access.
+    unsafe fn world(&'a self) -> Option<&'a mut World> {
+        self.world.map(|ptr| &mut *ptr)
+    }
+}
 
 impl<'a> Context<'a> {
-    /// Create new context with access to the `World` and `Resources`
-    pub fn new(ui_ctx: &'a CtxRef, world: &'a World, resources: &'a Resources) -> Self {
+    /// Create new context with exclusive access to the `World`
+    pub fn new(ui_ctx: &'a CtxRef, world: &'a mut World) -> Self {
         Context {
             ui_ctx,
-            resources: Some(resources),
+            world: Some(world as *mut _),
+            id: None,
+        }
+    }
+    /// Create a new context with access to the world
+    pub unsafe fn new_ptr(ui_ctx: &'a CtxRef, world: *mut World) -> Self {
+        Context {
+            ui_ctx,
             world: Some(world),
             id: None,
         }
@@ -101,7 +114,6 @@ impl<'a> Context<'a> {
     pub fn new_shared(ui_ctx: &'a CtxRef) -> Self {
         Context {
             ui_ctx,
-            resources: None,
             world: None,
             id: None,
         }

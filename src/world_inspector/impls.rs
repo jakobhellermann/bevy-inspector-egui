@@ -1,6 +1,9 @@
 use super::{WorldInspectorParams, WorldUIContext};
 use crate::Inspectable;
-use bevy::{ecs::QueryFilter, prelude::*};
+use bevy::{
+    ecs::query::{FilterFetch, WorldQuery},
+    prelude::*,
+};
 use bevy_egui::egui::CollapsingHeader;
 use pretty_type_name::pretty_type_name;
 use std::marker::PhantomData;
@@ -14,10 +17,8 @@ impl Inspectable for World {
         options: Self::Attributes,
         context: &crate::Context,
     ) {
-        let resources = expect_context!(ui, context.resources, "World");
-
-        let ui_ctx = WorldUIContext::new(context.ui_ctx, self, resources);
-        ui_ctx.ui(ui, &options);
+        let mut world_ui_ctx = WorldUIContext::new(context.ui_ctx, self);
+        world_ui_ctx.world_ui(ui, &options);
     }
 }
 
@@ -30,12 +31,11 @@ impl Inspectable for Entity {
         options: Self::Attributes,
         context: &crate::Context,
     ) {
-        let resources = expect_context!(ui, context.resources, "Entity");
-        let world = expect_context!(ui, context.world, "Entity");
+        let world = expect_world!(ui, context, "Entity");
 
-        let ui_ctx = WorldUIContext::new(context.ui_ctx, world, resources);
+        let world_ui_ctx = WorldUIContext::new(context.ui_ctx, world);
         ui.vertical(|ui| {
-            ui_ctx.entity_ui_inner(ui, *self, &options, context.id());
+            world_ui_ctx.entity_ui_inner(ui, *self, &options, context.id());
         });
     }
 }
@@ -79,7 +79,11 @@ impl Default for InspectorQueryAttributes {
     }
 }
 
-impl<F: QueryFilter> Inspectable for InspectorQuery<F> {
+impl<F> Inspectable for InspectorQuery<F>
+where
+    F: WorldQuery,
+    F::Fetch: FilterFetch,
+{
     type Attributes = InspectorQueryAttributes;
 
     fn ui(
@@ -88,14 +92,14 @@ impl<F: QueryFilter> Inspectable for InspectorQuery<F> {
         options: Self::Attributes,
         context: &crate::Context,
     ) {
-        let resources = expect_context!(ui, context.resources, "InspectorQuery");
-        let world = expect_context!(ui, context.world, "InspectorQuery");
+        let world = expect_world!(ui, context, "InspectorQuery");
 
-        let ui_ctx = WorldUIContext::new(context.ui_ctx, world, resources);
+        let mut query_state = world.query_filtered::<Entity, F>();
+        let entities: Vec<Entity> = query_state.iter(world).collect();
 
-        let entities: Vec<Entity> = world.query_filtered::<Entity, F>().collect();
-
+        let ui_ctx = WorldUIContext::new(context.ui_ctx, world);
         let params = WorldInspectorParams::default();
+
         ui.vertical(|ui| {
             if options.collapse {
                 let name = pretty_type_name::<F>();

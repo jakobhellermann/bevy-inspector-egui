@@ -31,7 +31,7 @@ fn update(data: Res<Data>, mut query: Query<(&Cube, &mut Transform)>) {
 struct Cube;
 
 fn setup(
-    commands: &mut Commands,
+    mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {

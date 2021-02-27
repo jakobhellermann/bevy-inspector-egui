@@ -17,7 +17,7 @@ fn main() {
 struct Cube;
 
 fn setup(
-    commands: &mut Commands,
+    mut commands: Commands,
     mut data: ResMut<Data>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
