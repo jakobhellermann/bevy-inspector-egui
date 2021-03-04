@@ -56,7 +56,7 @@ fn text_update_system(data: Res<Data>, mut query: Query<&mut Text>) {
 }
 
 fn shape_update_system(
-    data: ChangedRes<Data>,
+    data: Res<Data>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut query: Query<(&Handle<ColorMaterial>, &mut Transform)>,
 ) {
