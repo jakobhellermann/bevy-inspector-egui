@@ -47,13 +47,12 @@ impl Plugin for WorldInspectorPlugin {
 }
 
 fn world_inspector_ui(world: &mut World) {
-    let mut params = world.get_resource_mut::<WorldInspectorParams>().unwrap();
-    let params = std::mem::replace(&mut *params, WorldInspectorParams::empty());
+    let world_ptr = world as *mut _;
+
+    let params = world.get_resource::<WorldInspectorParams>().unwrap();
     if !params.enabled {
         return;
     }
-
-    let world_ptr = world as *mut _;
 
     let egui_context = world.get_resource::<EguiContext>().expect("EguiContext");
     let ctx = &egui_context.ctx;
@@ -64,6 +63,4 @@ fn world_inspector_ui(world: &mut World) {
         let mut ui_context = WorldUIContext::new(ctx, world);
         ui_context.world_ui(ui, &params);
     });
-
-    *world.get_resource_mut::<WorldInspectorParams>().unwrap() = params;
 }
