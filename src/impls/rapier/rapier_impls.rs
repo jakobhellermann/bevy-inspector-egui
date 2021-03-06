@@ -8,7 +8,7 @@ use bevy_rapier3d::{
     rapier::dynamics::{BodyStatus, MassProperties, RigidBody, RigidBodySet},
 };
 
-impl_for_simple_enum!(BodyStatus with Dynamic, Static, Kinematic);
+impl_for_simple_enum!(BodyStatus: Dynamic, Static, Kinematic);
 
 impl Inspectable for MassProperties {
     type Attributes = ();
@@ -83,8 +83,8 @@ impl Inspectable for RigidBodyHandleComponent {
     type Attributes = <RigidBody as Inspectable>::Attributes;
 
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes, context: &Context) {
-        let resources = expect_world!(ui, context, "RigidBodyHandleComponent");
-        let mut bodies = expect_resource!(ui, resources, get_mut RigidBodySet);
+        let world = expect_world!(ui, context, "RigidBodyHandleComponent");
+        let mut bodies = expect_resource!(ui, world, get_resource_mut RigidBodySet);
 
         let body = match bodies.get_mut(self.handle()) {
             Some(body) => body,
