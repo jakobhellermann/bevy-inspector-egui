@@ -33,7 +33,7 @@ fn setup(
         .with(Name::new("Camera"))
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Plane { size: 10.0 })),
-            material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
+            material: materials.add(Color::rgb_u8(80, 233, 54).into()),
             ..Default::default()
         })
         .with(Name::new("Floor"))
@@ -48,18 +48,21 @@ fn setup(
             commands
                 .spawn(PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
-                    transform: Transform::from_xyz(0.0, 1.0, 0.0),
+                    transform: Transform::from_xyz(0.0, 0.8, 0.0),
                     material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
                     ..Default::default()
                 })
                 .with(Name::new("Child"))
-                .spawn(PbrBundle {
-                    mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
-                    transform: Transform::from_xyz(0.0, 1.5, 0.0),
-                    material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
-                    ..Default::default()
-                })
-                .with(Name::new("Child"));
+                .with_children(|commands| {
+                    commands
+                        .spawn(PbrBundle {
+                            mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
+                            transform: Transform::from_xyz(0.0, 0.4, 0.0),
+                            material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
+                            ..Default::default()
+                        })
+                        .with(Name::new("Child"));
+                });
         })
         .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Icosphere {
@@ -67,13 +70,28 @@ fn setup(
                 radius: 0.5,
             })),
             transform: Transform::from_xyz(1.5, 1.5, 1.5),
-            material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
+            material: materials.add(Color::RED.into()),
             ..Default::default()
         })
         .with(Name::new("Sphere"))
         .spawn(LightBundle {
-            transform: Transform::from_xyz(4.0, 8.0, 4.0),
+            transform: Transform::from_xyz(10.3, 8.0, -2.3),
+            light: Light {
+                radius: 20.0,
+                intensity: 1237.0,
+                ..Default::default()
+            },
             ..Default::default()
         })
-        .with(Name::new("Light"));
+        .with(Name::new("Light"))
+        .spawn(LightBundle {
+            transform: Transform::from_xyz(-6.2, 8.0, 4.3),
+            light: Light {
+                radius: 20.0,
+                intensity: 245.0,
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .with(Name::new("Second Light"));
 }
