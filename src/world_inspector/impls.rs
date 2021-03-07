@@ -18,7 +18,7 @@ impl Inspectable for World {
         context: &crate::Context,
     ) {
         let mut world_ui_ctx = WorldUIContext::new(context.ui_ctx, self);
-        world_ui_ctx.world_ui(ui, &options);
+        world_ui_ctx.world_ui::<()>(ui, &options);
     }
 }
 

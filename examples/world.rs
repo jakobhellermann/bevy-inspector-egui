@@ -10,7 +10,7 @@ fn main() {
             // sort_components: true,
             ..Default::default()
         })
-        .add_plugin(WorldInspectorPlugin)
+        .add_plugin(WorldInspectorPlugin::new())
         .add_startup_system(setup.system())
         .run();
 }

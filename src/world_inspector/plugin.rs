@@ -1,4 +1,9 @@
-use bevy::prelude::*;
+use std::marker::PhantomData;
+
+use bevy::{
+    ecs::query::{FilterFetch, WorldQuery},
+    prelude::*,
+};
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
 use super::{WorldInspectorParams, WorldUIContext};
@@ -12,7 +17,7 @@ use crate::InspectableRegistry;
 /// fn main() {
 ///     App::build()
 ///         .add_plugins(DefaultPlugins)
-///         .add_plugin(WorldInspectorPlugin)
+///         .add_plugin(WorldInspectorPlugin::new())
 ///         .add_startup_system(setup.system())
 ///         .run();
 /// }
@@ -22,17 +27,40 @@ use crate::InspectableRegistry;
 ///   // adding `Name` components will make the inspector more readable
 /// }
 /// ```
-#[derive(Default)]
-pub struct WorldInspectorPlugin;
+pub struct WorldInspectorPlugin<F = ()>(PhantomData<fn() -> F>);
+impl Default for WorldInspectorPlugin {
+    fn default() -> Self {
+        WorldInspectorPlugin::new()
+    }
+}
 
 impl WorldInspectorPlugin {
     /// Create new `WorldInpsectorPlugin`
     pub fn new() -> Self {
-        WorldInspectorPlugin
+        WorldInspectorPlugin(PhantomData)
+    }
+
+    /// Constrain the world inspector to only show entities matching the query filter `F`
+    ///
+    /// ```rust,no_run
+    /// # use bevy::prelude::*;
+    /// # use bevy_inspector_egui::WorldInspectorPlugin;
+    /// struct Show;
+    ///
+    /// App::build()
+    ///   .add_plugin(WorldInspectorPlugin::new().filter::<With<Show>>())
+    ///   .run();
+    /// ```
+    pub fn filter<F>(self) -> WorldInspectorPlugin<F> {
+        WorldInspectorPlugin(PhantomData)
     }
 }
 
-impl Plugin for WorldInspectorPlugin {
+impl<F> Plugin for WorldInspectorPlugin<F>
+where
+    F: WorldQuery + 'static,
+    F::Fetch: FilterFetch,
+{
     fn build(&self, app: &mut AppBuilder) {
         if !app.world_mut().contains_resource::<EguiContext>() {
             app.add_plugin(EguiPlugin);
@@ -42,11 +70,15 @@ impl Plugin for WorldInspectorPlugin {
         world.get_resource_or_insert_with(WorldInspectorParams::default);
         world.get_resource_or_insert_with(InspectableRegistry::default);
 
-        app.add_system(world_inspector_ui.exclusive_system());
+        app.add_system(world_inspector_ui::<F>.exclusive_system());
     }
 }
 
-fn world_inspector_ui(world: &mut World) {
+fn world_inspector_ui<F>(world: &mut World)
+where
+    F: WorldQuery,
+    F::Fetch: FilterFetch,
+{
     let world_ptr = world as *mut _;
 
     let params = world.get_resource::<WorldInspectorParams>().unwrap();
@@ -61,6 +93,6 @@ fn world_inspector_ui(world: &mut World) {
         crate::plugin::default_settings(ui);
         let world: &mut World = unsafe { &mut *world_ptr };
         let mut ui_context = WorldUIContext::new(ctx, world);
-        ui_context.world_ui(ui, &params);
+        ui_context.world_ui::<F>(ui, &params);
     });
 }

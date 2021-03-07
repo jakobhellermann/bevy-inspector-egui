@@ -10,6 +10,7 @@ use bevy::{
     ecs::{
         component::{ComponentFlags, ComponentId, ComponentInfo, StorageType},
         entity::EntityLocation,
+        query::{FilterFetch, WorldQuery},
     },
     prelude::*,
     reflect::{TypeRegistryArc, TypeRegistryInternal},
@@ -72,8 +73,12 @@ impl<'a> WorldUIContext<'a> {
         }
     }
 
-    fn world_ui(&mut self, ui: &mut egui::Ui, params: &WorldInspectorParams) {
-        let mut root_entities = self.world.query_filtered::<Entity, Without<Parent>>();
+    fn world_ui<F>(&mut self, ui: &mut egui::Ui, params: &WorldInspectorParams)
+    where
+        F: WorldQuery,
+        F::Fetch: FilterFetch,
+    {
+        let mut root_entities = self.world.query_filtered::<Entity, (Without<Parent>, F)>();
 
         // the entities are unique themselves, because only one WorldInspector can exist
         let dummy_id = egui::Id::new(42);
