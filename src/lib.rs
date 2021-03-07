@@ -1,5 +1,9 @@
 #![warn(missing_docs)]
-#![allow(clippy::unit_arg, clippy::clippy::needless_doctest_main)]
+#![allow(
+    clippy::unit_arg,
+    clippy::needless_doctest_main,
+    clippy::too_many_arguments
+)]
 
 //! This crate provides the ability to annotate structs with a `#[derive(Inspectable)]`,
 //! which opens a debug interface using [egui](https://github.com/emilk/egui) where you can visually edit the values of your struct live.
@@ -102,6 +106,9 @@ impl<'a> Context<'a> {
         }
     }
     /// Create a new context with access to the world
+    /// # Safety
+    /// The `world` pointer must come from a mutable reference to a world and no
+    /// other threads must be writing to it.
     pub unsafe fn new_ptr(ui_ctx: &'a CtxRef, world: *mut World) -> Self {
         Context {
             ui_ctx,

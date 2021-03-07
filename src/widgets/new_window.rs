@@ -67,7 +67,7 @@ impl<T: Inspectable + 'static> Inspectable for InNewWindow<T> {
         let window_title = options
             .title
             .map(|title| title.to_string())
-            .unwrap_or_else(|| pretty_type_name::<T>());
+            .unwrap_or_else(pretty_type_name::<T>);
 
         let id = Id::new(context.id()).with(context.id);
         egui::Window::new(window_title)
