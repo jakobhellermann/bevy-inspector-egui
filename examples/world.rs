@@ -1,6 +1,12 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::WorldInspectorParams;
-use bevy_inspector_egui::WorldInspectorPlugin;
+use bevy_inspector_egui::{widgets::ResourceInspector, Inspectable, InspectorPlugin};
+use bevy_inspector_egui::{WorldInspectorParams, WorldInspectorPlugin};
+
+#[derive(Inspectable, Default)]
+struct Resources {
+    ambient_light: ResourceInspector<bevy::pbr::AmbientLight>,
+    clear_color: ResourceInspector<ClearColor>,
+}
 
 fn main() {
     App::build()
@@ -11,6 +17,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugin(WorldInspectorPlugin::new())
+        .add_plugin(InspectorPlugin::<Resources>::new())
         .add_startup_system(setup.system())
         .run();
 }
@@ -77,7 +84,7 @@ fn setup(
         .spawn(LightBundle {
             transform: Transform::from_xyz(10.3, 8.0, -2.3),
             light: Light {
-                radius: 20.0,
+                range: 20.0,
                 intensity: 1237.0,
                 ..Default::default()
             },
@@ -87,7 +94,7 @@ fn setup(
         .spawn(LightBundle {
             transform: Transform::from_xyz(-6.2, 8.0, 4.3),
             light: Light {
-                radius: 20.0,
+                range: 20.0,
                 intensity: 245.0,
                 ..Default::default()
             },
