@@ -16,7 +16,7 @@ impl FromWorld for Data {
 
         let texture_handle = asset_server.load("texture-128.png");
         let material = materials.add(StandardMaterial {
-            albedo: Color::WHITE,
+            base_color: Color::WHITE,
             albedo_texture: Some(texture_handle),
             ..Default::default()
         });

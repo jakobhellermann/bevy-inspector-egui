@@ -45,3 +45,7 @@ required-features = ["rapier"]
 [[example]]
 name = "texture"
 required-features = ["bevy/png"]
+
+[patch."https://github.com/bevyengine/bevy"]
+bevy = { git = "https://github.com/mtsr/bevy", branch = "pbr" }
+bevy_winit = { git = "https://github.com/mtsr/bevy", branch = "pbr" }

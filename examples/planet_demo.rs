@@ -94,7 +94,7 @@ fn generate(
             let material = materials.get_mut(material.clone()).unwrap();
 
             *mesh = data.as_mesh();
-            material.albedo = data.color;
+            material.base_color = data.color;
         }
     }
 }

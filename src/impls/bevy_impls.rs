@@ -7,9 +7,22 @@ use egui::Grid;
 
 impl_for_struct_delegate_fields!(
     StandardMaterial:
-    albedo,
-    albedo_texture with OptionAttributes { replacement: Some(|| Handle::weak(HandleId::random::<Texture>())), ..Default::default() },
-    unlit);
+    base_color,
+    base_color_texture,
+    base_color_texture with OptionAttributes { replacement: Some(|| Handle::weak(HandleId::random::<Texture>())), ..Default::default() },
+    roughness with NumberAttributes::between(0.089, 1.0).speed(0.01),
+    metallic with NumberAttributes::normalized().speed(0.01),
+    reflectance with NumberAttributes::positive(),
+    unlit
+);
+impl_for_struct_delegate_fields!(
+    Light:
+    color,
+    fov,
+    depth with NumberAttributes::positive().speed(1.0),
+    intensity with NumberAttributes::positive().speed(1.0),
+    range with NumberAttributes::positive(),
+);
 impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
 
 //////// SHAPES ////////

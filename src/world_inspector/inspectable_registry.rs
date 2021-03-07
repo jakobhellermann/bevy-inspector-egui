@@ -84,6 +84,9 @@ impl Default for InspectableRegistry {
 
         this.register::<Color>();
         this.register::<bevy::asset::HandleId>();
+        this.register::<Light>();
+        this.register::<StandardMaterial>();
+        this.register::<ColorMaterial>();
         this.register::<Handle<Texture>>();
         this.register::<Handle<StandardMaterial>>();
         this.register::<Handle<ColorMaterial>>();

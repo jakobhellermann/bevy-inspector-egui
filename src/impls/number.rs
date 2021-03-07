@@ -2,7 +2,7 @@ use crate::egui::{self, widgets};
 use crate::Context;
 use crate::Inspectable;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct NumberAttributes<T> {
     pub min: Option<T>,
     pub max: Option<T>,
@@ -11,6 +11,18 @@ pub struct NumberAttributes<T> {
     pub prefix: String,
     pub suffix: String,
 }
+impl<T> Default for NumberAttributes<T> {
+    fn default() -> Self {
+        NumberAttributes {
+            min: None,
+            max: None,
+            speed: 0.0,
+            prefix: "".to_string(),
+            suffix: "".to_string(),
+        }
+    }
+}
+
 impl<T> NumberAttributes<T> {
     pub(crate) fn map<U>(&self, f: impl Fn(&T) -> U) -> NumberAttributes<U> {
         NumberAttributes {
@@ -26,19 +38,29 @@ impl<T> NumberAttributes<T> {
         NumberAttributes {
             min: Some(min),
             max: None,
-            speed: 0.0,
-            prefix: "".into(),
-            suffix: "".into(),
+            ..Default::default()
         }
     }
 
-    pub fn speed(self, speed: f32) -> Self {
+    pub fn between(min: T, max: T) -> Self {
+        NumberAttributes {
+            min: Some(min),
+            max: Some(max),
+            ..Default::default()
+        }
+    }
+
+    pub(crate) fn speed(self, speed: f32) -> Self {
         NumberAttributes { speed, ..self }
     }
 }
 impl NumberAttributes<f32> {
     pub(crate) fn positive() -> Self {
         NumberAttributes::min(0.0)
+    }
+
+    pub(crate) fn normalized() -> Self {
+        NumberAttributes::between(0.0, 1.0).speed(0.1)
     }
 }
 
