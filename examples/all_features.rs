@@ -14,7 +14,7 @@ struct Data {
     list: [f32; 2],
     custom_enum: CustomEnum,
     vector: Vec<String>,
-    #[inspectable(min = Vec3::zero(), max = Vec3::splat(128.0))]
+    #[inspectable(min = Vec3::ZERO, max = Vec3::splat(128.0))]
     vec3: Vec3,
     text: String,
     transform: Transform,

@@ -60,7 +60,7 @@ impl Default for NoiseSettings {
             base_roughness: 0.71,
             roughness: 1.83,
             min_value: 1.1,
-            offset: Vec2::zero(),
+            offset: Vec2::ZERO,
         }
     }
 }
@@ -121,8 +121,7 @@ fn setup(
             ..Default::default()
         })
         .spawn(PerspectiveCameraBundle {
-            transform: Transform::from_xyz(-3.0, 5.0, 10.0)
-                .looking_at(Vec3::default(), Vec3::unit_y()),
+            transform: Transform::from_xyz(-3.0, 5.0, 10.0).looking_at(Vec3::default(), Vec3::Y),
             ..Default::default()
         });
 }
@@ -190,14 +189,7 @@ impl<'a> PlanetShape<'a> {
 
         let mut tri_index = 0;
 
-        let faces = [
-            Vec3::unit_x(),
-            -Vec3::unit_x(),
-            Vec3::unit_y(),
-            -Vec3::unit_y(),
-            Vec3::unit_z(),
-            -Vec3::unit_z(),
-        ];
+        let faces = [Vec3::X, -Vec3::X, Vec3::Y, -Vec3::Y, Vec3::Z, -Vec3::Z];
         let mut i = 0;
         for &local_up in &faces {
             let axis_a = local_up.yzx();
