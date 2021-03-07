@@ -1,5 +1,5 @@
 use crate::{options::NumberAttributes, Context, Inspectable};
-use bevy::prelude::*;
+use bevy::{pbr::AmbientLight, prelude::*};
 use bevy_egui::egui;
 use egui::Grid;
 
@@ -118,5 +118,22 @@ impl Inspectable for Color {
             let [r, g, b] = color;
             *self = Color::rgba(r, g, b, old[3]);
         }
+    }
+}
+
+//////// RESOURCES ////////
+
+impl Inspectable for AmbientLight {
+    type Attributes = <Color as Inspectable>::Attributes;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+        self.color.ui(ui, options, context);
+    }
+}
+impl Inspectable for ClearColor {
+    type Attributes = <Color as Inspectable>::Attributes;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+        self.0.ui(ui, options, context);
     }
 }

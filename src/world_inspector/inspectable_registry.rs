@@ -1,6 +1,6 @@
 use crate::{Context, Inspectable};
-use bevy::prelude::*;
 use bevy::utils::HashMap;
+use bevy::{pbr::AmbientLight, prelude::*};
 use bevy_egui::egui;
 use std::any::TypeId;
 
@@ -87,6 +87,9 @@ impl Default for InspectableRegistry {
         this.register::<Handle<Texture>>();
         this.register::<Handle<StandardMaterial>>();
         this.register::<Handle<ColorMaterial>>();
+
+        this.register::<ClearColor>();
+        this.register::<AmbientLight>();
 
         register!(this Display, Style, Size<f32>, Size<Val>, Val, bevy::ui::FocusPolicy);
         register!(this VerticalAlign, HorizontalAlign, TextAlignment, TextStyle, TextSection, Text);
