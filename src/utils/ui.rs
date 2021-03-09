@@ -1,5 +1,5 @@
 use bevy::{
-    app::ManualEventReader,
+    app::{Events, ManualEventReader},
     asset::{Asset, AssetPath},
     prelude::*,
 };

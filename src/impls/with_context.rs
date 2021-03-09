@@ -1,6 +1,7 @@
 use crate::{utils, Context, Inspectable};
 use bevy::{
     asset::{Asset, HandleId},
+    app::Events,
     prelude::*,
     render::texture::Texture,
 };

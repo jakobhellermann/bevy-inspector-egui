@@ -1,5 +1,6 @@
 use crate::{Context, Inspectable};
 use bevy::{ecs::component::Component, prelude::*};
+use bevy::app::Events;
 use std::marker::PhantomData;
 
 #[allow(missing_docs)]
@@ -46,6 +47,6 @@ impl<E: Component + Default> Inspectable for InspectableButton<E> {
     }
 
     fn setup(app: &mut AppBuilder) {
-        app.init_resource::<Events<E>>();
+        app.add_event::<E>();
     }
 }
