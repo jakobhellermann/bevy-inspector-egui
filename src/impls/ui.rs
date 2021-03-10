@@ -67,7 +67,7 @@ impl_for_struct_delegate_fields!(
     // aspect_ratio,
 );
 
-impl<T: Inspectable + Reflect> Inspectable for Size<T> {
+impl<T: Inspectable + Reflect + PartialEq> Inspectable for Size<T> {
     type Attributes = T::Attributes;
 
     fn ui(
