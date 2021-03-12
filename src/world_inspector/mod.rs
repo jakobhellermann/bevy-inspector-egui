@@ -276,18 +276,17 @@ pub(crate) unsafe fn generate(
 }
 
 // copied from bevy
-pub unsafe fn get_component_and_flags(
+unsafe fn get_component_and_flags(
     world: &World,
     component_id: ComponentId,
     entity: Entity,
     location: EntityLocation,
 ) -> Option<(*mut u8, *mut ComponentFlags)> {
-    let archetype = world.archetypes().get_unchecked(location.archetype_id);
+    let archetype = &world.archetypes()[location.archetype_id];
     let component_info = world.components().get_info_unchecked(component_id);
     match component_info.storage_type() {
         StorageType::Table => {
-            // SAFE: tables stored in archetype always exist
-            let table = world.storages().tables.get_unchecked(archetype.table_id());
+            let table = &world.storages().tables[archetype.table_id()];
             let components = table.get_column(component_id)?;
             let table_row = archetype.entity_table_row(location.index);
             // SAFE: archetypes only store valid table_rows and the stored component type is T
