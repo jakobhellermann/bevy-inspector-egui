@@ -1,6 +1,6 @@
 use crate::{Context, Inspectable};
-use bevy::{ecs::component::Component, prelude::*};
 use bevy::app::Events;
+use bevy::{ecs::component::Component, prelude::*};
 use std::marker::PhantomData;
 
 #[allow(missing_docs)]
