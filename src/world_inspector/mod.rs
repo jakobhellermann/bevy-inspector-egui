@@ -211,6 +211,10 @@ impl<'a> WorldUIContext<'a> {
                     ui.set_enabled(false);
                 }
 
+                if component_info.layout().size() == 0 {
+                    return;
+                }
+
                 let world_ptr = self.world as *const _ as *mut _;
 
                 let context = unsafe {
