@@ -33,10 +33,7 @@ impl<T> NumberAttributes<T> {
     }
 
     pub fn speed(self, speed: f32) -> Self {
-        NumberAttributes {
-            speed,
-            ..self
-        }
+        NumberAttributes { speed, ..self }
     }
 }
 impl NumberAttributes<f32> {
