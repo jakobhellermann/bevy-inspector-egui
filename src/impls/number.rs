@@ -31,6 +31,13 @@ impl<T> NumberAttributes<T> {
             suffix: "".into(),
         }
     }
+
+    pub fn speed(self, speed: f32) -> Self {
+        NumberAttributes {
+            speed,
+            ..self
+        }
+    }
 }
 impl NumberAttributes<f32> {
     pub(crate) fn positive() -> Self {
