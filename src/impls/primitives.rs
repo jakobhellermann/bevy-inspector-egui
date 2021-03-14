@@ -1,3 +1,5 @@
+use bevy_egui::egui::Color32;
+
 use crate::egui::{self, widgets};
 use crate::{Context, Inspectable};
 use std::ops::{Range, RangeInclusive};
@@ -69,6 +71,9 @@ impl<T: Inspectable> Inspectable for Option<T> {
         match self {
             Some(val) => {
                 val.ui(ui, options, context);
+                if ui.colored_label(Color32::RED, "✖").clicked() {
+                    *self = None;
+                }
             }
             None => {
                 ui.label("None");
