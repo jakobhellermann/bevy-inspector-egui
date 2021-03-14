@@ -12,6 +12,15 @@ struct Inspector {
     print: InspectableButton<Print>,
 }
 
+#[derive(Inspectable, Debug, Default)]
+struct Capsule {
+    radius: f32,
+    rings: usize,
+    depth: f32,
+    latitudes: usize,
+    longitudes: usize,
+}
+
 #[derive(Inspectable, Debug)]
 enum Shape {
     Box {
@@ -23,6 +32,7 @@ enum Shape {
         #[inspectable(default = 5.0, min = 0.1)]
         radius: f32,
     },
+    Capsule(Capsule),
     Line(Vec2, Vec2),
     UnitSphere,
 }

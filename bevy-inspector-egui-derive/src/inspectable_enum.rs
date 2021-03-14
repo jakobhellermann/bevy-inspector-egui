@@ -144,12 +144,19 @@ fn field_ui(
         let binding_name = name_for_member(field, *i);
         let options = attributes.create_options_struct(&field.ty);
 
-        quote! {
-            ui.horizontal(|ui| {
-                ui.label(stringify!(#member));
+        if f.len() == 1 {
+            quote! {
                 let options = #options;
                 #binding_name.ui(ui, options, context);
-            });
+            }
+        } else {
+            quote! {
+                ui.horizontal(|ui| {
+                    ui.label(stringify!(#member));
+                    let options = #options;
+                    #binding_name.ui(ui, options, context);
+                });
+            }
         }
     });
 
