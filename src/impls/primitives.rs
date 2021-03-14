@@ -64,19 +64,38 @@ where
     }
 }
 
-impl<T: Inspectable> Inspectable for Option<T> {
-    type Attributes = T::Attributes;
+#[derive(Clone)]
+pub struct OptionAttributes<T: Inspectable + Clone> {
+    pub replacement: Option<fn() -> T>,
+    pub inner: T::Attributes,
+}
+impl<T: Inspectable + Clone> Default for OptionAttributes<T> {
+    fn default() -> Self {
+        OptionAttributes {
+            replacement: None,
+            inner: T::Attributes::default(),
+        }
+    }
+}
+
+impl<T: Inspectable + Clone> Inspectable for Option<T> {
+    type Attributes = OptionAttributes<T>;
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
         match self {
             Some(val) => {
-                val.ui(ui, options, context);
+                val.ui(ui, options.inner, context);
                 if ui.colored_label(Color32::RED, "✖").clicked() {
                     *self = None;
                 }
             }
             None => {
                 ui.label("None");
+                if let Some(replacement) = options.replacement {
+                    if ui.colored_label(Color32::GREEN, "+").clicked() {
+                        *self = Some(replacement());
+                    }
+                }
             }
         }
     }
