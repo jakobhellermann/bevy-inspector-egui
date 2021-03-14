@@ -89,10 +89,21 @@ where
     let egui_context = world.get_resource::<EguiContext>().expect("EguiContext");
     let ctx = &egui_context.ctx;
 
-    egui::Window::new("World").scroll(true).show(ctx, |ui| {
-        crate::plugin::default_settings(ui);
-        let world: &mut World = unsafe { &mut *world_ptr };
-        let mut ui_context = WorldUIContext::new(ctx, world);
-        ui_context.world_ui::<F>(ui, &params);
-    });
+    let mut is_open = true;
+    egui::Window::new("World")
+        .open(&mut is_open)
+        .scroll(true)
+        .show(ctx, |ui| {
+            crate::plugin::default_settings(ui);
+            let world: &mut World = unsafe { &mut *world_ptr };
+            let mut ui_context = WorldUIContext::new(ctx, world);
+            ui_context.world_ui::<F>(ui, &params);
+        });
+
+    if !is_open {
+        world
+            .get_resource_mut::<WorldInspectorParams>()
+            .unwrap()
+            .enabled = false;
+    }
 }
