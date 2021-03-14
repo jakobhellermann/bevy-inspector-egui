@@ -26,7 +26,7 @@ impl InspectableAttribute {
             syn::Member::Unnamed(_) => return false,
         };
 
-        ident == "label" || ident == "collapse"
+        ident == "label" || ident == "collapse" || ident == "default"
     }
 }
 
@@ -63,6 +63,7 @@ fn extract_inspectable_attributes(
 pub struct InspectableAttributes {
     pub collapse: bool,
     pub label: Option<String>,
+    pub default: Option<syn::Expr>,
     pub custom_attributes: Vec<InspectableAttribute>,
 }
 
@@ -104,9 +105,13 @@ pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> InspectableAttributes
                     panic!("label needs to be a string literal");
                 };
             }
+            #[rustfmt::skip]
+            InspectableAttribute::Assignment(syn::Member::Named(ident), expr) if ident == "default" => {
+                all.default = Some(expr);
+            }
             InspectableAttribute::Tag(name) | InspectableAttribute::Assignment(name, _) => {
                 match name {
-                    syn::Member::Named(name) => panic!("unknown attributes '{}'", name),
+                    syn::Member::Named(name) => panic!("unknown attribute '{}'", name),
                     syn::Member::Unnamed(_) => unreachable!(),
                 }
             }

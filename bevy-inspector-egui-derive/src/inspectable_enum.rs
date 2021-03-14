@@ -1,6 +1,6 @@
 use proc_macro2::Span;
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use std::borrow::Cow;
 
 use crate::{
@@ -36,11 +36,20 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
         .collect();
 
     let ui_match_arms = variants.iter().map(|(variant, fields)| {
-        let members = fields.iter().map(|(_, _, member, _)| member);
+        let initializers = fields.iter().map(|(_, _, member, options)| {
+            let value = match &options.default {
+                Some(expr) => expr.to_token_stream(),
+                None => quote! { Default::default() },
+            };
+            quote! {
+                #member: #value,
+            }
+        });
+
         let set_variant = quote! {
             if let Self::#variant { .. } = self {} else {
                 *self = Self::#variant {
-                    #(#members: Default::default()),*
+                    #(#initializers)*
                 }
             }
         };

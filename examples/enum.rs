@@ -20,7 +20,7 @@ enum Shape {
     Icosphere {
         #[inspectable(min = 1)]
         subdivisions: usize,
-        #[inspectable(min = 0.1)]
+        #[inspectable(default = 5.0, min = 0.1)]
         radius: f32,
     },
     Line(Vec2, Vec2),

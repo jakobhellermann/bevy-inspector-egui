@@ -21,6 +21,9 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         let accessor = utils::field_accessor(field, i);
 
         let attributes = crate::attributes::inspectable_attributes(&field.attrs);
+        if attributes.default.is_some() {
+            panic!("#[inspectable(default = <expr>)] is only for enums");
+        }
 
         let field_label  = match &attributes.label {
             Some(label) => label.to_token_stream(),
