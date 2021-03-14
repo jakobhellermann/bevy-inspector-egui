@@ -60,10 +60,12 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
 
                 group_if(ui, should_group, |ui| {
                     ui.vertical(|ui| {
-                        bevy_inspector_egui::egui::combo_box(ui, context.id(), variant, |ui| {
-                            #(if ui.selectable_label(matches!(self, #name::#variant_names { .. }), stringify!(#variant_names)).clicked() {
-                                variant = stringify!(#variant_names);
-                            })*
+                        ui.horizontal(|ui| {
+                            bevy_inspector_egui::egui::combo_box(ui, context.id(), variant, |ui| {
+                                #(if ui.selectable_label(matches!(self, #name::#variant_names { .. }), stringify!(#variant_names)).clicked() {
+                                    variant = stringify!(#variant_names);
+                                })*
+                            });
                         });
 
                         match variant {
