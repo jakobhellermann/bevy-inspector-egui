@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 
-#[derive(Inspectable, Debug, Default)]
+#[derive(Inspectable, Default)]
 struct Data {
     cube: Option<Entity>,
 }

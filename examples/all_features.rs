@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 
-#[derive(Inspectable, Debug, Default)]
+#[derive(Inspectable, Default)]
 struct Data {
     #[inspectable(min = 10.0, max = 70.0, suffix = "pt")]
     font_size: f32,
@@ -22,7 +22,7 @@ struct Data {
     noise_settings: NoiseSettings,
 }
 
-#[derive(Inspectable, Debug, PartialEq)]
+#[derive(Inspectable)]
 enum CustomEnum {
     A,
     B,
@@ -34,7 +34,7 @@ impl Default for CustomEnum {
     }
 }
 
-#[derive(Inspectable, Debug, Default)]
+#[derive(Inspectable, Default)]
 struct NoiseSettings {
     #[inspectable(max = 8)]
     octaves: u8,
@@ -47,11 +47,5 @@ fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
-        .add_system(data.system())
         .run();
-}
-
-// TODO: make ChangedRes work
-fn data(_data: Res<Data>) {
-    // dbg!(data);
 }

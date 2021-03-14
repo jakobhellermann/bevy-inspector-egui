@@ -1,14 +1,14 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 
-#[derive(Inspectable, Debug, PartialEq)]
+#[derive(Inspectable)]
 enum TextColor {
     White,
     Green,
     Blue,
 }
 
-#[derive(Inspectable, Debug)]
+#[derive(Inspectable)]
 struct Data {
     #[inspectable(min = 10.0, max = 70.0)]
     font_size: f32,
