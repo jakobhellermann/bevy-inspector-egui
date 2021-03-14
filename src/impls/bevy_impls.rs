@@ -1,9 +1,15 @@
-use crate::{options::NumberAttributes, Context, Inspectable};
+use crate::options::{NumberAttributes, OptionAttributes};
+use crate::{Context, Inspectable};
+use bevy::asset::HandleId;
 use bevy::{pbr::AmbientLight, prelude::*};
 use bevy_egui::egui;
 use egui::Grid;
 
-impl_for_struct_delegate_fields!(StandardMaterial: albedo, albedo_texture, unlit);
+impl_for_struct_delegate_fields!(
+    StandardMaterial:
+    albedo,
+    albedo_texture with OptionAttributes { replacement: Some(|| Handle::weak(HandleId::random::<Texture>())), ..Default::default() },
+    unlit);
 impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
 
 //////// SHAPES ////////
