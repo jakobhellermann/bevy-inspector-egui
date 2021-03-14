@@ -1,4 +1,4 @@
-mod impls;
+pub(crate) mod impls;
 mod inspectable_registry;
 mod plugin;
 
@@ -17,12 +17,14 @@ use bevy::{
     render::render_graph::base::MainPass,
     utils::{HashMap, HashSet},
 };
-use bevy_egui::egui;
+use bevy_egui::egui::{self, Color32};
 use egui::CollapsingHeader;
 use pretty_type_name::pretty_type_name_str;
-use std::{any::TypeId, borrow::Cow};
+use std::{any::TypeId, borrow::Cow, cell::Cell};
 
 use crate::{utils::sort_iter_if, Context};
+
+use self::impls::EntityAttributes;
 
 /// Resource which controls the way the world inspector is shown.
 #[derive(Debug, Clone)]
@@ -35,11 +37,14 @@ pub struct WorldInspectorParams {
     pub sort_components: bool,
     /// Controls whether the world inspector is shown
     pub enabled: bool,
+    /// Whether entities can be despawned
+    pub despawnable_entities: bool,
 }
 struct WorldUIContext<'a> {
     world: &'a mut World,
     ui_ctx: &'a egui::CtxRef,
     entities: HashMap<Entity, EntityLocation>,
+    delete_entity: Cell<Option<Entity>>,
 }
 impl<'a> WorldUIContext<'a> {
     fn new(ui_ctx: &'a egui::CtxRef, world: &'a mut World) -> WorldUIContext<'a> {
@@ -61,6 +66,15 @@ impl<'a> WorldUIContext<'a> {
             world,
             ui_ctx,
             entities,
+            delete_entity: Cell::new(None),
+        }
+    }
+}
+
+impl Drop for WorldUIContext<'_> {
+    fn drop(&mut self) {
+        if let Some(entity) = self.delete_entity.get() {
+            self.world.despawn(entity);
         }
     }
 }
@@ -82,9 +96,10 @@ impl<'a> WorldUIContext<'a> {
 
         // the entities are unique themselves, because only one WorldInspector can exist
         let dummy_id = egui::Id::new(42);
+        let entity_options = params.entity_options();
 
         for entity in root_entities.iter(self.world) {
-            self.entity_ui(ui, entity, params, dummy_id);
+            self.entity_ui(ui, entity, params, dummy_id, &entity_options);
         }
     }
 
@@ -94,11 +109,12 @@ impl<'a> WorldUIContext<'a> {
         entity: Entity,
         params: &WorldInspectorParams,
         id: egui::Id,
+        entity_options: &EntityAttributes,
     ) {
         CollapsingHeader::new(self.entity_name(entity))
             .id_source(id.with(entity))
             .show(ui, |ui| {
-                self.entity_ui_inner(ui, entity, params, id);
+                self.entity_ui_inner(ui, entity, params, id, entity_options);
             });
     }
 
@@ -108,6 +124,7 @@ impl<'a> WorldUIContext<'a> {
         entity: Entity,
         params: &WorldInspectorParams,
         id: egui::Id,
+        entity_options: &EntityAttributes,
     ) {
         let location = match self.entities.get(&entity) {
             Some(value) => *value,
@@ -138,10 +155,16 @@ impl<'a> WorldUIContext<'a> {
         if let Some(children) = children {
             ui.label("Children");
             for &child in children.iter() {
-                self.entity_ui(ui, child, params, id);
+                self.entity_ui(ui, child, params, id, entity_options);
             }
         } else {
             ui.label("No children");
+        }
+
+        if entity_options.despawnable {
+            if ui.colored_label(Color32::RED, "✖ Despawn").clicked() {
+                self.delete_entity.set(Some(entity));
+            }
         }
     }
 
@@ -314,6 +337,7 @@ impl WorldInspectorParams {
             read_only_components: HashSet::default(),
             sort_components: false,
             enabled: true,
+            despawnable_entities: false,
         }
     }
 
@@ -328,6 +352,12 @@ impl WorldInspectorParams {
 
     fn is_read_only(&self, type_id: TypeId) -> bool {
         self.read_only_components.contains(&type_id)
+    }
+
+    fn entity_options(&self) -> EntityAttributes {
+        EntityAttributes {
+            despawnable: self.despawnable_entities,
+        }
     }
 }
 

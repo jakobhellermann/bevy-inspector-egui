@@ -22,8 +22,20 @@ impl Inspectable for World {
     }
 }
 
+#[derive(Clone)]
+/// Inspectable Attributes for `Entity`
+pub struct EntityAttributes {
+    /// Whether a button for despawning the entity should be shown
+    pub despawnable: bool,
+}
+impl Default for EntityAttributes {
+    fn default() -> Self {
+        EntityAttributes { despawnable: true }
+    }
+}
+
 impl Inspectable for Entity {
-    type Attributes = WorldInspectorParams;
+    type Attributes = EntityAttributes;
 
     fn ui(
         &mut self,
@@ -32,11 +44,17 @@ impl Inspectable for Entity {
         context: &crate::Context,
     ) {
         let world = expect_world!(ui, context, "Entity");
+        let mut world_inspector_params =
+            world.get_resource_or_insert_with(WorldInspectorParams::default);
+        let params = std::mem::replace(&mut *world_inspector_params, WorldInspectorParams::empty());
 
         let world_ui_ctx = WorldUIContext::new(context.ui_ctx, world);
         ui.vertical(|ui| {
-            world_ui_ctx.entity_ui_inner(ui, *self, &options, context.id());
+            world_ui_ctx.entity_ui_inner(ui, *self, &params, context.id(), &options);
         });
+        drop(world_ui_ctx);
+
+        *world.get_resource_mut::<WorldInspectorParams>().unwrap() = params;
     }
 }
 
@@ -71,7 +89,7 @@ impl<F> Default for InspectorQuery<F> {
 
 #[derive(Clone)]
 pub struct InspectorQueryAttributes {
-    collapse: bool,
+    pub collapse: bool,
 }
 impl Default for InspectorQueryAttributes {
     fn default() -> Self {
@@ -93,12 +111,14 @@ where
         context: &crate::Context,
     ) {
         let world = expect_world!(ui, context, "InspectorQuery");
+        let mut params = world.get_resource_or_insert_with(WorldInspectorParams::default);
+        let params = std::mem::replace(&mut *params, WorldInspectorParams::empty());
 
         let mut query_state = world.query_filtered::<Entity, F>();
         let entities: Vec<Entity> = query_state.iter(world).collect();
 
         let ui_ctx = WorldUIContext::new(context.ui_ctx, world);
-        let params = WorldInspectorParams::default();
+        let entity_options = params.entity_options();
 
         ui.vertical(|ui| {
             if options.collapse {
@@ -107,15 +127,18 @@ where
                     .id_source(context.id())
                     .show(ui, |ui| {
                         for entity in entities {
-                            ui_ctx.entity_ui(ui, entity, &params, context.id());
+                            ui_ctx.entity_ui(ui, entity, &params, context.id(), &entity_options);
                             ui.end_row();
                         }
                     });
             } else {
                 for entity in entities {
-                    ui_ctx.entity_ui(ui, entity, &params, context.id());
+                    ui_ctx.entity_ui(ui, entity, &params, context.id(), &entity_options);
                 }
             }
         });
+        drop(ui_ctx);
+
+        *world.get_resource_mut::<WorldInspectorParams>().unwrap() = params;
     }
 }

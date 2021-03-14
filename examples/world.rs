@@ -7,7 +7,7 @@ fn main() {
         .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         .insert_resource(WorldInspectorParams {
-            // sort_components: true,
+            despawnable_entities: true,
             ..Default::default()
         })
         .add_plugin(WorldInspectorPlugin::new())

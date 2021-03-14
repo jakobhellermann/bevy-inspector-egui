@@ -75,6 +75,7 @@ pub mod options {
     pub use crate::impls::*;
     pub use crate::widgets::button::ButtonAttributes;
     pub use crate::widgets::new_window::WindowAttributes;
+    pub use crate::world_inspector::impls::EntityAttributes;
 }
 
 /// The context passed to [`Inspectable::ui`].
