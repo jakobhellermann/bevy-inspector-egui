@@ -6,10 +6,13 @@ struct Data {
     material: Handle<StandardMaterial>,
 }
 
-impl FromResources for Data {
-    fn from_resources(resources: &Resources) -> Self {
-        let mut materials = resources.get_mut::<Assets<StandardMaterial>>().unwrap();
-        let asset_server = resources.get::<AssetServer>().unwrap();
+impl FromWorld for Data {
+    fn from_world(world: &mut World) -> Self {
+        let world = world.cell();
+        let mut materials = world
+            .get_resource_mut::<Assets<StandardMaterial>>()
+            .unwrap();
+        let asset_server = world.get_resource::<AssetServer>().unwrap();
 
         let texture_handle = asset_server.load("texture-128.png");
         let material = materials.add(StandardMaterial {

@@ -27,7 +27,7 @@ fn main() {
 ### UI ([source](ui.rs))
 <img src="../docs/examples/ui.png" alt="example" width="500" />
 
-### Texture ([source](with_context.rs))
+### Texture ([source](texture.rs))
 <img src="../docs/examples/texture.png" alt="example" width="500" />
 
 ### Rapier Integration ([source](rapier.rs))
