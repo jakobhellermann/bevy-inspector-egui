@@ -6,6 +6,57 @@ use egui::Grid;
 impl_for_struct_delegate_fields!(StandardMaterial: albedo, albedo_texture, unlit);
 impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
 
+//////// SHAPES ////////
+
+impl_for_struct_delegate_fields!(shape::Cube: size);
+impl_for_struct_delegate_fields!(shape::Quad: size, flip);
+impl_for_struct_delegate_fields!(shape::Plane: size);
+impl_for_struct_delegate_fields!(
+    shape::Capsule: radius,
+    rings,
+    depth,
+    latitudes,
+    longitudes,
+    uv_profile
+);
+impl_for_simple_enum!(shape::CapsuleUvProfile: Aspect, Uniform, Fixed);
+impl_for_struct_delegate_fields!(shape::Icosphere: radius, subdivisions);
+impl_for_struct_delegate_fields!(
+    shape::Torus: radius,
+    ring_radius,
+    subdivisions_segments,
+    subdivisions_sides
+);
+
+impl Inspectable for shape::Box {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+        let mut min = Vec3::new(self.min_x, self.min_y, self.min_z);
+        let mut max = Vec3::new(self.max_x, self.max_y, self.max_z);
+
+        ui.vertical_centered(|ui| {
+            egui::Grid::new(context.id()).show(ui, |ui| {
+                ui.label("Min");
+                min.ui(ui, Default::default(), &context.with_id(0));
+                ui.end_row();
+                ui.label("Max");
+                max.ui(ui, Default::default(), &context.with_id(0));
+                ui.end_row();
+            });
+        });
+
+        self.min_x = min.x;
+        self.min_y = min.y;
+        self.min_z = min.z;
+        self.max_x = max.x;
+        self.max_y = max.y;
+        self.max_z = max.z;
+    }
+}
+
+//////// COMPONENTS ////////
+
 impl Inspectable for Quat {
     type Attributes = NumberAttributes<[f32; 4]>;
 
