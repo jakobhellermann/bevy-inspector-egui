@@ -3,7 +3,10 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use std::borrow::Cow;
 
-use crate::{attributes::inspectable_attributes, utils};
+use crate::{
+    attributes::{inspectable_attributes, InspectableAttributes},
+    utils,
+};
 
 pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> TokenStream {
     let name = &derive_input.ident;
@@ -18,10 +21,22 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
         quote! { Self::#variant_name { .. } => #value, }
     });
 
-    let ui_match_arms = enum_variants(data).map(|(variant, fields)| {
-        let members = fields
-            .iter()
-            .map(|(i, field)| utils::field_accessor(field, *i));
+    let variants: Vec<_> = enum_variants(data)
+        .map(|(variant, fields)| {
+            let fields: Vec<_> = fields
+                .into_iter()
+                .map(|(i, field)| {
+                    let member = utils::field_accessor(field, i);
+                    let attributes = inspectable_attributes(&field.attrs);
+                    (i, field, member, attributes)
+                })
+                .collect();
+            (variant, fields)
+        })
+        .collect();
+
+    let ui_match_arms = variants.iter().map(|(variant, fields)| {
+        let members = fields.iter().map(|(_, _, member, _)| member);
         let set_variant = quote! {
             if let Self::#variant { .. } = self {} else {
                 *self = Self::#variant {
@@ -29,9 +44,7 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
                 }
             }
         };
-
-        let field_ui = (!fields.is_empty()).then(|| field_ui(variant, &fields));
-
+        let field_ui = (!fields.is_empty()).then(|| field_ui(variant, fields));
         quote! {
             stringify!(#variant) => {
                 #set_variant
@@ -39,6 +52,7 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
             },
         }
     });
+
     let egui = quote! { bevy_inspector_egui::egui };
 
     quote! {
@@ -48,7 +62,7 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
 
             fn ui(&mut self, ui: &mut #egui::Ui, options: Self::Attributes, context: &bevy_inspector_egui::Context) {
                 let mut variant = match self {
-                    #(Self::#variant_names { ..} => stringify!(#variant_names),)*
+                    #(Self::#variant_names { .. } => stringify!(#variant_names),)*
                 };
 
                 let should_group = match self {
@@ -79,9 +93,9 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
     }
 }
 
-fn enum_variants(
-    data: &syn::DataEnum,
-) -> impl Iterator<Item = (&syn::Ident, Vec<(usize, &syn::Field)>)> {
+fn enum_variants<'a>(
+    data: &'a syn::DataEnum,
+) -> impl Iterator<Item = (&'a syn::Ident, Vec<(usize, &'a syn::Field)>)> {
     data.variants.iter().map(|variant| {
         assert!(
             variant.attrs.is_empty(),
@@ -110,14 +124,15 @@ fn enum_variants(
 //         b.ui(ui, options, context);
 //     });
 // }
-fn field_ui(variant: &syn::Ident, f: &[(usize, &syn::Field)]) -> TokenStream {
-    let field_names = f.iter().map(|(i, field)| name_for_member(field, *i));
-    let members = f.iter().map(|(i, field)| utils::field_accessor(field, *i));
+fn field_ui(
+    variant: &syn::Ident,
+    f: &[(usize, &syn::Field, syn::Member, InspectableAttributes)],
+) -> TokenStream {
+    let field_names = f.iter().map(|(i, field, _, _)| name_for_member(field, *i));
+    let members = f.iter().map(|(_, _, m, _)| m);
 
-    let field_ui = f.iter().map(|(i, field)| {
+    let field_ui = f.iter().map(|(i, field, member, attributes)| {
         let binding_name = name_for_member(field, *i);
-        let member = utils::field_accessor(field, *i);
-        let attributes = inspectable_attributes(&field.attrs);
         let options = attributes.create_options_struct(&field.ty);
 
         quote! {
