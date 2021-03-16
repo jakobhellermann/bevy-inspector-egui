@@ -27,14 +27,3 @@ macro_rules! expect_world {
         }
     };
 }
-macro_rules! expect_resource {
-    ($ui:ident, $world:ident, $method:ident $ty:ty) => {
-        match $world.$method::<$ty>() {
-            Some(res) => res,
-            None => {
-                let msg = format!("No {} resource found", std::any::type_name::<$ty>());
-                return $crate::utils::error_label($ui, msg);
-            }
-        }
-    };
-}

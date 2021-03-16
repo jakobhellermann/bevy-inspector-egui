@@ -21,14 +21,14 @@ impl<T> Default for InspectorPlugin<T> {
 }
 
 impl<T> InspectorPlugin<T> {
-    /// Creates a new inspector plugin with access to `World` and `Resources` in the [`Context`](crate::Context).
+    /// Creates a new inspector plugin with access to `World` in the [`Context`](crate::Context).
     pub fn new() -> Self {
         InspectorPlugin {
             exclusive_access: true,
             marker: PhantomData,
         }
     }
-    /// Creates a new inspector plugin *without+ access to `World` and `Resources` in the [`Context`](crate::Context).
+    /// Creates a new inspector plugin *without+ access to `World` in the [`Context`](crate::Context).
     /// This has the advantage that the system can be scheduled concurrently to others and may be faster.
     pub fn shared() -> Self {
         InspectorPlugin {

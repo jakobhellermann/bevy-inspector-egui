@@ -38,8 +38,8 @@ impl<E: Component + Default> Inspectable for InspectableButton<E> {
     type Attributes = ButtonAttributes;
 
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes, context: &Context) {
-        let resources = expect_world!(ui, context, "InspectableButton");
-        let mut events = expect_resource!(ui, resources, get_resource_mut Events<E>);
+        let world = expect_world!(ui, context, "InspectableButton");
+        let mut events = world.get_resource_mut::<Events<E>>().unwrap();
 
         if ui.button(options.text).clicked() {
             events.send(E::default());

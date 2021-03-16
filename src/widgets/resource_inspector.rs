@@ -34,7 +34,7 @@ impl<T: Inspectable + Send + Sync + 'static> Inspectable for ResourceInspector<T
         context: &crate::Context,
     ) {
         let world = expect_world!(ui, context, "ResourceInspector");
-        let mut val = expect_resource!(ui, world, get_resource_mut T);
+        let mut val = world.get_resource_mut::<T>().unwrap();
         val.ui(ui, options, context);
     }
 }

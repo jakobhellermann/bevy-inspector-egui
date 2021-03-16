@@ -118,7 +118,7 @@ impl<'a> Context<'a> {
         }
     }
 
-    /// Creates a context without access to `World` and `Resources`
+    /// Creates a context without access to `World`
     pub fn new_shared(ui_ctx: &'a CtxRef) -> Self {
         Context {
             ui_ctx,
