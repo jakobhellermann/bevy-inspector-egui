@@ -5,7 +5,7 @@ use bevy::{
     prelude::*,
     render::texture::Texture,
 };
-use bevy_egui::egui;
+use bevy_egui::egui::{self, Color32};
 use egui::TextureId;
 
 macro_rules! expect_handle {
@@ -17,6 +17,14 @@ macro_rules! expect_handle {
             }
         }
     };
+}
+
+impl Inspectable for HandleId {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) {
+        ui.label("<handle id>");
+    }
 }
 
 impl<T: Asset + Inspectable> Inspectable for Handle<T> {
@@ -52,8 +60,31 @@ impl Inspectable for Handle<Texture> {
             Some(texture) => show_texture(self, texture, ui, context),
             None => Some(utils::ui::drag_and_drop_target(ui)),
         };
+        if response.map_or(false, |res| res.hovered()) {
+            utils::ui::replace_handle_if_dropped(self, &*file_events, &*asset_server);
+        }
+    }
+}
 
-        utils::ui::replace_handle_if_dropped(self, response, &*file_events, &*asset_server);
+impl Inspectable for Handle<Font> {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+        let world = expect_world!(ui, context, "Handle<Texture>");
+        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        let file_events = world.get_resource::<Events<FileDragAndDrop>>().unwrap();
+
+        let fonts = world.get_resource::<Assets<Font>>().unwrap();
+
+        let label = if fonts.contains(self.id) {
+            egui::Label::new("<font>")
+        } else {
+            egui::Label::new("No font").text_color(Color32::RED)
+        };
+
+        if utils::ui::drag_and_drop_target_label(ui, label).hovered() {
+            utils::ui::replace_handle_if_dropped(self, file_events, asset_server);
+        }
     }
 }
 
@@ -86,12 +117,4 @@ pub(crate) fn id_of_handle(handle: &Handle<Texture>) -> u64 {
     let mut hasher = std::collections::hash_map::DefaultHasher::default();
     handle.hash(&mut hasher);
     hasher.finish()
-}
-
-impl Inspectable for HandleId {
-    type Attributes = ();
-
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) {
-        ui.label("<handle id>");
-    }
 }

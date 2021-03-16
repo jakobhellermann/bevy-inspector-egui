@@ -39,7 +39,7 @@ impl_for_simple_enum!(
 );
 
 impl_for_struct_delegate_fields!(TextAlignment: vertical, horizontal);
-impl_for_struct_delegate_fields!(TextStyle: /* font, */ font_size, color);
+impl_for_struct_delegate_fields!(TextStyle: font, font_size, color);
 impl_for_struct_delegate_fields!(TextSection: value, style);
 impl_for_struct_delegate_fields!(Text: sections, alignment);
 
