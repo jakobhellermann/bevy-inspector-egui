@@ -83,7 +83,7 @@ fn show_texture(
 
 pub(crate) fn id_of_handle(handle: &Handle<Texture>) -> u64 {
     use std::hash::{Hash, Hasher};
-    let mut hasher = bevy::utils::AHasher::default();
+    let mut hasher = std::collections::hash_map::DefaultHasher::default();
     handle.hash(&mut hasher);
     hasher.finish()
 }

@@ -110,17 +110,18 @@ where
 fn egui_texture_setup(
     mut egui_context: ResMut<EguiContext>,
     mut asset_events: EventReader<AssetEvent<Texture>>,
+    mut textures: ResMut<Assets<Texture>>,
 ) {
     use crate::impls::with_context::id_of_handle;
 
     for asset_event in asset_events.iter() {
         match asset_event {
             AssetEvent::Created { handle } => {
-                egui_context.set_egui_texture(id_of_handle(handle), handle.clone())
+                let mut handle = handle.clone();
+                handle.make_strong(&mut textures);
+                egui_context.set_egui_texture(id_of_handle(&handle), handle)
             }
-            AssetEvent::Modified { handle } => {
-                egui_context.set_egui_texture(id_of_handle(handle), handle.clone())
-            }
+            AssetEvent::Modified { .. } => {}
             AssetEvent::Removed { handle } => {
                 egui_context.remove_egui_texture(id_of_handle(handle))
             }
