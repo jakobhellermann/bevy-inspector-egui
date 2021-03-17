@@ -74,7 +74,7 @@ impl<'a> WorldUIContext<'a> {
 impl Drop for WorldUIContext<'_> {
     fn drop(&mut self) {
         if let Some(entity) = self.delete_entity.get() {
-            self.world.despawn(entity);
+            despawn_with_children_recursive(self.world, entity);
         }
     }
 }
