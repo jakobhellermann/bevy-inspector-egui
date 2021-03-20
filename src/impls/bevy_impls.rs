@@ -8,7 +8,6 @@ use egui::Grid;
 impl_for_struct_delegate_fields!(
     StandardMaterial:
     base_color,
-    base_color_texture,
     base_color_texture with OptionAttributes { replacement: Some(|| Handle::weak(HandleId::random::<Texture>())), ..Default::default() },
     roughness with NumberAttributes::between(0.089, 1.0).speed(0.01),
     metallic with NumberAttributes::normalized().speed(0.01),
