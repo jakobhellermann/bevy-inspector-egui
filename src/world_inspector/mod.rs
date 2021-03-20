@@ -8,7 +8,7 @@ pub use plugin::WorldInspectorPlugin;
 
 use bevy::{
     ecs::{
-        component::{ComponentFlags, ComponentId, ComponentInfo, StorageType},
+        component::{ComponentId, ComponentInfo, ComponentTicks, StorageType},
         entity::EntityLocation,
         query::{FilterFetch, WorldQuery},
     },
@@ -280,10 +280,13 @@ pub(crate) unsafe fn generate(
     ui: &mut egui::Ui,
     context: &Context,
 ) -> bool {
-    let (ptr, flags) = get_component_and_flags(world, component_id, entity, location).unwrap();
+    let (ptr, ticks) = get_component_and_ticks(world, component_id, entity, location).unwrap();
 
-    let flags = unsafe { &mut *flags };
-    flags.insert(ComponentFlags::MUTATED);
+    let ticks = unsafe { &mut *ticks };
+
+    // SAFETY: lol nope (TODO)
+    let [_added, changed]: &mut [u32; 2] = unsafe { std::mem::transmute(ticks) };
+    *changed = world.read_change_tick();
 
     if let Some(f) = inspectable_registry.impls.get(&type_id) {
         f(ptr, ui, &context);
@@ -303,12 +306,13 @@ pub(crate) unsafe fn generate(
 }
 
 // copied from bevy
-unsafe fn get_component_and_flags(
+#[inline]
+unsafe fn get_component_and_ticks(
     world: &World,
     component_id: ComponentId,
     entity: Entity,
     location: EntityLocation,
-) -> Option<(*mut u8, *mut ComponentFlags)> {
+) -> Option<(*mut u8, *mut ComponentTicks)> {
     let archetype = &world.archetypes()[location.archetype_id];
     let component_info = world.components().get_info_unchecked(component_id);
     match component_info.storage_type() {
@@ -319,14 +323,14 @@ unsafe fn get_component_and_flags(
             // SAFE: archetypes only store valid table_rows and the stored component type is T
             Some((
                 components.get_unchecked(table_row),
-                components.get_flags_unchecked(table_row),
+                components.get_ticks_unchecked(table_row),
             ))
         }
         StorageType::SparseSet => world
             .storages()
             .sparse_sets
             .get(component_id)
-            .and_then(|sparse_set| sparse_set.get_with_flags(entity)),
+            .and_then(|sparse_set| sparse_set.get_with_ticks(entity)),
     }
 }
 
