@@ -6,11 +6,13 @@ use bevy_mod_picking::{
 
 #[derive(Inspectable, Default)]
 struct Inspector {
+    #[inspectable(deletable = false)]
     active: Option<Entity>,
 }
 
 fn main() {
     App::build()
+        .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         // add bevy_mod_picking plugins
         .add_plugin(PickingPlugin)
@@ -21,7 +23,7 @@ fn main() {
             CoreStage::PostUpdate,
             maintain_inspected_entities
                 .system()
-                .after(bevy_mod_picking::pick_labels::MESH_FOCUS),
+                .after(bevy_mod_picking::PickingSystem::Focus),
         )
         .add_startup_system(setup.system())
         .run();

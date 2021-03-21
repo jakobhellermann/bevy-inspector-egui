@@ -67,12 +67,14 @@ where
 #[derive(Clone)]
 pub struct OptionAttributes<T: Inspectable + Clone> {
     pub replacement: Option<fn() -> T>,
+    pub deletable: bool,
     pub inner: T::Attributes,
 }
 impl<T: Inspectable + Clone> Default for OptionAttributes<T> {
     fn default() -> Self {
         OptionAttributes {
             replacement: None,
+            deletable: true,
             inner: T::Attributes::default(),
         }
     }
@@ -85,8 +87,10 @@ impl<T: Inspectable + Clone> Inspectable for Option<T> {
         match self {
             Some(val) => {
                 val.ui(ui, options.inner, context);
-                if ui.colored_label(Color32::RED, "✖").clicked() {
-                    *self = None;
+                if options.deletable {
+                    if ui.colored_label(Color32::RED, "✖").clicked() {
+                        *self = None;
+                    }
                 }
             }
             None => {
