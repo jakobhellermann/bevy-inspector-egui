@@ -29,10 +29,8 @@ bevy-inspector-egui-derive = { path = "bevy-inspector-egui-derive" }
 
 [dev-dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false, features = ["x11", "render", "bevy_wgpu", "bevy_winit"] }
-# bevy_rapier3d = { git = "https://github.com/alec-deason/bevy_rapier", branch = "tracking_changes_for_bevy_0.5", optional = true }
-noise = "0.7"
 bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking/" }
-# bevy_mod_picking = { git = "https://github.com/jakobhellermann/bevy_mod_picking", branch = "jjfork" }
+noise = "0.7"
 
 [[example]]
 name = "all_features"

@@ -5,11 +5,13 @@ use bevy_rapier3d::rapier::{dynamics::RigidBodyBuilder, geometry::ColliderBuilde
 
 #[derive(Inspectable, Default)]
 struct Data {
+    #[inspectable(deletable = false)]
     handle: Option<RigidBodyHandleComponent>,
 }
 
 fn main() {
     App::build()
+        .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
         .add_plugin(RapierPhysicsPlugin)

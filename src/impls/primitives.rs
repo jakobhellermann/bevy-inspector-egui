@@ -64,13 +64,21 @@ where
     }
 }
 
-#[derive(Clone)]
-pub struct OptionAttributes<T: Inspectable + Clone> {
+pub struct OptionAttributes<T: Inspectable> {
     pub replacement: Option<fn() -> T>,
     pub deletable: bool,
     pub inner: T::Attributes,
 }
-impl<T: Inspectable + Clone> Default for OptionAttributes<T> {
+impl<T: Inspectable> Clone for OptionAttributes<T> {
+    fn clone(&self) -> Self {
+        OptionAttributes {
+            replacement: self.replacement.clone(),
+            deletable: self.deletable,
+            inner: self.inner.clone(),
+        }
+    }
+}
+impl<T: Inspectable> Default for OptionAttributes<T> {
     fn default() -> Self {
         OptionAttributes {
             replacement: None,
@@ -80,7 +88,7 @@ impl<T: Inspectable + Clone> Default for OptionAttributes<T> {
     }
 }
 
-impl<T: Inspectable + Clone> Inspectable for Option<T> {
+impl<T: Inspectable> Inspectable for Option<T> {
     type Attributes = OptionAttributes<T>;
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {

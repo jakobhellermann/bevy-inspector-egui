@@ -18,11 +18,13 @@ impl Inspectable for MassProperties {
         let mut mass = 1. / self.inv_mass;
         mass.ui(ui, NumberAttributes::min(0.001), context);
         self.inv_mass = 1. / mass;
+        ui.end_row();
 
         ui.label("Center of mass");
         let mut com = self.local_com.to_glam_vec3();
         com.ui(ui, Default::default(), context);
         self.local_com = com.to_na_point3();
+        ui.end_row();
     }
 }
 
@@ -39,7 +41,6 @@ impl Inspectable for RigidBody {
                 let mut mass_properties = *self.mass_properties();
                 mass_properties.ui(ui, Default::default(), context);
                 self.set_mass_properties(mass_properties, false);
-                ui.end_row();
 
                 let position = self.position();
 
@@ -63,12 +64,14 @@ impl Inspectable for RigidBody {
 
                 ui.label("Linear velocity");
                 let mut linvel = self.linvel().to_glam_vec3();
+                trunc_epsilon_vec3(&mut linvel);
                 linvel.ui(ui, Default::default(), context);
                 self.set_linvel(linvel.to_na_vector3(), false);
                 ui.end_row();
 
                 ui.label("Angular velocity");
                 let mut angvel = self.angvel().to_glam_vec3();
+                trunc_epsilon_vec3(&mut angvel);
                 angvel.ui(ui, Default::default(), context);
                 self.set_angvel(angvel.to_na_vector3(), false);
                 ui.end_row();
@@ -79,12 +82,23 @@ impl Inspectable for RigidBody {
     }
 }
 
+fn trunc_epsilon_f32(val: &mut f32) {
+    if val.abs() < f32::EPSILON {
+        *val = 0.0;
+    }
+}
+fn trunc_epsilon_vec3(val: &mut bevy::math::Vec3) {
+    trunc_epsilon_f32(&mut val.x);
+    trunc_epsilon_f32(&mut val.y);
+    trunc_epsilon_f32(&mut val.z);
+}
+
 impl Inspectable for RigidBodyHandleComponent {
     type Attributes = <RigidBody as Inspectable>::Attributes;
 
     fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes, context: &Context) {
         let world = expect_world!(ui, context, "RigidBodyHandleComponent");
-        let mut bodies = expect_resource!(ui, world, get_resource_mut RigidBodySet);
+        let mut bodies = world.get_resource_mut::<RigidBodySet>().unwrap();
 
         let body = match bodies.get_mut(self.handle()) {
             Some(body) => body,
