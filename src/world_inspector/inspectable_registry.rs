@@ -4,7 +4,7 @@ use bevy::{pbr::AmbientLight, prelude::*};
 use bevy_egui::egui;
 use std::any::TypeId;
 
-type InspectCallback = Box<dyn Fn(*mut u8, &mut egui::Ui, &Context) + Send + Sync>;
+pub(crate) type InspectCallback = Box<dyn Fn(*mut u8, &mut egui::Ui, &Context) + Send + Sync>;
 
 macro_rules! register {
     ($this:ident $($ty:ty),* $(,)?) => {

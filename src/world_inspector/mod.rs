@@ -23,8 +23,8 @@ use pretty_type_name::pretty_type_name_str;
 use std::{any::TypeId, borrow::Cow, cell::Cell};
 
 use crate::{utils::sort_iter_if, Context};
-
-use self::impls::EntityAttributes;
+use impls::EntityAttributes;
+use inspectable_registry::InspectCallback;
 
 /// Resource which controls the way the world inspector is shown.
 #[derive(Debug, Clone)]
@@ -40,6 +40,60 @@ pub struct WorldInspectorParams {
     /// Whether entities can be despawned
     pub despawnable_entities: bool,
 }
+
+impl WorldInspectorParams {
+    fn empty() -> Self {
+        WorldInspectorParams {
+            ignore_components: HashSet::default(),
+            read_only_components: HashSet::default(),
+            sort_components: false,
+            enabled: true,
+            despawnable_entities: false,
+        }
+    }
+
+    /// Add `T` to component ignore list
+    pub fn ignore_component<T: 'static>(&mut self) {
+        self.ignore_components.insert(TypeId::of::<T>());
+    }
+
+    fn should_ignore_component(&self, type_id: TypeId) -> bool {
+        self.ignore_components.contains(&type_id)
+    }
+
+    fn is_read_only(&self, type_id: TypeId) -> bool {
+        self.read_only_components.contains(&type_id)
+    }
+
+    fn entity_options(&self) -> EntityAttributes {
+        EntityAttributes {
+            despawnable: self.despawnable_entities,
+        }
+    }
+}
+
+impl Default for WorldInspectorParams {
+    fn default() -> Self {
+        let mut params = WorldInspectorParams::empty();
+
+        params.ignore_components = [
+            TypeId::of::<Name>(),
+            TypeId::of::<Children>(),
+            TypeId::of::<Parent>(),
+            TypeId::of::<PreviousParent>(),
+            TypeId::of::<MainPass>(),
+            TypeId::of::<Draw>(),
+            TypeId::of::<RenderPipelines>(),
+        ]
+        .iter()
+        .copied()
+        .collect();
+        params.read_only_components = [TypeId::of::<GlobalTransform>()].iter().copied().collect();
+
+        params
+    }
+}
+
 struct WorldUIContext<'a> {
     world: &'a mut World,
     ui_ctx: &'a egui::CtxRef,
@@ -183,20 +237,12 @@ impl<'a> WorldUIContext<'a> {
             let iter = components.iter().map(|component_id| {
                 let component_info = self.world.components().get_info(*component_id).unwrap();
                 let name = pretty_type_name_str(component_info.name());
-                (name, component_info, component_id)
+                (name, component_info)
             });
             let iter = sort_iter_if(iter, params.sort_components, |a, b| a.0.cmp(&b.0));
 
-            for (name, component_info, component_id) in iter {
-                self.component_ui(
-                    ui,
-                    name,
-                    entity,
-                    entity_location,
-                    component_info,
-                    component_id,
-                    params,
-                );
+            for (name, component_info) in iter {
+                self.component_ui(ui, name, entity, entity_location, component_info, params);
             }
         }
     }
@@ -208,7 +254,6 @@ impl<'a> WorldUIContext<'a> {
         entity: Entity,
         entity_location: EntityLocation,
         component_info: &ComponentInfo,
-        component_id: &ComponentId,
         params: &WorldInspectorParams,
     ) {
         let type_id = match component_info.type_id() {
@@ -228,28 +273,24 @@ impl<'a> WorldUIContext<'a> {
         let type_registry = &*type_registry.internal.read();
 
         CollapsingHeader::new(name)
-            .id_source(component_id)
+            .id_source(component_info.id())
             .show(ui, |ui| {
                 if params.is_read_only(type_id) {
                     ui.set_enabled(false);
                 }
 
-                if component_info.layout().size() == 0 {
-                    return;
-                }
-
                 let world_ptr = self.world as *const _ as *mut _;
-
                 let context = unsafe {
-                    Context::new_ptr(self.ui_ctx, world_ptr).with_id(component_id.index() as u64)
+                    Context::new_ptr(self.ui_ctx, world_ptr)
+                        .with_id(component_info.id().index() as u64)
                 };
 
                 let could_display = unsafe {
-                    generate(
+                    try_display(
                         &self.world,
                         entity,
                         entity_location,
-                        *component_id,
+                        component_info,
                         type_id,
                         inspectable_registry,
                         type_registry,
@@ -268,41 +309,75 @@ impl<'a> WorldUIContext<'a> {
 /// Safety:
 /// The `location` must point to a valid archetype and index,
 /// and the function must have unique access to the components.
-#[allow(unused_unsafe)]
-pub(crate) unsafe fn generate(
+pub(crate) unsafe fn try_display(
     world: &World,
     entity: Entity,
     location: EntityLocation,
-    component_id: ComponentId,
+    component_info: &ComponentInfo,
     type_id: TypeId,
     inspectable_registry: &InspectableRegistry,
     type_registry: &TypeRegistryInternal,
     ui: &mut egui::Ui,
     context: &Context,
 ) -> bool {
-    let (ptr, ticks) = get_component_and_ticks(world, component_id, entity, location).unwrap();
-
-    let ticks = unsafe { &mut *ticks };
-
-    // SAFETY: lol nope (TODO)
-    let [_added, changed]: &mut [u32; 2] = unsafe { std::mem::transmute(ticks) };
-    *changed = world.read_change_tick();
-
-    if let Some(f) = inspectable_registry.impls.get(&type_id) {
-        f(ptr, ui, &context);
+    if let Some(inspect_callback) = inspectable_registry.impls.get(&type_id) {
+        display_by_inspectable_registry(
+            inspect_callback,
+            world,
+            location,
+            entity,
+            component_info,
+            ui,
+            context,
+        );
         return true;
     }
 
-    let success = (|| {
-        let registration = type_registry.get(type_id)?;
-        let reflect_component = registration.data::<ReflectComponent>()?;
-        let mut reflected =
-            unsafe { reflect_component.reflect_component_unchecked_mut(world, entity)? };
-        crate::reflect::ui_for_reflect(&mut *reflected, ui, &context);
-        Some(())
-    })();
+    if component_info.layout().size() == 0 {
+        return true;
+    }
 
-    success.is_some()
+    if display_by_reflection(type_registry, type_id, world, entity, ui, context).is_some() {
+        return true;
+    }
+
+    false
+}
+
+unsafe fn display_by_inspectable_registry(
+    inspect_callback: &InspectCallback,
+    world: &World,
+    location: EntityLocation,
+    entity: Entity,
+    component_info: &ComponentInfo,
+    ui: &mut egui::Ui,
+    context: &Context,
+) {
+    let (ptr, ticks) =
+        get_component_and_ticks(world, component_info.id(), entity, location).unwrap();
+    let ticks = { &mut *ticks };
+
+    // SAFETY: lol nope (TODO)
+    let [_added, changed]: &mut [u32; 2] = std::mem::transmute(ticks);
+    *changed = world.read_change_tick();
+
+    inspect_callback(ptr, ui, &context);
+}
+
+fn display_by_reflection(
+    type_registry: &TypeRegistryInternal,
+    type_id: TypeId,
+    world: &World,
+    entity: Entity,
+    ui: &mut egui::Ui,
+    context: &Context,
+) -> Option<()> {
+    let registration = type_registry.get(type_id)?;
+    let reflect_component = registration.data::<ReflectComponent>()?;
+    let mut reflected =
+        unsafe { reflect_component.reflect_component_unchecked_mut(world, entity)? };
+    crate::reflect::ui_for_reflect(&mut *reflected, ui, &context);
+    Some(())
 }
 
 // copied from bevy
@@ -331,58 +406,5 @@ unsafe fn get_component_and_ticks(
             .sparse_sets
             .get(component_id)
             .and_then(|sparse_set| sparse_set.get_with_ticks(entity)),
-    }
-}
-
-impl WorldInspectorParams {
-    fn empty() -> Self {
-        WorldInspectorParams {
-            ignore_components: HashSet::default(),
-            read_only_components: HashSet::default(),
-            sort_components: false,
-            enabled: true,
-            despawnable_entities: false,
-        }
-    }
-
-    /// Add `T` to component ignore list
-    pub fn ignore_component<T: 'static>(&mut self) {
-        self.ignore_components.insert(TypeId::of::<T>());
-    }
-
-    fn should_ignore_component(&self, type_id: TypeId) -> bool {
-        self.ignore_components.contains(&type_id)
-    }
-
-    fn is_read_only(&self, type_id: TypeId) -> bool {
-        self.read_only_components.contains(&type_id)
-    }
-
-    fn entity_options(&self) -> EntityAttributes {
-        EntityAttributes {
-            despawnable: self.despawnable_entities,
-        }
-    }
-}
-
-impl Default for WorldInspectorParams {
-    fn default() -> Self {
-        let mut params = WorldInspectorParams::empty();
-
-        params.ignore_components = [
-            TypeId::of::<Name>(),
-            TypeId::of::<Children>(),
-            TypeId::of::<Parent>(),
-            TypeId::of::<PreviousParent>(),
-            TypeId::of::<MainPass>(),
-            TypeId::of::<Draw>(),
-            TypeId::of::<RenderPipelines>(),
-        ]
-        .iter()
-        .copied()
-        .collect();
-        params.read_only_components = [TypeId::of::<GlobalTransform>()].iter().copied().collect();
-
-        params
     }
 }
