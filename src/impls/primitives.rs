@@ -72,7 +72,7 @@ pub struct OptionAttributes<T: Inspectable> {
 impl<T: Inspectable> Clone for OptionAttributes<T> {
     fn clone(&self) -> Self {
         OptionAttributes {
-            replacement: self.replacement.clone(),
+            replacement: self.replacement,
             deletable: self.deletable,
             inner: self.inner.clone(),
         }

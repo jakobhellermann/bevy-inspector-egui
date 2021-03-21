@@ -2,7 +2,8 @@
 #![allow(
     clippy::unit_arg,
     clippy::needless_doctest_main,
-    clippy::too_many_arguments
+    clippy::too_many_arguments,
+    clippy::collapsible_if
 )]
 
 //! This crate provides the ability to annotate structs with a `#[derive(Inspectable)]`,
