@@ -356,10 +356,7 @@ unsafe fn display_by_inspectable_registry(
     let (ptr, ticks) =
         get_component_and_ticks(world, component_info.id(), entity, location).unwrap();
     let ticks = { &mut *ticks };
-
-    // SAFETY: lol nope (TODO)
-    let [_added, changed]: &mut [u32; 2] = std::mem::transmute(ticks);
-    *changed = world.read_change_tick();
+    ticks.set_changed(world.read_change_tick());
 
     inspect_callback(ptr, ui, &context);
 }
