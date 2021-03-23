@@ -109,21 +109,21 @@ fn setup(
 ) {
     let mesh = data.as_mesh();
     commands
-        .spawn(PbrBundle {
+        .spawn_bundle(PbrBundle {
             mesh: meshes.add(mesh),
             material: materials.add(data.color.into()),
             transform: Transform::from_xyz(0.0, 0.5, 0.0),
             ..Default::default()
         })
-        .with(Planet)
-        .spawn(LightBundle {
-            transform: Transform::from_xyz(4.0, 8.0, 4.0),
-            ..Default::default()
-        })
-        .spawn(PerspectiveCameraBundle {
-            transform: Transform::from_xyz(-3.0, 5.0, 10.0).looking_at(Vec3::default(), Vec3::Y),
-            ..Default::default()
-        });
+        .insert(Planet);
+    commands.spawn_bundle(LightBundle {
+        transform: Transform::from_xyz(4.0, 8.0, 4.0),
+        ..Default::default()
+    });
+    commands.spawn_bundle(PerspectiveCameraBundle {
+        transform: Transform::from_xyz(-3.0, 5.0, 10.0).looking_at(Vec3::default(), Vec3::Y),
+        ..Default::default()
+    });
 }
 
 impl Data {

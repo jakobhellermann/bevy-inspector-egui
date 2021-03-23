@@ -29,7 +29,7 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands
-        .spawn(PerspectiveCameraBundle {
+        .spawn_bundle(PerspectiveCameraBundle {
             transform: Transform::from_matrix(Mat4::face_toward(
                 Vec3::new(-3.0, 5.0, 8.0),
                 Vec3::new(0.0, 0.0, 0.0),
@@ -37,41 +37,44 @@ fn setup(
             )),
             ..Default::default()
         })
-        .with(Name::new("Camera"))
-        .spawn(PbrBundle {
+        .insert(Name::new("Camera"));
+    commands
+        .spawn_bundle(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Plane { size: 10.0 })),
             material: materials.add(Color::rgb_u8(80, 233, 54).into()),
             ..Default::default()
         })
-        .with(Name::new("Floor"))
-        .spawn(PbrBundle {
+        .insert(Name::new("Floor"));
+    commands
+        .spawn_bundle(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
             transform: Transform::from_xyz(0.0, 1.0, 0.0),
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
             ..Default::default()
         })
-        .with(Name::new("Cube"))
+        .insert(Name::new("Cube"))
         .with_children(|commands| {
             commands
-                .spawn(PbrBundle {
+                .spawn_bundle(PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
                     transform: Transform::from_xyz(0.0, 0.8, 0.0),
                     material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
                     ..Default::default()
                 })
-                .with(Name::new("Child"))
+                .insert(Name::new("Child"))
                 .with_children(|commands| {
                     commands
-                        .spawn(PbrBundle {
+                        .spawn_bundle(PbrBundle {
                             mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
                             transform: Transform::from_xyz(0.0, 0.4, 0.0),
                             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
                             ..Default::default()
                         })
-                        .with(Name::new("Child"));
+                        .insert(Name::new("Child"));
                 });
-        })
-        .spawn(PbrBundle {
+        });
+    commands
+        .spawn_bundle(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Icosphere {
                 subdivisions: 20,
                 radius: 0.5,
@@ -80,8 +83,9 @@ fn setup(
             material: materials.add(Color::RED.into()),
             ..Default::default()
         })
-        .with(Name::new("Sphere"))
-        .spawn(LightBundle {
+        .insert(Name::new("Sphere"));
+    commands
+        .spawn_bundle(LightBundle {
             transform: Transform::from_xyz(10.3, 8.0, -2.3),
             light: Light {
                 range: 20.0,
@@ -90,8 +94,9 @@ fn setup(
             },
             ..Default::default()
         })
-        .with(Name::new("Light"))
-        .spawn(LightBundle {
+        .insert(Name::new("Light"));
+    commands
+        .spawn_bundle(LightBundle {
             transform: Transform::from_xyz(-6.2, 8.0, 4.3),
             light: Light {
                 range: 20.0,
@@ -100,5 +105,5 @@ fn setup(
             },
             ..Default::default()
         })
-        .with(Name::new("Second Light"));
+        .insert(Name::new("Second Light"));
 }

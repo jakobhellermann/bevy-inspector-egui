@@ -40,22 +40,22 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands
-        .spawn(PbrBundle {
+        .spawn_bundle(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Plane { size: 5.0 })),
             material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
             ..Default::default()
         })
-        .spawn(PbrBundle {
+        .spawn_bundle(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
             material: data.material.clone(),
             transform: Transform::from_xyz(0.0, 0.5, 0.0),
             ..Default::default()
         })
-        .spawn(LightBundle {
+        .spawn_bundle(LightBundle {
             transform: Transform::from_xyz(4.0, 8.0, 4.0),
             ..Default::default()
         })
-        .spawn(PerspectiveCameraBundle {
+        .spawn_bundle(PerspectiveCameraBundle {
             transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::default(), Vec3::Y),
             ..Default::default()
         });

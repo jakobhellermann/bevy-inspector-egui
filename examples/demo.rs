@@ -82,32 +82,31 @@ fn setup(
 
     let color = materials.add(Color::BLUE.into());
 
-    commands
-        .spawn(OrthographicCameraBundle::new_2d())
-        .spawn(UiCameraBundle::default())
-        .spawn(TextBundle {
-            style: Style {
-                align_self: AlignSelf::FlexEnd,
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(UiCameraBundle::default());
+    commands.spawn_bundle(TextBundle {
+        style: Style {
+            align_self: AlignSelf::FlexEnd,
+            ..Default::default()
+        },
+        text: Text::with_section(
+            "",
+            TextStyle {
+                font_size: 50.0,
+                font: font_handle,
                 ..Default::default()
             },
-            text: Text::with_section(
-                "",
-                TextStyle {
-                    font_size: 50.0,
-                    font: font_handle,
-                    ..Default::default()
-                },
-                Default::default(),
-            ),
+            Default::default(),
+        ),
+        ..Default::default()
+    });
+    commands.spawn_bundle(SpriteBundle {
+        material: color,
+        sprite: Sprite {
+            size: Vec2::new(40.0, 40.0),
             ..Default::default()
-        })
-        .spawn(SpriteBundle {
-            material: color,
-            sprite: Sprite {
-                size: Vec2::new(40.0, 40.0),
-                ..Default::default()
-            },
-            transform: Transform::from_translation(Vec3::default()),
-            ..Default::default()
-        });
+        },
+        transform: Transform::from_translation(Vec3::default()),
+        ..Default::default()
+    });
 }

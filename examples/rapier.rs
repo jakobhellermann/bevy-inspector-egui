@@ -48,7 +48,9 @@ fn setup(
     // Static rigid-body with a cuboid shape.
     let rigid_body1 = RigidBodyBuilder::new_static();
     let collider1 = ColliderBuilder::cuboid(floor_size / 2.0, 0.1, floor_size / 2.0);
-    commands.spawn((rigid_body1, collider1)).with_bundle(floor);
+    commands
+        .spawn_bundle((rigid_body1, collider1))
+        .insert_bundle(floor);
 
     let cube = PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: cube_size })),
@@ -60,15 +62,15 @@ fn setup(
     let rigid_body2 = RigidBodyBuilder::new_dynamic().translation(0.0, 3.0, 0.0);
     let collider2 = ColliderBuilder::cuboid(cube_size / 2.0, cube_size / 2.0, cube_size / 2.0);
     commands
-        .spawn((rigid_body2, collider2, Cube))
-        .with_bundle(cube);
+        .spawn_bundle((rigid_body2, collider2, Cube))
+        .insert_bundle(cube);
 
     commands
-        .spawn(LightBundle {
+        .spawn_bundle(LightBundle {
             transform: Transform::from_xyz(4.0, 8.0, 4.0),
             ..Default::default()
         })
-        .spawn(PerspectiveCameraBundle {
+        .spawn_bundle(PerspectiveCameraBundle {
             transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::default(), Vec3::Y),
             ..Default::default()
         });
