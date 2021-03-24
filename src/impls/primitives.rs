@@ -2,7 +2,12 @@ use bevy_egui::egui::Color32;
 
 use crate::egui::{self, widgets};
 use crate::{Context, Inspectable};
-use std::ops::{Range, RangeInclusive};
+use std::{
+    ops::{Range, RangeInclusive},
+    time::Duration,
+};
+
+use super::NumberAttributes;
 
 #[derive(Clone, Debug, Default)]
 pub struct StringAttributes {
@@ -110,5 +115,20 @@ impl<T: Inspectable> Inspectable for Option<T> {
                 }
             }
         }
+    }
+}
+
+impl Inspectable for Duration {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+        let mut seconds = self.as_secs_f32();
+        let attributes = NumberAttributes {
+            min: Some(0.0),
+            suffix: "s".to_string(),
+            ..Default::default()
+        };
+        seconds.ui(ui, attributes, context);
+        *self = Duration::from_secs_f32(seconds);
     }
 }

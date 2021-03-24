@@ -77,6 +77,7 @@ impl Default for InspectableRegistry {
         };
 
         this.register::<std::ops::Range<f32>>();
+        this.register::<std::time::Duration>();
 
         this.register::<Transform>();
         this.register::<GlobalTransform>();
@@ -84,12 +85,17 @@ impl Default for InspectableRegistry {
 
         this.register::<Color>();
         this.register::<bevy::asset::HandleId>();
+        this.register::<TextureAtlasSprite>();
+        this.register::<TextureAtlas>();
         this.register::<Light>();
         this.register::<StandardMaterial>();
         this.register::<ColorMaterial>();
+        this.register::<bevy::sprite::Rect>();
+
         this.register::<Handle<Texture>>();
         this.register::<Handle<StandardMaterial>>();
         this.register::<Handle<ColorMaterial>>();
+        this.register::<Handle<TextureAtlas>>();
 
         this.register::<ClearColor>();
         this.register::<AmbientLight>();

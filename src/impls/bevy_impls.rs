@@ -1,4 +1,4 @@
-use crate::options::{NumberAttributes, OptionAttributes};
+use crate::options::{NumberAttributes, OptionAttributes, Vec2dAttributes};
 use crate::{Context, Inspectable};
 use bevy::asset::HandleId;
 use bevy::{pbr::AmbientLight, prelude::*};
@@ -207,5 +207,35 @@ impl Inspectable for ClearColor {
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
         self.0.ui(ui, options, context);
+    }
+}
+
+////// OTHER //////
+
+impl_for_struct_delegate_fields!(bevy::sprite::Rect:
+    min with Vec2dAttributes::integer(),
+    max with Vec2dAttributes::integer(),
+);
+impl_for_struct_delegate_fields!(TextureAtlasSprite: color, index, flip_x, flip_y);
+
+impl Inspectable for TextureAtlas {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+        egui::Grid::new(context.id()).show(ui, |ui| {
+            ui.label("texture");
+            self.texture.ui(ui, Default::default(), &context.with_id(0));
+            ui.end_row();
+
+            ui.label("size");
+            self.size.ui(ui, Vec2dAttributes::integer(), context);
+            ui.end_row();
+
+            ui.label("textures");
+            ui.collapsing("Sections", |ui| {
+                self.textures
+                    .ui(ui, Default::default(), &context.with_id(2));
+            });
+        });
     }
 }

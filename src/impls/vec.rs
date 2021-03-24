@@ -14,6 +14,14 @@ pub struct Vec2dAttributes {
     pub max: Option<Vec2>,
     pub speed: f32,
 }
+impl Vec2dAttributes {
+    pub(crate) fn integer() -> Self {
+        Vec2dAttributes {
+            speed: 1.0,
+            ..Default::default()
+        }
+    }
+}
 
 impl Inspectable for Vec2 {
     type Attributes = Vec2dAttributes;
