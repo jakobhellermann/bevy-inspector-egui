@@ -54,6 +54,25 @@ fn main() {
 // fn your_system(data: Res<Data>) { /* */ }
 ```
 
+## World Inspector
+
+If you want to display all world entities you can add the `WorldInspector`:
+```rust
+use bevy_inspector_egui::WorldInspectorPlugin;
+
+fn main() {
+    App::build()
+        .add_plugins(DefaultPlugins)
+        .add_plugin(WorldInspectorPlugin::new())
+        .add_startup_system(setup.system())
+        .run();
+}
+```
+You can configure it by inserting the `WorldInspectorParams` resource.
+If you want to only display some components, you may want to use the [InspectorQuery](./examples/README.md#inspector-query-source) instead.
+
+<img src="./docs/examples/world_inspector.png" alt="world inspector ui" width="600"/>
+
 ## Bevy support table
 
 |bevy|bevy-inspector-egui|
