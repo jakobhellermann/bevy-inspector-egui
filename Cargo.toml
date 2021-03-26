@@ -14,9 +14,7 @@ keywords = ["bevy", "inspector", "visual", "editor", "game"]
 categories = ["development-tools::procedural-macro-helpers", "game-development", "gui", "visualization"]
 exclude = ["docs/*"]
 
-
 [features]
-nightly = []
 rapier = ["bevy_rapier3d"]
 
 [dependencies]

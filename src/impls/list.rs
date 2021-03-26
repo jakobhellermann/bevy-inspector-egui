@@ -40,7 +40,6 @@ where
     }
 }
 
-#[cfg(feature = "nightly")]
 impl<T: Inspectable, const N: usize> Inspectable for [T; N] {
     type Attributes = <T as Inspectable>::Attributes;
 
