@@ -1,5 +1,6 @@
 #[macro_use]
 mod macros;
+pub mod image_texture_conversion;
 mod sort_if;
 pub mod ui;
 

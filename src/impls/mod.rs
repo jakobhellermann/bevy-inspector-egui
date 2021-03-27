@@ -10,6 +10,7 @@ pub use bevy_impls::ColorAttributes;
 pub use number::NumberAttributes;
 pub use primitives::{OptionAttributes, StringAttributes};
 pub use vec::Vec2dAttributes;
+pub use with_context::{FilterType, TextureAttributes};
 
 #[cfg(feature = "rapier")]
 mod rapier;

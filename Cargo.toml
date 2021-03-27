@@ -22,6 +22,7 @@ bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-fe
 bevy_egui = { git = "https://github.com/jakobhellermann/bevy_egui", branch = "bevy-0.5", default-features = false }
 bevy_rapier3d = { git = "https://github.com/alec-deason/bevy_rapier", branch = "tracking_changes_for_bevy_0.5", optional = true }
 pretty-type-name = "1.0"
+image = "0.23"
 
 bevy-inspector-egui-derive = { path = "bevy-inspector-egui-derive" }
 

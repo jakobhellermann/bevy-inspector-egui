@@ -75,9 +75,6 @@ where
             app.add_plugin(EguiPlugin);
         }
 
-        // registeres egui textures
-        app.add_system(egui_texture_setup.system());
-
         let world = app.world_mut();
 
         // add entry to `InspectorWindows`
@@ -103,28 +100,6 @@ where
             }
         } else {
             inspector_windows.0.insert(type_id, type_name);
-        }
-    }
-}
-
-fn egui_texture_setup(
-    mut egui_context: ResMut<EguiContext>,
-    mut asset_events: EventReader<AssetEvent<Texture>>,
-    mut textures: ResMut<Assets<Texture>>,
-) {
-    use crate::impls::with_context::id_of_handle;
-
-    for asset_event in asset_events.iter() {
-        match asset_event {
-            AssetEvent::Created { handle } => {
-                let mut handle = handle.clone();
-                handle.make_strong(&mut textures);
-                egui_context.set_egui_texture(id_of_handle(&handle), handle)
-            }
-            AssetEvent::Modified { .. } => {}
-            AssetEvent::Removed { handle } => {
-                egui_context.remove_egui_texture(id_of_handle(handle))
-            }
         }
     }
 }
