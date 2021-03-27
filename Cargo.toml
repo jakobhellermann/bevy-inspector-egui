@@ -32,10 +32,6 @@ bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking/" }
 noise = "0.7"
 
 [[example]]
-name = "all_features"
-required-features = ["nightly"]
-
-[[example]]
 name = "rapier"
 required-features = ["rapier"]
 
