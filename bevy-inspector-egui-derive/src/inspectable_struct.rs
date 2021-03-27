@@ -6,7 +6,16 @@ use crate::utils;
 pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) -> TokenStream {
     let name = &derive_input.ident;
 
-    let field_setup = data.fields.iter().map(|field| {
+    let fields: Vec<_> = data.fields.iter().map(|field| {
+        let attributes = crate::attributes::inspectable_attributes(&field.attrs);
+        (field, attributes)
+    }).collect();
+
+    let field_setup = fields.iter().map(|(field, attributes)| {
+        if attributes.ignore {
+            return quote! {};
+        }
+
         let ty = &field.ty;
 
         quote! {
@@ -14,13 +23,16 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         }
     });
 
-    let fields = data.fields.iter().enumerate().map(|(i, field)| {
+    let fields = fields.iter().enumerate().map(|(i, (field, attributes))| {
+        if attributes.ignore {
+            return quote! {};
+        }
+
         let ty = &field.ty;
 
         let field_label = field_label(field, i);
         let accessor = utils::field_accessor(field, i);
 
-        let attributes = crate::attributes::inspectable_attributes(&field.attrs);
         if attributes.default.is_some() {
             panic!("#[inspectable(default = <expr>)] is only for enums");
         }

@@ -20,6 +20,9 @@ struct Data {
     transform: Transform,
     #[inspectable(collapse)]
     noise_settings: NoiseSettings,
+    #[allow(unused)]
+    #[inspectable(ignore)]
+    non_inspectable: NonInspectable,
 }
 
 #[derive(Inspectable)]
@@ -42,6 +45,9 @@ struct NoiseSettings {
     lacunarity: f32,
     persistence: f32,
 }
+
+#[derive(Default)]
+struct NonInspectable;
 
 fn main() {
     App::build()

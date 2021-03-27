@@ -26,7 +26,7 @@ impl InspectableAttribute {
             syn::Member::Unnamed(_) => return false,
         };
 
-        ident == "label" || ident == "collapse" || ident == "default"
+        ident == "label" || ident == "collapse" || ident == "default" || ident == "ignore"
     }
 }
 
@@ -64,6 +64,7 @@ pub struct InspectableAttributes {
     pub collapse: bool,
     pub label: Option<String>,
     pub default: Option<syn::Expr>,
+    pub ignore: bool,
     pub custom_attributes: Vec<InspectableAttribute>,
 }
 
@@ -96,6 +97,9 @@ pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> InspectableAttributes
         match builtin_attribute {
             InspectableAttribute::Tag(syn::Member::Named(ident)) if ident == "collapse" => {
                 all.collapse = true;
+            }
+            InspectableAttribute::Tag(syn::Member::Named(ident)) if ident == "ignore" => {
+                all.ignore = true;
             }
             #[rustfmt::skip]
             InspectableAttribute::Assignment(syn::Member::Named(ident), expr) if ident == "label" => {

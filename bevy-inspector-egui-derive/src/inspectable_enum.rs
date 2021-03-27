@@ -144,6 +144,10 @@ fn field_ui(
         let binding_name = name_for_member(field, *i);
         let options = attributes.create_options_struct(&field.ty);
 
+        if attributes.ignore {
+            return quote! {};
+        }
+
         if f.len() == 1 {
             quote! {
                 let options = #options;
@@ -162,7 +166,7 @@ fn field_ui(
 
     quote! {
         ui.separator();
-        #[allow(non_shorthand_field_patterns)]
+        #[allow(non_shorthand_field_patterns, unused_variables)]
         if let Self::#variant { #(#members: #field_names),* } = self {
             #(#field_ui)*
         }
