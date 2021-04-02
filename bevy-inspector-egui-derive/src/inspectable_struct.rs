@@ -6,10 +6,14 @@ use crate::utils;
 pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) -> TokenStream {
     let name = &derive_input.ident;
 
-    let fields: Vec<_> = data.fields.iter().map(|field| {
-        let attributes = crate::attributes::inspectable_attributes(&field.attrs);
-        (field, attributes)
-    }).collect();
+    let fields: Vec<_> = data
+        .fields
+        .iter()
+        .map(|field| {
+            let attributes = crate::attributes::inspectable_attributes(&field.attrs);
+            (field, attributes)
+        })
+        .collect();
 
     let field_setup = fields.iter().map(|(field, attributes)| {
         if attributes.ignore {
