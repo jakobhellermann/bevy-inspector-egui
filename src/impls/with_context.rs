@@ -135,7 +135,7 @@ fn rescaled_image<'a>(
             let handle = textures.add(resized);
             let weak = handle.clone_weak();
             egui_context.set_egui_texture(id, handle.clone());
-            entry.insert(handle.clone());
+            entry.insert(handle);
 
             weak
         }

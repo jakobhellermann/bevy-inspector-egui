@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity, clippy::identity_op)]
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_inspector_egui::{widgets::InspectableButton, Inspectable, InspectorPlugin};
 use noise::NoiseFn;

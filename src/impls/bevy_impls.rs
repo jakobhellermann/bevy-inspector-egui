@@ -284,7 +284,7 @@ impl Inspectable for StandardMaterial {
                         ui.end_row();
 
                         ui.label("occlusion texture");
-                        self.occlusion_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(3));
+                        self.occlusion_texture.ui(ui, texture_option_attributes, &context.with_id(3));
                         ui.end_row();
                     });
                 });
