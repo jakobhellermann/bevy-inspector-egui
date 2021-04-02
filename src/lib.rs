@@ -93,7 +93,7 @@ impl<'a> Context<'a> {
     /// Gives mutable access to the [bevy::ecs::world::World]
     /// # Safety
     /// The pointer provided in `Context::new_raw` must give unique access.
-    unsafe fn world(&'a self) -> Option<&'a mut World> {
+    pub unsafe fn world(&'a self) -> Option<&'a mut World> {
         self.world.map(|ptr| &mut *ptr)
     }
 }

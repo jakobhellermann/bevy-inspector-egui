@@ -12,28 +12,42 @@ use crate::{Context, Inspectable, InspectableRegistry};
 pub struct InspectorPlugin<T> {
     marker: PhantomData<T>,
     exclusive_access: bool,
+    initial_value: Option<Box<dyn Fn(&mut World) -> T + Send + Sync + 'static>>,
 }
 
-impl<T> Default for InspectorPlugin<T> {
+impl<T: Default + Send + Sync + 'static> Default for InspectorPlugin<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> InspectorPlugin<T> {
+impl<T: FromWorld + Send + Sync + 'static> InspectorPlugin<T> {
     /// Creates a new inspector plugin with access to `World` in the [`Context`](crate::Context).
     pub fn new() -> Self {
         InspectorPlugin {
             exclusive_access: true,
             marker: PhantomData,
+            initial_value: Some(Box::new(T::from_world)),
         }
     }
-    /// Creates a new inspector plugin *without+ access to `World` in the [`Context`](crate::Context).
-    /// This has the advantage that the system can be scheduled concurrently to others and may be faster.
-    pub fn shared() -> Self {
+}
+
+impl<T> InspectorPlugin<T> {
+    /// Same as [`InspectorPlugin::new`], but doesn't automatically insert the `T` resource.
+    pub fn new_insert_manually() -> Self {
+        InspectorPlugin {
+            marker: PhantomData,
+            exclusive_access: true,
+            initial_value: None,
+        }
+    }
+
+    /// Specifies that the inspector has no access to `World` in the [`Context`](crate::Context).
+    /// This has the advantage that the system can be scheduled concurrently to others.
+    pub fn shared(self) -> Self {
         InspectorPlugin {
             exclusive_access: false,
-            marker: PhantomData,
+            ..self
         }
     }
 }
@@ -56,10 +70,14 @@ impl InspectorWindows {
 
 impl<T> Plugin for InspectorPlugin<T>
 where
-    T: Inspectable + FromWorld + Send + Sync + 'static,
+    T: Inspectable + Send + Sync + 'static,
 {
     fn build(&self, app: &mut AppBuilder) {
-        app.init_resource::<T>();
+        if let Some(get_value) = &self.initial_value {
+            let world = app.world_mut();
+            let resource = get_value(world);
+            app.insert_resource(resource);
+        }
 
         T::setup(app);
 
@@ -105,12 +123,17 @@ where
 }
 
 fn shared_access_ui<T>(
-    mut data: ResMut<T>,
+    data: Option<ResMut<T>>,
     egui_context: ResMut<EguiContext>,
     inspector_windows: Res<InspectorWindows>,
 ) where
     T: Inspectable + Send + Sync + 'static,
 {
+    let mut data = match data {
+        Some(data) => data,
+        None => return,
+    };
+
     let ctx = &egui_context.ctx;
 
     let type_name = inspector_windows.get_unwrap::<T>();
@@ -144,7 +167,10 @@ where
     let ctx = &egui_context.ctx;
 
     let context = unsafe { Context::new_ptr(ctx, world_ptr) };
-    let mut data = world.get_resource_mut::<T>().unwrap();
+    let mut data = match world.get_resource_mut::<T>() {
+        Some(data) => data,
+        None => return,
+    };
 
     egui::Window::new(type_name)
         .resizable(false)
