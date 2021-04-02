@@ -15,7 +15,7 @@ use bevy::{
     prelude::*,
     reflect::{TypeRegistryArc, TypeRegistryInternal},
     render::render_graph::base::MainPass,
-    utils::{HashMap, HashSet},
+    utils::HashSet,
 };
 use bevy_egui::egui::{self, Color32};
 use egui::CollapsingHeader;
@@ -97,29 +97,13 @@ impl Default for WorldInspectorParams {
 struct WorldUIContext<'a> {
     world: &'a mut World,
     ui_ctx: &'a egui::CtxRef,
-    entities: HashMap<Entity, EntityLocation>,
     delete_entity: Cell<Option<Entity>>,
 }
 impl<'a> WorldUIContext<'a> {
     fn new(ui_ctx: &'a egui::CtxRef, world: &'a mut World) -> WorldUIContext<'a> {
-        let mut entities: HashMap<Entity, EntityLocation> = HashMap::default();
-        for archetype in world.archetypes().iter() {
-            for (entity_index, entity) in archetype.entities().iter().enumerate() {
-                let location = EntityLocation {
-                    archetype_id: archetype.id(),
-                    index: entity_index,
-                };
-
-                let entity_components = entities.entry(*entity).or_insert(location);
-                assert_eq!(location.archetype_id, entity_components.archetype_id);
-                assert_eq!(location.index, entity_components.index);
-            }
-        }
-
         WorldUIContext {
             world,
             ui_ctx,
-            entities,
             delete_entity: Cell::new(None),
         }
     }
@@ -168,7 +152,7 @@ impl<'a> WorldUIContext<'a> {
         CollapsingHeader::new(self.entity_name(entity))
             .id_source(id.with(entity))
             .show(ui, |ui| {
-                self.entity_ui_inner(ui, entity, params, id, entity_options);
+                self.entity_ui_inner(ui, entity, params, id, entity_options)
             });
     }
 
@@ -180,18 +164,19 @@ impl<'a> WorldUIContext<'a> {
         id: egui::Id,
         entity_options: &EntityAttributes,
     ) {
-        let location = match self.entities.get(&entity) {
-            Some(value) => *value,
+        let entity_ref = match self.world.get_entity(entity) {
+            Some(entity_ref) => entity_ref,
             None => return drop(ui.label("Entity does not exist")),
         };
-        let archetype = self.world.archetypes().get(location.archetype_id).unwrap();
+        let entity_location = entity_ref.location();
+        let archetype = entity_ref.archetype();
 
         self.component_kind_ui(
             ui,
             archetype.table_components(),
             "Components",
             entity,
-            location,
+            entity_location,
             params,
         );
         self.component_kind_ui(
@@ -199,7 +184,7 @@ impl<'a> WorldUIContext<'a> {
             archetype.sparse_set_components(),
             "Components (Sparse)",
             entity,
-            location,
+            entity_location,
             params,
         );
 
