@@ -248,57 +248,60 @@ impl Inspectable for StandardMaterial {
     fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
         ui.vertical_centered(|ui| {
             egui::Grid::new(context.id()).show(ui, |ui| {
-                ui.label("base_color");
-                self.base_color.ui(ui, Default::default(), context);
-                ui.end_row();
-
-                ui.label("emissive");
-                self.emissive.ui(ui, Default::default(), context);
-                ui.end_row();
-
-                ui.label("roughness");
-                self.roughness.ui(ui, NumberAttributes::between(0.089, 1.0).speed(0.01), context);
-                ui.end_row();
-
-                ui.label("metallic");
-                self.metallic.ui(ui, NumberAttributes::normalized().speed(0.01), context);
-                ui.end_row();
-
-                ui.label("reflectance");
-                self.reflectance.ui(ui, NumberAttributes::positive(), context);
-                ui.end_row();
-
-                ui.label("unlit");
-                self.unlit.ui(ui, Default::default(), context);
-                ui.end_row();
-
-                ui.label("Textures");
-                ui.collapsing("Textures", |ui| {
-                        egui::Grid::new("Textures").show(ui, |ui| {
-                        let texture_option_attributes = OptionAttributes { replacement: Some(|| Handle::weak(HandleId::random::<Texture>())), ..Default::default() };
-
+                ui.columns(2, |all| {
+                    egui::Grid::new("left").show(&mut all[0], |ui| {
                         ui.label("base_color");
-                        self.base_color_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
+                        self.base_color.ui(ui, Default::default(), context);
                         ui.end_row();
 
-                        ui.label("normal_map");
-                        self.normal_map.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
+                        ui.label("roughness");
+                        self.roughness.ui(ui, NumberAttributes::between(0.089, 1.0).speed(0.01), context);
                         ui.end_row();
 
-                        ui.label("metallic_roughness");
-                        self.metallic_roughness_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(1));
+                        ui.label("reflectance");
+                        self.reflectance.ui(ui, NumberAttributes::positive(), context);
+                        ui.end_row();
+                    });
+                    egui::Grid::new("right").show(&mut all[1], |ui| {
+                        ui.label("emissive");
+                        self.emissive.ui(ui, Default::default(), context);
                         ui.end_row();
 
-                        ui.label("emmissive");
-                        self.emissive_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(2));
+                        ui.label("metallic");
+                        self.metallic.ui(ui, NumberAttributes::normalized().speed(0.01), context);
                         ui.end_row();
 
-                        ui.label("occlusion texture");
-                        self.occlusion_texture.ui(ui, texture_option_attributes, &context.with_id(3));
+                        ui.label("unlit");
+                        self.unlit.ui(ui, Default::default(), context);
                         ui.end_row();
                     });
                 });
-                ui.end_row();
+            });
+
+            ui.collapsing("Textures", |ui| {
+                egui::Grid::new("Textures").show(ui, |ui| {
+                    let texture_option_attributes = OptionAttributes { replacement: Some(|| Handle::weak(HandleId::random::<Texture>())), ..Default::default() };
+
+                    ui.label("base_color");
+                    self.base_color_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
+                    ui.end_row();
+
+                    ui.label("normal_map");
+                    self.normal_map.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
+                    ui.end_row();
+
+                    ui.label("metallic_roughness");
+                    self.metallic_roughness_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(1));
+                    ui.end_row();
+
+                    ui.label("emmissive");
+                    self.emissive_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(2));
+                    ui.end_row();
+
+                    ui.label("occlusion texture");
+                    self.occlusion_texture.ui(ui, texture_option_attributes, &context.with_id(3));
+                    ui.end_row();
+                });
             });
         });
     }
