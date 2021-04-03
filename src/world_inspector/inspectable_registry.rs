@@ -1,6 +1,6 @@
 use crate::{Context, Inspectable};
-use bevy::utils::HashMap;
 use bevy::{pbr::AmbientLight, prelude::*};
+use bevy::{render::pipeline::PrimitiveTopology, utils::HashMap};
 use bevy_egui::egui;
 use std::any::TypeId;
 
@@ -90,12 +90,15 @@ impl Default for InspectableRegistry {
         this.register::<Light>();
         this.register::<StandardMaterial>();
         this.register::<ColorMaterial>();
+        this.register::<PrimitiveTopology>();
+        this.register::<Mesh>();
         this.register::<bevy::sprite::Rect>();
 
         this.register::<Handle<Texture>>();
         this.register::<Handle<StandardMaterial>>();
         this.register::<Handle<ColorMaterial>>();
         this.register::<Handle<TextureAtlas>>();
+        this.register::<Handle<Mesh>>();
 
         this.register::<ClearColor>();
         this.register::<AmbientLight>();

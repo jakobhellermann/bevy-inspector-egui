@@ -1,6 +1,9 @@
 use crate::options::{NumberAttributes, OptionAttributes, Vec2dAttributes};
 use crate::{Context, Inspectable};
-use bevy::asset::HandleId;
+use bevy::{
+    asset::HandleId,
+    render::{mesh::Indices, pipeline::PrimitiveTopology},
+};
 use bevy::{pbr::AmbientLight, prelude::*};
 use bevy_egui::egui;
 use egui::Grid;
@@ -14,6 +17,13 @@ impl_for_struct_delegate_fields!(
     range with NumberAttributes::positive(),
 );
 impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
+impl_for_simple_enum!(
+    PrimitiveTopology: PointList,
+    LineList,
+    LineStrip,
+    TriangleList,
+    TriangleStrip
+);
 
 //////// SHAPES ////////
 
@@ -289,6 +299,51 @@ impl Inspectable for StandardMaterial {
                     });
                 });
                 ui.end_row();
+            });
+        });
+    }
+}
+
+impl Inspectable for Mesh {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+        Grid::new(context.id()).show(ui, |ui| {
+            ui.label("Primitive Topology");
+            let _ = ui.button(format!("{:?}", self.primitive_topology()));
+
+            let attributes = &[
+                Mesh::ATTRIBUTE_POSITION,
+                Mesh::ATTRIBUTE_COLOR,
+                Mesh::ATTRIBUTE_UV_0,
+                Mesh::ATTRIBUTE_NORMAL,
+                Mesh::ATTRIBUTE_TANGENT,
+            ];
+            ui.end_row();
+
+            ui.label("Vertices");
+            ui.label(self.count_vertices().to_string());
+            ui.end_row();
+
+            if let Some(indices) = self.indices() {
+                ui.label("Indices");
+                let len = match indices {
+                    Indices::U16(vec) => vec.len(),
+                    Indices::U32(vec) => vec.len(),
+                };
+                ui.label(len.to_string());
+                ui.end_row();
+            }
+
+            ui.label("Vertex Attributes");
+            ui.collapsing("Attributes", |ui| {
+                ui.vertical(|ui| {
+                    for &attribute in attributes {
+                        if self.attribute(attribute).is_some() {
+                            ui.label(attribute);
+                        }
+                    }
+                });
             });
         });
     }
