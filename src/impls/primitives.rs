@@ -26,6 +26,13 @@ impl Inspectable for String {
         ui.add(widget);
     }
 }
+impl<'a> Inspectable for &'a str {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) {
+        ui.label(*self);
+    }
+}
 
 impl Inspectable for bool {
     type Attributes = ();
