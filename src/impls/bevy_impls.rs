@@ -351,3 +351,19 @@ impl Inspectable for Mesh {
         });
     }
 }
+
+impl Inspectable for Name {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) {
+        ui.label(self.as_str());
+    }
+}
+
+impl<'a, T: Inspectable> Inspectable for Mut<'a, T> {
+    type Attributes = T::Attributes;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+        (**self).ui(ui, options, context)
+    }
+}

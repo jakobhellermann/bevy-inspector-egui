@@ -3,7 +3,8 @@ use bevy_inspector_egui::{widgets::InspectorQuery, Inspectable, InspectorPlugin}
 
 #[derive(Inspectable, Default)]
 struct Data {
-    query: InspectorQuery<With<Transform>>,
+    query: InspectorQuery<Entity, With<Transform>>,
+    has_material: InspectorQuery<&'static mut Handle<StandardMaterial>>,
 }
 
 fn main() {

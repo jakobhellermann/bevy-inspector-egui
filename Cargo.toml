@@ -16,6 +16,7 @@ exclude = ["docs/*"]
 
 [features]
 rapier = ["bevy_rapier3d"]
+nightly = []
 
 [dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }

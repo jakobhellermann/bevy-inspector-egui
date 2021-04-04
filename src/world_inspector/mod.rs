@@ -178,6 +178,7 @@ impl<'a> WorldUIContext<'a> {
             entity,
             entity_location,
             params,
+            id,
         );
         self.component_kind_ui(
             ui,
@@ -186,6 +187,7 @@ impl<'a> WorldUIContext<'a> {
             entity,
             entity_location,
             params,
+            id,
         );
 
         ui.separator();
@@ -215,6 +217,7 @@ impl<'a> WorldUIContext<'a> {
         entity: Entity,
         entity_location: EntityLocation,
         params: &WorldInspectorParams,
+        id: egui::Id,
     ) {
         if !components.is_empty() {
             ui.label(title);
@@ -227,7 +230,15 @@ impl<'a> WorldUIContext<'a> {
             let iter = sort_iter_if(iter, params.sort_components, |a, b| a.0.cmp(&b.0));
 
             for (name, component_info) in iter {
-                self.component_ui(ui, name, entity, entity_location, component_info, params);
+                self.component_ui(
+                    ui,
+                    name,
+                    entity,
+                    entity_location,
+                    component_info,
+                    params,
+                    id,
+                );
             }
         }
     }
@@ -240,6 +251,7 @@ impl<'a> WorldUIContext<'a> {
         entity_location: EntityLocation,
         component_info: &ComponentInfo,
         params: &WorldInspectorParams,
+        id: egui::Id,
     ) {
         let type_id = match component_info.type_id() {
             Some(id) => id,
@@ -258,7 +270,7 @@ impl<'a> WorldUIContext<'a> {
         let type_registry = &*type_registry.internal.read();
 
         CollapsingHeader::new(name)
-            .id_source(component_info.id())
+            .id_source(id.with(component_info.id()))
             .show(ui, |ui| {
                 if params.is_read_only(type_id) {
                     ui.set_enabled(false);

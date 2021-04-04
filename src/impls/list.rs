@@ -62,17 +62,35 @@ impl<T: Inspectable, const N: usize> Inspectable for [T; N] {
 macro_rules! impl_for_tuple {
     ( $($ty:ident : $i:tt),* ) => {
         #[allow(unused_variables, non_snake_case)]
-        impl<$($ty: Inspectable),*> Inspectable for ($($ty,)*) {
+        impl<$($ty: Inspectable + 'static),*> Inspectable for ($($ty,)*) {
             type Attributes = ($(<$ty as Inspectable>::Attributes,)*);
 
             fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
-                ui.horizontal(|ui| {
+                #[allow(unused_mut)]
+                let mut inline = true;
+                $(inline &= should_display_inline::<$ty>();)*
+
+
+                if inline {
+                    ui.horizontal(|ui| {
+                        let ($($ty,)*) = options;
+                        ui.label("(");
+                        $(self.$i.ui(ui, $ty, &context.with_id($i));)*
+                        ui.label(")");
+                    });
+                } else {
                     let ($($ty,)*) = options;
 
-                    ui.label("(");
-                    $(self.$i.ui(ui, $ty, &context.with_id($i));)*
-                    ui.label(")");
-                });
+                    ui.vertical(|ui| {
+                        $(
+                            if $i != 0 {
+                                ui.separator();
+                            }
+                            self.$i.ui(ui, $ty, &context.with_id($i));
+                        )*
+                    });
+                }
+
             }
 
             fn setup(app: &mut AppBuilder) {
@@ -80,6 +98,21 @@ macro_rules! impl_for_tuple {
             }
         }
     };
+}
+
+macro_rules! matches_ty {
+    ($ty:ty, $($types:ty)|+) => {{
+        let type_id = std::any::TypeId::of::<$ty>();
+        $(
+            type_id == std::any::TypeId::of::<$types>()
+        )||*
+    }};
+}
+fn should_display_inline<T: 'static>() -> bool {
+    matches_ty!(
+        T,
+        i8 | i16 | i32 | i64 | isize | u8 | u16 | u32 | u64 | usize | char | bool | String | &'static str | f32 | f64 | &'static str
+    )
 }
 
 impl_for_tuple!();

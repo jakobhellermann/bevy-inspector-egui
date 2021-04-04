@@ -1,12 +1,12 @@
 use super::{WorldInspectorParams, WorldUIContext};
-use crate::Inspectable;
+use crate::{utils, Inspectable};
 use bevy::{
-    ecs::query::{FilterFetch, WorldQuery},
+    ecs::query::{Fetch, FilterFetch, WorldQuery},
     prelude::*,
 };
 use bevy_egui::egui::CollapsingHeader;
-use pretty_type_name::pretty_type_name;
 use std::marker::PhantomData;
+use utils::error_label;
 
 impl Inspectable for World {
     type Attributes = WorldInspectorParams;
@@ -58,7 +58,11 @@ impl Inspectable for Entity {
     }
 }
 
-/// Queries for entities matching the filter `F` and displays their entity trees.
+/// Executes [Queries](bevy::ecs::system::Query) and displays the result.
+///
+/// You can use any types and filters which are allowed in regular bevy queries,
+/// however you may need to specify a `'static` lifetime since you can't elide them in structs.
+///
 /// ```rust,no_run
 /// use bevy::prelude::*;
 /// use bevy_inspector_egui::{Inspectable, InspectorPlugin};
@@ -68,8 +72,9 @@ impl Inspectable for Entity {
 ///
 /// #[derive(Inspectable, Default)]
 /// struct Queries {
-///   colliders: InspectorQuery<With<Collider>>,
-///   root_entities: InspectorQuery<Without<Parent>>,
+///   colliders: InspectorQuery<Entity, With<Collider>>,
+///   root_entities: InspectorQuery<Entity, Without<Parent>>,
+///   transforms: InspectorQuery<&'static mut Transform>,
 /// }
 ///
 /// fn main() {
@@ -79,9 +84,9 @@ impl Inspectable for Entity {
 ///         .run();
 /// }
 /// ```
-pub struct InspectorQuery<F>(PhantomData<F>);
+pub struct InspectorQuery<Q, F = ()>(PhantomData<(Q, F)>);
 
-impl<F> Default for InspectorQuery<F> {
+impl<Q, F> Default for InspectorQuery<Q, F> {
     fn default() -> Self {
         InspectorQuery(PhantomData)
     }
@@ -97,12 +102,15 @@ impl Default for InspectorQueryAttributes {
     }
 }
 
-impl<F> Inspectable for InspectorQuery<F>
+impl<'w, Q, F> Inspectable for InspectorQuery<Q, F>
 where
+    Q: WorldQuery,
     F: WorldQuery,
     F::Fetch: FilterFetch,
+    <<Q as WorldQuery>::Fetch as Fetch<'static>>::Item: Inspectable,
 {
-    type Attributes = InspectorQueryAttributes;
+    type Attributes =
+        <<<Q as WorldQuery>::Fetch as Fetch<'static>>::Item as Inspectable>::Attributes;
 
     fn ui(
         &mut self,
@@ -110,35 +118,25 @@ where
         options: Self::Attributes,
         context: &crate::Context,
     ) {
-        let world = expect_world!(ui, context, "InspectorQuery");
-        let mut params = world.get_resource_or_insert_with(WorldInspectorParams::default);
-        let params = std::mem::replace(&mut *params, WorldInspectorParams::empty());
+        let world = match context.world {
+            // Safety: the pointer provided in `Context::new` must be exclusive and valid.
+            Some(world) => unsafe { &mut *world },
+            None => {
+                return error_label(ui, format!("Query needs exclusive access to the world"));
+            }
+        };
 
-        let mut query_state = world.query_filtered::<Entity, F>();
-        let entities: Vec<Entity> = query_state.iter(world).collect();
+        ui.vertical(move |ui| {
+            let mut query_state = world.query_filtered::<Q, F>();
 
-        let ui_ctx = WorldUIContext::new(context.ui_ctx, world);
-        let entity_options = params.entity_options();
-
-        ui.vertical(|ui| {
-            if options.collapse {
-                let name = pretty_type_name::<F>();
+            for (i, mut value) in query_state.iter_mut(world).enumerate() {
+                let name = pretty_type_name::pretty_type_name::<Q>();
                 CollapsingHeader::new(name)
-                    .id_source(context.id())
+                    .id_source(context.id().with(i))
                     .show(ui, |ui| {
-                        for entity in entities {
-                            ui_ctx.entity_ui(ui, entity, &params, context.id(), &entity_options);
-                            ui.end_row();
-                        }
+                        value.ui(ui, options.clone(), &context.with_id(i as u64));
                     });
-            } else {
-                for entity in entities {
-                    ui_ctx.entity_ui(ui, entity, &params, context.id(), &entity_options);
-                }
             }
         });
-        drop(ui_ctx);
-
-        *world.get_resource_mut::<WorldInspectorParams>().unwrap() = params;
     }
 }
