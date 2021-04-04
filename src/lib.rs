@@ -61,8 +61,8 @@ use bevy::prelude::{AppBuilder, World};
 use egui::CtxRef;
 pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 
-/// `Inspectable` implementation for foreign types implementing `Reflect`
-mod reflect;
+/// [`Inspectable`] implementation for foreign types implementing [`Reflect`](bevy::reflect::Reflect)
+pub mod reflect;
 
 pub use bevy_egui;
 pub use bevy_egui::egui;
