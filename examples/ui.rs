@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::widgets::InspectorQuery;
 
-type RootUINode = InspectorQuery<(With<Node>, Without<Parent>)>;
+type RootUINode = InspectorQuery<Entity, (With<Node>, Without<Parent>)>;
 
 /// This example illustrates how to modify UI using the inspector.
 fn main() {
@@ -17,9 +17,8 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    commands
-        // ui camera
-        .spawn_bundle(UiCameraBundle::default());
+    // ui camera
+    commands.spawn_bundle(UiCameraBundle::default());
     // root node
     commands
         .spawn_bundle(NodeBundle {
