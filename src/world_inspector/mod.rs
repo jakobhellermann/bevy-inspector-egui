@@ -2,6 +2,7 @@ pub(crate) mod impls;
 mod inspectable_registry;
 mod plugin;
 
+use bevy::render::camera::Camera;
 pub use impls::InspectorQuery;
 pub use inspectable_registry::InspectableRegistry;
 pub use plugin::WorldInspectorPlugin;
@@ -11,6 +12,7 @@ use bevy::{
         component::{ComponentId, ComponentInfo, ComponentTicks, StorageType},
         entity::EntityLocation,
         query::{FilterFetch, WorldQuery},
+        world::EntityRef,
     },
     prelude::*,
     reflect::{TypeRegistryArc, TypeRegistryInternal},
@@ -119,9 +121,9 @@ impl Drop for WorldUIContext<'_> {
 
 impl<'a> WorldUIContext<'a> {
     fn entity_name(&self, entity: Entity) -> Cow<'_, str> {
-        match self.world.get::<Name>(entity) {
-            Some(name) => name.as_str().into(),
-            None => format!("Entity {}", entity.id()).into(),
+        match self.world.get_entity(entity) {
+            Some(entity) => guess_entity_name(entity),
+            None => format!("Entity {} (inexistent)", entity.id()).into(),
         }
     }
 
@@ -401,4 +403,29 @@ unsafe fn get_component_and_ticks(
             .get(component_id)
             .and_then(|sparse_set| sparse_set.get_with_ticks(entity)),
     }
+}
+
+fn entity_is_bundle<B: Bundle>(e: &EntityRef) -> bool {
+    B::type_info()
+        .iter()
+        .all(|type_info| e.contains_type_id(type_info.type_id()))
+}
+
+fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
+    if let Some(name) = entity.get::<Name>() {
+        return name.as_str().into();
+    }
+
+    if let Some(camera) = entity.get::<Camera>() {
+        match &camera.name {
+            Some(name) => return name.as_str().into(),
+            None => return "Camera".into(),
+        }
+    }
+
+    if entity_is_bundle::<LightBundle>(&entity) {
+        return "Light".into();
+    }
+
+    format!("Entity {}", entity.id().id()).into()
 }
