@@ -2,7 +2,11 @@ use crate::options::{NumberAttributes, OptionAttributes, Vec2dAttributes};
 use crate::{Context, Inspectable};
 use bevy::{
     asset::HandleId,
-    render::{mesh::Indices, pipeline::PrimitiveTopology},
+    render::{
+        camera::{DepthCalculation, ScalingMode, VisibleEntities, WindowOrigin},
+        mesh::Indices,
+        pipeline::PrimitiveTopology,
+    },
 };
 use bevy::{pbr::AmbientLight, prelude::*};
 use bevy_egui::egui;
@@ -24,6 +28,15 @@ impl_for_simple_enum!(
     TriangleList,
     TriangleStrip
 );
+
+impl_for_simple_enum!(WindowOrigin: Center, BottomLeft);
+impl_for_simple_enum!(
+    ScalingMode: None,
+    WindowSize,
+    FixedVertical,
+    FixedHorizontal
+);
+impl_for_simple_enum!(DepthCalculation: Distance, ZDifference);
 
 //////// SHAPES ////////
 
@@ -357,6 +370,19 @@ impl Inspectable for Name {
 
     fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) {
         ui.label(self.as_str());
+    }
+}
+
+impl Inspectable for VisibleEntities {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) {
+        let len = self.value.len();
+        let entity = match len {
+            1 => "entity",
+            _ => "entities",
+        };
+        ui.label(format!("{} visible {}", self.value.len(), entity));
     }
 }
 

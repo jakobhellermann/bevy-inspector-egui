@@ -1,4 +1,5 @@
 use crate::{Context, Inspectable};
+use bevy::render::camera::{DepthCalculation, ScalingMode, VisibleEntities, WindowOrigin};
 use bevy::{pbr::AmbientLight, prelude::*};
 use bevy::{render::pipeline::PrimitiveTopology, utils::HashMap};
 use bevy_egui::egui;
@@ -93,6 +94,11 @@ impl Default for InspectableRegistry {
         this.register::<PrimitiveTopology>();
         this.register::<Mesh>();
         this.register::<bevy::sprite::Rect>();
+
+        this.register::<WindowOrigin>();
+        this.register::<ScalingMode>();
+        this.register::<DepthCalculation>();
+        this.register::<VisibleEntities>();
 
         this.register::<Handle<Texture>>();
         this.register::<Handle<StandardMaterial>>();
