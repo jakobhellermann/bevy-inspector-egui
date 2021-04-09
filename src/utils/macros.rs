@@ -4,7 +4,9 @@ macro_rules! impl_for_simple_enum {
             type Attributes = ();
 
             fn ui(&mut self, ui: &mut $crate::egui::Ui, _: Self::Attributes, context: &$crate::Context) {
-                $crate::egui::combo_box(ui, context.id(), format!("{:?}", self), |ui| {
+                egui::ComboBox::from_id_source(context.id())
+                    .selected_text(format!("{:?}", self))
+                    .show_ui(ui, |ui| {
                     $(
                         if ui.selectable_label(matches!(self, <$name>::$variant), format!("{:?}", <$name>::$variant)).clicked() {
                             *self = <$name>::$variant;

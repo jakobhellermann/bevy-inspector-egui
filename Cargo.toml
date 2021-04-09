@@ -13,23 +13,24 @@ description = "Inspector plugin for the bevy game engine"
 keywords = ["bevy", "inspector", "visual", "editor", "game"]
 categories = ["development-tools::procedural-macro-helpers", "game-development", "gui", "visualization"]
 exclude = ["docs/*"]
+resolver = "2"
 
 [features]
 rapier = ["bevy_rapier3d"]
 nightly = []
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
+bevy = { version = "0.5", default-features = false }
 bevy_egui = { git = "https://github.com/jakobhellermann/bevy_egui", branch = "bevy-0.5", default-features = false }
-bevy_rapier3d = { git = "https://github.com/alec-deason/bevy_rapier", branch = "tracking_changes_for_bevy_0.5", optional = true }
+bevy_rapier3d = { version = "0.9", optional = true }
 pretty-type-name = "1.0"
 image = "0.23"
 
 bevy-inspector-egui-derive = { path = "bevy-inspector-egui-derive" }
 
 [dev-dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false, features = ["x11", "render", "bevy_wgpu", "bevy_winit", "dynamic"] }
-bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking/" }
+bevy = { version = "0.5", default-features = false, features = ["x11", "render", "bevy_wgpu", "bevy_winit", "dynamic"] }
+bevy_mod_picking = { version = "0.4" }
 noise = "0.7"
 
 [[example]]
@@ -39,3 +40,6 @@ required-features = ["rapier"]
 [[example]]
 name = "texture"
 required-features = ["bevy/png"]
+
+[patch.crates-io]
+bevy = { git = "https://github.com/bevyengine/bevy", branch = "main" }

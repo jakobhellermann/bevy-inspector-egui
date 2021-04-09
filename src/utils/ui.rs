@@ -10,7 +10,7 @@ pub fn drag_and_drop_target(ui: &mut egui::Ui) -> Response {
 }
 pub fn drag_and_drop_target_label(ui: &mut egui::Ui, label: impl Into<Label>) -> Response {
     let frame = egui::containers::Frame::dark_canvas(&ui.style());
-    frame.show(ui, |ui| ui.label(label))
+    frame.show(ui, |ui| ui.label(label)).inner
 }
 
 pub fn replace_handle_if_dropped<T: Asset>(

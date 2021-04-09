@@ -78,17 +78,19 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
                     #(#should_group_arms)*
                 };
                 fn group_if(ui: &mut #egui::Ui, val: bool, mut f: impl FnMut(&mut #egui::Ui)) {
-                    if val { ui.group(f) } else { f(ui) }
+                    if val { ui.group(f); } else { f(ui); }
                 }
 
                 group_if(ui, should_group, |ui| {
                     ui.vertical(|ui| {
                         ui.horizontal(|ui| {
-                            bevy_inspector_egui::egui::combo_box(ui, context.id(), variant, |ui| {
-                                #(if ui.selectable_label(matches!(self, #name::#variant_names { .. }), stringify!(#variant_names)).clicked() {
-                                    variant = stringify!(#variant_names);
-                                })*
-                            });
+                            bevy_inspector_egui::egui::ComboBox::from_id_source(context.id())
+                                .selected_text(variant)
+                                .show_ui(ui, |ui| {
+                                    #(if ui.selectable_label(matches!(self, #name::#variant_names { .. }), stringify!(#variant_names)).clicked() {
+                                        variant = stringify!(#variant_names);
+                                    })*
+                                });
                         });
 
                         match variant {

@@ -116,27 +116,29 @@ impl Inspectable for Val {
         };
 
         ui.columns(2, |ui| {
-            egui::combo_box(&mut ui[0], context.id(), selected, |ui| {
-                if ui
-                    .selectable_label(*self == Val::Undefined, "Undefined")
-                    .clicked()
-                {
-                    *self = Val::Undefined;
-                    what_to_show = None;
-                }
-                if ui.selectable_label(*self == Val::Auto, "Auto").clicked() {
-                    *self = Val::Auto;
-                    what_to_show = None;
-                }
-                let is_px = discriminant(self) == discriminant(&Val::Px(0.0));
-                if ui.selectable_label(is_px, "Px").clicked() {
-                    what_to_show = Some(WhatToShow::Px);
-                }
-                let is_pct = discriminant(self) == discriminant(&Val::Percent(0.0));
-                if ui.selectable_label(is_pct, "Percent").clicked() {
-                    what_to_show = Some(WhatToShow::Percent);
-                }
-            });
+            egui::ComboBox::from_id_source(context.id())
+                .selected_text(selected)
+                .show_ui(&mut ui[0], |ui| {
+                    if ui
+                        .selectable_label(*self == Val::Undefined, "Undefined")
+                        .clicked()
+                    {
+                        *self = Val::Undefined;
+                        what_to_show = None;
+                    }
+                    if ui.selectable_label(*self == Val::Auto, "Auto").clicked() {
+                        *self = Val::Auto;
+                        what_to_show = None;
+                    }
+                    let is_px = discriminant(self) == discriminant(&Val::Px(0.0));
+                    if ui.selectable_label(is_px, "Px").clicked() {
+                        what_to_show = Some(WhatToShow::Px);
+                    }
+                    let is_pct = discriminant(self) == discriminant(&Val::Percent(0.0));
+                    if ui.selectable_label(is_pct, "Percent").clicked() {
+                        what_to_show = Some(WhatToShow::Percent);
+                    }
+                });
 
             match what_to_show {
                 Some(WhatToShow::Px) => {

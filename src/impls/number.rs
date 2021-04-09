@@ -70,7 +70,7 @@ macro_rules! impl_for_num {
             type Attributes = NumberAttributes<$ty>;
 
             fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) {
-                let mut widget = widgets::DragValue::$ty(self);
+                let mut widget = widgets::DragValue::new(self);
 
                 if !options.prefix.is_empty() {
                     widget = widget.prefix(options.prefix);
