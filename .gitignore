@@ -1,0 +1,6 @@
+/Cargo.lock
+/target_web
+/target
+
+/web/wasm.js
+/web/wasm_bg.wasm
