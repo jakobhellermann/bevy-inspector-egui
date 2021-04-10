@@ -134,14 +134,14 @@ fn shared_access_ui<T>(
         None => return,
     };
 
-    let ctx = &egui_context.ctx;
+    let ctx = egui_context.ctx();
 
     let type_name = inspector_windows.get_unwrap::<T>();
 
     egui::Window::new(type_name)
         .resizable(false)
         .scroll(true)
-        .show(ctx, |ui| {
+        .show(egui_context.ctx(), |ui| {
             default_settings(ui);
 
             let context = Context::new_shared(ctx);
@@ -164,7 +164,7 @@ where
     let world = world.cell();
 
     let egui_context = world.get_resource::<EguiContext>().unwrap();
-    let ctx = &egui_context.ctx;
+    let ctx = egui_context.ctx();
 
     let context = unsafe { Context::new_ptr(ctx, world_ptr) };
     let mut data = match world.get_resource_mut::<T>() {

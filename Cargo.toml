@@ -21,7 +21,7 @@ nightly = []
 
 [dependencies]
 bevy = { version = "0.5", default-features = false }
-bevy_egui = { git = "https://github.com/mvlabat/bevy_egui", branch = "main" }
+bevy_egui = "0.4"
 emath = "0.11"
 bevy_rapier3d = { version = "0.9", optional = true }
 pretty-type-name = "1.0"
@@ -41,6 +41,3 @@ required-features = ["rapier"]
 [[example]]
 name = "texture"
 required-features = ["bevy/png"]
-
-[patch.crates-io]
-bevy = { git = "https://github.com/bevyengine/bevy", branch = "main" }
