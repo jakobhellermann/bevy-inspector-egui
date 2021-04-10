@@ -1,6 +1,6 @@
 # Changelog
 
-## (unreleased)
+## Version 0.4
 
 ### Added
 
@@ -11,29 +11,12 @@
   ```rust
   #[derive(Inspectable)]
   struct Inspector {
-    root_elements: InspectorQuery<Without<Parent>>,
-    collider: InspectorQuery<With<Collider0>>,
+    root_elements: InspectorQuery<Entity, Without<Parent>>,
+    collider: InspectorQuery<&'static mut Transform, With<Collider0>>,
   }
   ```
 - `widgets::InspectableButton`: sends event upon button click. Usage looks like
 - derive `Inspectable` for enums with data
-
-  ```rust
-  #[derive(Default)]
-  struct ButtonEvent;
-
-  #[derive(Inspectable)]
-  struct Inspector {
-    settings: ...,
-    generate: InspectableButton<ButtonEvent>,
-  }
-
-  fn on_click(events: EventReader<ButtonEvent>) {
-    for _ in events {
-      println!("Clicked!");
-    }
-  }
-  ```
 - drag and drop into texture
 
 ### Changed
