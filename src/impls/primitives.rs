@@ -1,6 +1,9 @@
 use bevy_egui::egui::Color32;
 
-use crate::egui::{self, widgets};
+use crate::{
+    egui::{self, widgets},
+    utils::ui::label_button,
+};
 use crate::{Context, Inspectable};
 use std::{
     ops::{Range, RangeInclusive},
@@ -115,7 +118,7 @@ impl<T: Inspectable> Inspectable for Option<T> {
             Some(val) => {
                 changed |= val.ui(ui, options.inner, context);
                 if options.deletable {
-                    if ui.colored_label(Color32::RED, "✖").clicked() {
+                    if label_button(ui, "✖", Color32::RED) {
                         *self = None;
                         changed = true;
                     }
@@ -124,7 +127,7 @@ impl<T: Inspectable> Inspectable for Option<T> {
             None => {
                 ui.label("None");
                 if let Some(replacement) = options.replacement {
-                    if ui.colored_label(Color32::GREEN, "+").clicked() {
+                    if label_button(ui, "+", Color32::GREEN) {
                         *self = Some(replacement());
                         changed = true;
                     }

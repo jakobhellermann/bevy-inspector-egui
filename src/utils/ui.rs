@@ -29,3 +29,8 @@ pub fn replace_handle_if_dropped<T: Asset>(
 
     false
 }
+
+pub fn label_button(ui: &mut egui::Ui, text: &str, text_color: egui::Color32) -> bool {
+    ui.add(egui::Button::new(text).text_color(text_color).frame(false))
+        .clicked()
+}

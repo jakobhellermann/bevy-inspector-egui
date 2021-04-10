@@ -24,7 +24,10 @@ use egui::CollapsingHeader;
 use pretty_type_name::pretty_type_name_str;
 use std::{any::TypeId, borrow::Cow, cell::Cell};
 
-use crate::{utils::sort_iter_if, Context};
+use crate::{
+    utils::{sort_iter_if, ui::label_button},
+    Context,
+};
 use impls::EntityAttributes;
 use inspectable_registry::InspectCallback;
 
@@ -216,7 +219,7 @@ impl<'a> WorldUIContext<'a> {
         }
 
         if entity_options.despawnable {
-            if ui.colored_label(Color32::RED, "✖ Despawn").clicked() {
+            if label_button(ui, "✖ Despawn", Color32::RED) {
                 self.delete_entity.set(Some(entity));
                 changed = true;
             }
