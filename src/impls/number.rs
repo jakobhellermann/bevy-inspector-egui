@@ -64,77 +64,59 @@ impl NumberAttributes<f32> {
     }
 }
 
-macro_rules! impl_for_num {
-    ($ty:ident $(default_speed=$default_speed:expr)? ) => {
-        impl Inspectable for $ty {
-            type Attributes = NumberAttributes<$ty>;
-
-            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) {
-                let mut widget = widgets::DragValue::new(self);
-
-                if !options.prefix.is_empty() {
-                    widget = widget.prefix(options.prefix);
-                }
-                if !options.suffix.is_empty() {
-                    widget = widget.suffix(options.suffix);
-                }
-
-                match (options.min, options.max) {
-                    (Some(min), Some(max)) => widget = widget.clamp_range(min as f32..=max as f32),
-                    (Some(min), None) => widget = widget.clamp_range(min as f32..=f32::MAX),
-                    (None, Some(max)) => widget = widget.clamp_range(f32::MIN..=max as f32),
-                    (None, None) => {},
-                }
-
-                if options.speed != 0.0 {
-                    widget = widget.speed(options.speed);
-                } $(else {
-                    widget = widget.speed($default_speed);
-                })?
-
-                ui.add(widget);
-
-
-                if let Some(min) = options.min {
-                    *self = (*self).max(min);
-                }
-                if let Some(max) = options.max {
-                    *self = (*self).min(max);
-                }
-            }
-        }
-    };
-}
-
-macro_rules! impl_for_num_delegate_f64 {
-    ($ty:ty) => {
-        impl Inspectable for $ty {
-            type Attributes = NumberAttributes<$ty>;
-
-            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
-                let mut options_f64 = options.map(|val| *val as f64);
-                    if options_f64.speed == 0.0 {
-                        options_f64.speed = 1.0;
-                    }
-
-                let mut value = *self as f64;
-                <f64 as Inspectable>::ui(&mut value, ui, options_f64, context);
-
-                *self = value as $ty;
-            }
-        }
-    };
-
-    ( $($ty:ty),* ) => {
-        $( impl_for_num_delegate_f64!($ty); )*
+pub trait Num: emath::Numeric {
+    fn default_speed() -> Option<f32> {
+        None
     }
 }
 
-impl_for_num!(f32 default_speed = 0.1);
-impl_for_num!(f64 default_speed = 0.1);
+impl Num for f32 {
+    fn default_speed() -> Option<f32> {
+        Some(0.1)
+    }
+}
+impl Num for f64 {
+    fn default_speed() -> Option<f32> {
+        Some(0.1)
+    }
+}
+impl Num for i8 {}
+impl Num for u8 {}
+impl Num for i16 {}
+impl Num for u16 {}
+impl Num for i32 {}
+impl Num for u32 {}
+impl Num for i64 {}
+impl Num for u64 {}
+impl Num for isize {}
+impl Num for usize {}
 
-impl_for_num!(u8);
-impl_for_num!(i32);
+impl<T: Num> Inspectable for T {
+    type Attributes = NumberAttributes<T>;
 
-impl_for_num_delegate_f64!(u16, u32, u64, usize);
-impl_for_num_delegate_f64!(i8, i16, i64, isize);
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) {
+        let mut widget = widgets::DragValue::new(self);
+
+        if !options.prefix.is_empty() {
+            widget = widget.prefix(options.prefix);
+        }
+        if !options.suffix.is_empty() {
+            widget = widget.suffix(options.suffix);
+        }
+
+        match (options.min, options.max) {
+            (Some(min), Some(max)) => widget = widget.clamp_range(min.to_f64()..=max.to_f64()),
+            (Some(min), None) => widget = widget.clamp_range(min.to_f64()..=f64::MAX),
+            (None, Some(max)) => widget = widget.clamp_range(f64::MIN..=max.to_f64()),
+            (None, None) => {}
+        }
+
+        if options.speed != 0.0 {
+            widget = widget.speed(options.speed);
+        } else if let Some(default_speed) = T::default_speed() {
+            widget = widget.speed(default_speed);
+        }
+
+        ui.add(widget);
+    }
+}
