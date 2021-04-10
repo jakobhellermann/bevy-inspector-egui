@@ -25,7 +25,9 @@ fn set_rigidbody_handle(
     query: Query<(&Cube, &RigidBodyHandleComponent), Added<RigidBodyHandleComponent>>,
 ) {
     for (_, handle) in query.iter() {
-        data.handle = Some(handle.handle().into());
+        if data.handle.is_none() {
+            data.handle = Some(handle.handle().into());
+        }
     }
 }
 
@@ -65,13 +67,12 @@ fn setup(
         .spawn_bundle((rigid_body2, collider2, Cube))
         .insert_bundle(cube);
 
-    commands
-        .spawn_bundle(LightBundle {
-            transform: Transform::from_xyz(4.0, 8.0, 4.0),
-            ..Default::default()
-        })
-        .spawn_bundle(PerspectiveCameraBundle {
-            transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::default(), Vec3::Y),
-            ..Default::default()
-        });
+    commands.spawn_bundle(LightBundle {
+        transform: Transform::from_xyz(4.0, 8.0, 4.0),
+        ..Default::default()
+    });
+    commands.spawn_bundle(PerspectiveCameraBundle {
+        transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::default(), Vec3::Y),
+        ..Default::default()
+    });
 }

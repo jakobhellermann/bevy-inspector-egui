@@ -35,7 +35,9 @@ impl Inspectable for RigidBody {
         ui.vertical_centered(|ui| {
             Grid::new(context.id()).show(ui, |ui| {
                 ui.label("Body Status");
-                self.body_status.ui(ui, Default::default(), context);
+                let mut body_status = self.body_status();
+                body_status.ui(ui, Default::default(), context);
+                self.set_body_status(body_status);
                 ui.end_row();
 
                 let mut mass_properties = *self.mass_properties();
