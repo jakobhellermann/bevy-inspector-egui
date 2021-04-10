@@ -245,8 +245,9 @@ impl<'a> WorldUIContext<'a> {
             });
             let iter = sort_iter_if(iter, params.sort_components, |a, b| a.0.cmp(&b.0));
 
-            iter.map(|(name, component_info)| {
-                self.component_ui(
+            let mut changed = false;
+            for (name, component_info) in iter {
+                changed |= self.component_ui(
                     ui,
                     name,
                     entity,
@@ -254,9 +255,9 @@ impl<'a> WorldUIContext<'a> {
                     component_info,
                     params,
                     id,
-                )
-            })
-            .any(|changed| changed)
+                );
+            }
+            changed
         } else {
             false
         }
