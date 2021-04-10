@@ -16,9 +16,9 @@ impl Inspectable for World {
         ui: &mut bevy_egui::egui::Ui,
         options: Self::Attributes,
         context: &crate::Context,
-    ) {
+    ) -> bool {
         let mut world_ui_ctx = WorldUIContext::new(context.ui_ctx, self);
-        world_ui_ctx.world_ui::<()>(ui, &options);
+        world_ui_ctx.world_ui::<()>(ui, &options)
     }
 }
 
@@ -42,19 +42,21 @@ impl Inspectable for Entity {
         ui: &mut bevy_egui::egui::Ui,
         options: Self::Attributes,
         context: &crate::Context,
-    ) {
+    ) -> bool {
         let world = expect_world!(ui, context, "Entity");
         let mut world_inspector_params =
             world.get_resource_or_insert_with(WorldInspectorParams::default);
         let params = std::mem::replace(&mut *world_inspector_params, WorldInspectorParams::empty());
 
         let world_ui_ctx = WorldUIContext::new(context.ui_ctx, world);
-        ui.vertical(|ui| {
-            world_ui_ctx.entity_ui_inner(ui, *self, &params, context.id(), &options);
-        });
+        let changed = ui
+            .vertical(|ui| world_ui_ctx.entity_ui_inner(ui, *self, &params, context.id(), &options))
+            .inner;
         drop(world_ui_ctx);
 
         *world.get_resource_mut::<WorldInspectorParams>().unwrap() = params;
+
+        changed
     }
 }
 
@@ -117,14 +119,17 @@ where
         ui: &mut bevy_egui::egui::Ui,
         options: Self::Attributes,
         context: &crate::Context,
-    ) {
+    ) -> bool {
         let world = match context.world {
             // Safety: the pointer provided in `Context::new` must be exclusive and valid.
             Some(world) => unsafe { &mut *world },
             None => {
-                return error_label(ui, format!("Query needs exclusive access to the world"));
+                error_label(ui, format!("Query needs exclusive access to the world"));
+                return false;
             }
         };
+
+        let mut changed = false;
 
         ui.vertical(move |ui| {
             let mut query_state = world.query_filtered::<Q, F>();
@@ -134,9 +139,11 @@ where
                 CollapsingHeader::new(name)
                     .id_source(context.id().with(i))
                     .show(ui, |ui| {
-                        value.ui(ui, options.clone(), &context.with_id(i as u64));
+                        changed |= value.ui(ui, options.clone(), &context.with_id(i as u64));
                     });
             }
         });
+
+        changed
     }
 }

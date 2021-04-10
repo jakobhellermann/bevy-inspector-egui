@@ -167,8 +167,9 @@ pub trait Inspectable {
     /// impl Inspectable for MyCustomType {
     ///   type Attributes = MyWidgetAttributes;
     ///
-    ///   fn ui(&mut self, _: &mut egui::Ui, options: MyWidgetAttributes, context: &Context) {
+    ///   fn ui(&mut self, _: &mut egui::Ui, options: MyWidgetAttributes, context: &Context) -> bool {
     ///     println!("a = {}, b = {:?}", options.a, options.b);
+    ///     false
     ///   }
     /// }
     ///
@@ -183,7 +184,8 @@ pub trait Inspectable {
     type Attributes: Default + Clone;
 
     /// This methods is responsible for building the egui ui.
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context);
+    /// Returns whether any data was modified.
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool;
 
     /// Required setup for the bevy application, e.g. registering Resources.
     #[allow(unused_variables)]

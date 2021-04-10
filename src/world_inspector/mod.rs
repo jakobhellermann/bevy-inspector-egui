@@ -127,7 +127,7 @@ impl<'a> WorldUIContext<'a> {
         }
     }
 
-    fn world_ui<F>(&mut self, ui: &mut egui::Ui, params: &WorldInspectorParams)
+    fn world_ui<F>(&mut self, ui: &mut egui::Ui, params: &WorldInspectorParams) -> bool
     where
         F: WorldQuery,
         F::Fetch: FilterFetch,
@@ -138,9 +138,13 @@ impl<'a> WorldUIContext<'a> {
         let dummy_id = egui::Id::new(42);
         let entity_options = params.entity_options();
 
+        let mut changed = false;
+
         for entity in root_entities.iter(self.world) {
-            self.entity_ui(ui, entity, params, dummy_id, &entity_options);
+            changed |= self.entity_ui(ui, entity, params, dummy_id, &entity_options);
         }
+
+        changed
     }
 
     fn entity_ui(
@@ -150,12 +154,14 @@ impl<'a> WorldUIContext<'a> {
         params: &WorldInspectorParams,
         id: egui::Id,
         entity_options: &EntityAttributes,
-    ) {
+    ) -> bool {
         CollapsingHeader::new(self.entity_name(entity))
             .id_source(id.with(entity))
             .show(ui, |ui| {
                 self.entity_ui_inner(ui, entity, params, id, entity_options)
-            });
+            })
+            .body_returned
+            .unwrap_or(false)
     }
 
     fn entity_ui_inner(
@@ -165,15 +171,20 @@ impl<'a> WorldUIContext<'a> {
         params: &WorldInspectorParams,
         id: egui::Id,
         entity_options: &EntityAttributes,
-    ) {
+    ) -> bool {
         let entity_ref = match self.world.get_entity(entity) {
             Some(entity_ref) => entity_ref,
-            None => return drop(ui.label("Entity does not exist")),
+            None => {
+                ui.label("Entity does not exist");
+                return false;
+            }
         };
         let entity_location = entity_ref.location();
         let archetype = entity_ref.archetype();
 
-        self.component_kind_ui(
+        let mut changed = false;
+
+        changed |= self.component_kind_ui(
             ui,
             archetype.table_components(),
             "Components",
@@ -182,7 +193,7 @@ impl<'a> WorldUIContext<'a> {
             params,
             id,
         );
-        self.component_kind_ui(
+        changed |= self.component_kind_ui(
             ui,
             archetype.sparse_set_components(),
             "Components (Sparse)",
@@ -207,8 +218,11 @@ impl<'a> WorldUIContext<'a> {
         if entity_options.despawnable {
             if ui.colored_label(Color32::RED, "✖ Despawn").clicked() {
                 self.delete_entity.set(Some(entity));
+                changed = true;
             }
         }
+
+        changed
     }
 
     fn component_kind_ui(
@@ -220,7 +234,7 @@ impl<'a> WorldUIContext<'a> {
         entity_location: EntityLocation,
         params: &WorldInspectorParams,
         id: egui::Id,
-    ) {
+    ) -> bool {
         if !components.is_empty() {
             ui.label(title);
 
@@ -231,7 +245,7 @@ impl<'a> WorldUIContext<'a> {
             });
             let iter = sort_iter_if(iter, params.sort_components, |a, b| a.0.cmp(&b.0));
 
-            for (name, component_info) in iter {
+            iter.map(|(name, component_info)| {
                 self.component_ui(
                     ui,
                     name,
@@ -240,8 +254,11 @@ impl<'a> WorldUIContext<'a> {
                     component_info,
                     params,
                     id,
-                );
-            }
+                )
+            })
+            .any(|changed| changed)
+        } else {
+            false
         }
     }
 
@@ -254,17 +271,17 @@ impl<'a> WorldUIContext<'a> {
         component_info: &ComponentInfo,
         params: &WorldInspectorParams,
         id: egui::Id,
-    ) {
+    ) -> bool {
         let type_id = match component_info.type_id() {
             Some(id) => id,
             None => {
                 ui.label("No type id");
-                return;
+                return false;
             }
         };
 
         if params.should_ignore_component(type_id) {
-            return;
+            return false;
         }
 
         let inspectable_registry = self.world.get_resource::<InspectableRegistry>().unwrap();
@@ -284,7 +301,7 @@ impl<'a> WorldUIContext<'a> {
                         .with_id(component_info.id().index() as u64)
                 };
 
-                let could_display = unsafe {
+                let result = unsafe {
                     try_display(
                         &self.world,
                         entity,
@@ -298,10 +315,14 @@ impl<'a> WorldUIContext<'a> {
                     )
                 };
 
-                if !could_display {
+                if result.is_err() {
                     ui.label("Inspectable has not been defined for this component");
                 }
-            });
+
+                result.unwrap_or(false)
+            })
+            .body_returned
+            .unwrap_or(false)
     }
 }
 
@@ -318,9 +339,9 @@ pub(crate) unsafe fn try_display(
     type_registry: &TypeRegistryInternal,
     ui: &mut egui::Ui,
     context: &Context,
-) -> bool {
+) -> Result<bool, ()> {
     if let Some(inspect_callback) = inspectable_registry.impls.get(&type_id) {
-        display_by_inspectable_registry(
+        let changed = display_by_inspectable_registry(
             inspect_callback,
             world,
             location,
@@ -329,18 +350,18 @@ pub(crate) unsafe fn try_display(
             ui,
             context,
         );
-        return true;
+        return Ok(changed);
     }
 
     if component_info.layout().size() == 0 {
-        return true;
+        return Ok(false);
     }
 
-    if display_by_reflection(type_registry, type_id, world, entity, ui, context).is_some() {
-        return true;
+    if let Ok(changed) = display_by_reflection(type_registry, type_id, world, entity, ui, context) {
+        return Ok(changed);
     }
 
-    false
+    Err(())
 }
 
 unsafe fn display_by_inspectable_registry(
@@ -351,13 +372,18 @@ unsafe fn display_by_inspectable_registry(
     component_info: &ComponentInfo,
     ui: &mut egui::Ui,
     context: &Context,
-) {
+) -> bool {
     let (ptr, ticks) =
         get_component_and_ticks(world, component_info.id(), entity, location).unwrap();
     let ticks = { &mut *ticks };
-    ticks.set_changed(world.read_change_tick());
 
-    inspect_callback(ptr, ui, &context);
+    let changed = inspect_callback(ptr, ui, &context);
+
+    if changed {
+        ticks.set_changed(world.read_change_tick());
+    }
+
+    changed
 }
 
 fn display_by_reflection(
@@ -367,13 +393,19 @@ fn display_by_reflection(
     entity: Entity,
     ui: &mut egui::Ui,
     context: &Context,
-) -> Option<()> {
-    let registration = type_registry.get(type_id)?;
-    let reflect_component = registration.data::<ReflectComponent>()?;
-    let mut reflected =
-        unsafe { reflect_component.reflect_component_unchecked_mut(world, entity)? };
-    crate::reflect::ui_for_reflect(&mut *reflected, ui, &context);
-    Some(())
+) -> Result<bool, ()> {
+    let registration = type_registry.get(type_id).ok_or(())?;
+    let reflect_component = registration.data::<ReflectComponent>().ok_or(())?;
+    let mut reflected = unsafe {
+        reflect_component
+            .reflect_component_unchecked_mut(world, entity)
+            .ok_or(())?
+    };
+    Ok(crate::reflect::ui_for_reflect(
+        &mut *reflected,
+        ui,
+        &context,
+    ))
 }
 
 // copied from bevy

@@ -1,6 +1,6 @@
 #![allow(clippy::type_complexity, clippy::identity_op)]
 use bevy::{math::Vec3Swizzles, prelude::*};
-use bevy_inspector_egui::{widgets::InspectableButton, Inspectable, InspectorPlugin};
+use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 use noise::NoiseFn;
 
 #[derive(Default)]
@@ -15,9 +15,6 @@ struct Data {
     color: Color,
     #[inspectable(collapse)]
     noise_settings: NoiseSettings,
-    update_live: bool,
-    #[inspectable(label = "", text = "Generate")]
-    generate: InspectableButton<GenerateEvent>,
 }
 
 #[derive(Clone, Inspectable)]
@@ -46,8 +43,6 @@ impl Default for Data {
             color: Color::rgb(0.4, 0.2, 0.6),
 
             noise_settings: Default::default(),
-            update_live: !cfg!(debug_assertions),
-            generate: Default::default(),
         }
     }
 }
@@ -82,21 +77,20 @@ fn main() {
 
 fn generate(
     data: Res<Data>,
-    mut events: EventReader<GenerateEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     query: Query<(&Planet, &Handle<Mesh>, &Handle<StandardMaterial>)>,
 ) {
-    let update = data.update_live || events.iter().next().is_some();
+    if !data.is_changed() {
+        return;
+    }
 
-    if update {
-        for (_, mesh, material) in query.iter() {
-            let mesh = meshes.get_mut(mesh.clone()).unwrap();
-            let material = materials.get_mut(material.clone()).unwrap();
+    for (_, mesh, material) in query.iter() {
+        let mesh = meshes.get_mut(mesh.clone()).unwrap();
+        let material = materials.get_mut(material.clone()).unwrap();
 
-            *mesh = data.as_mesh();
-            material.base_color = data.color;
-        }
+        *mesh = data.as_mesh();
+        material.base_color = data.color;
     }
 }
 

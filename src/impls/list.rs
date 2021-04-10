@@ -9,14 +9,16 @@ where
 {
     type Attributes = <T as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
+
         ui.vertical(|ui| {
             let mut to_delete = None;
 
             for (i, val) in self.iter_mut().enumerate() {
                 ui.horizontal(|ui| {
                     ui.label(i.to_string());
-                    val.ui(ui, options.clone(), &context.with_id(i as u64));
+                    changed |= val.ui(ui, options.clone(), &context.with_id(i as u64));
                     if ui.button("-").clicked() {
                         to_delete = Some(i);
                     }
@@ -26,13 +28,17 @@ where
             ui.vertical_centered_justified(|ui| {
                 if ui.button("+").clicked() {
                     self.push(T::default());
+                    changed = true;
                 }
             });
 
             if let Some(i) = to_delete {
                 self.remove(i);
+                changed = true;
             }
         });
+
+        changed
     }
 
     fn setup(app: &mut AppBuilder) {
@@ -43,15 +49,17 @@ where
 impl<T: Inspectable, const N: usize> Inspectable for [T; N] {
     type Attributes = <T as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
         ui.vertical(|ui| {
             for (i, val) in self.iter_mut().enumerate() {
                 ui.horizontal(|ui| {
                     ui.label(i.to_string());
-                    val.ui(ui, options.clone(), &context.with_id(i as u64));
+                    changed |= val.ui(ui, options.clone(), &context.with_id(i as u64));
                 });
             }
         });
+        changed
     }
 
     fn setup(app: &mut AppBuilder) {
@@ -65,17 +73,19 @@ macro_rules! impl_for_tuple {
         impl<$($ty: Inspectable + 'static),*> Inspectable for ($($ty,)*) {
             type Attributes = ($(<$ty as Inspectable>::Attributes,)*);
 
-            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
                 #[allow(unused_mut)]
                 let mut inline = true;
                 $(inline &= should_display_inline::<$ty>();)*
 
+                #[allow(unused_mut)]
+                let mut changed = false;
 
                 if inline {
                     ui.horizontal(|ui| {
                         let ($($ty,)*) = options;
                         ui.label("(");
-                        $(self.$i.ui(ui, $ty, &context.with_id($i));)*
+                        $(changed |= self.$i.ui(ui, $ty, &context.with_id($i));)*
                         ui.label(")");
                     });
                 } else {
@@ -86,11 +96,12 @@ macro_rules! impl_for_tuple {
                             if $i != 0 {
                                 ui.separator();
                             }
-                            self.$i.ui(ui, $ty, &context.with_id($i));
+                            changed |= self.$i.ui(ui, $ty, &context.with_id($i));
                         )*
                     });
                 }
 
+                changed
             }
 
             fn setup(app: &mut AppBuilder) {

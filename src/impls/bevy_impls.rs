@@ -63,17 +63,19 @@ impl_for_struct_delegate_fields!(
 impl Inspectable for shape::Box {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
+
         let mut min = Vec3::new(self.min_x, self.min_y, self.min_z);
         let mut max = Vec3::new(self.max_x, self.max_y, self.max_z);
 
         ui.vertical_centered(|ui| {
             egui::Grid::new(context.id()).show(ui, |ui| {
                 ui.label("Min");
-                min.ui(ui, Default::default(), &context.with_id(0));
+                changed |= min.ui(ui, Default::default(), &context.with_id(0));
                 ui.end_row();
                 ui.label("Max");
-                max.ui(ui, Default::default(), &context.with_id(0));
+                changed |= max.ui(ui, Default::default(), &context.with_id(0));
                 ui.end_row();
             });
         });
@@ -84,6 +86,8 @@ impl Inspectable for shape::Box {
         self.max_x = max.x;
         self.max_y = max.y;
         self.max_z = max.z;
+
+        changed
     }
 }
 
@@ -92,15 +96,21 @@ impl Inspectable for shape::Box {
 impl Inspectable for Transform {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, _options: Self::Attributes, context: &Context) {
+    fn ui(
+        &mut self,
+        ui: &mut bevy_egui::egui::Ui,
+        _options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
+        let mut changed = false;
         ui.vertical_centered(|ui| {
             Grid::new(context.id()).show(ui, |ui| {
                 ui.label("Translation");
-                self.translation.ui(ui, Default::default(), context);
+                changed |= self.translation.ui(ui, Default::default(), context);
                 ui.end_row();
 
                 ui.label("Rotation");
-                self.rotation.ui(ui, Default::default(), context);
+                changed |= self.rotation.ui(ui, Default::default(), context);
                 self.rotation = self.rotation.normalize();
                 ui.end_row();
 
@@ -109,17 +119,18 @@ impl Inspectable for Transform {
                     min: Some(Vec3::splat(0.0)),
                     ..Default::default()
                 };
-                self.scale.ui(ui, scale_attributes, context);
+                changed |= self.scale.ui(ui, scale_attributes, context);
                 ui.end_row();
             });
         });
+        changed
     }
 }
 
 impl Inspectable for GlobalTransform {
     type Attributes = <Transform as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
         let global_transform = std::mem::take(self);
 
         let mut transform = Transform {
@@ -128,38 +139,46 @@ impl Inspectable for GlobalTransform {
             scale: global_transform.scale,
         };
 
-        transform.ui(ui, options, context);
+        let changed = transform.ui(ui, options, context);
 
-        *self = GlobalTransform {
-            translation: transform.translation,
-            rotation: transform.rotation,
-            scale: transform.scale,
-        };
+        if changed {
+            *self = GlobalTransform {
+                translation: transform.translation,
+                rotation: transform.rotation,
+                scale: transform.scale,
+            };
+        }
+
+        changed
     }
 }
 
 impl Inspectable for Mat3 {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
         ui.vertical(|ui| {
-            self.x_axis.ui(ui, Default::default(), context);
-            self.y_axis.ui(ui, Default::default(), context);
-            self.z_axis.ui(ui, Default::default(), context);
+            changed |= self.x_axis.ui(ui, Default::default(), context);
+            changed |= self.y_axis.ui(ui, Default::default(), context);
+            changed |= self.z_axis.ui(ui, Default::default(), context);
         });
+        changed
     }
 }
 
 impl Inspectable for Mat4 {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
         ui.vertical(|ui| {
-            self.x_axis.ui(ui, Default::default(), context);
-            self.y_axis.ui(ui, Default::default(), context);
-            self.z_axis.ui(ui, Default::default(), context);
-            self.w_axis.ui(ui, Default::default(), context);
+            changed |= self.x_axis.ui(ui, Default::default(), context);
+            changed |= self.y_axis.ui(ui, Default::default(), context);
+            changed |= self.z_axis.ui(ui, Default::default(), context);
+            changed |= self.w_axis.ui(ui, Default::default(), context);
         });
+        changed
     }
 }
 
@@ -171,7 +190,7 @@ pub struct ColorAttributes {
 impl Inspectable for Color {
     type Attributes = ColorAttributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) -> bool {
         let old: [f32; 4] = (*self).into();
 
         if options.alpha {
@@ -181,14 +200,18 @@ impl Inspectable for Color {
                 (old[2] * u8::MAX as f32) as u8,
                 (old[3] * u8::MAX as f32) as u8,
             );
-            ui.color_edit_button_srgba(&mut color);
+            let changed = ui.color_edit_button_srgba(&mut color).changed();
             let [r, g, b, a] = color.to_array();
             *self = Color::rgba_u8(r, g, b, a);
+
+            changed
         } else {
             let mut color = [old[0], old[1], old[2]];
-            ui.color_edit_button_rgb(&mut color);
+            let changed = ui.color_edit_button_rgb(&mut color).changed();
             let [r, g, b] = color;
             *self = Color::rgba(r, g, b, old[3]);
+
+            changed
         }
     }
 }
@@ -198,18 +221,18 @@ impl Inspectable for Color {
 impl Inspectable for AmbientLight {
     type Attributes = <Color as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
         let brightness_attributes = NumberAttributes::positive().speed(0.01);
 
         self.color.ui(ui, options, context);
-        self.brightness.ui(ui, brightness_attributes, context);
+        self.brightness.ui(ui, brightness_attributes, context)
     }
 }
 impl Inspectable for ClearColor {
     type Attributes = <Color as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
-        self.0.ui(ui, options, context);
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+        self.0.ui(ui, options, context)
     }
 }
 
@@ -224,22 +247,25 @@ impl_for_struct_delegate_fields!(TextureAtlasSprite: color, index, flip_x, flip_
 impl Inspectable for TextureAtlas {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
         egui::Grid::new(context.id()).show(ui, |ui| {
             ui.label("texture");
-            self.texture.ui(ui, Default::default(), &context.with_id(0));
+            changed |= self.texture.ui(ui, Default::default(), &context.with_id(0));
             ui.end_row();
 
             ui.label("size");
-            self.size.ui(ui, Vec2dAttributes::integer(), context);
+            changed |= self.size.ui(ui, Vec2dAttributes::integer(), context);
             ui.end_row();
 
             ui.label("textures");
             ui.collapsing("Sections", |ui| {
-                self.textures
+                changed |= self
+                    .textures
                     .ui(ui, Default::default(), &context.with_id(2));
             });
         });
+        changed
     }
 }
 
@@ -247,34 +273,35 @@ impl Inspectable for TextureAtlas {
 impl Inspectable for StandardMaterial {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
         ui.vertical_centered(|ui| {
             egui::Grid::new(context.id()).show(ui, |ui| {
                 ui.columns(2, |all| {
                     egui::Grid::new("left").show(&mut all[0], |ui| {
                         ui.label("base_color");
-                        self.base_color.ui(ui, Default::default(), context);
+                        changed |= self.base_color.ui(ui, Default::default(), context);
                         ui.end_row();
 
                         ui.label("roughness");
-                        self.roughness.ui(ui, NumberAttributes::between(0.089, 1.0).speed(0.01), context);
+                        changed |= self.roughness.ui(ui, NumberAttributes::between(0.089, 1.0).speed(0.01), context);
                         ui.end_row();
 
                         ui.label("reflectance");
-                        self.reflectance.ui(ui, NumberAttributes::positive(), context);
+                        changed |= self.reflectance.ui(ui, NumberAttributes::positive(), context);
                         ui.end_row();
                     });
                     egui::Grid::new("right").show(&mut all[1], |ui| {
                         ui.label("emissive");
-                        self.emissive.ui(ui, Default::default(), context);
+                        changed |= self.emissive.ui(ui, Default::default(), context);
                         ui.end_row();
 
                         ui.label("metallic");
-                        self.metallic.ui(ui, NumberAttributes::normalized().speed(0.01), context);
+                        changed |= self.metallic.ui(ui, NumberAttributes::normalized().speed(0.01), context);
                         ui.end_row();
 
                         ui.label("unlit");
-                        self.unlit.ui(ui, Default::default(), context);
+                        changed |= self.unlit.ui(ui, Default::default(), context);
                         ui.end_row();
                     });
                 });
@@ -285,34 +312,35 @@ impl Inspectable for StandardMaterial {
                     let texture_option_attributes = OptionAttributes { replacement: Some(|| Handle::weak(HandleId::random::<Texture>())), ..Default::default() };
 
                     ui.label("base_color");
-                    self.base_color_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
+                    changed |= self.base_color_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
                     ui.end_row();
 
                     ui.label("normal_map");
-                    self.normal_map.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
+                    changed |= self.normal_map.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
                     ui.end_row();
 
                     ui.label("metallic_roughness");
-                    self.metallic_roughness_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(1));
+                    changed |= self.metallic_roughness_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(1));
                     ui.end_row();
 
                     ui.label("emmissive");
-                    self.emissive_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(2));
+                    changed |= self.emissive_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(2));
                     ui.end_row();
 
                     ui.label("occlusion texture");
-                    self.occlusion_texture.ui(ui, texture_option_attributes, &context.with_id(3));
+                    changed |= self.occlusion_texture.ui(ui, texture_option_attributes, &context.with_id(3));
                     ui.end_row();
                 });
             });
         });
+        changed
     }
 }
 
 impl Inspectable for Mesh {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
         Grid::new(context.id()).show(ui, |ui| {
             ui.label("Primitive Topology");
             let _ = ui.button(format!("{:?}", self.primitive_topology()));
@@ -351,34 +379,38 @@ impl Inspectable for Mesh {
                 });
             });
         });
+
+        false
     }
 }
 
 impl Inspectable for Name {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
         ui.label(self.as_str());
+        false
     }
 }
 
 impl Inspectable for VisibleEntities {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
         let len = self.value.len();
         let entity = match len {
             1 => "entity",
             _ => "entities",
         };
         ui.label(format!("{} visible {}", self.value.len(), entity));
+        false
     }
 }
 
 impl<'a, T: Inspectable> Inspectable for Mut<'a, T> {
     type Attributes = T::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
         (**self).ui(ui, options, context)
     }
 }

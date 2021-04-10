@@ -24,6 +24,9 @@ fn main() {
 }
 
 fn update(data: Res<Data>, mut query: Query<(&Cube, &mut Transform)>) {
+    if !data.is_changed() {
+        return;
+    }
     for (_, mut transform) in query.iter_mut() {
         *transform = data.transform;
     }

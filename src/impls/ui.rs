@@ -75,26 +75,33 @@ impl<T: Inspectable + Reflect + PartialEq> Inspectable for Size<T> {
         ui: &mut bevy_egui::egui::Ui,
         options: Self::Attributes,
         context: &crate::Context,
-    ) {
+    ) -> bool {
+        let mut changed = false;
         ui.vertical_centered(|ui| {
             crate::egui::Grid::new(context.id()).show(ui, |ui| {
                 ui.label("width");
-                self.width.ui(ui, options.clone(), &context.with_id(0));
+                changed |= self.width.ui(ui, options.clone(), &context.with_id(0));
                 ui.end_row();
 
                 ui.label("height");
-                self.height.ui(ui, options, &context.with_id(1));
+                changed |= self.height.ui(ui, options, &context.with_id(1));
                 ui.end_row();
             });
             ui.separator();
         });
+        changed
     }
 }
 
 impl Inspectable for Val {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, _: Self::Attributes, context: &crate::Context) {
+    fn ui(
+        &mut self,
+        ui: &mut bevy_egui::egui::Ui,
+        _: Self::Attributes,
+        context: &crate::Context,
+    ) -> bool {
         use std::mem::discriminant;
 
         let selected = match self {
@@ -115,6 +122,8 @@ impl Inspectable for Val {
             _ => None,
         };
 
+        let mut changed = false;
+
         ui.columns(2, |ui| {
             egui::ComboBox::from_id_source(context.id())
                 .selected_text(selected)
@@ -125,18 +134,22 @@ impl Inspectable for Val {
                     {
                         *self = Val::Undefined;
                         what_to_show = None;
+                        changed = true;
                     }
                     if ui.selectable_label(*self == Val::Auto, "Auto").clicked() {
                         *self = Val::Auto;
                         what_to_show = None;
+                        changed = true;
                     }
                     let is_px = discriminant(self) == discriminant(&Val::Px(0.0));
                     if ui.selectable_label(is_px, "Px").clicked() {
                         what_to_show = Some(WhatToShow::Px);
+                        changed = true;
                     }
                     let is_pct = discriminant(self) == discriminant(&Val::Percent(0.0));
                     if ui.selectable_label(is_pct, "Percent").clicked() {
                         what_to_show = Some(WhatToShow::Percent);
+                        changed = true;
                     }
                 });
 
@@ -152,7 +165,7 @@ impl Inspectable for Val {
                         speed: 10.0,
                         ..Default::default()
                     };
-                    value.ui(&mut ui[1], attrs, context);
+                    changed |= value.ui(&mut ui[1], attrs, context);
                     *self = Val::Px(value);
                 }
                 Some(WhatToShow::Percent) => {
@@ -166,11 +179,12 @@ impl Inspectable for Val {
                         max: Some(100.0),
                         ..Default::default()
                     };
-                    value.ui(&mut ui[1], attrs, context);
+                    changed |= value.ui(&mut ui[1], attrs, context);
                     *self = Val::Percent(value);
                 }
                 None => {}
             }
         });
+        changed
     }
 }

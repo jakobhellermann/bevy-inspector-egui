@@ -10,7 +10,14 @@ struct CustomAttributes {
 struct CustomType;
 impl Inspectable for CustomType {
     type Attributes = CustomAttributes;
-    fn ui(&mut self, _: &mut bevy_inspector_egui::egui::Ui, _: Self::Attributes, _: &Context) {}
+    fn ui(
+        &mut self,
+        _: &mut bevy_inspector_egui::egui::Ui,
+        _: Self::Attributes,
+        _: &Context,
+    ) -> bool {
+        false
+    }
 }
 
 #[derive(Inspectable)]

@@ -61,13 +61,15 @@ impl<T> DerefMut for InNewWindow<T> {
 impl<T: Inspectable + 'static> Inspectable for InNewWindow<T> {
     type Attributes = WindowAttributes<T>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
         ui.label("<shown in another window>");
 
         let window_title = options
             .title
             .map(|title| title.to_string())
             .unwrap_or_else(pretty_type_name::<T>);
+
+        let mut changed = false;
 
         let id = Id::new(context.id()).with(context.id);
         egui::Window::new(window_title)
@@ -78,7 +80,10 @@ impl<T: Inspectable + 'static> Inspectable for InNewWindow<T> {
             .collapsible(options.collapsible)
             .default_pos([400., 100.])
             .show(context.ui_ctx, |ui| {
-                <T as Inspectable>::ui(&mut self.0, ui, options.inner_attributes, context)
+                changed |=
+                    <T as Inspectable>::ui(&mut self.0, ui, options.inner_attributes, context);
             });
+
+        changed
     }
 }

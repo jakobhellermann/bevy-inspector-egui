@@ -161,16 +161,16 @@ where
 
     let world_ptr = world as *mut _;
 
-    let world = world.cell();
-
-    let egui_context = world.get_resource::<EguiContext>().unwrap();
+    let egui_context = unsafe { world.get_resource_unchecked_mut::<EguiContext>().unwrap() };
     let ctx = egui_context.ctx();
 
     let context = unsafe { Context::new_ptr(ctx, world_ptr) };
-    let mut data = match world.get_resource_mut::<T>() {
+    let mut data = match get_silent_mut_unchecked::<T>(world) {
         Some(data) => data,
         None => return,
     };
+
+    let mut changed = false;
 
     egui::Window::new(type_name)
         .resizable(false)
@@ -178,10 +178,52 @@ where
         .show(ctx, |ui| {
             default_settings(ui);
 
-            data.ui(ui, T::Attributes::default(), &context);
+            let value = data.get_mut_silent();
+            changed = value.ui(ui, T::Attributes::default(), &context);
         });
+
+    if changed {
+        data.mark_changed();
+    }
 }
 
 pub(crate) fn default_settings(ui: &mut egui::Ui) {
     ui.style_mut().wrap = Some(false);
+}
+
+fn get_silent_mut_unchecked<T: Send + Sync + 'static>(world: &World) -> Option<SilentMut<T>> {
+    let component_id = world.components().get_resource_id(TypeId::of::<T>())?;
+
+    let resource_archetype = world.archetypes().resource();
+    let unique_components = resource_archetype.unique_components();
+    let column = unique_components.get(component_id).and_then(|column| {
+        if column.is_empty() {
+            None
+        } else {
+            Some(column)
+        }
+    })?;
+
+    let value = unsafe {
+        SilentMut {
+            value: &mut *column.get_ptr().as_ptr().cast::<T>(),
+            component_ticks: &mut *column.get_ticks_mut_ptr(),
+            change_tick: world.read_change_tick(),
+        }
+    };
+    Some(value)
+}
+
+struct SilentMut<'a, T> {
+    pub(crate) value: &'a mut T,
+    pub(crate) component_ticks: &'a mut bevy::ecs::component::ComponentTicks,
+    pub(crate) change_tick: u32,
+}
+impl<'a, T> SilentMut<'a, T> {
+    fn get_mut_silent(&mut self) -> &mut T {
+        self.value
+    }
+    fn mark_changed(&mut self) {
+        self.component_ticks.set_changed(self.change_tick);
+    }
 }

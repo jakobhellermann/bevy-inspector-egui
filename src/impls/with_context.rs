@@ -23,7 +23,8 @@ macro_rules! expect_handle {
         match $assets.$method($asset.clone()) {
             Some(val) => val,
             None => {
-                return utils::error_label($ui, format!("No value for handle {:?}", $asset));
+                utils::error_label($ui, format!("No value for handle {:?}", $asset));
+                return false;
             }
         }
     };
@@ -32,18 +33,19 @@ macro_rules! expect_handle {
 impl Inspectable for HandleId {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
         ui.label("<handle id>");
+        false
     }
 }
 
 impl<T: Asset + Inspectable> Inspectable for Handle<T> {
     type Attributes = T::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
         if self.id == HandleId::default::<T>() {
             ui.label("<default handle>");
-            return;
+            return false;
         }
 
         let world = expect_world!(ui, context, "Handle<T>");
@@ -51,7 +53,7 @@ impl<T: Asset + Inspectable> Inspectable for Handle<T> {
 
         let value = expect_handle!(ui, assets, get_mut self);
 
-        value.ui(ui, options, context);
+        value.ui(ui, options, context)
     }
 }
 
@@ -78,7 +80,7 @@ impl Default for TextureAttributes {
 impl Inspectable for Handle<Texture> {
     type Attributes = TextureAttributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
         let world = expect_world!(ui, context, "Handle<Texture>");
         let _ = world.get_resource_or_insert_with(ScaledDownTextures::default);
 
@@ -92,9 +94,9 @@ impl Inspectable for Handle<Texture> {
         if !textures.contains(&*self) {
             let response = utils::ui::drag_and_drop_target(ui);
             if response.hovered() {
-                utils::ui::replace_handle_if_dropped(self, &*file_events, &*asset_server);
+                return utils::ui::replace_handle_if_dropped(self, &*file_events, &*asset_server);
             }
-            return;
+            return false;
         }
 
         let (texture, id) = match options.rescale {
@@ -111,7 +113,9 @@ impl Inspectable for Handle<Texture> {
         let response = show_texture(texture, id, ui, context);
 
         if response.map_or(false, |res| res.hovered()) {
-            utils::ui::replace_handle_if_dropped(self, &*file_events, &*asset_server);
+            utils::ui::replace_handle_if_dropped(self, &*file_events, &*asset_server)
+        } else {
+            false
         }
     }
 }
@@ -149,7 +153,7 @@ fn rescaled_image<'a>(
 impl Inspectable for Handle<Font> {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
         let world = expect_world!(ui, context, "Handle<Texture>");
         let asset_server = world.get_resource::<AssetServer>().unwrap();
         let file_events = world.get_resource::<Events<FileDragAndDrop>>().unwrap();
@@ -163,7 +167,9 @@ impl Inspectable for Handle<Font> {
         };
 
         if utils::ui::drag_and_drop_target_label(ui, label).hovered() {
-            utils::ui::replace_handle_if_dropped(self, file_events, asset_server);
+            utils::ui::replace_handle_if_dropped(self, file_events, asset_server)
+        } else {
+            false
         }
     }
 }

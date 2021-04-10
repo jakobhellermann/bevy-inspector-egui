@@ -69,7 +69,7 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
             type Attributes = ();
 
 
-            fn ui(&mut self, ui: &mut #egui::Ui, options: Self::Attributes, context: &bevy_inspector_egui::Context) {
+            fn ui(&mut self, ui: &mut #egui::Ui, options: Self::Attributes, context: &bevy_inspector_egui::Context) -> bool {
                 let mut variant = match self {
                     #(Self::#variant_names { .. } => stringify!(#variant_names),)*
                 };
@@ -81,6 +81,8 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
                     if val { ui.group(f); } else { f(ui); }
                 }
 
+                let mut changed = false;
+
                 group_if(ui, should_group, |ui| {
                     ui.vertical(|ui| {
                         ui.horizontal(|ui| {
@@ -89,6 +91,7 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
                                 .show_ui(ui, |ui| {
                                     #(if ui.selectable_label(matches!(self, #name::#variant_names { .. }), stringify!(#variant_names)).clicked() {
                                         variant = stringify!(#variant_names);
+                                        changed = true;
                                     })*
                                 });
                         });
@@ -99,6 +102,8 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
                         };
                     });
                 });
+
+                changed
             }
         }
     }
@@ -153,14 +158,14 @@ fn field_ui(
         if f.len() == 1 {
             quote! {
                 let options = #options;
-                #binding_name.ui(ui, options, context);
+                changed |= #binding_name.ui(ui, options, context);
             }
         } else {
             quote! {
                 ui.horizontal(|ui| {
                     ui.label(stringify!(#member));
                     let options = #options;
-                    #binding_name.ui(ui, options, context);
+                    changed |= #binding_name.ui(ui, options, context);
                 });
             }
         }

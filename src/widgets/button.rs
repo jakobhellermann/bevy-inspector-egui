@@ -37,13 +37,20 @@ impl<E> std::fmt::Debug for InspectableButton<E> {
 impl<E: Component + Default> Inspectable for InspectableButton<E> {
     type Attributes = ButtonAttributes;
 
-    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, options: Self::Attributes, context: &Context) {
+    fn ui(
+        &mut self,
+        ui: &mut bevy_egui::egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let world = expect_world!(ui, context, "InspectableButton");
         let mut events = world.get_resource_mut::<Events<E>>().unwrap();
 
         if ui.button(options.text).clicked() {
             events.send(E::default());
         }
+
+        false
     }
 
     fn setup(app: &mut AppBuilder) {

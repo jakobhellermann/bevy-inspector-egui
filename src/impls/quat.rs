@@ -35,12 +35,17 @@ struct QuatEditStates(HashMap<egui::Id, QuatEditState>);
 impl Inspectable for Quat {
     type Attributes = QuatAttributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
         match options.display {
             QuatDisplay::Raw => {
                 let mut vec4 = Vec4::from(*self);
-                ui.vertical(|ui| vec4.ui(ui, Default::default(), context));
-                *self = Quat::from(vec4).normalize();
+                let changed = ui
+                    .vertical(|ui| vec4.ui(ui, Default::default(), context))
+                    .inner;
+                if changed {
+                    *self = Quat::from(vec4).normalize();
+                }
+                changed
             }
             QuatDisplay::Euler => {
                 let world = expect_world!(ui, context, "Quat");
@@ -55,9 +60,11 @@ impl Inspectable for Quat {
                     _ => unreachable!("invalid quat edit state"),
                 };
 
-                euler_angles.ui(ui, Default::default(), context);
-
-                *self = from_euler_angles(*euler_angles);
+                let changed = euler_angles.ui(ui, Default::default(), context);
+                if changed {
+                    *self = from_euler_angles(*euler_angles);
+                }
+                changed
             }
             QuatDisplay::YawPitchRoll => {
                 let world = expect_world!(ui, context, "Quat");
@@ -72,21 +79,26 @@ impl Inspectable for Quat {
                     _ => unreachable!("invalid quat edit state"),
                 };
 
+                let mut changed = false;
                 ui.vertical(|ui| {
                     egui::Grid::new("ypr grid").show(ui, |ui| {
                         ui.label("Yaw");
-                        ui.drag_angle(yaw);
+                        changed |= ui.drag_angle(yaw).changed();
                         ui.end_row();
-                        ui.label("Pitch");
-                        ui.drag_angle(pitch);
+                        ui.label("Pitch").changed();
+                        changed |= ui.drag_angle(pitch).changed();
                         ui.end_row();
                         ui.label("Roll");
-                        ui.drag_angle(roll);
+                        changed |= ui.drag_angle(roll).changed();
                         ui.end_row();
                     });
                 });
 
-                *self = Quat::from_rotation_ypr(*yaw, *pitch, *roll);
+                if changed {
+                    *self = Quat::from_rotation_ypr(*yaw, *pitch, *roll);
+                }
+
+                changed
             }
             QuatDisplay::AxisAngle => {
                 let world = expect_world!(ui, context, "Quat");
@@ -101,17 +113,21 @@ impl Inspectable for Quat {
                     _ => unreachable!("invalid quat edit state"),
                 };
 
+                let mut changed = false;
                 ui.vertical(|ui| {
                     egui::Grid::new("axis-angle quat").show(ui, |ui| {
                         ui.label("Axis");
-                        axis.ui(ui, Default::default(), context);
+                        changed |= axis.ui(ui, Default::default(), context);
                         ui.end_row();
                         ui.label("Angle");
-                        ui.drag_angle(angle);
+                        changed |= ui.drag_angle(angle).changed();
                         ui.end_row();
                     });
                 });
-                *self = Quat::from_axis_angle(axis.normalize(), *angle);
+                if changed {
+                    *self = Quat::from_axis_angle(axis.normalize(), *angle);
+                }
+                changed
             }
         }
     }

@@ -20,10 +20,11 @@ macro_rules! expect_world {
         match unsafe { $context.world() } {
             Some(val) => val,
             None => {
-                return $crate::utils::error_label(
+                $crate::utils::error_label(
                     $ui,
                     format!("'{}' needs exclusive access to the world", $ty),
                 );
+                return false;
             }
         }
     };

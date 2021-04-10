@@ -51,7 +51,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
 
         let ui = quote! {
             let options = #options;
-            <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options, &context.with_id(#i as u64));
+            changed |= <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options, &context.with_id(#i as u64));
         };
 
         let ui = if attributes.collapse {
@@ -73,15 +73,17 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
             type Attributes = ();
 
 
-            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes, context: &bevy_inspector_egui::Context) {
+            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes, context: &bevy_inspector_egui::Context) -> bool {
                 use bevy_inspector_egui::egui;
 
+                let mut changed = false;
                 ui.vertical_centered(|ui| {
                     let grid = egui::Grid::new(context.id());
                     grid.show(ui, |ui| {
                         #(#fields)*
                     });
                 });
+                changed
             }
 
             fn setup(app: &mut bevy::prelude::AppBuilder) {

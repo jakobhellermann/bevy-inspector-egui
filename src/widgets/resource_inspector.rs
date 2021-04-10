@@ -32,10 +32,10 @@ impl<T: Inspectable + Send + Sync + 'static> Inspectable for ResourceInspector<T
         ui: &mut bevy_egui::egui::Ui,
         options: Self::Attributes,
         context: &crate::Context,
-    ) {
+    ) -> bool {
         let world = expect_world!(ui, context, "ResourceInspector");
         let mut val = world.get_resource_mut::<T>().unwrap();
-        val.ui(ui, options, context);
+        val.ui(ui, options, context)
     }
 }
 

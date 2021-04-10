@@ -11,7 +11,8 @@ impl Inspectable for ExampleWidget {
         _: &mut bevy_inspector_egui::egui::Ui,
         _: Self::Attributes,
         _: &bevy_inspector_egui::Context,
-    ) {
+    ) -> bool {
+        false
     }
 
     fn setup(_: &mut AppBuilder) {

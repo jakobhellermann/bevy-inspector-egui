@@ -94,7 +94,7 @@ impl Num for usize {}
 impl<T: Num> Inspectable for T {
     type Attributes = NumberAttributes<T>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) -> bool {
         let mut widget = widgets::DragValue::new(self);
 
         if !options.prefix.is_empty() {
@@ -117,6 +117,25 @@ impl<T: Num> Inspectable for T {
             widget = widget.speed(default_speed);
         }
 
-        ui.add(widget);
+        let mut changed = ui.add(widget).changed();
+
+        if let Some(min) = options.min {
+            let as_f64 = self.to_f64();
+            let min = min.to_f64();
+            if as_f64 < min {
+                *self = T::from_f64(min);
+                changed = true;
+            }
+        }
+        if let Some(max) = options.max {
+            let as_f64 = self.to_f64();
+            let max = max.to_f64();
+            if as_f64 > max {
+                *self = T::from_f64(max);
+                changed = true;
+            }
+        }
+
+        changed
     }
 }

@@ -6,7 +6,6 @@
 
 - many new implementations (`Handle<Texture>`, `ColorMaterial`, `Entity`, `World`, UI stuff, tuples)
 - `WorldInspectorPlugin` for displaying the whole entity tree in a UI panel
-  TODO screenshot
 - `widgets::InspectorQuery`: display entity tree for select entities
   Use like
   ```rust
@@ -39,6 +38,7 @@
 
 ### Changed
 
+- `Inspectable::ui` now returns a bool which indicates whether any data has changed. You can now check via `Res<T>::changed` whether data was modified.
 - rename `InspectorPlugin::thread_local -> new, InspectorPlugin::new -> shared`
 - require `FromResources` instead of `Default` on the inspectable data
 - update to `bevy 0.5`
