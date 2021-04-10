@@ -141,13 +141,11 @@ impl Inspectable for GlobalTransform {
 
         let changed = transform.ui(ui, options, context);
 
-        if changed {
-            *self = GlobalTransform {
-                translation: transform.translation,
-                rotation: transform.rotation,
-                scale: transform.scale,
-            };
-        }
+        *self = GlobalTransform {
+            translation: transform.translation,
+            rotation: transform.rotation,
+            scale: transform.scale,
+        };
 
         changed
     }
