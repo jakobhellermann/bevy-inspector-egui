@@ -1,7 +1,7 @@
 use bevy::prelude::AppBuilder;
 
-use crate::Inspectable;
 use crate::{egui, Context};
+use crate::{utils, Inspectable};
 
 impl<T> Inspectable for Vec<T>
 where
@@ -18,11 +18,10 @@ where
             let len = self.len();
             for (i, val) in self.iter_mut().enumerate() {
                 ui.horizontal(|ui| {
-                    ui.label(i.to_string());
-                    changed |= val.ui(ui, options.clone(), &context.with_id(i as u64));
-                    if ui.button("-").clicked() {
+                    if utils::ui::label_button(ui, "✖", egui::Color32::RED) {
                         to_delete = Some(i);
                     }
+                    changed |= val.ui(ui, options.clone(), &context.with_id(i as u64));
                 });
 
                 if i != len - 1 {
