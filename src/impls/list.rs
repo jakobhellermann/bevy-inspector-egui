@@ -15,6 +15,7 @@ where
         ui.vertical(|ui| {
             let mut to_delete = None;
 
+            let len = self.len();
             for (i, val) in self.iter_mut().enumerate() {
                 ui.horizontal(|ui| {
                     ui.label(i.to_string());
@@ -23,6 +24,10 @@ where
                         to_delete = Some(i);
                     }
                 });
+
+                if i != len - 1 {
+                    ui.separator();
+                }
             }
 
             ui.vertical_centered_justified(|ui| {

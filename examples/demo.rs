@@ -18,6 +18,7 @@ struct Data {
     color: Color,
     #[inspectable(visual, min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
     position: Vec2,
+    list: Vec<f32>,
 }
 impl Default for Data {
     fn default() -> Self {
@@ -28,6 +29,7 @@ impl Default for Data {
             text_color: TextColor::White,
             color: Color::BLUE,
             position: Vec2::default(),
+            list: vec![0.0],
         }
     }
 }
