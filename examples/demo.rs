@@ -19,7 +19,10 @@ struct Data {
     #[inspectable(visual, min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
     position: Vec2,
     list: Vec<f32>,
+    #[inspectable(replacement = String::default as fn() -> _)]
+    option: Option<String>,
 }
+
 impl Default for Data {
     fn default() -> Self {
         Data {
@@ -30,6 +33,7 @@ impl Default for Data {
             color: Color::BLUE,
             position: Vec2::default(),
             list: vec![0.0],
+            option: None,
         }
     }
 }
