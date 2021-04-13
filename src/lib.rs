@@ -187,6 +187,13 @@ pub trait Inspectable {
     /// Returns whether any data was modified.
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool;
 
+    /// Displays the value without any context. Useful for usage outside of the plugins, where
+    /// there is no access to the world or [`EguiContext`](bevy_egui::EguiContext).
+    fn ui_raw(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
+        let empty_context = Context::new_shared(None);
+        self.ui(ui, options, &empty_context);
+    }
+
     /// Required setup for the bevy application, e.g. registering Resources.
     #[allow(unused_variables)]
     fn setup(app: &mut AppBuilder) {}
