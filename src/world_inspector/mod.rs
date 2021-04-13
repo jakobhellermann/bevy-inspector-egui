@@ -101,11 +101,11 @@ impl Default for WorldInspectorParams {
 
 struct WorldUIContext<'a> {
     world: &'a mut World,
-    ui_ctx: &'a egui::CtxRef,
+    ui_ctx: Option<&'a egui::CtxRef>,
     delete_entity: Cell<Option<Entity>>,
 }
 impl<'a> WorldUIContext<'a> {
-    fn new(ui_ctx: &'a egui::CtxRef, world: &'a mut World) -> WorldUIContext<'a> {
+    fn new(ui_ctx: Option<&'a egui::CtxRef>, world: &'a mut World) -> WorldUIContext<'a> {
         WorldUIContext {
             world,
             ui_ctx,

@@ -62,6 +62,15 @@ impl<T: Inspectable + 'static> Inspectable for InNewWindow<T> {
     type Attributes = WindowAttributes<T>;
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+        let ui_ctx = match context.ui_ctx {
+            Some(ctx) => ctx,
+            None => {
+                ui.label(
+                    "Need `context.ui_ctx` for the `InNewWindow<T>` inspectable implementation",
+                );
+                return false;
+            }
+        };
         ui.label("<shown in another window>");
 
         let window_title = options
@@ -79,7 +88,7 @@ impl<T: Inspectable + 'static> Inspectable for InNewWindow<T> {
             .title_bar(options.title_bar)
             .collapsible(options.collapsible)
             .default_pos([400., 100.])
-            .show(context.ui_ctx, |ui| {
+            .show(ui_ctx, |ui| {
                 changed |=
                     <T as Inspectable>::ui(&mut self.0, ui, options.inner_attributes, context);
             });

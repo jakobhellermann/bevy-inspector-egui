@@ -94,7 +94,7 @@ where
         .show(egui_context.ctx(), |ui| {
             crate::plugin::default_settings(ui);
             let world: &mut World = unsafe { &mut *world_ptr };
-            let mut ui_context = WorldUIContext::new(egui_context.ctx(), world);
+            let mut ui_context = WorldUIContext::new(Some(egui_context.ctx()), world);
             ui_context.world_ui::<F>(ui, &params);
         });
 

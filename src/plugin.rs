@@ -144,7 +144,7 @@ fn shared_access_ui<T>(
         .show(egui_context.ctx(), |ui| {
             default_settings(ui);
 
-            let context = Context::new_shared(ctx);
+            let context = Context::new_shared(Some(ctx));
             data.ui(ui, T::Attributes::default(), &context);
         });
 }
@@ -164,7 +164,7 @@ where
     let egui_context = unsafe { world.get_resource_unchecked_mut::<EguiContext>().unwrap() };
     let ctx = egui_context.ctx();
 
-    let context = unsafe { Context::new_ptr(ctx, world_ptr) };
+    let context = unsafe { Context::new_ptr(Some(ctx), world_ptr) };
     let mut data = match get_silent_mut_unchecked::<T>(world) {
         Some(data) => data,
         None => return,

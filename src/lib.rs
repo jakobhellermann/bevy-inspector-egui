@@ -82,7 +82,7 @@ pub mod options {
 /// The context passed to [`Inspectable::ui`].
 pub struct Context<'a> {
     /// egui ui context
-    pub ui_ctx: &'a CtxRef,
+    pub ui_ctx: Option<&'a CtxRef>,
     /// The world is only available when not using `InspectablePlugin::shared()`
     world: Option<*mut World>,
 
@@ -102,7 +102,7 @@ impl<'a> Context<'a> {
     /// Create new context with exclusive access to the `World`
     pub fn new(ui_ctx: &'a CtxRef, world: &'a mut World) -> Self {
         Context {
-            ui_ctx,
+            ui_ctx: Some(ui_ctx),
             world: Some(world as *mut _),
             id: None,
         }
@@ -111,7 +111,7 @@ impl<'a> Context<'a> {
     /// # Safety
     /// The `world` pointer must come from a mutable reference to a world and no
     /// other threads must be writing to it.
-    pub unsafe fn new_ptr(ui_ctx: &'a CtxRef, world: *mut World) -> Self {
+    pub unsafe fn new_ptr(ui_ctx: Option<&'a CtxRef>, world: *mut World) -> Self {
         Context {
             ui_ctx,
             world: Some(world),
@@ -120,7 +120,7 @@ impl<'a> Context<'a> {
     }
 
     /// Creates a context without access to `World`
-    pub fn new_shared(ui_ctx: &'a CtxRef) -> Self {
+    pub fn new_shared(ui_ctx: Option<&'a CtxRef>) -> Self {
         Context {
             ui_ctx,
             world: None,
