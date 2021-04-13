@@ -113,9 +113,9 @@ fn setup(
         .insert(RotateTarget)
         .insert(Name::new("Sphere"));
     commands
-        .spawn_bundle(LightBundle {
+        .spawn_bundle(PointLightBundle {
             transform: Transform::from_xyz(10.3, 8.0, -2.3),
-            light: Light {
+            point_light: PointLight {
                 range: 20.0,
                 intensity: 1237.0,
                 ..Default::default()
@@ -124,9 +124,9 @@ fn setup(
         })
         .insert(Name::new("Light"));
     commands
-        .spawn_bundle(LightBundle {
+        .spawn_bundle(PointLightBundle {
             transform: Transform::from_xyz(-6.2, 8.0, 4.3),
-            light: Light {
+            point_light: PointLight {
                 range: 20.0,
                 intensity: 245.0,
                 ..Default::default()

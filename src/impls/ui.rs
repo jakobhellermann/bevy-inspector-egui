@@ -10,7 +10,7 @@ impl_for_simple_enum!(bevy::ui::FocusPolicy: Block, Pass);
 impl_for_simple_enum!(VerticalAlign: Top, Center, Bottom);
 impl_for_simple_enum!(HorizontalAlign: Left, Center, Right);
 impl_for_simple_enum!(PositionType: Absolute, Relative);
-impl_for_simple_enum!(Direction: Inherit, Ltr, Rtl);
+impl_for_simple_enum!(Direction: Inherit, LeftToRight, RightToLeft);
 impl_for_simple_enum!(FlexDirection: Row, Column, RowReverse, ColumnReverse);
 impl_for_simple_enum!(FlexWrap: NoWrap, Wrap, WrapReverse);
 impl_for_simple_enum!(AlignItems: FlexStart, FlexEnd, Center, Baseline, Stretch);

@@ -50,7 +50,7 @@ fn setup(
         transform: Transform::from_xyz(0.0, 0.5, 0.0),
         ..Default::default()
     });
-    commands.spawn_bundle(LightBundle {
+    commands.spawn_bundle(PointLightBundle {
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
         ..Default::default()
     });

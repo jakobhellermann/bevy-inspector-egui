@@ -105,7 +105,7 @@ impl Default for InspectableRegistry {
         this.register::<bevy::asset::HandleId>();
         this.register::<TextureAtlasSprite>();
         this.register::<TextureAtlas>();
-        this.register::<Light>();
+        this.register::<PointLight>();
         this.register::<StandardMaterial>();
         this.register::<ColorMaterial>();
         this.register::<PrimitiveTopology>();

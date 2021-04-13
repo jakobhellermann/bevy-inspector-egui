@@ -13,12 +13,11 @@ use bevy_egui::egui;
 use egui::Grid;
 
 impl_for_struct_delegate_fields!(
-    Light:
+    PointLight:
     color,
-    fov,
-    depth with NumberAttributes::positive().speed(1.0),
     intensity with NumberAttributes::positive().speed(1.0),
     range with NumberAttributes::positive(),
+    radius with NumberAttributes::positive(),
 );
 impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
 impl_for_simple_enum!(
