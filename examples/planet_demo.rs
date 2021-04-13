@@ -111,7 +111,7 @@ fn setup(
             ..Default::default()
         })
         .insert(Planet);
-    commands.spawn_bundle(LightBundle {
+    commands.spawn_bundle(PointLightBundle {
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
         ..Default::default()
     });

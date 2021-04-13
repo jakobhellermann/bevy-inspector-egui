@@ -493,7 +493,7 @@ fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
         }
     }
 
-    if entity_is_bundle::<LightBundle>(&entity) {
+    if entity_is_bundle::<PointLightBundle>(&entity) {
         return format!("Light ({:?})", entity.id().id()).into();
     }
     if entity_is_bundle::<TextBundle>(&entity) {
