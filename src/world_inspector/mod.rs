@@ -2,7 +2,7 @@ pub(crate) mod impls;
 mod inspectable_registry;
 mod plugin;
 
-use bevy::render::camera::Camera;
+use bevy::{render::camera::Camera, window::WindowId};
 pub use inspectable_registry::InspectableRegistry;
 pub use plugin::WorldInspectorPlugin;
 
@@ -43,6 +43,8 @@ pub struct WorldInspectorParams {
     pub enabled: bool,
     /// Whether entities can be despawned
     pub despawnable_entities: bool,
+    /// The window the inspector should be displayed on
+    pub window: WindowId,
 }
 
 impl WorldInspectorParams {
@@ -53,6 +55,7 @@ impl WorldInspectorParams {
             sort_components: false,
             enabled: true,
             despawnable_entities: false,
+            window: WindowId::primary(),
         }
     }
 

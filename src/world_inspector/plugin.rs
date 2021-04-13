@@ -117,11 +117,16 @@ where
     }
 
     let egui_context = world.get_resource::<EguiContext>().expect("EguiContext");
+    let ctx = match egui_context.try_ctx_for_window(params.window) {
+        Some(ctx) => ctx,
+        None => return,
+    };
+
     let mut is_open = true;
     egui::Window::new("World")
         .open(&mut is_open)
         .scroll(true)
-        .show(egui_context.ctx(), |ui| {
+        .show(ctx, |ui| {
             crate::plugin::default_settings(ui);
             let world: &mut World = unsafe { &mut *world_ptr };
             let mut ui_context = WorldUIContext::new(Some(egui_context.ctx()), world);

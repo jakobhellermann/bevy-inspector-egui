@@ -1,6 +1,6 @@
 use std::{any::TypeId, marker::PhantomData};
 
-use bevy::prelude::*;
+use bevy::{prelude::*, window::WindowId};
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 use pretty_type_name::pretty_type_name_str;
 
@@ -13,6 +13,7 @@ pub struct InspectorPlugin<T> {
     marker: PhantomData<T>,
     exclusive_access: bool,
     initial_value: Option<Box<dyn Fn(&mut World) -> T + Send + Sync + 'static>>,
+    window_id: WindowId,
 }
 
 impl<T: Default + Send + Sync + 'static> Default for InspectorPlugin<T> {
@@ -28,6 +29,7 @@ impl<T: FromWorld + Send + Sync + 'static> InspectorPlugin<T> {
             exclusive_access: true,
             marker: PhantomData,
             initial_value: Some(Box::new(T::from_world)),
+            window_id: WindowId::primary(),
         }
     }
 }
@@ -39,6 +41,7 @@ impl<T> InspectorPlugin<T> {
             marker: PhantomData,
             exclusive_access: true,
             initial_value: None,
+            window_id: WindowId::primary(),
         }
     }
 
@@ -50,22 +53,41 @@ impl<T> InspectorPlugin<T> {
             ..self
         }
     }
+
+    /// Sets the window the inspector should be displayed on
+    pub fn on_window(self, window_id: WindowId) -> Self {
+        InspectorPlugin { window_id, ..self }
+    }
 }
 
 #[derive(Default, Debug)]
-struct InspectorWindows(bevy::utils::HashMap<TypeId, String>);
+struct InspectorWindows(bevy::utils::HashMap<TypeId, (String, WindowId)>);
 impl InspectorWindows {
+    fn insert<T: 'static>(&mut self, name: String, window_id: WindowId) {
+        self.0.insert(TypeId::of::<T>(), (name, window_id));
+    }
     fn contains_id(&self, type_id: TypeId) -> bool {
         self.0.iter().any(|(&id, _)| id == type_id)
     }
     fn contains_name(&self, name: &str) -> bool {
-        self.0.iter().any(|(_, n)| n == name)
+        self.0.iter().any(|(_, (n, _))| n == name)
     }
-    fn get_unwrap<T: 'static>(&self) -> &str {
+    fn get_unwrap<T: 'static>(&self) -> &(String, WindowId) {
         self.0
             .get(&TypeId::of::<T>())
             .expect("inspector window not properly initialized")
     }
+
+    /*#[track_caller]
+    pub fn set_window<T: 'static>(&mut self, window_id: WindowId) {
+        let (_, id) = self
+            .0
+            .get_mut(&TypeId::of::<T>())
+            .ok_or_else(|| format!("no inspector window for `{}`", std::any::type_name::<T>()))
+            .unwrap();
+
+        *id = window_id;
+    }*/
 }
 
 impl<T> Plugin for InspectorPlugin<T>
@@ -114,10 +136,10 @@ where
             if inspector_windows.contains_name(full_type_name) {
                 panic!("two types with different type_id but same type_name");
             } else {
-                inspector_windows.0.insert(type_id, full_type_name.into());
+                inspector_windows.insert::<T>(full_type_name.into(), self.window_id);
             }
         } else {
-            inspector_windows.0.insert(type_id, type_name);
+            inspector_windows.insert::<T>(type_name, self.window_id);
         }
     }
 }
@@ -134,9 +156,8 @@ fn shared_access_ui<T>(
         None => return,
     };
 
-    let ctx = egui_context.ctx();
-
-    let type_name = inspector_windows.get_unwrap::<T>();
+    let (type_name, window_id) = inspector_windows.get_unwrap::<T>();
+    let ctx = egui_context.ctx_for_window(*window_id);
 
     egui::Window::new(type_name)
         .resizable(false)
@@ -153,16 +174,20 @@ fn exclusive_access_ui<T>(world: &mut World)
 where
     T: Inspectable + Send + Sync + 'static,
 {
-    let type_name = {
+    let (type_name, window_id) = {
         let inspector_windows = world.get_resource_mut::<InspectorWindows>().unwrap();
-        let type_name = inspector_windows.get_unwrap::<T>();
-        type_name.to_string()
+        let (type_name, window_id) = inspector_windows.get_unwrap::<T>();
+        (type_name.to_string(), *window_id)
     };
 
     let world_ptr = world as *mut _;
 
     let egui_context = unsafe { world.get_resource_unchecked_mut::<EguiContext>().unwrap() };
-    let ctx = egui_context.ctx();
+
+    let ctx = match egui_context.try_ctx_for_window(window_id) {
+        Some(ctx) => ctx,
+        None => return,
+    };
 
     let context = unsafe { Context::new_ptr(Some(ctx), world_ptr) };
     let mut data = match get_silent_mut_unchecked::<T>(world) {
