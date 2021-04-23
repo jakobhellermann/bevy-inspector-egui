@@ -30,7 +30,6 @@ fn setup(
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..Default::default()
     });
-<<<<<<< HEAD
     commands
         .spawn_bundle(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
@@ -39,16 +38,7 @@ fn setup(
             ..Default::default()
         })
         .insert(Player);
-    commands.spawn_bundle(LightBundle {
-=======
-    commands.spawn_bundle(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-        transform: Transform::from_xyz(0.0, 0.5, 0.0),
-        ..Default::default()
-    });
     commands.spawn_bundle(PointLightBundle {
->>>>>>> cad7eee... update to bevy main
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
         ..Default::default()
     });
