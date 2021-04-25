@@ -27,6 +27,36 @@ use crate::InspectableRegistry;
 ///   // adding `Name` components will make the inspector more readable
 /// }
 /// ```
+///
+/// To be able to edit custom components in inspector, they need to be registered first with
+/// [`crate::InspectableRegistry`], to do that they need to implement [`crate::Inspectable`].
+///
+/// ```rust,no_run
+/// use bevy::prelude::*;
+/// use bevy_inspector_egui::{Inspectable, InspectableRegistry};
+///
+/// #[derive(Inspectable)]
+/// pub struct MyComponent {
+///     foo: f32,
+///     bar: usize
+/// }
+///
+/// pub struct MyPlugin;
+///
+/// impl Plugin for MyPlugin {
+///     fn build(&self, app: &mut AppBuilder) {
+///         let mut registry = app
+///             .world_mut()
+///             .get_resource_or_insert_with(InspectableRegistry::default);
+///
+///         registry.register::<MyComponent>();
+///     }
+/// }
+/// ```
+///
+/// Components can be registered in `main` function aswell, just use your [`bevy::app::AppBuilder`]
+/// instance to do so.
+
 pub struct WorldInspectorPlugin<F = ()>(PhantomData<fn() -> F>);
 impl Default for WorldInspectorPlugin {
     fn default() -> Self {
