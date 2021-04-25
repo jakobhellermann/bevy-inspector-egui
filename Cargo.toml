@@ -45,3 +45,6 @@ required-features = ["rapier"]
 [[example]]
 name = "texture"
 required-features = ["bevy/png"]
+
+[[example]]
+name = "world"
