@@ -1,5 +1,9 @@
 # Changelog
 
+
+## *unreleased*
+- `InspectorQuerySingle` (like `.single_mut` on a query)
+
 ## Version 0.4
 
 ### Added

@@ -94,16 +94,6 @@ impl<Q, F> Default for InspectorQuery<Q, F> {
     }
 }
 
-#[derive(Clone)]
-pub struct InspectorQueryAttributes {
-    pub collapse: bool,
-}
-impl Default for InspectorQueryAttributes {
-    fn default() -> Self {
-        InspectorQueryAttributes { collapse: false }
-    }
-}
-
 impl<'w, Q, F> Inspectable for InspectorQuery<Q, F>
 where
     Q: WorldQuery,
@@ -141,6 +131,89 @@ where
                     .show(ui, |ui| {
                         changed |= value.ui(ui, options.clone(), &context.with_id(i as u64));
                     });
+            }
+        });
+
+        changed
+    }
+}
+
+/// Executes [Queries](bevy::ecs::system::Query) and displays the only result.
+///
+/// You can use any types and filters which are allowed in regular bevy queries,
+/// however you may need to specify a `'static` lifetime since you can't elide them in structs.
+///
+/// ```rust,no_run
+/// use bevy::prelude::*;
+/// use bevy_inspector_egui::{Inspectable, InspectorPlugin};
+/// use bevy_inspector_egui::widgets::InspectorQuerySingle;
+///
+/// struct Player;
+///
+/// #[derive(Inspectable, Default)]
+/// struct Queries {
+///   player: InspectorQuerySingle<Entity, With<Player>>
+/// }
+///
+/// fn main() {
+///     App::build()
+///         .add_plugins(DefaultPlugins)
+///         .add_plugin(InspectorPlugin::<Queries>::new())
+///         .run();
+/// }
+/// ```
+pub struct InspectorQuerySingle<Q, F = ()>(PhantomData<(Q, F)>);
+
+impl<Q, F> Default for InspectorQuerySingle<Q, F> {
+    fn default() -> Self {
+        InspectorQuerySingle(PhantomData)
+    }
+}
+
+impl<'w, Q, F> Inspectable for InspectorQuerySingle<Q, F>
+where
+    Q: WorldQuery,
+    F: WorldQuery,
+    F::Fetch: FilterFetch,
+    <<Q as WorldQuery>::Fetch as Fetch<'static>>::Item: Inspectable,
+{
+    type Attributes =
+        <<<Q as WorldQuery>::Fetch as Fetch<'static>>::Item as Inspectable>::Attributes;
+
+    fn ui(
+        &mut self,
+        ui: &mut bevy_egui::egui::Ui,
+        options: Self::Attributes,
+        context: &crate::Context,
+    ) -> bool {
+        let world = match context.world {
+            // Safety: the pointer provided in `Context::new` must be exclusive and valid.
+            Some(world) => unsafe { &mut *world },
+            None => {
+                error_label(ui, format!("Query needs exclusive access to the world"));
+                return false;
+            }
+        };
+
+        let mut changed = false;
+
+        ui.vertical(move |ui| {
+            let mut query_state = world.query_filtered::<Q, F>();
+            let mut iter = query_state.iter_mut(world);
+            let value = iter.next();
+            let has_more = iter.next().is_some();
+
+            match (value, has_more) {
+                (None, _) => todo!(),
+                (Some(_), true) => todo!(),
+                (Some(mut value), false) => {
+                    let name = pretty_type_name::pretty_type_name::<Q>();
+                    CollapsingHeader::new(name)
+                        .id_source(context.id())
+                        .show(ui, |ui| {
+                            changed |= value.ui(ui, options.clone(), context);
+                        });
+                }
             }
         });
 

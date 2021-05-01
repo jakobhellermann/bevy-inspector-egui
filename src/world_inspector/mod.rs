@@ -3,7 +3,6 @@ mod inspectable_registry;
 mod plugin;
 
 use bevy::render::camera::Camera;
-pub use impls::InspectorQuery;
 pub use inspectable_registry::InspectableRegistry;
 pub use plugin::WorldInspectorPlugin;
 
