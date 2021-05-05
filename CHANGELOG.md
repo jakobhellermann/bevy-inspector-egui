@@ -2,7 +2,10 @@
 
 
 ## *unreleased*
+- support for multiple windows using `InspectorPlugin::new.on_window(window_id)` ([example](https://github.com/jakobhellermann/bevy-inspector-egui/blob/main/examples/two_windows.rs))
 - `InspectorQuerySingle` (like `.single_mut` on a query)
+- `ignore`, `read_only` and `wrapper` built-in attributes
+- optional `ui_ctx`
 
 ## Version 0.4
 
