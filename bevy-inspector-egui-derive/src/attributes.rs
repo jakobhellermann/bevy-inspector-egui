@@ -1,6 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
+#[derive(Debug)]
 pub enum InspectableAttribute {
     Assignment(syn::Member, syn::Expr),
     Tag(syn::Member),
@@ -26,7 +27,12 @@ impl InspectableAttribute {
             syn::Member::Unnamed(_) => return false,
         };
 
-        ident == "label" || ident == "collapse" || ident == "default" || ident == "ignore"
+        ident == "label"
+            || ident == "collapse"
+            || ident == "default"
+            || ident == "ignore"
+            || ident == "wrapper"
+            || ident == "read_only"
     }
 }
 
@@ -65,6 +71,8 @@ pub struct InspectableAttributes {
     pub label: Option<String>,
     pub default: Option<syn::Expr>,
     pub ignore: bool,
+    pub read_only: bool,
+    pub wrapper: Option<syn::ExprPath>,
     pub custom_attributes: Vec<InspectableAttribute>,
 }
 
@@ -84,6 +92,24 @@ impl InspectableAttributes {
             }
         }
     }
+
+    pub fn label<'a>(&'a self, fallback: &'a str) -> &'a str {
+        self.label.as_deref().unwrap_or(fallback)
+    }
+
+    pub fn decorate_ui(&self, mut ui: TokenStream, collapse_label: &str, i: usize) -> TokenStream {
+        if self.collapse {
+            ui = quote! { bevy_inspector_egui::egui::CollapsingHeader::new(#collapse_label).id_source(#i as u64).show(ui, |ui| { #ui }); };
+        }
+        if self.read_only {
+            ui = quote! { ui.wrap(|ui| { ui.set_enabled(false); #ui }); };
+        }
+        if let Some(wrapper_fn) = &self.wrapper {
+            ui = quote! { #wrapper_fn(ui, |ui| { #ui }); };
+        }
+
+        ui
+    }
 }
 
 pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> InspectableAttributes {
@@ -101,6 +127,9 @@ pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> InspectableAttributes
             InspectableAttribute::Tag(syn::Member::Named(ident)) if ident == "ignore" => {
                 all.ignore = true;
             }
+            InspectableAttribute::Tag(syn::Member::Named(ident)) if ident == "read_only" => {
+                all.read_only = true;
+            }
             #[rustfmt::skip]
             InspectableAttribute::Assignment(syn::Member::Named(ident), expr) if ident == "label" => {
                 if let syn::Expr::Lit(syn::ExprLit { lit: syn::Lit::Str(str), .. }) = expr {
@@ -112,6 +141,14 @@ pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> InspectableAttributes
             #[rustfmt::skip]
             InspectableAttribute::Assignment(syn::Member::Named(ident), expr) if ident == "default" => {
                 all.default = Some(expr);
+            }
+            #[rustfmt::skip]
+            InspectableAttribute::Assignment(syn::Member::Named(ident), expr) if ident == "wrapper"=> {
+                let path = match expr {
+                    syn::Expr::Path(path) => path,
+                    _ => panic!("`wrapper` attribute expected a path to a function"),
+                };
+                all.wrapper = Some(path);
             }
             InspectableAttribute::Tag(name) | InspectableAttribute::Assignment(name, _) => {
                 match name {

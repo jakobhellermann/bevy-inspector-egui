@@ -56,8 +56,9 @@ fn main() {
 
 ## World Inspector
 
-If you want to display all world entities you can add the `WorldInspector`:
+If you want to display all world entities you can add the `WorldInspectorPlugin`:
 ```rust
+use bevy::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 fn main() {

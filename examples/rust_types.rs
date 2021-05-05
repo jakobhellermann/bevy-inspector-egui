@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::{Inspectable, InspectorPlugin};
+use bevy_inspector_egui::{egui, Inspectable, InspectorPlugin};
 
 #[derive(Inspectable, Default)]
 struct Data {
@@ -17,12 +17,26 @@ struct Data {
     #[inspectable(min = Vec3::ZERO, max = Vec3::splat(128.0))]
     vec3: Vec3,
     text: String,
+    #[inspectable(wrapper = change_bg_color)]
     transform: Transform,
+    #[inspectable(read_only)]
+    disabled: f32,
     #[inspectable(collapse)]
     noise_settings: NoiseSettings,
     #[allow(unused)]
     #[inspectable(ignore)]
     non_inspectable: NonInspectable,
+}
+
+fn change_bg_color(ui: &mut egui::Ui, mut content: impl FnMut(&mut egui::Ui)) {
+    ui.wrap(|ui| {
+        let bg_color = egui::Color32::from_rgb(41, 80, 80);
+        ui.style_mut().visuals.widgets.inactive.bg_fill = bg_color;
+        ui.style_mut().visuals.widgets.active.bg_fill = bg_color;
+        ui.style_mut().visuals.widgets.hovered.bg_fill = bg_color;
+        ui.style_mut().visuals.widgets.noninteractive.bg_fill = bg_color;
+        content(ui);
+    });
 }
 
 #[derive(Inspectable)]

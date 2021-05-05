@@ -41,6 +41,25 @@
 //! // fn your_system(data: Res<Data>) { /* */ }
 //! ```
 //!
+//! The list of built-in attributes is documented [here](trait.Inspectable.html#default-attributes).
+//!
+//! ## World Inspector
+//!
+//! If you want to display all world entities you can add the [`WorldInspectorPlugin`]:
+//! ```rust,no_run
+//! use bevy::prelude::*;
+//! use bevy_inspector_egui::WorldInspectorPlugin;
+//!
+//! fn main() {
+//!     App::build()
+//!         .add_plugins(DefaultPlugins)
+//!         .add_plugin(WorldInspectorPlugin::new())
+//!         .add_startup_system(setup.system())
+//!         .run();
+//! }
+//! # fn setup() {}
+//! ```
+//! You can configure it by inserting the [`WorldInspectorParams`] resource.
 
 #[macro_use]
 mod utils;
@@ -155,6 +174,14 @@ impl<'a> Context<'a> {
 
 /// This trait describes how a struct should be displayed.
 /// It can be derived for structs and enums, see the [crate-level docs](index.html) for how to do that.
+///
+/// ## Default attributes
+/// - **ignore**: hides the field in the inspector
+/// - **label**: provides a label instead of using the field name
+/// - **read_only**: disables the UI
+/// - **collapse**: wraps the ui in an [`egui::CollapsingHeader`].
+/// - **default**: only for enums, specifies the default value when selecting a new variant
+/// - **wrapper**: wrap field UI in a custom function. Demo in the [rust_types example](https://github.com/jakobhellermann/bevy-inspector-egui/blob/main/examples/rust_types.rs#L20).
 pub trait Inspectable {
     /// The `Attributes` associated type specifies what attributes can be passed to a field.
     /// See the following snippet for an example:
@@ -194,7 +221,7 @@ pub trait Inspectable {
         self.ui(ui, options, &empty_context);
     }
 
-    /// Required setup for the bevy application, e.g. registering Resources.
+    /// Required setup for the bevy application, e.g. registering events. Note that this method will run for every instance of a type.
     #[allow(unused_variables)]
     fn setup(app: &mut AppBuilder) {}
 }

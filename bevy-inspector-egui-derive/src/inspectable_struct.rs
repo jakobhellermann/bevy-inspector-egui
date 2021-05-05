@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 
 use crate::utils;
 
@@ -34,17 +34,13 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
 
         let ty = &field.ty;
 
-        let field_label = field_label(field, i);
         let accessor = utils::field_accessor(field, i);
+        let field_label = utils::field_label(field, i);
+        let field_label = attributes.label(&field_label);
 
         if attributes.default.is_some() {
             panic!("#[inspectable(default = <expr>)] is only for enums");
         }
-
-        let field_label  = match &attributes.label {
-            Some(label) => label.to_token_stream(),
-            None => quote! { #field_label },
-        };
 
         // user specified options
         let options = attributes.create_options_struct(ty);
@@ -53,12 +49,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
             let options = #options;
             changed |= <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options, &context.with_id(#i as u64));
         };
-
-        let ui = if attributes.collapse {
-            quote! { bevy_inspector_egui::egui::CollapsingHeader::new(#field_label).id_source(#i as u64).show(ui, |ui| { #ui }); }
-        } else {
-            ui
-        };
+        let ui = attributes.decorate_ui(ui, field_label, i);
 
         quote! {
             ui.label(#field_label);
@@ -90,12 +81,5 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
                 #(#field_setup)*
             }
         }
-    }
-}
-
-fn field_label(field: &syn::Field, i: usize) -> String {
-    match &field.ident {
-        Some(name) => name.to_string(),
-        None => i.to_string(),
     }
 }

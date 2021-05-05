@@ -151,11 +151,14 @@ fn field_ui(
         let binding_name = name_for_member(field, *i);
         let options = attributes.create_options_struct(&field.ty);
 
+        let field_label = utils::field_label(field, *i);
+        let field_label = attributes.label(&field_label);
+
         if attributes.ignore {
             return quote! {};
         }
 
-        if f.len() == 1 {
+        let ui = if f.len() == 1 {
             quote! {
                 let options = #options;
                 changed |= #binding_name.ui(ui, options, context);
@@ -168,7 +171,10 @@ fn field_ui(
                     changed |= #binding_name.ui(ui, options, context);
                 });
             }
-        }
+        };
+
+        let ui = attributes.decorate_ui(ui, field_label, *i);
+        ui
     });
 
     quote! {
