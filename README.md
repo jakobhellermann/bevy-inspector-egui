@@ -78,5 +78,6 @@ If you want to only display some components, you may want to use the [InspectorQ
 
 |bevy|bevy-inspector-egui|
 |---|---|
+|0.5|0.5|
 |0.5|0.4|
 |0.4|0.1-0.3|

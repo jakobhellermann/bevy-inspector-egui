@@ -1,6 +1,6 @@
 [package]
 name = "bevy-inspector-egui"
-version = "0.4.1"
+version = "0.5.0"
 authors = [
     "Jakob Hellermann <jakob.hellermann@protonmail.com>",
     "Will Crichton <wcrichto@cs.stanford.edu>",
@@ -31,7 +31,7 @@ bevy_rapier3d = { version = "0.9", optional = true }
 pretty-type-name = "1.0"
 image = { version = "0.23", default-features = false }
 
-bevy-inspector-egui-derive = { version = "0.4", path = "bevy-inspector-egui-derive" }
+bevy-inspector-egui-derive = { version = "0.5", path = "bevy-inspector-egui-derive" }
 
 [dev-dependencies]
 bevy = { version = "0.5", default-features = false, features = ["x11", "render", "bevy_wgpu", "bevy_winit", "dynamic"] }

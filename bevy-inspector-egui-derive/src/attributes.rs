@@ -1,7 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
-#[derive(Debug)]
 pub enum InspectableAttribute {
     Assignment(syn::Member, syn::Expr),
     Tag(syn::Member),
