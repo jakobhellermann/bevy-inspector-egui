@@ -2,18 +2,6 @@ use bevy::prelude::*;
 use bevy_inspector_egui::{widgets::ResourceInspector, Inspectable, InspectorPlugin};
 use bevy_inspector_egui::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 
-#[derive(Inspectable, Default)]
-struct Resources {
-    ambient_light: ResourceInspector<bevy::pbr::AmbientLight>,
-    clear_color: ResourceInspector<ClearColor>,
-}
-
-#[derive(Inspectable, Default)]
-pub struct MyComponent {
-    foo: f32,
-    bar: usize,
-}
-
 fn main() {
     let mut app = App::build();
 
@@ -25,6 +13,7 @@ fn main() {
         })
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(InspectorPlugin::<Resources>::new())
+        .register_type::<MyReflectedComponent>()
         .add_startup_system(setup.system());
 
     // getting registry from world
@@ -33,9 +22,28 @@ fn main() {
         .get_resource_or_insert_with(InspectableRegistry::default);
 
     // registering custom component to be able to edit it in inspector
-    registry.register::<MyComponent>();
+    registry.register::<MyInspectableComponent>();
 
     app.run();
+}
+
+#[derive(Inspectable, Default)]
+struct Resources {
+    ambient_light: ResourceInspector<bevy::pbr::AmbientLight>,
+    clear_color: ResourceInspector<ClearColor>,
+}
+
+#[derive(Inspectable, Default)]
+pub struct MyInspectableComponent {
+    foo: f32,
+    bar: usize,
+}
+
+#[derive(Reflect, Default)]
+#[reflect(Component)]
+pub struct MyReflectedComponent {
+    str: String,
+    list: Vec<f32>,
 }
 
 /// set up a simple 3D scene
@@ -60,7 +68,11 @@ fn setup(
             material: materials.add(Color::rgb_u8(80, 233, 54).into()),
             ..Default::default()
         })
-        .insert(MyComponent::default())
+        .insert(MyInspectableComponent::default())
+        .insert(MyReflectedComponent {
+            str: "str".to_string(),
+            list: vec![2.0],
+        })
         .insert(Name::new("Floor"));
     commands
         .spawn_bundle(PbrBundle {

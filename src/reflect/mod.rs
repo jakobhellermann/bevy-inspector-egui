@@ -92,7 +92,7 @@ pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Cont
         bevy::reflect::ReflectMut::Struct(s) => ui_for_reflect_struct(s, ui, context),
         bevy::reflect::ReflectMut::TupleStruct(value) => ui_for_tuple_struct(value, ui, context),
         bevy::reflect::ReflectMut::Tuple(value) => ui_for_tuple(value, ui, context),
-        bevy::reflect::ReflectMut::List(value) => ui_for_list(value, ui),
+        bevy::reflect::ReflectMut::List(value) => ui_for_list(value, ui, context),
         bevy::reflect::ReflectMut::Map(value) => ui_for_map(value, ui),
         bevy::reflect::ReflectMut::Value(value) => ui_for_reflect_value(value, ui, context),
     }
@@ -154,9 +154,44 @@ fn ui_for_tuple(value: &mut dyn Tuple, ui: &mut egui::Ui, context: &Context) -> 
     changed
 }
 
-fn ui_for_list(_value: &mut dyn List, ui: &mut egui::Ui) -> bool {
-    ui.label("List not yet implemented");
-    false
+fn ui_for_list(list: &mut dyn List, ui: &mut egui::Ui, context: &Context) -> bool {
+    let mut changed = false;
+
+    ui.vertical(|ui| {
+        // let mut to_delete = None;
+
+        let len = list.len();
+        for i in 0..len {
+            let val = list.get_mut(i).unwrap();
+            ui.horizontal(|ui| {
+                /*if utils::ui::label_button(ui, "✖", egui::Color32::RED) {
+                    to_delete = Some(i);
+                }*/
+                changed |= ui_for_reflect(val, ui, &context.with_id(i as u64));
+            });
+
+            if i != len - 1 {
+                ui.separator();
+            }
+        }
+
+        if len > 0 {
+            ui.vertical_centered_justified(|ui| {
+                if ui.button("+").clicked() {
+                    let last_element = list.get(len - 1).unwrap().clone_value();
+                    list.push(last_element);
+
+                    changed = true;
+                }
+            });
+        }
+
+        /*if let Some(_) = to_delete {
+            changed = true;
+        }*/
+    });
+
+    changed
 }
 
 fn ui_for_map(_value: &mut dyn Map, ui: &mut egui::Ui) -> bool {
