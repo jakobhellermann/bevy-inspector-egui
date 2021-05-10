@@ -401,7 +401,19 @@ fn display_by_reflection(
     context: &Context,
 ) -> Result<bool, ()> {
     let registration = type_registry.get(type_id).ok_or(())?;
-    let reflect_component = registration.data::<ReflectComponent>().ok_or(())?;
+
+    let reflect_component = match registration.data::<ReflectComponent>() {
+        Some(reflect_component) => reflect_component,
+        None => {
+            ui.label(format!(
+                "`{}` implements reflect, but does not have a `#[reflect(Component)` attribute.",
+                registration.short_name(),
+            ));
+
+            return Ok(false);
+        }
+    };
+
     let mut reflected = unsafe {
         reflect_component
             .reflect_component_unchecked_mut(world, entity)
