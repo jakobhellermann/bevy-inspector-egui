@@ -106,6 +106,7 @@ impl Default for InspectableRegistry {
         this.register::<TextureAtlasSprite>();
         this.register::<TextureAtlas>();
         this.register::<PointLight>();
+        this.register::<DirectionalLight>();
         this.register::<StandardMaterial>();
         this.register::<ColorMaterial>();
         this.register::<PrimitiveTopology>();
