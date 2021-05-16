@@ -2,6 +2,7 @@ use crate::options::{NumberAttributes, OptionAttributes, Vec2dAttributes};
 use crate::{Context, Inspectable};
 use bevy::{
     asset::HandleId,
+    pbr::DirectionalLight,
     render::{
         camera::{DepthCalculation, ScalingMode, VisibleEntities, WindowOrigin},
         mesh::Indices,
@@ -262,6 +263,40 @@ impl Inspectable for TextureAtlas {
                     .ui(ui, Default::default(), &context.with_id(2));
             });
         });
+        changed
+    }
+}
+
+impl Inspectable for DirectionalLight {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
+
+        ui.vertical_centered(|ui| {
+            crate::egui::Grid::new(context.id()).show(ui, |ui| {
+                ui.label("direction");
+                let mut direction = self.get_direction();
+                let direction_attrs = Default::default();
+                changed |= direction.ui(ui, direction_attrs, &context.with_id(0));
+                self.set_direction(direction);
+
+                ui.end_row();
+
+                ui.label("color");
+                let color_attrs = ColorAttributes::default();
+                changed |= self.color.ui(ui, color_attrs, &context.with_id(1));
+                ui.end_row();
+
+                ui.label("illuminance");
+                let illuminance_attrs = NumberAttributes::positive();
+                changed |= self
+                    .illuminance
+                    .ui(ui, illuminance_attrs, &context.with_id(2));
+                ui.end_row();
+            });
+        });
+
         changed
     }
 }
