@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.5.1
+### Added
+- add `rapier2d` feature
 
 ## Version 0.5
 - support for multiple windows using `InspectorPlugin::new.on_window(window_id)` ([example](https://github.com/jakobhellermann/bevy-inspector-egui/blob/main/examples/two_windows.rs))
