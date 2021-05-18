@@ -1,5 +1,5 @@
 use bevy::{
-    core::AsBytes,
+    core::cast_slice,
     render::texture::{Extent3d, Texture, TextureDimension, TextureFormat},
 };
 
@@ -66,7 +66,7 @@ pub(crate) fn image_to_texture(dyn_img: image::DynamicImage) -> Texture {
 
             let raw_data = i.into_raw();
 
-            data = raw_data.as_slice().as_bytes().to_owned();
+            data = cast_slice(raw_data.as_slice()).to_owned();
         }
         image::DynamicImage::ImageLumaA16(i) => {
             width = i.width();
@@ -75,7 +75,7 @@ pub(crate) fn image_to_texture(dyn_img: image::DynamicImage) -> Texture {
 
             let raw_data = i.into_raw();
 
-            data = raw_data.as_slice().as_bytes().to_owned();
+            data = cast_slice(raw_data.as_slice()).to_owned();
         }
 
         image::DynamicImage::ImageRgb16(image) => {
@@ -107,7 +107,7 @@ pub(crate) fn image_to_texture(dyn_img: image::DynamicImage) -> Texture {
 
             let raw_data = i.into_raw();
 
-            data = raw_data.as_slice().as_bytes().to_owned();
+            data = cast_slice(raw_data.as_slice()).to_owned();
         }
     }
 
