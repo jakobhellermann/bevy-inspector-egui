@@ -47,6 +47,10 @@ name = "rapier"
 required-features = ["rapier"]
 
 [[example]]
+name = "rapier2d"
+required-features = ["rapier2d"]
+
+[[example]]
 name = "texture"
 required-features = ["bevy/png"]
 

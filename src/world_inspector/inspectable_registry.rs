@@ -116,6 +116,8 @@ impl Default for InspectableRegistry {
 
         #[cfg(feature = "rapier")]
         register!(this bevy_rapier3d::rapier::dynamics::MassProperties, bevy_rapier3d::rapier::dynamics::RigidBody, bevy_rapier3d::physics::RigidBodyHandleComponent);
+        #[cfg(feature = "rapier2d")]
+        register!(this bevy_rapier2d::rapier::dynamics::MassProperties, bevy_rapier2d::rapier::dynamics::RigidBody, bevy_rapier2d::physics::RigidBodyHandleComponent);
 
         this
     }
