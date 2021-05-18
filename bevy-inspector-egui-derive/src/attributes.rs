@@ -101,7 +101,7 @@ impl InspectableAttributes {
             ui = quote! { bevy_inspector_egui::egui::CollapsingHeader::new(#collapse_label).id_source(#i as u64).show(ui, |ui| { #ui }); };
         }
         if self.read_only {
-            ui = quote! { ui.wrap(|ui| { ui.set_enabled(false); #ui }); };
+            ui = quote! { ui.scope(|ui| { ui.set_enabled(false); #ui }); };
         }
         if let Some(wrapper_fn) = &self.wrapper {
             ui = quote! { #wrapper_fn(ui, |ui| { #ui }); };
