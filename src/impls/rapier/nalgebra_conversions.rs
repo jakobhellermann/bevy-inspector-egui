@@ -1,23 +1,5 @@
 use bevy::prelude::*;
-use bevy_rapier3d::na::{
-    Isometry3, Point3, Quaternion, Translation3, Unit, UnitQuaternion, Vector3,
-};
-
-pub trait NalgebraVecExt {
-    fn to_glam_vec3(&self) -> Vec3;
-}
-
-impl NalgebraVecExt for Vector3<f32> {
-    fn to_glam_vec3(&self) -> Vec3 {
-        Vec3::new(self.x, self.y, self.z)
-    }
-}
-
-impl NalgebraVecExt for Point3<f32> {
-    fn to_glam_vec3(&self) -> Vec3 {
-        Vec3::new(self.x, self.y, self.z)
-    }
-}
+use nalgebra::{Isometry3, Quaternion, Translation3, Unit, UnitQuaternion, Vector3};
 
 pub trait NalgebraQuatExt {
     fn to_glam_quat(&self) -> Quat;
@@ -27,26 +9,6 @@ impl NalgebraQuatExt for UnitQuaternion<f32> {
     fn to_glam_quat(&self) -> Quat {
         let quat = self.into_inner().coords;
         Quat::from_xyzw(quat.x, quat.y, quat.z, quat.w)
-    }
-}
-
-pub trait GlamVecExt {
-    fn to_na_vector3(&self) -> Vector3<f32>;
-    fn to_na_point3(&self) -> Point3<f32>;
-    fn to_na_translation(&self) -> Translation3<f32>;
-}
-
-impl GlamVecExt for Vec3 {
-    fn to_na_vector3(&self) -> Vector3<f32> {
-        Vector3::new(self.x, self.y, self.z)
-    }
-
-    fn to_na_point3(&self) -> Point3<f32> {
-        Point3::new(self.x, self.y, self.z)
-    }
-
-    fn to_na_translation(&self) -> Translation3<f32> {
-        Translation3::new(self.x, self.y, self.z)
     }
 }
 
@@ -73,10 +35,10 @@ impl TransformExt for Transform {
     fn to_na_isometry(&self) -> (Isometry3<f32>, Vector3<f32>) {
         (
             Isometry3::from_parts(
-                self.translation.to_na_translation(),
+                Translation3::new(self.translation.x, self.translation.y, self.translation.z),
                 self.rotation.to_na_unit_quat(),
             ),
-            self.scale.to_na_vector3(),
+            self.scale.into(),
         )
     }
 }
@@ -85,10 +47,10 @@ impl TransformExt for GlobalTransform {
     fn to_na_isometry(&self) -> (Isometry3<f32>, Vector3<f32>) {
         (
             Isometry3::from_parts(
-                self.translation.to_na_translation(),
+                Translation3::new(self.translation.x, self.translation.y, self.translation.z),
                 self.rotation.to_na_unit_quat(),
             ),
-            self.scale.to_na_vector3(),
+            self.scale.into(),
         )
     }
 }

@@ -19,7 +19,8 @@ no-default-features = true
 
 [features]
 default = ["clipboard"]
-rapier = ["bevy_rapier3d"]
+rapier = ["bevy_rapier3d", "nalgebra"]
+rapier2d = ["bevy_rapier2d", "nalgebra"]
 clipboard = ["bevy_egui/manage_clipboard"]
 nightly = []
 
@@ -28,6 +29,8 @@ bevy = { version = "0.5", default-features = false }
 bevy_egui = { version = "0.4.2", default-features = false, features = ["open_url"] }
 emath = "0.11"
 bevy_rapier3d = { version = "0.9", optional = true }
+bevy_rapier2d = { version = "0.9", optional = true }
+nalgebra = { version = "0.25", features = ["convert-glam"], optional = true }
 pretty-type-name = "1.0"
 image = { version = "0.23", default-features = false }
 

@@ -1,15 +1,11 @@
-use super::nalgebra_conversions::*;
 use crate::egui::Grid;
 use crate::impls::NumberAttributes;
 use crate::{utils, Context, Inspectable};
 use bevy::prelude::*;
-use bevy_rapier3d::{
-    na::Isometry3,
+use bevy_rapier2d::{
+    na::{Complex, Isometry2, Translation2, Unit},
     physics::RigidBodyHandleComponent,
-    rapier::{
-        dynamics::{BodyStatus, MassProperties, RigidBody, RigidBodySet},
-        math::Translation,
-    },
+    rapier::dynamics::{BodyStatus, MassProperties, RigidBody, RigidBodySet},
 };
 
 impl_for_simple_enum!(BodyStatus: Dynamic, Static, Kinematic);
@@ -32,7 +28,7 @@ impl Inspectable for MassProperties {
         ui.end_row();
 
         ui.label("Center of mass");
-        let mut com: Vec3 = self.local_com.into();
+        let mut com: Vec2 = self.local_com.into();
         changed |= com.ui(ui, Default::default(), context);
         self.local_com = com.into();
         ui.end_row();
@@ -67,37 +63,38 @@ impl Inspectable for RigidBody {
                 let position = self.position();
 
                 ui.label("Translation");
-                let mut translation: Vec3 = position.translation.vector.into();
+                let mut translation: Vec2 = position.translation.vector.into();
                 changed |= translation.ui(ui, Default::default(), context);
                 ui.end_row();
 
                 ui.label("Rotation");
-                let mut rotation = position.rotation.to_glam_quat();
-                changed |= rotation.ui(ui, Default::default(), context);
+                let mut angle = position.rotation.angle();
+                changed |= angle.ui(ui, Default::default(), context);
+                let rotation = Unit::<Complex<_>>::new(angle);
+
                 ui.end_row();
 
                 if changed {
                     self.set_position(
-                        Isometry3::from_parts(
-                            Translation::new(translation.x, translation.y, translation.z),
-                            rotation.to_na_unit_quat(),
+                        Isometry2::from_parts(
+                            Translation2::new(translation.x, translation.y),
+                            rotation,
                         ),
                         false,
                     );
                 }
 
                 ui.label("Linear velocity");
-                let mut linvel = (*self.linvel()).into();
-                trunc_epsilon_vec3(&mut linvel);
+                let mut linvel: Vec2 = (*self.linvel()).into();
+                trunc_epsilon_vec2(&mut linvel);
                 changed |= linvel.ui(ui, Default::default(), context);
                 self.set_linvel(linvel.into(), false);
                 ui.end_row();
 
                 ui.label("Angular velocity");
-                let mut angvel: Vec3 = (*self.angvel()).into();
-                trunc_epsilon_vec3(&mut angvel);
+                let mut angvel = self.angvel();
                 changed |= angvel.ui(ui, Default::default(), context);
-                self.set_angvel(angvel.into(), false);
+                self.set_angvel(angvel, false);
                 ui.end_row();
 
                 self.wake_up(false);
@@ -107,10 +104,9 @@ impl Inspectable for RigidBody {
     }
 }
 
-fn trunc_epsilon_vec3(val: &mut bevy::math::Vec3) {
+fn trunc_epsilon_vec2(val: &mut bevy::math::Vec2) {
     super::trunc_epsilon_f32(&mut val.x);
     super::trunc_epsilon_f32(&mut val.y);
-    super::trunc_epsilon_f32(&mut val.z);
 }
 
 impl Inspectable for RigidBodyHandleComponent {

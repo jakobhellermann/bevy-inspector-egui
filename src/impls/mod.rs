@@ -14,5 +14,5 @@ pub use quat::{QuatAttributes, QuatDisplay};
 pub use vec::Vec2dAttributes;
 pub use with_context::{FilterType, TextureAttributes};
 
-#[cfg(feature = "rapier")]
+#[cfg(any(feature = "rapier", feature = "rapier2d"))]
 mod rapier;
