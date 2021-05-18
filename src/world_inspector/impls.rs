@@ -114,7 +114,7 @@ where
             // Safety: the pointer provided in `Context::new` must be exclusive and valid.
             Some(world) => unsafe { &mut *world },
             None => {
-                error_label(ui, format!("Query needs exclusive access to the world"));
+                error_label(ui, "Query needs exclusive access to the world".to_string());
                 return false;
             }
         };
@@ -190,7 +190,7 @@ where
             // Safety: the pointer provided in `Context::new` must be exclusive and valid.
             Some(world) => unsafe { &mut *world },
             None => {
-                error_label(ui, format!("Query needs exclusive access to the world"));
+                error_label(ui, "Query needs exclusive access to the world".to_string());
                 return false;
             }
         };

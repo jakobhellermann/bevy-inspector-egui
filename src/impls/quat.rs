@@ -53,7 +53,7 @@ impl Inspectable for Quat {
                 let state = states
                     .0
                     .entry(context.id())
-                    .or_insert(QuatEditState::Euler(to_euler_angles(*self)));
+                    .or_insert_with(|| QuatEditState::Euler(to_euler_angles(*self)));
 
                 let euler_angles = match state {
                     QuatEditState::Euler(euler) => euler,
@@ -72,7 +72,7 @@ impl Inspectable for Quat {
                 let state = states
                     .0
                     .entry(context.id())
-                    .or_insert(QuatEditState::YawPitchRoll(yaw_pitch_roll(*self)));
+                    .or_insert_with(|| QuatEditState::YawPitchRoll(yaw_pitch_roll(*self)));
 
                 let (yaw, pitch, roll) = match state {
                     QuatEditState::YawPitchRoll((y, p, r)) => (y, p, r),
@@ -106,7 +106,7 @@ impl Inspectable for Quat {
                 let state = states
                     .0
                     .entry(context.id())
-                    .or_insert(QuatEditState::AxisAngle(self.to_axis_angle()));
+                    .or_insert_with(|| QuatEditState::AxisAngle(self.to_axis_angle()));
 
                 let (axis, angle) = match state {
                     QuatEditState::AxisAngle((axis, angle)) => (axis, angle),
@@ -145,6 +145,7 @@ fn from_euler_angles(val: Vec3) -> Quat {
     Quat::from_rotation_ypr(yaw, pitch, roll)
 }
 
+#[allow(clippy::many_single_char_names)]
 fn yaw_pitch_roll(q: Quat) -> (f32, f32, f32) {
     let [x, y, z, w] = *q.as_ref();
 
