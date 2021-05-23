@@ -37,7 +37,7 @@ image = { version = "0.23", default-features = false }
 bevy-inspector-egui-derive = { version = "0.5", path = "bevy-inspector-egui-derive" }
 
 [dev-dependencies]
-bevy = { version = "0.5", default-features = false, features = ["x11", "render", "bevy_wgpu", "bevy_winit", "dynamic"] }
+bevy = { version = "0.5", default-features = false, features = ["x11", "render", "bevy_wgpu", "bevy_winit"] }
 bevy_mod_picking = { version = "0.4" }
 noise = "0.7"
 once_cell = "1.0"
