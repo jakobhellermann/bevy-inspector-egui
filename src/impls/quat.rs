@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{math::EulerRot, prelude::*};
 use bevy_egui::egui;
 
 use crate::{Context, Inspectable};
@@ -42,7 +42,7 @@ impl Inspectable for Quat {
                     .vertical(|ui| vec4.ui(ui, Default::default(), context))
                     .inner;
                 if changed {
-                    *self = Quat::from(vec4).normalize();
+                    *self = Quat::from_vec4(vec4).normalize();
                 }
                 changed
             }
@@ -50,12 +50,19 @@ impl Inspectable for Quat {
                 let mut euler_angles = ui
                     .memory()
                     .id_data_temp
-                    .get_mut_or_insert_with(context.id(), || Euler(to_euler_angles(*self)))
+                    .get_mut_or_insert_with(context.id(), || {
+                        Euler(Vec3::from(self.to_euler(EulerRot::XYZ)))
+                    })
                     .0;
 
                 let changed = euler_angles.ui(ui, Default::default(), context);
                 if changed {
-                    *self = from_euler_angles(euler_angles);
+                    *self = Quat::from_euler(
+                        EulerRot::XYZ,
+                        euler_angles.x,
+                        euler_angles.y,
+                        euler_angles.z,
+                    );
                     *ui.memory().id_data_temp.get_mut(&context.id()).unwrap() = Euler(euler_angles);
                 }
                 changed
@@ -64,7 +71,9 @@ impl Inspectable for Quat {
                 let (mut yaw, mut pitch, mut roll) = ui
                     .memory()
                     .id_data_temp
-                    .get_mut_or_insert_with(context.id(), || YawPitchRoll(yaw_pitch_roll(*self)))
+                    .get_mut_or_insert_with(context.id(), || {
+                        YawPitchRoll(self.to_euler(EulerRot::YXZ))
+                    })
                     .0;
 
                 let mut changed = false;
@@ -83,7 +92,7 @@ impl Inspectable for Quat {
                 });
 
                 if changed {
-                    *self = Quat::from_rotation_ypr(yaw, pitch, roll);
+                    *self = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
                     *ui.memory().id_data_temp.get_mut(&context.id()).unwrap() =
                         YawPitchRoll((yaw, pitch, roll));
                 }
@@ -117,34 +126,4 @@ impl Inspectable for Quat {
             }
         }
     }
-}
-
-// yaw - Z, pitch - Y, roll - X
-fn to_euler_angles(val: Quat) -> Vec3 {
-    let (yaw, pitch, roll) = yaw_pitch_roll(val);
-    Vec3::new(roll, pitch, yaw)
-}
-fn from_euler_angles(val: Vec3) -> Quat {
-    let yaw = val.z;
-    let pitch = val.y;
-    let roll = val.x;
-    Quat::from_rotation_ypr(yaw, pitch, roll)
-}
-
-#[allow(clippy::many_single_char_names)]
-fn yaw_pitch_roll(q: Quat) -> (f32, f32, f32) {
-    let [x, y, z, w] = *q.as_ref();
-
-    fn atan2(a: f32, b: f32) -> f32 {
-        a.atan2(b)
-    }
-    fn asin(a: f32) -> f32 {
-        a.asin()
-    }
-
-    let yaw = atan2(2.0 * (y * z + w * x), w * w - x * x - y * y + z * z);
-    let pitch = asin(-2.0 * (x * z - w * y));
-    let roll = atan2(2.0 * (x * y + w * z), w * w + x * x - y * y - z * z);
-
-    (yaw, pitch, roll)
 }
