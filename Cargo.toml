@@ -26,8 +26,8 @@ nightly = []
 
 [dependencies]
 bevy = { version = "0.5", default-features = false }
-bevy_egui = { version = "0.4.2", default-features = false, features = ["open_url"] }
-emath = "0.11"
+bevy_egui = { version = "0.5", default-features = false, features = ["open_url"] }
+emath = "0.12"
 bevy_rapier3d = { version = "0.9", optional = true }
 bevy_rapier2d = { version = "0.9", optional = true }
 nalgebra = { version = "0.25", features = ["convert-glam"], optional = true }
