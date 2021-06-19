@@ -36,7 +36,7 @@ impl Inspectable for Vec2 {
             point_select(self, ui, options)
         } else {
             let mut changed = false;
-            ui.wrap(|ui| {
+            ui.scope(|ui| {
                 ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
 
                 ui.columns(2, |ui| {
@@ -152,7 +152,7 @@ impl Inspectable for Vec3 {
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
         let mut changed = false;
-        ui.wrap(|ui| {
+        ui.scope(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
 
             ui.columns(3, |ui| {
@@ -170,7 +170,7 @@ impl Inspectable for Vec4 {
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
         let mut changed = false;
-        ui.wrap(|ui| {
+        ui.scope(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
 
             ui.columns(4, |ui| {
