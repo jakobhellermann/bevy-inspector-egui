@@ -146,7 +146,7 @@ impl<'a> WorldUIContext<'a> {
         let mut changed = false;
 
         for entity in root_entities.iter(self.world) {
-            changed |= self.entity_ui(ui, entity, params, dummy_id, &entity_options);
+            changed |= self.entity_ui(ui, entity, params, dummy_id.with(entity), &entity_options);
         }
 
         changed
@@ -214,7 +214,7 @@ impl<'a> WorldUIContext<'a> {
         if let Some(children) = children {
             ui.label("Children");
             for &child in children.iter() {
-                self.entity_ui(ui, child, params, id, entity_options);
+                self.entity_ui(ui, child, params, id.with(child), entity_options);
             }
         } else {
             ui.label("No children");
@@ -294,8 +294,9 @@ impl<'a> WorldUIContext<'a> {
         let type_registry = self.world.get_resource::<TypeRegistryArc>().unwrap();
         let type_registry = &*type_registry.internal.read();
 
+        let id = id.with(component_info.id());
         CollapsingHeader::new(name)
-            .id_source(id.with(component_info.id()))
+            .id_source(id)
             .show(ui, |ui| {
                 if params.is_read_only(type_id) {
                     ui.set_enabled(false);
@@ -303,8 +304,8 @@ impl<'a> WorldUIContext<'a> {
 
                 let world_ptr = self.world as *const _ as *mut _;
                 let context = unsafe {
-                    Context::new_ptr(self.ui_ctx, world_ptr)
-                        .with_id(component_info.id().index() as u64)
+                    let id = id_to_u64(&id);
+                    Context::new_ptr(self.ui_ctx, world_ptr).with_id(id)
                 };
 
                 let result = unsafe {
@@ -487,4 +488,13 @@ fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
     }
 
     format!("Entity {}", entity.id().id()).into()
+}
+
+fn id_to_u64(id: &egui::Id) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::Hash;
+    use std::hash::Hasher;
+    let mut hasher = DefaultHasher::default();
+    id.hash(&mut hasher);
+    hasher.finish()
 }
