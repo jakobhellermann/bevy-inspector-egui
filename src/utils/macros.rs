@@ -22,7 +22,7 @@ macro_rules! impl_for_simple_enum {
 }
 
 macro_rules! impl_for_struct_delegate_fields {
-    ($ty:ty: $($field:ident $(with $attrs:expr)? ),+ $(,)?) => {
+    ($ty:ty: $($field:ident $(inline $dummy:ident)? $(with $attrs:expr)? ),* $(,)?) => {
         #[allow(unused)]
         impl $crate::Inspectable for $ty {
             type Attributes = ();
@@ -34,7 +34,17 @@ macro_rules! impl_for_struct_delegate_fields {
                     $crate::egui::Grid::new(context.id()).show(ui, |ui| {
                         let mut i = 0;
                         $(
-                            ui.label(stringify!($field));
+
+                            let mut show_label = true;
+                            $(
+                                show_label = false;
+                                let $dummy = ();
+                            )?
+
+                            if show_label {
+                                ui.label(stringify!($field));
+                            }
+
                             let mut attrs = Default::default();
                             $(attrs = $attrs;)?
                             changed |= self.$field.ui(ui, attrs, &context.with_id(i));
@@ -45,6 +55,50 @@ macro_rules! impl_for_struct_delegate_fields {
                 });
 
                 changed
+            }
+        }
+    };
+}
+
+#[allow(unused)]
+macro_rules! impl_for_bitflags {
+    ($ty:ty: $($field:ident),* $(,)?) => {
+        impl Inspectable for $ty {
+            type Attributes = ();
+
+            fn ui(
+                &mut self,
+                ui: &mut egui::Ui,
+                _: Self::Attributes,
+                _: &Context,
+            ) -> bool {
+                let mut changed = false;
+
+                ui.vertical(|ui| {
+                    $(
+                    let mut value = self.contains(<$ty>::$field);
+                    let has_changed = ui.checkbox(&mut value, stringify!($field)).changed();
+                    if has_changed {
+                        self.set(<$ty>::$field, value);
+                        changed = true;
+                    }
+                    )*
+                });
+
+                changed
+            }
+        }
+    };
+}
+
+#[allow(unused)]
+macro_rules! impl_defer_to {
+    ($ty:ty: $inner:tt ) => {
+        impl $crate::Inspectable for $ty {
+            type Attributes = ();
+
+            fn ui(&mut self, ui: &mut egui::Ui, (): Self::Attributes, context: &Context) -> bool {
+                self.$inner.ui(ui, Default::default(), context)
             }
         }
     };

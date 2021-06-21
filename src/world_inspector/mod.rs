@@ -97,6 +97,25 @@ impl Default for WorldInspectorParams {
         .collect();
         params.read_only_components = [TypeId::of::<GlobalTransform>()].iter().copied().collect();
 
+        #[cfg(feature = "rapier")]
+        {
+            params
+                .ignore_components
+                .insert(TypeId::of::<bevy_rapier3d::prelude::RigidBodyIds>());
+            params
+                .ignore_components
+                .insert(TypeId::of::<bevy_rapier3d::prelude::ColliderBroadPhaseData>());
+        }
+        #[cfg(feature = "rapier2d")]
+        {
+            params
+                .ignore_components
+                .insert(TypeId::of::<bevy_rapier2d::prelude::RigidBodyIds>());
+            params
+                .ignore_components
+                .insert(TypeId::of::<bevy_rapier2d::prelude::ColliderBroadPhaseData>());
+        }
+
         params
     }
 }

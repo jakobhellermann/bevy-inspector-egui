@@ -1,34 +1,20 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::{Inspectable, InspectorPlugin};
-use bevy_rapier3d::physics::{RapierPhysicsPlugin, RigidBodyHandleComponent};
-use bevy_rapier3d::rapier::{dynamics::RigidBodyBuilder, geometry::ColliderBuilder};
-
-#[derive(Inspectable, Default)]
-struct Data {
-    #[inspectable(deletable = false)]
-    handle: Option<RigidBodyHandleComponent>,
-}
+use bevy_inspector_egui::{widgets::InspectorQuerySingle, InspectorPlugin};
+use bevy_rapier3d::{
+    physics::{
+        ColliderBundle, ColliderPositionSync, NoUserData, RapierPhysicsPlugin, RigidBodyBundle,
+    },
+    prelude::{ColliderShape, RigidBodyType},
+};
 
 fn main() {
     App::build()
         .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
-        .add_plugin(InspectorPlugin::<Data>::new())
-        .add_plugin(RapierPhysicsPlugin)
+        .add_plugin(InspectorPlugin::<InspectorQuerySingle<Entity, With<Cube>>>::new())
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_startup_system(setup.system())
-        .add_system(set_rigidbody_handle.system())
         .run();
-}
-
-fn set_rigidbody_handle(
-    mut data: ResMut<Data>,
-    query: Query<(&Cube, &RigidBodyHandleComponent), Added<RigidBodyHandleComponent>>,
-) {
-    for (_, handle) in query.iter() {
-        if data.handle.is_none() {
-            data.handle = Some(handle.handle().into());
-        }
-    }
 }
 
 struct Cube;
@@ -47,12 +33,17 @@ fn setup(
         ..Default::default()
     };
 
-    // Static rigid-body with a cuboid shape.
-    let rigid_body1 = RigidBodyBuilder::new_static();
-    let collider1 = ColliderBuilder::cuboid(floor_size / 2.0, 0.1, floor_size / 2.0);
     commands
-        .spawn_bundle((rigid_body1, collider1))
-        .insert_bundle(floor);
+        .spawn_bundle(floor)
+        .insert(Name::new("Floor"))
+        .insert_bundle(RigidBodyBundle {
+            body_type: RigidBodyType::Static,
+            ..Default::default()
+        })
+        .insert_bundle(ColliderBundle {
+            shape: ColliderShape::cuboid(floor_size / 2.0, 0.1, floor_size / 2.0),
+            ..Default::default()
+        });
 
     let cube = PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: cube_size })),
@@ -60,12 +51,19 @@ fn setup(
         ..Default::default()
     };
 
-    // Dynamic rigid-body with ball shape.
-    let rigid_body2 = RigidBodyBuilder::new_dynamic().translation(0.0, 3.0, 0.0);
-    let collider2 = ColliderBuilder::cuboid(cube_size / 2.0, cube_size / 2.0, cube_size / 2.0);
     commands
-        .spawn_bundle((rigid_body2, collider2, Cube))
-        .insert_bundle(cube);
+        .spawn_bundle(cube)
+        .insert(Cube)
+        .insert(Name::new("Cube"))
+        .insert_bundle(ColliderBundle {
+            shape: ColliderShape::cuboid(cube_size / 2.0, cube_size / 2.0, cube_size / 2.0),
+            ..Default::default()
+        })
+        .insert_bundle(RigidBodyBundle {
+            position: Vec3::new(0.0, 2.0, 0.0).into(),
+            ..Default::default()
+        })
+        .insert(ColliderPositionSync::Discrete);
 
     commands.spawn_bundle(LightBundle {
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
