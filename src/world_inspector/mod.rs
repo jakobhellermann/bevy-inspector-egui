@@ -463,8 +463,8 @@ unsafe fn get_component_and_ticks(
             let table_row = archetype.entity_table_row(location.index);
             // SAFE: archetypes only store valid table_rows and the stored component type is T
             Some((
-                components.get_unchecked(table_row),
-                components.get_ticks_unchecked(table_row),
+                components.get_data_unchecked(table_row),
+                components.get_ticks_mut_ptr_unchecked(table_row),
             ))
         }
         StorageType::SparseSet => world

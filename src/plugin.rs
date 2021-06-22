@@ -1,6 +1,6 @@
 use std::{any::TypeId, marker::PhantomData};
 
-use bevy::{prelude::*, window::WindowId};
+use bevy::{ecs::component::ComponentTicks, prelude::*, window::WindowId};
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 use pretty_type_name::pretty_type_name_str;
 
@@ -263,8 +263,8 @@ fn get_silent_mut_unchecked<T: Send + Sync + 'static>(world: &World) -> Option<S
 
     let value = unsafe {
         SilentMut {
-            value: &mut *column.get_ptr().as_ptr().cast::<T>(),
-            component_ticks: &mut *column.get_ticks_mut_ptr(),
+            value: &mut *column.get_data_ptr().as_ptr().cast::<T>(),
+            component_ticks: &mut *(column.get_ticks_ptr() as *mut ComponentTicks),
             change_tick: world.read_change_tick(),
         }
     };
@@ -273,7 +273,7 @@ fn get_silent_mut_unchecked<T: Send + Sync + 'static>(world: &World) -> Option<S
 
 struct SilentMut<'a, T> {
     pub(crate) value: &'a mut T,
-    pub(crate) component_ticks: &'a mut bevy::ecs::component::ComponentTicks,
+    pub(crate) component_ticks: &'a mut ComponentTicks,
     pub(crate) change_tick: u32,
 }
 impl<'a, T> SilentMut<'a, T> {
