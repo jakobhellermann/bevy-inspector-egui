@@ -204,8 +204,12 @@ where
             let has_more = iter.next().is_some();
 
             match (value, has_more) {
-                (None, _) => todo!(),
-                (Some(_), true) => todo!(),
+                (None, _) => {
+                    ui.label("No entity matches the query.");
+                }
+                (Some(_), true) => {
+                    ui.label("More than one entity matches the query.");
+                }
                 (Some(mut value), false) => {
                     let name = pretty_type_name::pretty_type_name::<Q>();
                     CollapsingHeader::new(name)
