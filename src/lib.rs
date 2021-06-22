@@ -33,12 +33,8 @@
 //!     App::build()
 //!         .add_plugins(DefaultPlugins)
 //!         .add_plugin(InspectorPlugin::<Data>::new())
-//!         .add_system(your_system.system())
 //!         .run();
 //! }
-//!
-//! # fn your_system() {}
-//! // fn your_system(data: Res<Data>) { /* */ }
 //! ```
 //!
 //! The list of built-in attributes is documented [here](trait.Inspectable.html#default-attributes).
@@ -60,6 +56,11 @@
 //! # fn setup() {}
 //! ```
 //! You can configure it by inserting the [`WorldInspectorParams`] resource.
+//!
+//! # Features
+//! - **clipboard** (enabled by default): enables `egui`'s clipboard integratoin
+//! - **rapier**: adds support for [bevy_rapier3d](https://docs.rs/bevy_rapier3d)
+//! - **rapier2d**: adds support for [bevy_rapier2d](https://docs.rs/bevy_rapier2d)
 
 #[macro_use]
 mod utils;

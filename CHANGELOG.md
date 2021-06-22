@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.6
+- update to `egui` 0.12, `bevy_egui` 0.5
+- update to rapier `0.10`
+- rename `rapier` feature to `rapier3d`
+- fix `Quat` implementation to not modify unrelated state
+
 ## Version 0.5.1
 ### Added
 - add `rapier2d` feature
