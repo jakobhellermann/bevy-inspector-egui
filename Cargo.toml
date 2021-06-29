@@ -35,6 +35,7 @@ bevy_rapier2d = { version = "0.10", optional = true }
 nalgebra = { version = "0.27", features = ["convert-glam013"], optional = true }
 
 bevy-inspector-egui-derive = { version = "0.5", path = "bevy-inspector-egui-derive" }
+rand = "0.8"
 
 [dev-dependencies]
 bevy = { version = "0.5", default-features = false, features = ["x11", "render", "bevy_wgpu", "bevy_winit"] }
