@@ -55,7 +55,10 @@ impl<T> InspectorPlugin<T> {
     }
 
     /// Sets the window the inspector should be displayed on
-    pub fn on_window(self, window_id: WindowId) -> Self {
+    pub fn on_window(
+        self,
+        window_id: WindowId,
+    ) -> Self {
         InspectorPlugin { window_id, ..self }
     }
 }
@@ -63,13 +66,23 @@ impl<T> InspectorPlugin<T> {
 #[derive(Default, Debug)]
 struct InspectorWindows(bevy::utils::HashMap<TypeId, (String, WindowId)>);
 impl InspectorWindows {
-    fn insert<T: 'static>(&mut self, name: String, window_id: WindowId) {
+    fn insert<T: 'static>(
+        &mut self,
+        name: String,
+        window_id: WindowId,
+    ) {
         self.0.insert(TypeId::of::<T>(), (name, window_id));
     }
-    fn contains_id(&self, type_id: TypeId) -> bool {
+    fn contains_id(
+        &self,
+        type_id: TypeId,
+    ) -> bool {
         self.0.iter().any(|(&id, _)| id == type_id)
     }
-    fn contains_name(&self, name: &str) -> bool {
+    fn contains_name(
+        &self,
+        name: &str,
+    ) -> bool {
         self.0.iter().any(|(_, (n, _))| n == name)
     }
     fn get_unwrap<T: 'static>(&self) -> &(String, WindowId) {
@@ -94,7 +107,10 @@ impl<T> Plugin for InspectorPlugin<T>
 where
     T: Inspectable + Send + Sync + 'static,
 {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(
+        &self,
+        app: &mut AppBuilder,
+    ) {
         if let Some(get_value) = &self.initial_value {
             let world = app.world_mut();
             let resource = get_value(world);

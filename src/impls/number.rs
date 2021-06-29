@@ -24,7 +24,10 @@ impl<T> Default for NumberAttributes<T> {
 }
 
 impl<T> NumberAttributes<T> {
-    pub(crate) fn map<U>(&self, f: impl Fn(&T) -> U) -> NumberAttributes<U> {
+    pub(crate) fn map<U>(
+        &self,
+        f: impl Fn(&T) -> U,
+    ) -> NumberAttributes<U> {
         NumberAttributes {
             min: self.min.as_ref().map(|v| f(v)),
             max: self.max.as_ref().map(f),
@@ -42,7 +45,10 @@ impl<T> NumberAttributes<T> {
         }
     }
 
-    pub fn between(min: T, max: T) -> Self {
+    pub fn between(
+        min: T,
+        max: T,
+    ) -> Self {
         NumberAttributes {
             min: Some(min),
             max: Some(max),
@@ -50,7 +56,10 @@ impl<T> NumberAttributes<T> {
         }
     }
 
-    pub(crate) fn speed(self, speed: f32) -> Self {
+    pub(crate) fn speed(
+        self,
+        speed: f32,
+    ) -> Self {
         NumberAttributes { speed, ..self }
     }
 }
@@ -94,7 +103,12 @@ impl Num for usize {}
 impl<T: Num> Inspectable for T {
     type Attributes = NumberAttributes<T>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        _: &Context,
+    ) -> bool {
         let mut widget = widgets::DragValue::new(self);
 
         if !options.prefix.is_empty() {

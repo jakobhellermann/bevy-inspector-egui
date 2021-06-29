@@ -86,7 +86,12 @@ impl Inspectable for Unit<Quaternion<f32>> {
 impl Inspectable for Unit<Complex<f32>> {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &crate::Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        _: &crate::Context,
+    ) -> bool {
         let mut angle = self.angle();
         let changed = ui.drag_angle_tau(&mut angle).changed();
         if changed {

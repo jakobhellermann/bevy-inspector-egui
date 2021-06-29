@@ -9,7 +9,12 @@ where
 {
     type Attributes = <T as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let mut changed = false;
 
         ui.vertical(|ui| {
@@ -53,7 +58,12 @@ where
 impl<T: Inspectable, const N: usize> Inspectable for [T; N] {
     type Attributes = <T as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let mut changed = false;
         ui.vertical(|ui| {
             for (i, val) in self.iter_mut().enumerate() {

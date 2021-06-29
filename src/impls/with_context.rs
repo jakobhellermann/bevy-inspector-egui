@@ -33,7 +33,12 @@ macro_rules! expect_handle {
 impl Inspectable for HandleId {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        _: &Context,
+    ) -> bool {
         ui.label("<handle id>");
         false
     }
@@ -42,7 +47,12 @@ impl Inspectable for HandleId {
 impl<T: Asset + Inspectable> Inspectable for Handle<T> {
     type Attributes = T::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         if self.id == HandleId::default::<T>() {
             ui.label("<default handle>");
             return false;
@@ -80,7 +90,12 @@ impl Default for TextureAttributes {
 impl Inspectable for Handle<Texture> {
     type Attributes = TextureAttributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let world = expect_world!(ui, context, "Handle<Texture>");
         let _ = world.get_resource_or_insert_with(ScaledDownTextures::default);
 
@@ -153,7 +168,12 @@ fn rescaled_image<'a>(
 impl Inspectable for Handle<Font> {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let world = expect_world!(ui, context, "Handle<Texture>");
         let asset_server = world.get_resource::<AssetServer>().unwrap();
         let file_events = world.get_resource::<Events<FileDragAndDrop>>().unwrap();

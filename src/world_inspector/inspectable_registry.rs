@@ -29,8 +29,10 @@ impl InspectableRegistry {
     }
 
     /// Registers a type that doesn't need to implement [`Inspectable`](crate::Inspectable)
-    pub fn register_raw<T: 'static, F>(&mut self, f: F)
-    where
+    pub fn register_raw<T: 'static, F>(
+        &mut self,
+        f: F,
+    ) where
         F: Fn(&mut T, &mut egui::Ui, &Context) -> bool + Send + Sync + 'static,
     {
         let type_id = TypeId::of::<T>();

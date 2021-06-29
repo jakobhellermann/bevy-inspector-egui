@@ -120,7 +120,10 @@ impl<'a> Context<'a> {
 
 impl<'a> Context<'a> {
     /// Create new context with exclusive access to the `World`
-    pub fn new(ui_ctx: &'a CtxRef, world: &'a mut World) -> Self {
+    pub fn new(
+        ui_ctx: &'a CtxRef,
+        world: &'a mut World,
+    ) -> Self {
         Context {
             ui_ctx: Some(ui_ctx),
             world: Some(world as *mut _),
@@ -131,7 +134,10 @@ impl<'a> Context<'a> {
     /// # Safety
     /// The `world` pointer must come from a mutable reference to a world and no
     /// other threads must be writing to it.
-    pub unsafe fn new_ptr(ui_ctx: Option<&'a CtxRef>, world: *mut World) -> Self {
+    pub unsafe fn new_ptr(
+        ui_ctx: Option<&'a CtxRef>,
+        world: *mut World,
+    ) -> Self {
         Context {
             ui_ctx,
             world: Some(world),
@@ -149,7 +155,10 @@ impl<'a> Context<'a> {
     }
 
     /// Same context but with a specified `id`
-    pub fn with_id(&self, id: u64) -> Self {
+    pub fn with_id(
+        &self,
+        id: u64,
+    ) -> Self {
         let mut hasher = std::collections::hash_map::DefaultHasher::default();
         if let Some(id) = self.id {
             hasher.write_u64(id);
@@ -213,11 +222,20 @@ pub trait Inspectable {
 
     /// This methods is responsible for building the egui ui.
     /// Returns whether any data was modified.
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool;
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool;
 
     /// Displays the value without any context. Useful for usage outside of the plugins, where
     /// there is no access to the world or [`EguiContext`](bevy_egui::EguiContext).
-    fn ui_raw(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
+    fn ui_raw(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+    ) {
         let empty_context = Context::new_shared(None);
         self.ui(ui, options, &empty_context);
     }

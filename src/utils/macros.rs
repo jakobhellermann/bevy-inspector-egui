@@ -97,7 +97,12 @@ macro_rules! impl_defer_to {
         impl $crate::Inspectable for $ty {
             type Attributes = ();
 
-            fn ui(&mut self, ui: &mut egui::Ui, (): Self::Attributes, context: &Context) -> bool {
+            fn ui(
+                &mut self,
+                ui: &mut egui::Ui,
+                (): Self::Attributes,
+                context: &Context,
+            ) -> bool {
                 self.$inner.ui(ui, Default::default(), context)
             }
         }

@@ -40,7 +40,10 @@ impl<T: Inspectable + Send + Sync + 'static> Inspectable for ResourceInspector<T
 }
 
 impl<T> std::fmt::Debug for ResourceInspector<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(
+        &self,
+        f: &mut std::fmt::Formatter<'_>,
+    ) -> std::fmt::Result {
         f.debug_struct("ResourceInspector").finish()
     }
 }

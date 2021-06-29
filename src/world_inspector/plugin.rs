@@ -91,7 +91,10 @@ where
     F: WorldQuery + 'static,
     F::Fetch: FilterFetch,
 {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(
+        &self,
+        app: &mut AppBuilder,
+    ) {
         if !app.world_mut().contains_resource::<EguiContext>() {
             app.add_plugin(EguiPlugin);
         }

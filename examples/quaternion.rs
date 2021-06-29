@@ -37,7 +37,10 @@ fn main() {
         .run();
 }
 
-fn update(data: Res<Data>, mut query: Query<(&Cube, &mut Transform)>) {
+fn update(
+    data: Res<Data>,
+    mut query: Query<(&Cube, &mut Transform)>,
+) {
     for (_, mut transform) in query.iter_mut() {
         match data.which_one {
             WhichOne::Euler => transform.rotation = data.euler,

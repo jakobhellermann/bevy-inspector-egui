@@ -28,7 +28,10 @@ struct Data {
     non_inspectable: NonInspectable,
 }
 
-fn change_bg_color(ui: &mut egui::Ui, mut content: impl FnMut(&mut egui::Ui)) {
+fn change_bg_color(
+    ui: &mut egui::Ui,
+    mut content: impl FnMut(&mut egui::Ui),
+) {
     ui.scope(|ui| {
         let bg_color = egui::Color32::from_rgb(41, 80, 80);
         ui.style_mut().visuals.widgets.inactive.bg_fill = bg_color;

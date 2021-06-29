@@ -64,11 +64,17 @@ impl WorldInspectorParams {
         self.ignore_components.insert(TypeId::of::<T>());
     }
 
-    fn should_ignore_component(&self, type_id: TypeId) -> bool {
+    fn should_ignore_component(
+        &self,
+        type_id: TypeId,
+    ) -> bool {
         self.ignore_components.contains(&type_id)
     }
 
-    fn is_read_only(&self, type_id: TypeId) -> bool {
+    fn is_read_only(
+        &self,
+        type_id: TypeId,
+    ) -> bool {
         self.read_only_components.contains(&type_id)
     }
 
@@ -126,7 +132,10 @@ struct WorldUIContext<'a> {
     delete_entity: Cell<Option<Entity>>,
 }
 impl<'a> WorldUIContext<'a> {
-    fn new(ui_ctx: Option<&'a egui::CtxRef>, world: &'a mut World) -> WorldUIContext<'a> {
+    fn new(
+        ui_ctx: Option<&'a egui::CtxRef>,
+        world: &'a mut World,
+    ) -> WorldUIContext<'a> {
         WorldUIContext {
             world,
             ui_ctx,
@@ -144,14 +153,21 @@ impl Drop for WorldUIContext<'_> {
 }
 
 impl<'a> WorldUIContext<'a> {
-    fn entity_name(&self, entity: Entity) -> Cow<'_, str> {
+    fn entity_name(
+        &self,
+        entity: Entity,
+    ) -> Cow<'_, str> {
         match self.world.get_entity(entity) {
             Some(entity) => guess_entity_name(entity),
             None => format!("Entity {} (inexistent)", entity.id()).into(),
         }
     }
 
-    fn world_ui<F>(&mut self, ui: &mut egui::Ui, params: &WorldInspectorParams) -> bool
+    fn world_ui<F>(
+        &mut self,
+        ui: &mut egui::Ui,
+        params: &WorldInspectorParams,
+    ) -> bool
     where
         F: WorldQuery,
         F::Fetch: FilterFetch,

@@ -134,7 +134,11 @@ pub struct PlanetShape<'a> {
     noise: &'a NoiseSettings,
 }
 impl<'a> PlanetShape<'a> {
-    pub fn new(resolution: u8, radius: f32, noise_settings: &'a NoiseSettings) -> PlanetShape<'a> {
+    pub fn new(
+        resolution: u8,
+        radius: f32,
+        noise_settings: &'a NoiseSettings,
+    ) -> PlanetShape<'a> {
         assert!(resolution > 0);
 
         PlanetShape {
@@ -144,7 +148,10 @@ impl<'a> PlanetShape<'a> {
         }
     }
 
-    fn elevation_at_point(&self, point: Vec3) -> f32 {
+    fn elevation_at_point(
+        &self,
+        point: Vec3,
+    ) -> f32 {
         let settings = &self.noise;
         let noise_fn = noise::SuperSimplex::new();
 
@@ -168,7 +175,10 @@ impl<'a> PlanetShape<'a> {
         noise_value * settings.strength
     }
 
-    fn point_on_planet(&self, point_on_unit_sphere: Vec3) -> Vec3 {
+    fn point_on_planet(
+        &self,
+        point_on_unit_sphere: Vec3,
+    ) -> Vec3 {
         let elevation = self.elevation_at_point(point_on_unit_sphere);
         point_on_unit_sphere * self.radius * (1.0 + elevation)
     }

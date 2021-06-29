@@ -2,7 +2,11 @@
 /// This avoids collecting the iterator
 /// if it shouldn't be sorted.
 // Overenginereed? Yes. Had fun implementing? Also yes.
-pub fn sort_iter_if<T, I, F>(iter: I, sort: bool, compare: F) -> impl Iterator<Item = T>
+pub fn sort_iter_if<T, I, F>(
+    iter: I,
+    sort: bool,
+    compare: F,
+) -> impl Iterator<Item = T>
 where
     I: Iterator<Item = T>,
     F: Fn(&T, &T) -> std::cmp::Ordering,

@@ -61,7 +61,11 @@ impl Inspectable for Vec2 {
     }
 }
 
-fn point_select(value: &mut Vec2, ui: &mut egui::Ui, options: Vec2dAttributes) -> bool {
+fn point_select(
+    value: &mut Vec2,
+    ui: &mut egui::Ui,
+    options: Vec2dAttributes,
+) -> bool {
     let range = match (options.min, options.max) {
         (Some(min), Some(max)) => min..=max,
         (Some(min), None) => min..=Vec2::splat(0.0),
@@ -87,7 +91,11 @@ struct PointSelect<'a> {
     value: &'a mut Vec2,
 }
 impl<'a> PointSelect<'a> {
-    fn new(value: &'a mut Vec2, range: RangeInclusive<Vec2>, size: f32) -> Self {
+    fn new(
+        value: &'a mut Vec2,
+        range: RangeInclusive<Vec2>,
+        size: f32,
+    ) -> Self {
         PointSelect {
             value,
             range,
@@ -103,12 +111,19 @@ impl<'a> PointSelect<'a> {
         self.range.end().y..=self.range.start().y
     }
 
-    fn value_to_ui_pos(&self, rect: &Rect) -> Pos2 {
+    fn value_to_ui_pos(
+        &self,
+        rect: &Rect,
+    ) -> Pos2 {
         let x = egui::remap_clamp(self.value.x, self.x_range(), rect.x_range());
         let y = egui::remap_clamp(self.value.y, self.y_range(), rect.y_range());
         Pos2::new(x, y)
     }
-    fn ui_pos_to_value(&self, rect: &Rect, pos: Pos2) -> Vec2 {
+    fn ui_pos_to_value(
+        &self,
+        rect: &Rect,
+        pos: Pos2,
+    ) -> Vec2 {
         let x = egui::remap_clamp(pos.x, rect.x_range(), self.x_range());
         let y = egui::remap_clamp(pos.y, rect.y_range(), self.y_range());
 
@@ -117,7 +132,10 @@ impl<'a> PointSelect<'a> {
 }
 
 impl Widget for PointSelect<'_> {
-    fn ui(self, ui: &mut egui::Ui) -> egui::Response {
+    fn ui(
+        self,
+        ui: &mut egui::Ui,
+    ) -> egui::Response {
         let (rect, mut response) = ui.allocate_exact_size(self.size, Sense::click_and_drag());
         let painter = ui.painter();
 
@@ -150,7 +168,12 @@ impl Widget for PointSelect<'_> {
 impl Inspectable for Vec3 {
     type Attributes = NumberAttributes<Vec3>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let mut changed = false;
         ui.scope(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
@@ -168,7 +191,12 @@ impl Inspectable for Vec3 {
 impl Inspectable for Vec4 {
     type Attributes = NumberAttributes<Vec4>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let mut changed = false;
         ui.scope(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);

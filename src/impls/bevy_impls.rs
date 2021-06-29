@@ -63,7 +63,12 @@ impl_for_struct_delegate_fields!(
 impl Inspectable for shape::Box {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let mut changed = false;
 
         let mut min = Vec3::new(self.min_x, self.min_y, self.min_z);
@@ -130,7 +135,12 @@ impl Inspectable for Transform {
 impl Inspectable for GlobalTransform {
     type Attributes = <Transform as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let global_transform = std::mem::take(self);
 
         let mut transform = Transform {
@@ -154,7 +164,12 @@ impl Inspectable for GlobalTransform {
 impl Inspectable for Mat3 {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let mut changed = false;
         ui.vertical(|ui| {
             changed |= self.x_axis.ui(ui, Default::default(), context);
@@ -168,7 +183,12 @@ impl Inspectable for Mat3 {
 impl Inspectable for Mat4 {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let mut changed = false;
         ui.vertical(|ui| {
             changed |= self.x_axis.ui(ui, Default::default(), context);
@@ -188,7 +208,12 @@ pub struct ColorAttributes {
 impl Inspectable for Color {
     type Attributes = ColorAttributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        _: &Context,
+    ) -> bool {
         let old: [f32; 4] = (*self).into();
 
         if options.alpha {
@@ -219,7 +244,12 @@ impl Inspectable for Color {
 impl Inspectable for AmbientLight {
     type Attributes = <Color as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let brightness_attributes = NumberAttributes::positive().speed(0.01);
 
         self.color.ui(ui, options, context);
@@ -229,7 +259,12 @@ impl Inspectable for AmbientLight {
 impl Inspectable for ClearColor {
     type Attributes = <Color as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         self.0.ui(ui, options, context)
     }
 }
@@ -245,7 +280,12 @@ impl_for_struct_delegate_fields!(TextureAtlasSprite: color, index, flip_x, flip_
 impl Inspectable for TextureAtlas {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         let mut changed = false;
         egui::Grid::new(context.id()).show(ui, |ui| {
             ui.label("texture");
@@ -338,7 +378,12 @@ impl Inspectable for StandardMaterial {
 impl Inspectable for Mesh {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         Grid::new(context.id()).show(ui, |ui| {
             ui.label("Primitive Topology");
             let _ = ui.button(format!("{:?}", self.primitive_topology()));
@@ -385,7 +430,12 @@ impl Inspectable for Mesh {
 impl Inspectable for Name {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        _: &Context,
+    ) -> bool {
         ui.label(self.as_str());
         false
     }
@@ -394,7 +444,12 @@ impl Inspectable for Name {
 impl Inspectable for VisibleEntities {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        _: &Context,
+    ) -> bool {
         let len = self.value.len();
         let entity = match len {
             1 => "entity",
@@ -408,7 +463,12 @@ impl Inspectable for VisibleEntities {
 impl<'a, T: Inspectable> Inspectable for Mut<'a, T> {
     type Attributes = T::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         (**self).ui(ui, options, context)
     }
 }

@@ -48,7 +48,10 @@ fn main() {
         .run();
 }
 
-fn text_update_system(data: Res<Data>, mut query: Query<&mut Text>) {
+fn text_update_system(
+    data: Res<Data>,
+    mut query: Query<&mut Text>,
+) {
     for mut text in query.iter_mut() {
         let text = &mut text.sections[0];
         text.value = data.text.clone();

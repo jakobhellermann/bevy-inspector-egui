@@ -58,7 +58,12 @@ impl<T> DerefMut for ReflectedUI<T> {
 impl<T: Reflect> Inspectable for ReflectedUI<T> {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         ui_for_reflect(&mut self.0, ui, context)
     }
 }
@@ -79,7 +84,11 @@ macro_rules! try_downcast_ui {
 ///
 /// This function gets used for the implementation of [`Inspectable`](crate::Inspectable)
 /// for [`ReflectedUI`](ReflectedUI).
-pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Context) -> bool {
+pub fn ui_for_reflect(
+    value: &mut dyn Reflect,
+    ui: &mut egui::Ui,
+    context: &Context,
+) -> bool {
     if let Some(world) = unsafe { context.world() } {
         if let Some(inspect_registry) = world.get_resource::<InspectableRegistry>() {
             if let Ok(changed) = inspect_registry.try_execute(value, ui, context) {
@@ -98,7 +107,11 @@ pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Cont
     }
 }
 
-fn ui_for_reflect_struct(value: &mut dyn Struct, ui: &mut egui::Ui, context: &Context) -> bool {
+fn ui_for_reflect_struct(
+    value: &mut dyn Struct,
+    ui: &mut egui::Ui,
+    context: &Context,
+) -> bool {
     let mut changed = false;
     ui.vertical_centered(|ui| {
         let grid = Grid::new(value.type_id());
@@ -120,7 +133,11 @@ fn ui_for_reflect_struct(value: &mut dyn Struct, ui: &mut egui::Ui, context: &Co
     changed
 }
 
-fn ui_for_tuple_struct(value: &mut dyn TupleStruct, ui: &mut egui::Ui, context: &Context) -> bool {
+fn ui_for_tuple_struct(
+    value: &mut dyn TupleStruct,
+    ui: &mut egui::Ui,
+    context: &Context,
+) -> bool {
     let mut changed = false;
     let grid = Grid::new(value.type_id());
     grid.show(ui, |ui| {
@@ -137,7 +154,11 @@ fn ui_for_tuple_struct(value: &mut dyn TupleStruct, ui: &mut egui::Ui, context: 
     changed
 }
 
-fn ui_for_tuple(value: &mut dyn Tuple, ui: &mut egui::Ui, context: &Context) -> bool {
+fn ui_for_tuple(
+    value: &mut dyn Tuple,
+    ui: &mut egui::Ui,
+    context: &Context,
+) -> bool {
     let mut changed = false;
     let grid = Grid::new(value.type_id());
     grid.show(ui, |ui| {
@@ -154,7 +175,11 @@ fn ui_for_tuple(value: &mut dyn Tuple, ui: &mut egui::Ui, context: &Context) -> 
     changed
 }
 
-fn ui_for_list(list: &mut dyn List, ui: &mut egui::Ui, context: &Context) -> bool {
+fn ui_for_list(
+    list: &mut dyn List,
+    ui: &mut egui::Ui,
+    context: &Context,
+) -> bool {
     let mut changed = false;
 
     ui.vertical(|ui| {
@@ -194,12 +219,19 @@ fn ui_for_list(list: &mut dyn List, ui: &mut egui::Ui, context: &Context) -> boo
     changed
 }
 
-fn ui_for_map(_value: &mut dyn Map, ui: &mut egui::Ui) -> bool {
+fn ui_for_map(
+    _value: &mut dyn Map,
+    ui: &mut egui::Ui,
+) -> bool {
     ui.label("Map not yet implemented");
     false
 }
 
-fn ui_for_reflect_value(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &Context) -> bool {
+fn ui_for_reflect_value(
+    value: &mut dyn Reflect,
+    ui: &mut egui::Ui,
+    context: &Context,
+) -> bool {
     try_downcast_ui!(
         value ui context =>
         f32, f64, u8, u16, u32, u64, i8, i16, i32, i64,

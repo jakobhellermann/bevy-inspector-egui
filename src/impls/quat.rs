@@ -34,7 +34,12 @@ struct AxisAngle((Vec3, f32));
 impl Inspectable for Quat {
     type Attributes = QuatAttributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         match options.display {
             QuatDisplay::Raw => {
                 let mut vec4 = Vec4::from(*self);
@@ -135,7 +140,10 @@ fn from_euler_angles(val: Vec3) -> Quat {
 fn yaw_pitch_roll(q: Quat) -> (f32, f32, f32) {
     let [x, y, z, w] = *q.as_ref();
 
-    fn atan2(a: f32, b: f32) -> f32 {
+    fn atan2(
+        a: f32,
+        b: f32,
+    ) -> f32 {
         a.atan2(b)
     }
     fn asin(a: f32) -> f32 {

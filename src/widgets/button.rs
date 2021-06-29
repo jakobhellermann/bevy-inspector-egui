@@ -29,7 +29,10 @@ impl<E> InspectableButton<E> {
 }
 
 impl<E> std::fmt::Debug for InspectableButton<E> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(
+        &self,
+        f: &mut std::fmt::Formatter<'_>,
+    ) -> std::fmt::Result {
         f.debug_struct("InspectableButton").finish()
     }
 }

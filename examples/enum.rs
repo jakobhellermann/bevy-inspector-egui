@@ -53,7 +53,10 @@ fn main() {
         .run();
 }
 
-fn print_inspector(inspector: Res<Inspector>, mut events: EventReader<Print>) {
+fn print_inspector(
+    inspector: Res<Inspector>,
+    mut events: EventReader<Print>,
+) {
     for _ in events.iter() {
         println!("{:?}", inspector.shape);
     }

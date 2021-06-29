@@ -23,7 +23,10 @@ fn main() {
         .run();
 }
 
-fn update(data: Res<Data>, mut query: Query<(&Cube, &mut Transform)>) {
+fn update(
+    data: Res<Data>,
+    mut query: Query<(&Cube, &mut Transform)>,
+) {
     if !data.is_changed() {
         return;
     }

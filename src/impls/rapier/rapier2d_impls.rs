@@ -114,7 +114,12 @@ impl Inspectable for MassProperties {
 impl Inspectable for RigidBodyHandle {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, _: Self::Attributes, _: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut bevy_egui::egui::Ui,
+        _: Self::Attributes,
+        _: &Context,
+    ) -> bool {
         let entity = self.entity();
         ui.label(format!("{:?}", entity));
         false
@@ -124,7 +129,12 @@ impl Inspectable for RigidBodyHandle {
 impl Inspectable for ColliderHandle {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut bevy_egui::egui::Ui, _: Self::Attributes, _: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut bevy_egui::egui::Ui,
+        _: Self::Attributes,
+        _: &Context,
+    ) -> bool {
         let entity = self.entity();
         ui.label(format!("{:?}", entity));
         false
@@ -134,7 +144,12 @@ impl Inspectable for ColliderHandle {
 impl Inspectable for SharedShape {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        _: &Context,
+    ) -> bool {
         #[rustfmt::skip]
         let shape = if self.0.is::<Ball>() { "Ball" }
         else if self.0.is::<HalfSpace>() { "HalfSpace" }
@@ -154,7 +169,12 @@ impl Inspectable for SharedShape {
 impl Inspectable for RigidBodyColliders {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        _: &Context,
+    ) -> bool {
         ui.horizontal(|ui| {
             for (i, handle) in self.0.iter().enumerate() {
                 if i == self.0.len() - 1 {
@@ -171,7 +191,12 @@ impl Inspectable for RigidBodyColliders {
 impl Inspectable for ColliderMassProps {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: Self::Attributes,
+        context: &Context,
+    ) -> bool {
         match self {
             ColliderMassProps::Density(density) => {
                 ui.label("Density: ");
