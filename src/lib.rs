@@ -70,7 +70,8 @@ pub mod widgets;
 
 #[allow(missing_docs)]
 mod impls;
-mod plugin;
+/// Internals for the inspector plugins
+pub mod plugin;
 
 /// configuration for the [`WorldInspectorPlugin`](crate::world_inspector::WorldInspectorPlugin)
 mod world_inspector;
@@ -89,6 +90,7 @@ pub use bevy_egui::egui;
 
 /// Derives the [`Inspectable`](Inspectable) trait.
 pub use bevy_inspector_egui_derive::Inspectable;
+#[doc(inline)]
 pub use plugin::InspectorPlugin;
 
 /// Attributes for the built-in [`Inspectable`](Inspectable) implementations

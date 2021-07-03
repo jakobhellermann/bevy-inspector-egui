@@ -60,34 +60,60 @@ impl<T> InspectorPlugin<T> {
     }
 }
 
-#[derive(Default, Debug)]
-struct InspectorWindows(bevy::utils::HashMap<TypeId, (String, WindowId)>);
+#[derive(Clone)]
+/// Metadata for a inspector window
+pub struct InspectorWindowData {
+    /// The name of the egui window. Must be unique.
+    pub name: String,
+    /// The window the ui should be displayed on
+    pub window_id: WindowId,
+    /// Whether the ui is currently shown
+    pub visible: bool,
+}
+#[derive(Default)]
+/// Can be used to control whether inspector windows are shown
+pub struct InspectorWindows(bevy::utils::HashMap<TypeId, InspectorWindowData>);
 impl InspectorWindows {
     fn insert<T: 'static>(&mut self, name: String, window_id: WindowId) {
-        self.0.insert(TypeId::of::<T>(), (name, window_id));
+        let data = InspectorWindowData {
+            name,
+            window_id,
+            visible: true,
+        };
+        self.0.insert(TypeId::of::<T>(), data);
     }
     fn contains_id(&self, type_id: TypeId) -> bool {
         self.0.iter().any(|(&id, _)| id == type_id)
     }
     fn contains_name(&self, name: &str) -> bool {
-        self.0.iter().any(|(_, (n, _))| n == name)
+        self.0.iter().any(|(_, data)| data.name == name)
     }
-    fn get_unwrap<T: 'static>(&self) -> &(String, WindowId) {
+    /// Returns the [InspectorWindowData] for the type `T`.
+    #[track_caller]
+    pub fn window_data<T: 'static>(&self) -> &InspectorWindowData {
         self.0
             .get(&TypeId::of::<T>())
-            .expect("inspector window not properly initialized")
+            .ok_or_else(|| {
+                format!(
+                    "inspector window `{}` not initialized",
+                    std::any::type_name::<T>()
+                )
+            })
+            .unwrap()
     }
-
-    /*#[track_caller]
-    pub fn set_window<T: 'static>(&mut self, window_id: WindowId) {
-        let (_, id) = self
-            .0
+    /// Returns a mutable reference to the [InspectorWindowData] for the type `T`.
+    #[track_caller]
+    pub fn window_data_mut<T: 'static>(&mut self) -> &mut InspectorWindowData {
+        self.0
             .get_mut(&TypeId::of::<T>())
-            .ok_or_else(|| format!("no inspector window for `{}`", std::any::type_name::<T>()))
-            .unwrap();
-
-        *id = window_id;
-    }*/
+            .ok_or_else(|| {
+                format!(
+                    "inspector window `{}` not initialized",
+                    std::any::type_name::<T>()
+                )
+            })
+            .unwrap()
+    }
 }
 
 impl<T> Plugin for InspectorPlugin<T>
@@ -156,10 +182,13 @@ fn shared_access_ui<T>(
         None => return,
     };
 
-    let (type_name, window_id) = inspector_windows.get_unwrap::<T>();
-    let ctx = egui_context.ctx_for_window(*window_id);
+    let window_data = inspector_windows.window_data::<T>();
+    let ctx = egui_context.ctx_for_window(window_data.window_id);
 
-    egui::Window::new(type_name)
+    if !window_data.visible {
+        return;
+    }
+    egui::Window::new(&window_data.name)
         .resizable(false)
         .scroll(true)
         .show(egui_context.ctx(), |ui| {
@@ -174,17 +203,17 @@ fn exclusive_access_ui<T>(world: &mut World)
 where
     T: Inspectable + Send + Sync + 'static,
 {
-    let (type_name, window_id) = {
+    let window_data = {
         let inspector_windows = world.get_resource_mut::<InspectorWindows>().unwrap();
-        let (type_name, window_id) = inspector_windows.get_unwrap::<T>();
-        (type_name.to_string(), *window_id)
+        let window_data = inspector_windows.window_data::<T>();
+        window_data.clone()
     };
 
     let world_ptr = world as *mut _;
 
     let egui_context = unsafe { world.get_resource_unchecked_mut::<EguiContext>().unwrap() };
 
-    let ctx = match egui_context.try_ctx_for_window(window_id) {
+    let ctx = match egui_context.try_ctx_for_window(window_data.window_id) {
         Some(ctx) => ctx,
         None => return,
     };
@@ -197,7 +226,10 @@ where
 
     let mut changed = false;
 
-    egui::Window::new(type_name)
+    if !window_data.visible {
+        return;
+    }
+    egui::Window::new(window_data.name)
         .resizable(false)
         .scroll(true)
         .show(ctx, |ui| {
