@@ -1,10 +1,11 @@
 # Changelog
 
 ## Version 0.6
-- update to `egui` 0.12, `bevy_egui` 0.5
+- update to `egui` 0.13, `bevy_egui` 0.6
 - update to rapier `0.10`
 - rename `rapier` feature to `rapier3d`
 - fix `Quat` implementation to not modify unrelated state
+- expose `InspectorWindows` to allow controlling whether inspector ui is shown
 
 ## Version 0.5.1
 ### Added
