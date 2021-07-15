@@ -77,7 +77,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
                 changed
             }
 
-            fn setup(app: &mut bevy::prelude::AppBuilder) {
+            fn setup(app: &mut bevy::prelude::App) {
                 #(#field_setup)*
             }
         }

@@ -15,7 +15,7 @@ impl Inspectable for ExampleWidget {
         false
     }
 
-    fn setup(_: &mut AppBuilder) {
+    fn setup(_: &mut App) {
         eprintln!("Running setup code...");
 
         // app.init_resource::<WhateverYouNeed>();

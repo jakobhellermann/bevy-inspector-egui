@@ -94,20 +94,20 @@ impl<Q, F> Default for InspectorQuery<Q, F> {
     }
 }
 
-impl<'w, Q, F> Inspectable for InspectorQuery<Q, F>
+impl<Q: 'static, F: 'static> Inspectable for InspectorQuery<Q, F>
 where
     Q: WorldQuery,
     F: WorldQuery,
     F::Fetch: FilterFetch,
-    <<Q as WorldQuery>::Fetch as Fetch<'static>>::Item: Inspectable,
+    for<'w, 's> <<Q as WorldQuery>::Fetch as Fetch<'w, 's>>::Item: Inspectable,
 {
     type Attributes =
-        <<<Q as WorldQuery>::Fetch as Fetch<'static>>::Item as Inspectable>::Attributes;
+        <<<Q as WorldQuery>::Fetch as Fetch<'static, 'static>>::Item as Inspectable>::Attributes;
 
     fn ui(
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
-        options: Self::Attributes,
+        _options: Self::Attributes,
         context: &crate::Context,
     ) -> bool {
         let world = match context.world {
@@ -129,7 +129,8 @@ where
                 CollapsingHeader::new(name)
                     .id_source(context.id().with(i))
                     .show(ui, |ui| {
-                        changed |= value.ui(ui, options.clone(), &context.with_id(i as u64));
+                        changed |= value.ui(ui, Default::default(), &context.with_id(i as u64));
+                        // TODO this should use options
                     });
             }
         });
@@ -170,15 +171,16 @@ impl<Q, F> Default for InspectorQuerySingle<Q, F> {
     }
 }
 
-impl<'w, Q, F> Inspectable for InspectorQuerySingle<Q, F>
+impl<Q, F> Inspectable for InspectorQuerySingle<Q, F>
 where
-    Q: WorldQuery,
-    F: WorldQuery,
+    Q: WorldQuery + 'static,
+    F: WorldQuery + 'static,
     F::Fetch: FilterFetch,
-    <<Q as WorldQuery>::Fetch as Fetch<'static>>::Item: Inspectable,
+    for<'w, 's> <<Q as WorldQuery>::Fetch as Fetch<'w, 's>>::Item: Inspectable,
+    //<<<Q as WorldQuery>::Fetch as Fetch<'static, 'static>>::Item as Inspectable>::Attributes: 'static,  TODO make this work
 {
     type Attributes =
-        <<<Q as WorldQuery>::Fetch as Fetch<'static>>::Item as Inspectable>::Attributes;
+        <<<Q as WorldQuery>::Fetch as Fetch<'static, 'static>>::Item as Inspectable>::Attributes;
 
     fn ui(
         &mut self,
@@ -198,6 +200,10 @@ where
         let mut changed = false;
 
         ui.vertical(move |ui| {
+            fn is_static<T: 'static>(_: &T) {}
+            let options = options.clone();
+
+            is_static(&options);
             let mut query_state = world.query_filtered::<Q, F>();
             let mut iter = query_state.iter_mut(world);
             let value = iter.next();
@@ -215,10 +221,11 @@ where
                     CollapsingHeader::new(name)
                         .id_source(context.id())
                         .show(ui, |ui| {
-                            changed |= value.ui(ui, options.clone(), context);
+                            changed |= value.ui(ui, Default::default(), context);
+                            // TODO this should use options
                         });
                 }
-            }
+            };
         });
 
         changed

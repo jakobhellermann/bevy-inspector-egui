@@ -124,12 +124,12 @@ fn rescaled_image<'a>(
     handle: &Handle<Texture>,
     scaled_down_textures: &'a mut ScaledDownTextures,
     textures: &mut Assets<Texture>,
-    egui_context: &mut EguiContext,
+    _egui_context: &mut EguiContext,
 ) -> (Handle<Texture>, TextureId) {
     let id = id_of_handle(handle);
     let texture = match scaled_down_textures.textures.entry(handle.clone()) {
         Entry::Occupied(handle) => handle.get().clone(),
-        Entry::Vacant(entry) => {
+        Entry::Vacant(_entry) => {
             let original = textures.get(handle).unwrap();
 
             let image = image_texture_conversion::texture_to_image(&original).unwrap();
@@ -137,11 +137,12 @@ fn rescaled_image<'a>(
             let resized = image_texture_conversion::image_to_texture(resized);
 
             let handle = textures.add(resized);
-            let weak = handle.clone_weak();
-            egui_context.set_egui_texture(id, handle.clone());
-            entry.insert(handle);
+            let _weak = handle.clone_weak();
+            // egui_context.set_egui_texture(id, handle.clone());
+            // entry.insert(handle);
+            // weak
 
-            weak
+            todo!();
         }
     };
 

@@ -78,7 +78,7 @@ mod world_inspector;
 
 use std::hash::Hasher;
 
-use bevy::prelude::{AppBuilder, World};
+use bevy::prelude::{App, World};
 use egui::CtxRef;
 pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 
@@ -226,5 +226,5 @@ pub trait Inspectable {
 
     /// Required setup for the bevy application, e.g. registering events. Note that this method will run for every instance of a type.
     #[allow(unused_variables)]
-    fn setup(app: &mut AppBuilder) {}
+    fn setup(app: &mut App) {}
 }

@@ -44,7 +44,7 @@ use crate::InspectableRegistry;
 /// pub struct MyPlugin;
 ///
 /// impl Plugin for MyPlugin {
-///     fn build(&self, app: &mut AppBuilder) {
+///     fn build(&self, app: &mut App) {
 ///         let mut registry = app
 ///             .world_mut()
 ///             .get_resource_or_insert_with(InspectableRegistry::default);
@@ -54,7 +54,7 @@ use crate::InspectableRegistry;
 /// }
 /// ```
 ///
-/// Components can be registered in `main` function aswell, just use your [`bevy::app::AppBuilder`]
+/// Components can be registered in `main` function aswell, just use your [`bevy::app::App`]
 /// instance to do so.
 
 pub struct WorldInspectorPlugin<F = ()>(PhantomData<fn() -> F>);
@@ -91,12 +91,12 @@ where
     F: WorldQuery + 'static,
     F::Fetch: FilterFetch,
 {
-    fn build(&self, app: &mut AppBuilder) {
-        if !app.world_mut().contains_resource::<EguiContext>() {
+    fn build(&self, app: &mut App) {
+        if !app.world.contains_resource::<EguiContext>() {
             app.add_plugin(EguiPlugin);
         }
 
-        let world = app.world_mut();
+        let world = &mut app.world;
         world.get_resource_or_insert_with(WorldInspectorParams::default);
         world.get_resource_or_insert_with(InspectableRegistry::default);
 

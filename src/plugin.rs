@@ -120,9 +120,9 @@ impl<T> Plugin for InspectorPlugin<T>
 where
     T: Inspectable + Send + Sync + 'static,
 {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         if let Some(get_value) = &self.initial_value {
-            let world = app.world_mut();
+            let world = &mut app.world;
             let resource = get_value(world);
             app.insert_resource(resource);
         }
@@ -137,11 +137,11 @@ where
         }
 
         // init egui
-        if !app.world().contains_resource::<EguiContext>() {
+        if !app.world.contains_resource::<EguiContext>() {
             app.add_plugin(EguiPlugin);
         }
 
-        let world = app.world_mut();
+        let world = &mut app.world;
 
         // add entry to `InspectorWindows`
         world.get_resource_or_insert_with(InspectableRegistry::default);
