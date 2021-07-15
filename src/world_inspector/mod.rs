@@ -2,7 +2,7 @@ pub(crate) mod impls;
 mod inspectable_registry;
 mod plugin;
 
-use bevy::{render::camera::Camera, window::WindowId};
+use bevy::{render::camera::Camera, ui::FocusPolicy, window::WindowId};
 pub use inspectable_registry::InspectableRegistry;
 pub use plugin::WorldInspectorPlugin;
 
@@ -15,7 +15,6 @@ use bevy::{
     },
     prelude::*,
     reflect::{TypeRegistryArc, TypeRegistryInternal},
-    render::render_graph::base::MainPass,
     utils::HashSet,
 };
 use bevy_egui::egui::{self, Color32};
@@ -99,9 +98,6 @@ impl Default for WorldInspectorParams {
             TypeId::of::<Children>(),
             TypeId::of::<Parent>(),
             TypeId::of::<PreviousParent>(),
-            TypeId::of::<MainPass>(),
-            TypeId::of::<Draw>(),
-            TypeId::of::<RenderPipelines>(),
         ]
         .iter()
         .copied()
@@ -184,7 +180,8 @@ impl<'a> WorldUIContext<'a> {
         changed
     }
 
-    fn entity_ui(
+    /// Displays an entity and its children in a collapsing header.
+    pub fn entity_ui(
         &self,
         ui: &mut egui::Ui,
         entity: Entity,
@@ -220,7 +217,8 @@ impl<'a> WorldUIContext<'a> {
         }
     }
 
-    fn entity_ui_inner(
+    /// Displays an entity and its children.
+    pub fn entity_ui_inner(
         &self,
         ui: &mut egui::Ui,
         entity: Entity,
@@ -521,11 +519,7 @@ fn display_by_reflection(
             .reflect_component_unchecked_mut(world, entity)
             .ok_or(())?
     };
-    Ok(crate::reflect::ui_for_reflect(
-        &mut *reflected,
-        ui,
-        context,
-    ))
+    Ok(crate::reflect::ui_for_reflect(&mut *reflected, ui, context))
 }
 
 // copied from bevy
@@ -558,7 +552,7 @@ unsafe fn get_component_and_ticks(
 }
 
 macro_rules! is_bundle {
-    ($entity:ident: $($ty:ty),*) => {
+    ($entity:ident: $($ty:ty),* $(,)?) => {
         $( $entity.contains::<$ty>() && )* true
     };
 }
@@ -579,26 +573,34 @@ fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
         return format!("Light ({:?})", entity.id().id()).into();
     }
 
+    if is_bundle!(entity: DirectionalLight, Transform, GlobalTransform) {
+        return format!("Directional Light ({:?})", entity.id().id()).into();
+    }
+
+    if is_bundle!(
+        entity: Handle<Mesh>,
+        Handle<StandardMaterial>,
+        Transform,
+        GlobalTransform
+    ) {
+        return format!("Pbr Mesh ({:?})", entity.id().id()).into();
+    }
+
     if is_bundle!(
         entity: Node,
         Style,
-        Draw,
-        Visible,
         Text,
         CalculatedSize,
-        bevy::ui::FocusPolicy,
+        FocusPolicy,
         Transform,
         GlobalTransform
     ) {
         return format!("Entity {:?} (Text)", entity.id().id()).into();
     }
     if is_bundle!(
-        entity: Draw,
-        Visible,
-        Text,
+        entity: Text,
         Transform,
         GlobalTransform,
-        MainPass,
         bevy::text::Text2dSize
     ) {
         return format!("Entity {:?} (Text2d)", entity.id().id()).into();
@@ -606,10 +608,8 @@ fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
     if is_bundle!(
         entity: Node,
         Style,
-        Handle<Mesh>,
-        Draw,
-        Visible,
-        RenderPipelines,
+        UiColor,
+        UiImage,
         Transform,
         GlobalTransform
     ) {

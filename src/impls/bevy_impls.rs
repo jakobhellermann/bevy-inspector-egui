@@ -1,12 +1,16 @@
 use crate::options::{NumberAttributes, OptionAttributes, Vec2dAttributes};
 use crate::{Context, Inspectable};
+use bevy::math::Vec4Swizzles;
+use bevy::pbr::{CubemapVisibleEntities, StandardMaterial};
+use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
+use bevy::render::render_resource::PrimitiveTopology;
+use bevy::render::view::VisibleEntities;
 use bevy::{
     asset::HandleId,
     pbr::DirectionalLight,
     render::{
-        camera::{DepthCalculation, ScalingMode, VisibleEntities, WindowOrigin},
+        camera::{DepthCalculation, ScalingMode, WindowOrigin},
         mesh::Indices,
-        pipeline::PrimitiveTopology,
     },
 };
 use bevy::{pbr::AmbientLight, prelude::*};
@@ -19,8 +23,35 @@ impl_for_struct_delegate_fields!(
     intensity with NumberAttributes::positive().speed(1.0),
     range with NumberAttributes::positive(),
     radius with NumberAttributes::positive(),
+    shadows_enabled,
+    shadow_depth_bias with NumberAttributes::positive(),
+    shadow_normal_bias with NumberAttributes::positive(),
 );
-impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
+
+impl_for_struct_delegate_fields!(
+    DirectionalLight: color,
+    illuminance with NumberAttributes::positive(),
+    shadows_enabled,
+    shadow_projection,
+    shadow_depth_bias with NumberAttributes::positive(),
+    shadow_normal_bias with NumberAttributes::positive(),
+);
+
+impl_for_struct_delegate_fields!(
+    OrthographicProjection:
+    left with NumberAttributes::positive(),
+    right with NumberAttributes::positive(),
+    bottom with NumberAttributes::positive(),
+    top with NumberAttributes::positive(),
+    near with NumberAttributes::positive(),
+    far with NumberAttributes::positive(),
+    window_origin,
+    scaling_mode,
+    scale with NumberAttributes::positive(),
+    depth_calculation
+);
+
+// impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
 impl_for_simple_enum!(
     PrimitiveTopology: PointList,
     LineList,
@@ -267,40 +298,6 @@ impl Inspectable for TextureAtlas {
     }
 }
 
-impl Inspectable for DirectionalLight {
-    type Attributes = ();
-
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
-        let mut changed = false;
-
-        ui.vertical_centered(|ui| {
-            crate::egui::Grid::new(context.id()).show(ui, |ui| {
-                ui.label("direction");
-                let mut direction = self.get_direction();
-                let direction_attrs = Default::default();
-                changed |= direction.ui(ui, direction_attrs, &context.with_id(0));
-                self.set_direction(direction);
-
-                ui.end_row();
-
-                ui.label("color");
-                let color_attrs = ColorAttributes::default();
-                changed |= self.color.ui(ui, color_attrs, &context.with_id(1));
-                ui.end_row();
-
-                ui.label("illuminance");
-                let illuminance_attrs = NumberAttributes::positive();
-                changed |= self
-                    .illuminance
-                    .ui(ui, illuminance_attrs, &context.with_id(2));
-                ui.end_row();
-            });
-        });
-
-        changed
-    }
-}
-
 #[rustfmt::skip]
 impl Inspectable for StandardMaterial {
     type Attributes = ();
@@ -315,8 +312,8 @@ impl Inspectable for StandardMaterial {
                         changed |= self.base_color.ui(ui, Default::default(), context);
                         ui.end_row();
 
-                        ui.label("roughness");
-                        changed |= self.roughness.ui(ui, NumberAttributes::between(0.089, 1.0).speed(0.01), context);
+                        ui.label("perceptual_roughness");
+                        changed |= self.perceptual_roughness.ui(ui, NumberAttributes::between(0.089, 1.0).speed(0.01), context);
                         ui.end_row();
 
                         ui.label("reflectance");
@@ -341,15 +338,15 @@ impl Inspectable for StandardMaterial {
 
             ui.collapsing("Textures", |ui| {
                 egui::Grid::new("Textures").show(ui, |ui| {
-                    let texture_option_attributes = OptionAttributes { replacement: Some(|| Handle::weak(HandleId::random::<Texture>())), ..Default::default() };
+                    let texture_option_attributes = OptionAttributes { replacement: Some(|| Handle::weak(HandleId::random::<Image>())), ..Default::default() };
 
                     ui.label("base_color");
                     changed |= self.base_color_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
                     ui.end_row();
 
-                    ui.label("normal_map");
-                    changed |= self.normal_map.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
-                    ui.end_row();
+                    // ui.label("normal_map");
+                    // changed |= self.normal_map.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
+                    // ui.end_row();
 
                     ui.label("metallic_roughness");
                     changed |= self.metallic_roughness_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(1));
@@ -429,13 +426,70 @@ impl Inspectable for VisibleEntities {
     type Attributes = ();
 
     fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
-        let len = self.value.len();
+        let len = self.entities.len();
         let entity = match len {
             1 => "entity",
             _ => "entities",
         };
-        ui.label(format!("{} visible {}", self.value.len(), entity));
+        ui.label(format!("{} visible {}", self.entities.len(), entity));
         false
+    }
+}
+
+impl Inspectable for CubemapVisibleEntities {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, cx: &Context) -> bool {
+        for visible in self.iter_mut() {
+            visible.ui(ui, (), cx);
+        }
+        false
+    }
+}
+
+impl Inspectable for CubemapFrusta {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, cx: &Context) -> bool {
+        for frustrum in self.iter_mut() {
+            frustrum.ui(ui, (), cx);
+        }
+        false
+    }
+}
+
+impl Inspectable for Frustum {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, cx: &Context) -> bool {
+        for plane in self.planes.iter_mut() {
+            plane.ui(ui, (), cx);
+        }
+        false
+    }
+}
+
+impl Inspectable for Plane {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
+        ui.vertical_centered(|ui| {
+            Grid::new(context.id()).show(ui, |ui| {
+                ui.label("Normal");
+                let mut normal = self.normal_d.xyz();
+                changed |= normal.ui(ui, Default::default(), context);
+                ui.end_row();
+
+                ui.label("Distance");
+                let mut distance = self.normal_d.w;
+                changed |= distance.ui(ui, Default::default(), context);
+                ui.end_row();
+
+                self.normal_d = normal.extend(distance);
+            });
+        });
+        changed
     }
 }
 

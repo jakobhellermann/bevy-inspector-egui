@@ -1,5 +1,5 @@
 #![allow(clippy::type_complexity, clippy::identity_op)]
-use bevy::{math::Vec3Swizzles, prelude::*};
+use bevy::{math::Vec3Swizzles, prelude::*, render::render_resource::PrimitiveTopology};
 use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 use noise::NoiseFn;
 
@@ -228,7 +228,7 @@ impl From<PlanetShape<'_>> for Mesh {
     fn from(s: PlanetShape) -> Self {
         let (positions, normals, uvs, indices) = s.mesh_attributes();
 
-        let mut mesh = Mesh::new(bevy::render::pipeline::PrimitiveTopology::TriangleList);
+        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
         mesh.set_attribute(Mesh::ATTRIBUTE_POSITION, positions);
         mesh.set_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
         mesh.set_attribute(Mesh::ATTRIBUTE_UV_0, uvs);

@@ -1,4 +1,5 @@
-use bevy::{
+fn main() {}
+/*use bevy::{
     prelude::*,
     render::{
         camera::{ActiveCameras, Camera},
@@ -269,3 +270,4 @@ fn ui(egui_context: Res<bevy_egui::EguiContext>) {
         },
     );
 }
+*/

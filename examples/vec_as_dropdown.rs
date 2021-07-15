@@ -98,19 +98,17 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
-        .add_startup_system(setup.system())
+        .add_startup_system(setup)
         .run();
 }
 
-fn setup(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
-    let color = materials.add(Color::BLUE.into());
-
+fn setup(mut commands: Commands) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
     commands.spawn_bundle(SpriteBundle {
-        material: color,
         sprite: Sprite {
-            size: Vec2::new(40.0, 40.0),
+            custom_size: Some(Vec2::new(40.0, 40.0)),
+            color: Color::BLUE,
             ..Default::default()
         },
         transform: Transform::from_translation(Vec3::default()),

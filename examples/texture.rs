@@ -52,6 +52,10 @@ fn setup(
     });
     commands.spawn_bundle(PointLightBundle {
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
+        point_light: PointLight {
+            intensity: 1000.0,
+            ..Default::default()
+        },
         ..Default::default()
     });
     commands.spawn_bundle(PerspectiveCameraBundle {

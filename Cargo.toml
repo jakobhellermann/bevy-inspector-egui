@@ -19,37 +19,40 @@ no-default-features = true
 
 [features]
 default = ["clipboard"]
-rapier = ["bevy_rapier3d", "nalgebra"]
-rapier2d = ["bevy_rapier2d", "nalgebra"]
+# rapier = ["bevy_rapier3d", "nalgebra"]
+# rapier2d = ["bevy_rapier2d", "nalgebra"]
 clipboard = ["bevy_egui/manage_clipboard"]
 nightly = []
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
+bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false, features = [
+    "render", # for bevy_ui TODO
+    "bevy_render", "bevy_pbr", "bevy_sprite", "bevy_text"
+] }
 bevy_egui = { git = "https://github.com/jakobhellermann/bevy_egui", branch = "bevy-main", default-features = false, features = ["open_url"] }
 emath = "0.14"
 pretty-type-name = "1.0"
 image = { version = "0.23", default-features = false }
-bevy_rapier3d = { version = "0.10", optional = true }
-bevy_rapier2d = { version = "0.10", optional = true }
+# bevy_rapier3d = { version = "0.10", optional = true }
+# bevy_rapier2d = { version = "0.10", optional = true }
 nalgebra = { version = "0.27", features = ["convert-glam013"], optional = true }
 
 bevy-inspector-egui-derive = { version = "0.6.1", path = "bevy-inspector-egui-derive" }
 rand = "0.8"
 
 [dev-dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false, features = ["x11", "render", "bevy_wgpu", "bevy_winit"] }
+bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false, features = ["x11", "bevy_winit"] }
 # bevy_mod_picking = { version = "0.4" }
 noise = "0.7"
 once_cell = "1.0"
 
 [[example]]
 name = "rapier"
-required-features = ["rapier"]
+# required-features = ["rapier"]
 
 [[example]]
 name = "rapier2d"
-required-features = ["rapier2d"]
+# required-features = ["rapier2d"]
 
 [[example]]
 name = "texture"
@@ -59,4 +62,3 @@ required-features = ["bevy/png"]
 name = "world"
 
 [patch.crates-io]
-bevy = { git = "https://github.com/bevyengine/bevy", branch = "main" }

@@ -42,7 +42,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
-        .add_startup_system(setup.system())
+        .add_startup_system(setup)
         .add_system(text_update_system.system())
         .add_system(shape_update_system.system())
         .run();
@@ -61,14 +61,9 @@ fn text_update_system(data: Res<Data>, mut query: Query<&mut Text>) {
     }
 }
 
-fn shape_update_system(
-    data: Res<Data>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut query: Query<(&Handle<ColorMaterial>, &mut Transform)>,
-) {
-    for (color, mut transfrom) in query.iter_mut() {
-        let material = materials.get_mut(color).unwrap();
-        material.color = data.color;
+fn shape_update_system(data: Res<Data>, mut query: Query<(&mut Sprite, &mut Transform)>) {
+    for (mut sprite, mut transfrom) in query.iter_mut() {
+        sprite.color = data.color;
 
         if !data.show_square {
             transfrom.translation.x = 1000000.0;
@@ -79,14 +74,8 @@ fn shape_update_system(
     }
 }
 
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let font_handle = asset_server.load("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
-
-    let color = materials.add(Color::BLUE.into());
 
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
@@ -107,9 +96,9 @@ fn setup(
         ..Default::default()
     });
     commands.spawn_bundle(SpriteBundle {
-        material: color,
         sprite: Sprite {
-            size: Vec2::new(40.0, 40.0),
+            custom_size: Some(Vec2::new(40.0, 40.0)),
+            color: Color::BLUE,
             ..Default::default()
         },
         transform: Transform::from_translation(Vec3::default()),

@@ -1,3 +1,6 @@
+fn main() {}
+
+/*
 use bevy::prelude::*;
 use bevy_inspector_egui::{widgets::InspectorQuerySingle, InspectorPlugin};
 use bevy_rapier3d::{
@@ -74,3 +77,5 @@ fn setup(
         ..Default::default()
     });
 }
+
+*/

@@ -8,7 +8,7 @@ use bevy::{
     app::Events,
     asset::{Asset, HandleId},
     prelude::*,
-    render::texture::Texture,
+    render::texture::Image,
     utils::HashMap,
 };
 use bevy_egui::{
@@ -59,7 +59,7 @@ impl<T: Asset + Inspectable> Inspectable for Handle<T> {
 
 #[derive(Default)]
 struct ScaledDownTextures {
-    textures: HashMap<Handle<Texture>, Handle<Texture>>,
+    textures: HashMap<Handle<Image>, Handle<Image>>,
 }
 
 #[derive(Clone)]
@@ -77,16 +77,16 @@ impl Default for TextureAttributes {
     }
 }
 
-impl Inspectable for Handle<Texture> {
+impl Inspectable for Handle<Image> {
     type Attributes = TextureAttributes;
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
-        let world = expect_world!(ui, context, "Handle<Texture>");
+        let world = expect_world!(ui, context, "Handle<Image>");
         let _ = world.get_resource_or_insert_with(ScaledDownTextures::default);
 
         let world = world.cell();
         let asset_server = world.get_resource::<AssetServer>().unwrap();
-        let mut textures = world.get_resource_mut::<Assets<Texture>>().unwrap();
+        let mut textures = world.get_resource_mut::<Assets<Image>>().unwrap();
         let file_events = world.get_resource::<Events<FileDragAndDrop>>().unwrap();
         let mut scaled_down_textures = world.get_resource_mut().unwrap();
         let mut egui_context = world.get_resource_mut::<bevy_egui::EguiContext>().unwrap();
@@ -121,11 +121,11 @@ impl Inspectable for Handle<Texture> {
 }
 
 fn rescaled_image<'a>(
-    handle: &Handle<Texture>,
+    handle: &Handle<Image>,
     scaled_down_textures: &'a mut ScaledDownTextures,
-    textures: &mut Assets<Texture>,
+    textures: &mut Assets<Image>,
     egui_context: &mut EguiContext,
-) -> (Handle<Texture>, TextureId) {
+) -> (Handle<Image>, TextureId) {
     let id = id_of_handle(handle);
     let texture = match scaled_down_textures.textures.entry(handle.clone()) {
         Entry::Occupied(handle) => handle.get().clone(),
@@ -175,12 +175,12 @@ impl Inspectable for Handle<Font> {
 }
 
 fn show_texture(
-    texture: &Texture,
+    texture: &Image,
     texture_id: TextureId,
     ui: &mut egui::Ui,
     context: &Context,
 ) -> Option<egui::Response> {
-    let size = texture.size;
+    let size = texture.texture_descriptor.size;
     let size = [size.width as f32, size.height as f32];
 
     let max = size[0].max(size[1]);
@@ -195,7 +195,7 @@ fn show_texture(
     }
 }
 
-pub(crate) fn id_of_handle(handle: &Handle<Texture>) -> u64 {
+pub(crate) fn id_of_handle(handle: &Handle<Image>) -> u64 {
     use std::hash::{Hash, Hasher};
     let mut hasher = std::collections::hash_map::DefaultHasher::default();
     handle.hash(&mut hasher);

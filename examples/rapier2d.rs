@@ -1,3 +1,6 @@
+fn main() {}
+
+/*
 use bevy::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
@@ -81,3 +84,5 @@ fn player_movement(
         rb_vels.linvel = move_delta * player.0;
     }
 }
+
+*/

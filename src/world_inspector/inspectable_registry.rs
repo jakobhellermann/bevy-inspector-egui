@@ -1,7 +1,11 @@
 use crate::{Context, Inspectable};
-use bevy::render::camera::{DepthCalculation, ScalingMode, VisibleEntities, WindowOrigin};
+use bevy::pbr::CubemapVisibleEntities;
+use bevy::render::camera::{DepthCalculation, ScalingMode, WindowOrigin};
+use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
+use bevy::render::render_resource::PrimitiveTopology;
+use bevy::render::view::VisibleEntities;
+use bevy::utils::HashMap;
 use bevy::{pbr::AmbientLight, prelude::*};
-use bevy::{render::pipeline::PrimitiveTopology, utils::HashMap};
 use bevy_egui::egui;
 use std::any::TypeId;
 
@@ -109,7 +113,6 @@ impl Default for InspectableRegistry {
         this.register::<PointLight>();
         this.register::<DirectionalLight>();
         this.register::<StandardMaterial>();
-        this.register::<ColorMaterial>();
         this.register::<PrimitiveTopology>();
         this.register::<Mesh>();
         this.register::<bevy::sprite::Rect>();
@@ -118,10 +121,13 @@ impl Default for InspectableRegistry {
         this.register::<ScalingMode>();
         this.register::<DepthCalculation>();
         this.register::<VisibleEntities>();
+        this.register::<CubemapVisibleEntities>();
+        this.register::<CubemapFrusta>();
+        this.register::<Frustum>();
+        this.register::<Plane>();
 
-        this.register::<Handle<Texture>>();
+        this.register::<Handle<Image>>();
         this.register::<Handle<StandardMaterial>>();
-        this.register::<Handle<ColorMaterial>>();
         this.register::<Handle<TextureAtlas>>();
         this.register::<Handle<Mesh>>();
 

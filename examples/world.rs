@@ -23,7 +23,7 @@ fn main() {
 
 #[derive(Inspectable, Default)]
 struct Resources {
-    ambient_light: ResourceInspector<bevy::pbr::AmbientLight>,
+    ambient_light: ResourceInspector<AmbientLight>,
     clear_color: ResourceInspector<ClearColor>,
 }
 
@@ -136,8 +136,9 @@ fn setup(
         .insert(Name::new("Second Light"));
 }
 
+#[derive(Component)]
 struct RotateTarget;
-
+#[derive(Component)]
 struct TeleportTarget;
 
 struct TeleportState {
@@ -159,17 +160,17 @@ fn movement(
     time: Res<Time>,
     mut state: Local<TeleportState>,
     mut qs: QuerySet<(
-        Query<&mut Transform, With<RotateTarget>>,
-        Query<&mut Transform, With<TeleportTarget>>,
+        QueryState<&mut Transform, With<RotateTarget>>,
+        QueryState<&mut Transform, With<TeleportTarget>>,
     )>,
 ) {
-    for mut transform in qs.q0_mut().iter_mut() {
+    for mut transform in qs.q0().iter_mut() {
         // rotate around vertical axis through origin
         transform.translation =
             Quat::from_axis_angle(Vec3::Y, time.delta_seconds()) * transform.translation;
     }
     if state.timer.tick(time.delta()).just_finished() {
-        for mut transform in qs.q1_mut().iter_mut() {
+        for mut transform in qs.q1().iter_mut() {
             // jump to new position to the left or right
             transform.translation += match state.count % 4 {
                 0 | 3 => -Vec3::X,
