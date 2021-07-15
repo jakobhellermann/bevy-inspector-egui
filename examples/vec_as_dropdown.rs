@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, PipelinedDefaultPlugins};
 use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 use std::fmt::{Debug, Display};
 pub struct VecAsDropdown<T>
@@ -95,8 +95,8 @@ impl Default for Data {
 }
 
 fn main() {
-    App::build()
-        .add_plugins(DefaultPlugins)
+    App::new()
+        .add_plugins(PipelinedDefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
         .add_startup_system(setup.system())
         .run();

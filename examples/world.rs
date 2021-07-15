@@ -6,7 +6,7 @@ fn main() {
     let mut app = App::build();
 
     app.insert_resource(Msaa { samples: 4 })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(PipelinedDefaultPlugins)
         .insert_resource(WorldInspectorParams {
             despawnable_entities: true,
             ..Default::default()

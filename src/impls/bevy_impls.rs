@@ -20,6 +20,13 @@ impl_for_struct_delegate_fields!(
     range with NumberAttributes::positive(),
     radius with NumberAttributes::positive(),
 );
+impl_for_struct_delegate_fields!(
+    bevy::pbr2::PointLight:
+    color,
+    intensity with NumberAttributes::positive().speed(1.0),
+    range with NumberAttributes::positive(),
+    radius with NumberAttributes::positive(),
+);
 impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
 impl_for_simple_enum!(
     PrimitiveTopology: PointList,
@@ -213,6 +220,34 @@ impl Inspectable for Color {
         }
     }
 }
+impl Inspectable for bevy::render2::color::Color {
+    type Attributes = ColorAttributes;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) -> bool {
+        let old: [f32; 4] = (*self).into();
+
+        if options.alpha {
+            let mut color = egui::color::Color32::from_rgba_premultiplied(
+                (old[0] * u8::MAX as f32) as u8,
+                (old[1] * u8::MAX as f32) as u8,
+                (old[2] * u8::MAX as f32) as u8,
+                (old[3] * u8::MAX as f32) as u8,
+            );
+            let changed = ui.color_edit_button_srgba(&mut color).changed();
+            let [r, g, b, a] = color.to_array();
+            *self = bevy::render2::color::Color::rgba_u8(r, g, b, a);
+
+            changed
+        } else {
+            let mut color = [old[0], old[1], old[2]];
+            let changed = ui.color_edit_button_rgb(&mut color).changed();
+            let [r, g, b] = color;
+            *self = bevy::render2::color::Color::rgba(r, g, b, old[3]);
+
+            changed
+        }
+    }
+}
 
 //////// RESOURCES ////////
 
@@ -350,6 +385,74 @@ impl Inspectable for StandardMaterial {
                     ui.label("normal_map");
                     changed |= self.normal_map.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
                     ui.end_row();
+
+                    ui.label("metallic_roughness");
+                    changed |= self.metallic_roughness_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(1));
+                    ui.end_row();
+
+                    ui.label("emmissive");
+                    changed |= self.emissive_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(2));
+                    ui.end_row();
+
+                    ui.label("occlusion texture");
+                    changed |= self.occlusion_texture.ui(ui, texture_option_attributes, &context.with_id(3));
+                    ui.end_row();
+                });
+            });
+        });
+        changed
+    }
+}
+
+#[rustfmt::skip]
+impl Inspectable for bevy::pbr2::StandardMaterial {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
+        ui.vertical_centered(|ui| {
+            egui::Grid::new(context.id()).show(ui, |ui| {
+                ui.columns(2, |all| {
+                    egui::Grid::new("left").show(&mut all[0], |ui| {
+                        ui.label("base_color");
+                        changed |= self.base_color.ui(ui, Default::default(), context);
+                        ui.end_row();
+
+                        ui.label("perceptual_roughness");
+                        changed |= self.perceptual_roughness.ui(ui, NumberAttributes::between(0.089, 1.0).speed(0.01), context);
+                        ui.end_row();
+
+                        ui.label("reflectance");
+                        changed |= self.reflectance.ui(ui, NumberAttributes::positive(), context);
+                        ui.end_row();
+                    });
+                    egui::Grid::new("right").show(&mut all[1], |ui| {
+                        ui.label("emissive");
+                        changed |= self.emissive.ui(ui, Default::default(), context);
+                        ui.end_row();
+
+                        ui.label("metallic");
+                        changed |= self.metallic.ui(ui, NumberAttributes::normalized().speed(0.01), context);
+                        ui.end_row();
+
+                        ui.label("unlit");
+                        changed |= self.unlit.ui(ui, Default::default(), context);
+                        ui.end_row();
+                    });
+                });
+            });
+
+            ui.collapsing("Textures", |ui| {
+                egui::Grid::new("Textures").show(ui, |ui| {
+                    let texture_option_attributes = OptionAttributes { replacement: Some(|| Handle::weak(HandleId::random::<Texture>())), ..Default::default() };
+
+                    ui.label("base_color");
+                    changed |= self.base_color_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
+                    ui.end_row();
+
+                    // ui.label("normal_map");
+                    // changed |= self.normal_map.ui(ui, texture_option_attributes.clone(), &context.with_id(0));
+                    // ui.end_row();
 
                     ui.label("metallic_roughness");
                     changed |= self.metallic_roughness_texture.ui(ui, texture_option_attributes.clone(), &context.with_id(1));
