@@ -1,19 +1,40 @@
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::spanned::Spanned;
 
 use crate::utils;
 
-pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) -> TokenStream {
+pub fn expand_struct(
+    derive_input: &syn::DeriveInput,
+    data: &syn::DataStruct,
+) -> syn::Result<TokenStream> {
     let name = &derive_input.ident;
 
     let fields: Vec<_> = data
         .fields
         .iter()
         .map(|field| {
-            let attributes = crate::attributes::inspectable_attributes(&field.attrs);
-            (field, attributes)
+            let attributes = crate::attributes::inspectable_attributes(&field.attrs)?;
+
+            if attributes.default.is_some() {
+                let span = match field.attrs.as_slice() {
+                    [attr] => Some(attr.span()),
+                    [start, .., end] => dbg!(start.span().join(end.span())),
+                    _ => None,
+                };
+                let span = span
+                    .or_else(|| field.ident.as_ref().map(|i| i.span()))
+                    .unwrap_or(field.ty.span());
+
+                return Err(syn::Error::new(
+                    span,
+                    "#[inspectable(default = <expr>)] is only for enums",
+                ));
+            }
+
+            Ok((field, attributes))
         })
-        .collect();
+        .collect::<syn::Result<_>>()?;
 
     let field_setup = fields.iter().map(|(field, attributes)| {
         if attributes.ignore {
@@ -38,10 +59,6 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         let field_label = utils::field_label(field, i);
         let field_label = attributes.label(&field_label);
 
-        if attributes.default.is_some() {
-            panic!("#[inspectable(default = <expr>)] is only for enums");
-        }
-
         // user specified options
         let options = attributes.create_options_struct(ty);
 
@@ -58,7 +75,7 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
         }
     });
 
-    quote! {
+    Ok(quote! {
         #[allow(clippy::all)]
         impl bevy_inspector_egui::Inspectable for #name {
             type Attributes = ();
@@ -81,5 +98,5 @@ pub fn expand_struct(derive_input: &syn::DeriveInput, data: &syn::DataStruct) ->
                 #(#field_setup)*
             }
         }
-    }
+    })
 }

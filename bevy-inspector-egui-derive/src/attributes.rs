@@ -1,5 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::spanned::Spanned;
 
 pub enum InspectableAttribute {
     Assignment(syn::Member, syn::Expr),
@@ -57,11 +58,15 @@ fn parse_inspectable_attributes(
 /// extracts [(min, 8), (field, vec2(1.0, 1.0))] from `#[inspectable(min = 8, field = vec2(1.0, 1.0))]`,
 fn extract_inspectable_attributes(
     attrs: &[syn::Attribute],
-) -> impl Iterator<Item = InspectableAttribute> + '_ {
-    attrs
+) -> syn::Result<Vec<InspectableAttribute>> {
+    Ok(attrs
         .iter()
         .filter(|attr| attr.path.get_ident().map_or(false, |p| p == "inspectable"))
-        .flat_map(|attr| attr.parse_args_with(parse_inspectable_attributes).unwrap())
+        .map(|attr| attr.parse_args_with(parse_inspectable_attributes))
+        .collect::<syn::Result<Vec<_>>>()?
+        .into_iter()
+        .flatten()
+        .collect())
 }
 
 #[derive(Default)]
@@ -111,11 +116,13 @@ impl InspectableAttributes {
     }
 }
 
-pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> InspectableAttributes {
+pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> syn::Result<InspectableAttributes> {
     let mut all = InspectableAttributes::default();
 
     let (builtin_attributes, custom_attributes): (Vec<_>, Vec<_>) =
-        extract_inspectable_attributes(attrs).partition(InspectableAttribute::is_builtin);
+        extract_inspectable_attributes(attrs)?
+            .into_iter()
+            .partition(InspectableAttribute::is_builtin);
 
     // builtins
     for builtin_attribute in builtin_attributes {
@@ -134,7 +141,7 @@ pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> InspectableAttributes
                 if let syn::Expr::Lit(syn::ExprLit { lit: syn::Lit::Str(str), .. }) = expr {
                     all.label = Some(str.value());
                 } else {
-                    panic!("label needs to be a string literal");
+                    return Err(syn::Error::new(expr.span(), "label needs to be a string literal"))
                 };
             }
             #[rustfmt::skip]
@@ -145,13 +152,15 @@ pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> InspectableAttributes
             InspectableAttribute::Assignment(syn::Member::Named(ident), expr) if ident == "wrapper"=> {
                 let path = match expr {
                     syn::Expr::Path(path) => path,
-                    _ => panic!("`wrapper` attribute expected a path to a function"),
+                    _ => return Err(syn::Error::new(expr.span(), "`wrapper` attribute expected a path to a function"))
                 };
                 all.wrapper = Some(path);
             }
             InspectableAttribute::Tag(name) | InspectableAttribute::Assignment(name, _) => {
                 match name {
-                    syn::Member::Named(name) => panic!("unknown attribute '{}'", name),
+                    syn::Member::Named(name) => {
+                        return Err(syn::Error::new(name.span(), "unknown attribute"))
+                    }
                     syn::Member::Unnamed(_) => unreachable!(),
                 }
             }
@@ -159,5 +168,5 @@ pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> InspectableAttributes
     }
 
     all.custom_attributes = custom_attributes;
-    all
+    Ok(all)
 }

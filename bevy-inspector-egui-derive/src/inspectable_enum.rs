@@ -1,6 +1,7 @@
 use proc_macro2::Span;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
+use quote::ToTokens;
 use std::borrow::Cow;
 
 use crate::{
@@ -8,7 +9,10 @@ use crate::{
     utils,
 };
 
-pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> TokenStream {
+pub fn expand_enum(
+    derive_input: &syn::DeriveInput,
+    data: &syn::DataEnum,
+) -> syn::Result<TokenStream> {
     let name = &derive_input.ident;
 
     let variant_names: Vec<_> = data.variants.iter().map(|variant| &variant.ident).collect();
@@ -27,13 +31,13 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
                 .into_iter()
                 .map(|(i, field)| {
                     let member = utils::field_accessor(field, i);
-                    let attributes = inspectable_attributes(&field.attrs);
-                    (i, field, member, attributes)
+                    let attributes = inspectable_attributes(&field.attrs)?;
+                    Ok((i, field, member, attributes))
                 })
-                .collect();
-            (variant, fields)
+                .collect::<syn::Result<_>>()?;
+            Ok((variant, fields))
         })
-        .collect();
+        .collect::<syn::Result<_>>()?;
 
     let ui_match_arms = variants.iter().map(|(variant, fields)| {
         let initializers = fields.iter().map(|(_, _, member, options)| {
@@ -64,7 +68,7 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
 
     let egui = quote! { bevy_inspector_egui::egui };
 
-    quote! {
+    Ok(quote! {
         impl bevy_inspector_egui::Inspectable for #name {
             type Attributes = ();
 
@@ -106,7 +110,7 @@ pub fn expand_enum(derive_input: &syn::DeriveInput, data: &syn::DataEnum) -> Tok
                 changed
             }
         }
-    }
+    })
 }
 
 fn enum_variants<'a>(
