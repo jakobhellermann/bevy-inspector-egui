@@ -113,10 +113,16 @@ fn enum_variants<'a>(
     data: &'a syn::DataEnum,
 ) -> impl Iterator<Item = (&'a syn::Ident, Vec<(usize, &'a syn::Field)>)> {
     data.variants.iter().map(|variant| {
+        let has_inspectable_attr = variant
+            .attrs
+            .iter()
+            .find(|attr| attr.path.get_ident().map_or(false, |p| p == "inspectable"))
+            .is_some();
         assert!(
-            variant.attrs.is_empty(),
-            "attributes are not supported on enum variants"
+            !has_inspectable_attr,
+            "inspectable attributes are not supported on enum variants."
         );
+
         let fields = match &variant.fields {
             syn::Fields::Named(fields) => Some(fields.named.iter()),
             syn::Fields::Unnamed(fields) => Some(fields.unnamed.iter()),
