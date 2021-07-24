@@ -73,13 +73,14 @@ mod impls;
 /// Internals for the inspector plugins
 pub mod plugin;
 
-/// configuration for the [`WorldInspectorPlugin`](crate::world_inspector::WorldInspectorPlugin)
-mod world_inspector;
+/// Configuration for the [`WorldInspectorPlugin`](crate::world_inspector::WorldInspectorPlugin)
+pub mod world_inspector;
 
 use std::hash::Hasher;
 
 use bevy::prelude::{AppBuilder, World};
 use egui::CtxRef;
+#[doc(inline)]
 pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 
 /// [`Inspectable`] implementation for foreign types implementing [`Reflect`](bevy::reflect::Reflect)

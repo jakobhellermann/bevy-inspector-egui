@@ -120,19 +120,11 @@ impl Default for WorldInspectorParams {
     }
 }
 
-struct WorldUIContext<'a> {
+/// Context for providing the [`WorldInspectorPlugin`](crate::WorldInspectorPlugin)'s ui
+pub struct WorldUIContext<'a> {
     world: &'a mut World,
     ui_ctx: Option<&'a egui::CtxRef>,
     delete_entity: Cell<Option<Entity>>,
-}
-impl<'a> WorldUIContext<'a> {
-    fn new(ui_ctx: Option<&'a egui::CtxRef>, world: &'a mut World) -> WorldUIContext<'a> {
-        WorldUIContext {
-            world,
-            ui_ctx,
-            delete_entity: Cell::new(None),
-        }
-    }
 }
 
 impl Drop for WorldUIContext<'_> {
@@ -144,14 +136,17 @@ impl Drop for WorldUIContext<'_> {
 }
 
 impl<'a> WorldUIContext<'a> {
-    fn entity_name(&self, entity: Entity) -> Cow<'_, str> {
-        match self.world.get_entity(entity) {
-            Some(entity) => guess_entity_name(entity),
-            None => format!("Entity {} (inexistent)", entity.id()).into(),
+    /// Create a new world ui context.
+    pub fn new(world: &'a mut World, ui_ctx: Option<&'a egui::CtxRef>) -> WorldUIContext<'a> {
+        WorldUIContext {
+            world,
+            ui_ctx,
+            delete_entity: Cell::new(None),
         }
     }
 
-    fn world_ui<F>(&mut self, ui: &mut egui::Ui, params: &WorldInspectorParams) -> bool
+    /// Displays the world inspector UI.
+    pub fn world_ui<F>(&mut self, ui: &mut egui::Ui, params: &WorldInspectorParams) -> bool
     where
         F: WorldQuery,
         F::Fetch: FilterFetch,
@@ -349,6 +344,13 @@ impl<'a> WorldUIContext<'a> {
             })
             .body_returned
             .unwrap_or(false)
+    }
+
+    fn entity_name(&self, entity: Entity) -> Cow<'_, str> {
+        match self.world.get_entity(entity) {
+            Some(entity) => guess_entity_name(entity),
+            None => format!("Entity {} (inexistent)", entity.id()).into(),
+        }
     }
 }
 
