@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
 use crate::{Context, Inspectable};
-use bevy::math::{Vec2, Vec3, Vec4};
+use bevy::math::{DVec4, IVec4, UVec4, Vec2, Vec3, Vec4};
 use bevy_egui::egui::{self, containers, Rect};
 use egui::{Pos2, Sense, Widget};
 
@@ -167,6 +167,61 @@ impl Inspectable for Vec3 {
 
 impl Inspectable for Vec4 {
     type Attributes = NumberAttributes<Vec4>;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
+        ui.scope(|ui| {
+            ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
+
+            ui.columns(4, |ui| {
+                changed |= self.x.ui(&mut ui[0], options.map(|vec| vec.x), context);
+                changed |= self.y.ui(&mut ui[1], options.map(|vec| vec.y), context);
+                changed |= self.z.ui(&mut ui[2], options.map(|vec| vec.z), context);
+                changed |= self.w.ui(&mut ui[3], options.map(|vec| vec.w), context);
+            });
+        });
+        changed
+    }
+}
+
+impl Inspectable for UVec4 {
+    type Attributes = NumberAttributes<UVec4>;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
+        ui.scope(|ui| {
+            ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
+
+            ui.columns(4, |ui| {
+                changed |= self.x.ui(&mut ui[0], options.map(|vec| vec.x), context);
+                changed |= self.y.ui(&mut ui[1], options.map(|vec| vec.y), context);
+                changed |= self.z.ui(&mut ui[2], options.map(|vec| vec.z), context);
+                changed |= self.w.ui(&mut ui[3], options.map(|vec| vec.w), context);
+            });
+        });
+        changed
+    }
+}
+impl Inspectable for IVec4 {
+    type Attributes = NumberAttributes<IVec4>;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+        let mut changed = false;
+        ui.scope(|ui| {
+            ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
+
+            ui.columns(4, |ui| {
+                changed |= self.x.ui(&mut ui[0], options.map(|vec| vec.x), context);
+                changed |= self.y.ui(&mut ui[1], options.map(|vec| vec.y), context);
+                changed |= self.z.ui(&mut ui[2], options.map(|vec| vec.z), context);
+                changed |= self.w.ui(&mut ui[3], options.map(|vec| vec.w), context);
+            });
+        });
+        changed
+    }
+}
+impl Inspectable for DVec4 {
+    type Attributes = NumberAttributes<DVec4>;
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
         let mut changed = false;

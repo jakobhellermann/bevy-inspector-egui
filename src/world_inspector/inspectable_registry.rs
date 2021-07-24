@@ -84,6 +84,7 @@ impl Default for InspectableRegistry {
         this.register::<Transform>();
         this.register::<GlobalTransform>();
         this.register::<Quat>();
+        register!(this Vec4, bevy::math::IVec4, bevy::math::DVec4, bevy::math::UVec4);
 
         this.register::<Color>();
         this.register::<bevy::asset::HandleId>();
