@@ -99,15 +99,15 @@ where
     Q: WorldQuery,
     F: WorldQuery,
     F::Fetch: FilterFetch,
-    <<Q as WorldQuery>::Fetch as Fetch<'static>>::Item: Inspectable,
+    for<'a, 's> <<Q as WorldQuery>::Fetch as Fetch<'a, 's>>::Item: Inspectable,
 {
     type Attributes =
-        <<<Q as WorldQuery>::Fetch as Fetch<'static>>::Item as Inspectable>::Attributes;
+        <<<Q as WorldQuery>::Fetch as Fetch<'static, 'static>>::Item as Inspectable>::Attributes;
 
     fn ui(
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
-        options: Self::Attributes,
+        _options: Self::Attributes,
         context: &crate::Context,
     ) -> bool {
         let world = match context.world {
@@ -129,7 +129,8 @@ where
                 CollapsingHeader::new(name)
                     .id_source(context.id().with(i))
                     .show(ui, |ui| {
-                        changed |= value.ui(ui, options.clone(), &context.with_id(i as u64));
+                        // changed |= value.ui(ui, options.clone(), &context.with_id(i as u64)); TODO figure out how to use options
+                        changed |= value.ui(ui, Default::default(), &context.with_id(i as u64));
                     });
             }
         });
@@ -175,15 +176,15 @@ where
     Q: WorldQuery,
     F: WorldQuery,
     F::Fetch: FilterFetch,
-    <<Q as WorldQuery>::Fetch as Fetch<'static>>::Item: Inspectable,
+    for<'a, 's> <<Q as WorldQuery>::Fetch as Fetch<'a, 's>>::Item: Inspectable,
 {
     type Attributes =
-        <<<Q as WorldQuery>::Fetch as Fetch<'static>>::Item as Inspectable>::Attributes;
+        <<<Q as WorldQuery>::Fetch as Fetch<'static, 'static>>::Item as Inspectable>::Attributes;
 
     fn ui(
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
-        options: Self::Attributes,
+        _options: Self::Attributes,
         context: &crate::Context,
     ) -> bool {
         let world = match context.world {
@@ -215,10 +216,11 @@ where
                     CollapsingHeader::new(name)
                         .id_source(context.id())
                         .show(ui, |ui| {
-                            changed |= value.ui(ui, options.clone(), context);
+                            // TODO: figure out how to use options
+                            changed |= value.ui(ui, Default::default(), context);
                         });
                 }
-            }
+            };
         });
 
         changed
