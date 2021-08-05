@@ -557,10 +557,10 @@ unsafe fn get_component_and_ticks(
     }
 }
 
-fn entity_is_bundle<B: Bundle>(e: &EntityRef) -> bool {
-    B::type_info()
-        .iter()
-        .all(|type_info| e.contains_type_id(type_info.type_id()))
+macro_rules! is_bundle {
+    ($entity:ident: $($ty:ty),*) => {
+        $( $entity.contains::<$ty>() && )* true
+    };
 }
 
 fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
@@ -575,20 +575,48 @@ fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
         }
     }
 
-    if entity_is_bundle::<PointLightBundle>(&entity) {
+    if is_bundle!(entity: PointLight, Transform, GlobalTransform) {
         return format!("Light ({:?})", entity.id().id()).into();
     }
-    if entity_is_bundle::<TextBundle>(&entity) {
+
+    if is_bundle!(
+        entity: Node,
+        Style,
+        Draw,
+        Visible,
+        Text,
+        CalculatedSize,
+        bevy::ui::FocusPolicy,
+        Transform,
+        GlobalTransform
+    ) {
         return format!("Entity {:?} (Text)", entity.id().id()).into();
     }
-    if entity_is_bundle::<Text2dBundle>(&entity) {
+    if is_bundle!(
+        entity: Draw,
+        Visible,
+        Text,
+        Transform,
+        GlobalTransform,
+        MainPass,
+        bevy::text::Text2dSize
+    ) {
         return format!("Entity {:?} (Text2d)", entity.id().id()).into();
     }
-    if entity_is_bundle::<NodeBundle>(&entity) {
+    if is_bundle!(
+        entity: Node,
+        Style,
+        Handle<Mesh>,
+        Draw,
+        Visible,
+        RenderPipelines,
+        Transform,
+        GlobalTransform
+    ) {
         return format!("Entity {:?} (Node)", entity.id().id()).into();
     }
 
-    format!("Entity {}", entity.id().id()).into()
+    format!("Entity {:?}", entity.id()).into()
 }
 
 fn id_to_u64(id: &egui::Id) -> u64 {
