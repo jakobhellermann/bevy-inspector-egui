@@ -4,7 +4,7 @@ use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::na::Vector2;
 
 fn main() {
-    App::build()
+    App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
         .add_startup_system(spawn_player.system())

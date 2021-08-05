@@ -13,7 +13,7 @@ struct TransformData {
 }
 
 fn main() {
-    App::build()
+    App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<UiData>::new())
         .add_plugin(InspectorPlugin::<TransformData>::new())

@@ -1,4 +1,4 @@
-use bevy::prelude::AppBuilder;
+use bevy::prelude::App;
 
 use crate::{egui, Context};
 use crate::{utils, Inspectable};
@@ -45,7 +45,7 @@ where
         changed
     }
 
-    fn setup(app: &mut AppBuilder) {
+    fn setup(app: &mut App) {
         T::setup(app);
     }
 }
@@ -66,7 +66,7 @@ impl<T: Inspectable, const N: usize> Inspectable for [T; N] {
         changed
     }
 
-    fn setup(app: &mut AppBuilder) {
+    fn setup(app: &mut App) {
         T::setup(app);
     }
 }
@@ -108,7 +108,7 @@ macro_rules! impl_for_tuple {
                 changed
             }
 
-            fn setup(app: &mut AppBuilder) {
+            fn setup(app: &mut App) {
                 $($ty::setup(app);)*
             }
         }

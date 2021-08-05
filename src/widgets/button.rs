@@ -53,7 +53,7 @@ impl<E: Component + Default> Inspectable for InspectableButton<E> {
         false
     }
 
-    fn setup(app: &mut AppBuilder) {
+    fn setup(app: &mut App) {
         app.add_event::<E>();
     }
 }

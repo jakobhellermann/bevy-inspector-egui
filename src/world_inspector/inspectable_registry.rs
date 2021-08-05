@@ -62,7 +62,7 @@ impl InspectableRegistry {
     /// # use bevy::prelude::*;
     /// # use bevy_inspector_egui::InspectableRegistry;
     /// # #[derive(bevy_inspector_egui::Inspectable)] struct MyType;
-    /// App::build()
+    /// App::new()
     ///   .insert_resource(InspectableRegistry::default().with::<MyType>())
     ///   .run();
     /// ```

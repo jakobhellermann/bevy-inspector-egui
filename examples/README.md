@@ -17,7 +17,7 @@
 use bevy_inspector_egui::WorldInspectorPlugin;
 
 fn main() {
-    App::build()
+    App::new()
         .add_plugin(WorldInspectorPlugin::new())
         // ...
 }

@@ -15,7 +15,7 @@ struct Inspector {
 }
 
 fn main() {
-    App::build()
+    App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Inspector>::new())
         .run();

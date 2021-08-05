@@ -30,7 +30,7 @@
 //!
 //! # #[derive(bevy_inspector_egui::Inspectable, Default)] struct Data {}
 //! fn main() {
-//!     App::build()
+//!     App::new()
 //!         .add_plugins(DefaultPlugins)
 //!         .add_plugin(InspectorPlugin::<Data>::new())
 //!         .run();
@@ -47,7 +47,7 @@
 //! use bevy_inspector_egui::WorldInspectorPlugin;
 //!
 //! fn main() {
-//!     App::build()
+//!     App::new()
 //!         .add_plugins(DefaultPlugins)
 //!         .add_plugin(WorldInspectorPlugin::new())
 //!         .add_startup_system(setup.system())
@@ -84,7 +84,7 @@ pub mod prelude {
 
 use std::hash::Hasher;
 
-use bevy::prelude::{AppBuilder, World};
+use bevy::prelude::{App, World};
 use egui::CtxRef;
 #[doc(inline)]
 pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
@@ -234,7 +234,7 @@ pub trait Inspectable {
 
     /// Required setup for the bevy application, e.g. registering events. Note that this method will run for every instance of a type.
     #[allow(unused_variables)]
-    fn setup(app: &mut AppBuilder) {}
+    fn setup(app: &mut App) {}
 }
 
 /// Helper trait for enabling `app.register_inspectable::<T>()`
@@ -244,9 +244,9 @@ pub trait RegisterInspectable {
     fn register_inspectable<T: Inspectable + 'static>(&mut self) -> &mut Self;
 }
 
-impl RegisterInspectable for AppBuilder {
+impl RegisterInspectable for App {
     fn register_inspectable<T: Inspectable + 'static>(&mut self) -> &mut Self {
-        self.world_mut()
+        self.world
             .get_resource_mut::<InspectableRegistry>()
             .unwrap()
             .register::<T>();

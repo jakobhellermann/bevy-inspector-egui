@@ -8,7 +8,7 @@ use bevy_rapier3d::{
 };
 
 fn main() {
-    App::build()
+    App::new()
         .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<InspectorQuerySingle<Entity, With<Cube>>>::new())

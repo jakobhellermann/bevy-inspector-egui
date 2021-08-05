@@ -4,7 +4,7 @@ use bevy_inspector_egui::{widgets::ResourceInspector, Inspectable, InspectorPlug
 use bevy_inspector_egui::{WorldInspectorParams, WorldInspectorPlugin};
 
 fn main() {
-    App::build()
+    App::new()
         .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         .insert_resource(WorldInspectorParams {

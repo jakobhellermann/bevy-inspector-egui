@@ -65,7 +65,7 @@ fn main() {
     #[cfg(debug_assertions)]
     eprintln!("Try running with --release, it is much more responsive.");
 
-    App::build()
+    App::new()
         .insert_resource(Msaa { samples: 4 })
         .insert_resource(ClearColor(Color::rgb(0.058, 0.078, 0.098)))
         .add_plugins(DefaultPlugins)

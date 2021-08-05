@@ -65,7 +65,7 @@ where
         true
     }
 
-    fn setup(_: &mut AppBuilder) {
+    fn setup(_: &mut App) {
         // eprintln!("Running setup code...");
 
         // app.init_resource::<WhateverYouNeed>();
@@ -95,7 +95,7 @@ impl Default for Data {
 }
 
 fn main() {
-    App::build()
+    App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
         .add_startup_system(setup.system())

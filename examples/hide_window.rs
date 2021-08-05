@@ -8,7 +8,7 @@ struct Data {
 }
 
 fn main() {
-    App::build()
+    App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
         .add_system(toggle_inspector.system())

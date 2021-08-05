@@ -10,7 +10,7 @@ struct Data {
 }
 
 fn main() {
-    App::build()
+    App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
         .add_plugin(InspectorPlugin::<InspectorQuerySingle<Entity, With<Player>>>::new())

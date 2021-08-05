@@ -14,7 +14,7 @@ impl Default for Data {
 }
 
 fn main() {
-    App::build()
+    App::new()
         .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())

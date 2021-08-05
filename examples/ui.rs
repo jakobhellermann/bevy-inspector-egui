@@ -5,7 +5,7 @@ type RootUINode = InspectorQuery<Entity, (With<Node>, Without<Parent>)>;
 
 /// This example illustrates how to modify UI using the inspector.
 fn main() {
-    App::build()
+    App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(bevy_inspector_egui::InspectorPlugin::<RootUINode>::new())
         .add_startup_system(setup.system())

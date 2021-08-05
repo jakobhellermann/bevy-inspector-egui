@@ -45,7 +45,7 @@ impl Default for Shape {
 }
 
 fn main() {
-    App::build()
+    App::new()
         .insert_resource(ClearColor(Color::rgb(0.039, 0.055, 0.078)))
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Inspector>::new())

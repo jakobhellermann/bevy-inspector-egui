@@ -80,7 +80,7 @@ impl Inspectable for Entity {
 /// }
 ///
 /// fn main() {
-///     App::build()
+///     App::new()
 ///         .add_plugins(DefaultPlugins)
 ///         .add_plugin(InspectorPlugin::<Queries>::new())
 ///         .run();
@@ -156,7 +156,7 @@ where
 /// }
 ///
 /// fn main() {
-///     App::build()
+///     App::new()
 ///         .add_plugins(DefaultPlugins)
 ///         .add_plugin(InspectorPlugin::<Queries>::new())
 ///         .run();
