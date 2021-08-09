@@ -68,8 +68,11 @@ pub fn expand_enum(
 
     let egui = quote! { bevy_inspector_egui::egui };
 
+    let generic_for_impl = utils::with_inspectable_bound(&derive_input.generics);
+    let (impl_generics, ty_generics, where_clause) = generic_for_impl.split_for_impl();
+
     Ok(quote! {
-        impl bevy_inspector_egui::Inspectable for #name {
+        impl #impl_generics bevy_inspector_egui::Inspectable for #name #ty_generics #where_clause {
             type Attributes = ();
 
 
