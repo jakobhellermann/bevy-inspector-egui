@@ -45,6 +45,8 @@ pub struct WorldInspectorParams {
     pub despawnable_entities: bool,
     /// The window the inspector should be displayed on
     pub window: WindowId,
+    /// Filter entities by name.
+    pub name_filter: Option<String>
 }
 
 impl WorldInspectorParams {
@@ -56,12 +58,18 @@ impl WorldInspectorParams {
             enabled: true,
             despawnable_entities: false,
             window: WindowId::primary(),
+            name_filter: Some(String::new())
         }
     }
 
     /// Add `T` to component ignore list
     pub fn ignore_component<T: 'static>(&mut self) {
         self.ignore_components.insert(TypeId::of::<T>());
+    }
+
+    /// Filter entities by name.
+    pub fn filter_by_name<S: Into<String>>(&mut self, filter: S) {
+        self.name_filter = Some(filter.into());
     }
 
     fn should_ignore_component(&self, type_id: TypeId) -> bool {
@@ -146,7 +154,7 @@ impl<'a> WorldUIContext<'a> {
     }
 
     /// Displays the world inspector UI.
-    pub fn world_ui<F>(&mut self, ui: &mut egui::Ui, params: &WorldInspectorParams) -> bool
+    pub fn world_ui<F>(&mut self, ui: &mut egui::Ui, params: &mut WorldInspectorParams) -> bool
     where
         F: WorldQuery,
         F::Fetch: FilterFetch,
@@ -158,6 +166,13 @@ impl<'a> WorldUIContext<'a> {
         let entity_options = params.entity_options();
 
         let mut changed = false;
+
+        if let Some(filter) = params.name_filter.as_mut() {
+            ui.horizontal(|ui| {
+                ui.label("Named");
+                ui.text_edit_singleline(filter);
+            });
+        }
 
         for entity in root_entities.iter(self.world) {
             changed |= self.entity_ui(ui, entity, params, dummy_id.with(entity), &entity_options);
@@ -174,13 +189,31 @@ impl<'a> WorldUIContext<'a> {
         id: egui::Id,
         entity_options: &EntityAttributes,
     ) -> bool {
-        CollapsingHeader::new(self.entity_name(entity))
-            .id_source(id.with(entity))
-            .show(ui, |ui| {
-                self.entity_ui_inner(ui, entity, params, id, entity_options)
-            })
-            .body_returned
-            .unwrap_or(false)
+        let entity_name = self.entity_name(entity);
+        let show_entity = params.name_filter.as_ref().map(|filter|
+                filter.is_empty() ||
+                entity_name.to_lowercase()
+                    .contains(&filter.to_lowercase())
+        )
+        .unwrap_or(true);
+
+	    if show_entity {
+	        CollapsingHeader::new(self.entity_name(entity))
+	            .id_source(id.with(entity))
+	            .show(ui, |ui| {
+	                self.entity_ui_inner(ui, entity, params, id, entity_options)
+	            })
+	            .body_returned
+	            .unwrap_or(false)
+        } else {
+            let children = self.world.get::<Children>(entity);
+            if let Some(children) = children {
+                for &child in children.iter() {
+                    self.entity_ui(ui, child, params, id.with(child), entity_options);
+                }
+            }
+            false
+        }
     }
 
     fn entity_ui_inner(
