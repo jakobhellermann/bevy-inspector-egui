@@ -195,24 +195,22 @@ impl<'a> WorldUIContext<'a> {
                 })
                 .body_returned
                 .unwrap_or(false)
+        } else if self.entity_name(entity).to_lowercase().contains(&params.name_filter.to_lowercase()) {
+            CollapsingHeader::new(self.entity_name(entity))
+                .id_source(id.with(entity))
+                .show(ui, |ui| {
+                    self.entity_ui_inner(ui, entity, params, id, entity_options)
+                })
+                .body_returned
+                .unwrap_or(false)
         } else {
-            if self.entity_name(entity).to_lowercase().contains(&params.name_filter.to_lowercase()) {
-                CollapsingHeader::new(self.entity_name(entity))
-                    .id_source(id.with(entity))
-                    .show(ui, |ui| {
-                        self.entity_ui_inner(ui, entity, params, id, entity_options)
-                    })
-                    .body_returned
-                    .unwrap_or(false)
-            } else {
-                let children = self.world.get::<Children>(entity);
-                if let Some(children) = children {
-                    for &child in children.iter() {
-                        self.entity_ui(ui, child, params, id.with(child), entity_options);
-                    }
+            let children = self.world.get::<Children>(entity);
+            if let Some(children) = children {
+                for &child in children.iter() {
+                    self.entity_ui(ui, child, params, id.with(child), entity_options);
                 }
-                false
             }
+            false
         }
     }
 
