@@ -111,16 +111,20 @@ where
 {
     let world_ptr = world as *mut _;
 
-    let params = world.get_resource::<WorldInspectorParams>().unwrap();
-    if !params.enabled {
-        return;
-    }
-
     let egui_context = world.get_resource::<EguiContext>().expect("EguiContext");
-    let ctx = match egui_context.try_ctx_for_window(params.window) {
-        Some(ctx) => ctx,
-        None => return,
+    let ctx = {
+        let params = world.get_resource::<WorldInspectorParams>().unwrap();
+        if !params.enabled {
+            return;
+        }
+        let ctx = match egui_context.try_ctx_for_window(params.window) {
+            Some(ctx) => ctx,
+            None => return,
+        };
+        ctx
     };
+    let world: &mut World = unsafe { &mut *world_ptr };
+    let mut params = world.get_resource_mut::<WorldInspectorParams>().unwrap();
 
     let mut is_open = true;
     egui::Window::new("World")
@@ -130,7 +134,7 @@ where
             crate::plugin::default_settings(ui);
             let world: &mut World = unsafe { &mut *world_ptr };
             let mut ui_context = WorldUIContext::new(world, Some(egui_context.ctx()));
-            ui_context.world_ui::<F>(ui, &params);
+            ui_context.world_ui::<F>(ui, &mut params);
         });
 
     if !is_open {

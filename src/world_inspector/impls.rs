@@ -14,11 +14,11 @@ impl Inspectable for World {
     fn ui(
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
-        options: Self::Attributes,
+        mut options: Self::Attributes,
         context: &crate::Context,
     ) -> bool {
         let mut world_ui_ctx = WorldUIContext::new(self, context.ui_ctx);
-        world_ui_ctx.world_ui::<()>(ui, &options)
+        world_ui_ctx.world_ui::<()>(ui, &mut options)
     }
 }
 
