@@ -178,7 +178,9 @@ impl<'a> WorldUIContext<'a> {
                 ui.label("Named");
                 ui.text_edit_singleline(&mut data);
             });
-            params.name_filter = Some(data);
+            if !data.is_empty() {                
+                params.name_filter = Some(data);
+            }
         }
 
         for entity in root_entities.iter(self.world) {
