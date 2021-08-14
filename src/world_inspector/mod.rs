@@ -58,7 +58,7 @@ impl WorldInspectorParams {
             enabled: true,
             despawnable_entities: false,
             window: WindowId::primary(),
-            name_filter: None
+            name_filter: Some(String::new())
         }
     }
 
