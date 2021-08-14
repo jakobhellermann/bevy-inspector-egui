@@ -46,7 +46,7 @@ pub struct WorldInspectorParams {
     /// The window the inspector should be displayed on
     pub window: WindowId,
     /// Filter entities by name.
-    pub name_filter: Option<String>
+    pub name_filter: Option<String>,
 }
 
 impl WorldInspectorParams {
@@ -58,7 +58,7 @@ impl WorldInspectorParams {
             enabled: true,
             despawnable_entities: false,
             window: WindowId::primary(),
-            name_filter: Some(String::new())
+            name_filter: Some(String::new()),
         }
     }
 
@@ -190,21 +190,22 @@ impl<'a> WorldUIContext<'a> {
         entity_options: &EntityAttributes,
     ) -> bool {
         let entity_name = self.entity_name(entity);
-        let show_entity = params.name_filter.as_ref().map(|filter|
-                filter.is_empty() ||
-                entity_name.to_lowercase()
-                    .contains(&filter.to_lowercase())
-        )
-        .unwrap_or(true);
+        let show_entity = params
+            .name_filter
+            .as_ref()
+            .map(|filter| {
+                filter.is_empty() || entity_name.to_lowercase().contains(&filter.to_lowercase())
+            })
+            .unwrap_or(true);
 
-	    if show_entity {
-	        CollapsingHeader::new(self.entity_name(entity))
-	            .id_source(id.with(entity))
-	            .show(ui, |ui| {
-	                self.entity_ui_inner(ui, entity, params, id, entity_options)
-	            })
-	            .body_returned
-	            .unwrap_or(false)
+        if show_entity {
+            CollapsingHeader::new(self.entity_name(entity))
+                .id_source(id.with(entity))
+                .show(ui, |ui| {
+                    self.entity_ui_inner(ui, entity, params, id, entity_options)
+                })
+                .body_returned
+                .unwrap_or(false)
         } else {
             let children = self.world.get::<Children>(entity);
             if let Some(children) = children {
