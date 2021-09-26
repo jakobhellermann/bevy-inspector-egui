@@ -45,7 +45,7 @@ let mut registry = app.insert_resource(InspectableRegistry::default())
                       .expect("InspectableRegistry not initiated");
 
 registry.register::<Data>();
-registry.registre::<OtherComponent>();
+registry.register::<OtherComponent>();
 ```
 
 ### Component
