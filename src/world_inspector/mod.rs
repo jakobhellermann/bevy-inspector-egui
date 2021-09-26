@@ -371,7 +371,7 @@ impl<'a> WorldUIContext<'a> {
                 };
 
                 if result.is_err() {
-                    ui.label("Inspectable has not been defined for this component");
+                    ui.label("This component does not derive Inspectable or it isn't registered to a InspectableRegistry");
                 }
 
                 result.unwrap_or(false)
