@@ -17,18 +17,36 @@
 </div>
 <br/>
 
-This crate provides the ability to annotate structs with a `#[derive(Inspectable)]`,
-which opens a debug interface using [egui](https://github.com/emilk/egui) where you can visually edit the values of your struct live.
-
-Your struct will then be available to you as a bevy resource.
+This crate provides a debug interface using [egui](https://github.com/emilk/egui) where you can visually edit the values of your components live.
 
 <img src="./docs/inspector.jpg" alt="demonstration with a running bevy app" width="500"/>
 
+## Usage
 
-More examples (with pictures) can be found in the [`examples folder`](examples).
+In order for custom components to show up in the inspector, you have to:
+
+1. Add the `WorldInspectorPlugin`
+2. `#[derive(Inspectable)]` for `T`
+3. call `.register::<T>()` on the `InspectbleRegistry` resource
+
+For bevy components don't need to be registered, nor do they require an `InspectableRegistry`.
 
 ## Example
+
 ```rust
+use bevy::prelude::*;
+use bevy_inspector_egui::WorldInspectorPlugin;
+
+fn main() {
+    App::build()
+        .add_plugins(DefaultPlugins)
+        .add_plugin(WorldInspectorPlugin::new())
+        .run();
+}
+```
+
+```rust
+use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
 
 #[derive(Inspectable, Default)]
@@ -39,45 +57,47 @@ struct Data {
     size: f32,
 }
 ```
-Add the `InspectorPlugin` to your App.
+
 ```rust
+use bevy::prelude::*;
+use bevy_inspector_egui::InspectableRegistry;
+
+let mut registry = app.world_mut()
+                      .get_resource_mut::<InspectableRegistry>()
+                      .expect("InspectableRegistry not initiated");
+
+registry.register::<Data>();
+registry.register::<OtherComponent>();
+```
+
+Registry is added by `WorldInspectorPlugin`, so that plugin needs to be added before you get the resource.
+
+More examples (with pictures) can be found in the [`examples folder`](examples).
+
+## Inspectors
+
+You can configure the `WorldInspectorPlugin` by inserting the `WorldInspectorParams` resource.
+If you want to only display some components, you may want to use the [InspectorQuery](./examples/README.md#inspector-query-source) instead.
+
+<img src="./docs/examples/world_inspector.png" alt="world inspector ui" width="600"/>
+
+Alternatively you could use a `InspectorPlugin`:
+```rust
+use bevy::prelude::*;
 use bevy_inspector_egui::InspectorPlugin;
 
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
-        .add_system(your_system.system())
-        .run();
-}
-
-// fn your_system(data: Res<Data>) { /* */ }
-```
-
-## World Inspector
-
-If you want to display all world entities you can add the `WorldInspectorPlugin`:
-```rust
-use bevy::prelude::*;
-use bevy_inspector_egui::WorldInspectorPlugin;
-
-fn main() {
-    App::build()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(WorldInspectorPlugin::new())
-        .add_startup_system(setup.system())
         .run();
 }
 ```
-You can configure it by inserting the `WorldInspectorParams` resource.
-If you want to only display some components, you may want to use the [InspectorQuery](./examples/README.md#inspector-query-source) instead.
-
-<img src="./docs/examples/world_inspector.png" alt="world inspector ui" width="600"/>
 
 ## Bevy support table
 
-|bevy|bevy-inspector-egui|
-|---|---|
-|0.5-0.6|0.5|
-|0.5|0.4|
-|0.4|0.1-0.3|
+| bevy    | bevy-inspector-egui |
+| ------- | ------------------- |
+| 0.5-0.6 | 0.5                 |
+| 0.5     | 0.4                 |
+| 0.4     | 0.1-0.3             |
