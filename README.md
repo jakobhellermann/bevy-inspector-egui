@@ -23,15 +23,31 @@ This crate provides a debug interface using [egui](https://github.com/emilk/egui
 
 ## Usage
 
-In order for custom components to show up in the inspector, you have to:
+You can either inspect a single resource using the `InspectorPlugin`, or use the `WorldInspectorPlugin` to inspect all entities.
 
-1. Add the `WorldInspectorPlugin`
-2. `#[derive(Inspectable)]` for `T`
-3. call `.register::<T>()` on the `InspectbleRegistry` resource
+## InspectorPlugin
 
-For bevy components don't need to be registered, nor do they require an `InspectableRegistry`.
+```rust
+use bevy::prelude::*;
+use bevy_inspector_egui::{InspectorPlugin, Inspectable};
 
-## Example
+#[derive(Inspectable, Default)]
+struct Data {
+    should_render: bool,
+    text: String,
+    #[inspectable(min = 42.0, max = 100.0)]
+    size: f32,
+}
+
+fn main() {
+    App::build()
+        .add_plugins(DefaultPlugins)
+        .add_plugin(InspectorPlugin::<Data>::new())
+        .run();
+}
+```
+
+## World inspector
 
 ```rust
 use bevy::prelude::*;
@@ -45,54 +61,31 @@ fn main() {
 }
 ```
 
-```rust
-use bevy::prelude::*;
-use bevy_inspector_egui::Inspectable;
+<img src="./docs/examples/world_inspector.png" alt="world inspector ui" width="600"/>
 
-#[derive(Inspectable, Default)]
-struct Data {
-    should_render: bool,
-    text: String,
-    #[inspectable(min = 42.0, max = 100.0)]
-    size: f32,
-}
-```
+
+You can configure the `WorldInspectorPlugin` by inserting the `WorldInspectorParams` resource.
+If you want to only display some components, you may want to use the [InspectorQuery](./examples/README.md#inspector-query-source) instead.
+
+If you want custom types to be displayed in the inspector, you'll need to register them on the `InspectableRegistry`:
 
 ```rust
 use bevy::prelude::*;
 use bevy_inspector_egui::InspectableRegistry;
 
-let mut registry = app.world_mut()
-                      .get_resource_mut::<InspectableRegistry>()
-                      .expect("InspectableRegistry not initiated");
-
-registry.register::<Data>();
-registry.register::<OtherComponent>();
-```
-
-Registry is added by `WorldInspectorPlugin`, so that plugin needs to be added before you get the resource.
-
-More examples (with pictures) can be found in the [`examples folder`](examples).
-
-## Inspectors
-
-You can configure the `WorldInspectorPlugin` by inserting the `WorldInspectorParams` resource.
-If you want to only display some components, you may want to use the [InspectorQuery](./examples/README.md#inspector-query-source) instead.
-
-<img src="./docs/examples/world_inspector.png" alt="world inspector ui" width="600"/>
-
-Alternatively you could use a `InspectorPlugin`:
-```rust
-use bevy::prelude::*;
-use bevy_inspector_egui::InspectorPlugin;
-
 fn main() {
-    App::build()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(InspectorPlugin::<Data>::new())
-        .run();
+  let mut app = App::build();
+  // add plugins and systems
+
+  let mut registry = app
+      .world_mut()
+      .get_resource_mut::<InspectableRegistry>()
+      .unwrap();
+  registry.register::<Data>();
+  registry.register::<OtherComponent>();
 }
 ```
+More examples (with pictures) can be found in the [`examples folder`](examples).
 
 ## Bevy support table
 

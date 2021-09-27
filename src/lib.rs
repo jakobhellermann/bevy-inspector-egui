@@ -56,6 +56,7 @@
 //! # fn setup() {}
 //! ```
 //! You can configure it by inserting the [`WorldInspectorParams`] resource.
+//! In order for custom components to be displayed in the world inspector, you'll need to [register](world_inspector::InspectableRegistry::register) it on the [`InspectableRegistry`](world_inspector::InspectableRegistry).
 //!
 //! # Features
 //! - **clipboard** (enabled by default): enables `egui`'s clipboard integratoin

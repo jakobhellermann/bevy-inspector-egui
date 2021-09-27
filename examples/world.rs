@@ -19,7 +19,8 @@ fn main() {
     // getting registry from world
     let mut registry = app
         .world_mut()
-        .get_resource_or_insert_with(InspectableRegistry::default);
+        .get_resource_mut::<InspectableRegistry>()
+        .unwrap();
 
     // registering custom component to be able to edit it in inspector
     registry.register::<MyInspectableComponent>();

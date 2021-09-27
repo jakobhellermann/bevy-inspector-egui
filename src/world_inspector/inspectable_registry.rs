@@ -16,6 +16,21 @@ macro_rules! register {
 
 /// The `InspectableRegistry` can be used to tell the [`WorldInspectorPlugin`](crate::WorldInspectorPlugin)
 /// how to display a type.
+/// ```rust,no_run
+/// use bevy::prelude::*;
+/// use bevy_inspector_egui::{Inspectable, InspectableRegistry};
+///
+/// #[derive(Inspectable)]
+/// struct CustomType;
+///
+/// fn main() {
+///     let mut app = App::build();
+///     let mut registry = app.world_mut()
+///         .get_resource_mut::<InspectableRegistry>()
+///         .unwrap();
+///     registry.register::<CustomType>();
+/// }
+/// ```
 pub struct InspectableRegistry {
     pub(crate) impls: HashMap<TypeId, InspectCallback>,
 }
