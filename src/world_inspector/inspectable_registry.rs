@@ -24,8 +24,9 @@ macro_rules! register {
 /// struct CustomType;
 ///
 /// fn main() {
-///     let mut app = App::build();
-///     let mut registry = app.world_mut()
+///     let mut app = App::new();
+///     let mut registry = app
+///         .world
 ///         .get_resource_mut::<InspectableRegistry>()
 ///         .unwrap();
 ///     registry.register::<CustomType>();

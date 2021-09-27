@@ -46,7 +46,7 @@ use crate::InspectableRegistry;
 /// impl Plugin for MyPlugin {
 ///     fn build(&self, app: &mut App) {
 ///         let mut registry = app
-///             .world_mut()
+///             .world
 ///             .get_resource_or_insert_with(InspectableRegistry::default);
 ///
 ///         registry.register::<MyComponent>();
