@@ -101,7 +101,7 @@ impl Inspectable for Handle<Texture> {
 
         let (texture, id) = match options.rescale {
             Some(_) => rescaled_image(
-                &self,
+                self,
                 &mut scaled_down_textures,
                 &mut textures,
                 &mut egui_context,
@@ -132,7 +132,7 @@ fn rescaled_image<'a>(
         Entry::Vacant(entry) => {
             let original = textures.get(handle).unwrap();
 
-            let image = image_texture_conversion::texture_to_image(&original).unwrap();
+            let image = image_texture_conversion::texture_to_image(original).unwrap();
             let resized = image.resize(50, 50, FilterType::Nearest);
             let resized = image_texture_conversion::image_to_texture(resized);
 

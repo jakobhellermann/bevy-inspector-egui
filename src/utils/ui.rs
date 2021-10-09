@@ -9,7 +9,7 @@ pub fn drag_and_drop_target(ui: &mut egui::Ui) -> Response {
     drag_and_drop_target_label(ui, "Drag file here")
 }
 pub fn drag_and_drop_target_label(ui: &mut egui::Ui, label: impl Into<Label>) -> Response {
-    let frame = egui::containers::Frame::dark_canvas(&ui.style());
+    let frame = egui::containers::Frame::dark_canvas(ui.style());
     frame.show(ui, |ui| ui.label(label)).inner
 }
 

@@ -404,7 +404,7 @@ impl<'a> WorldUIContext<'a> {
                 // Safety: according to this function's contract, entity_location (and therefore component_ptr, component_ticks) are valid
                 let result =
                     try_display(
-                        &self.world,
+                        self.world,
                         entity,
                         component_ptr,
                         component_ticks,
@@ -524,7 +524,7 @@ fn display_by_reflection(
     Ok(crate::reflect::ui_for_reflect(
         &mut *reflected,
         ui,
-        &context,
+        context,
     ))
 }
 

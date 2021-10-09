@@ -50,7 +50,7 @@ where
         _: &bevy_inspector_egui::Context,
     ) -> bool {
         let mut display = T::default();
-        if self.from.len() > 0 {
+        if !self.from.is_empty() {
             display = self.from[self.selected].clone();
         }
         let hash = format!("{:?}", self.from);
