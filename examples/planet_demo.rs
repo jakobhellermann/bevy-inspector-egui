@@ -94,6 +94,7 @@ fn generate(
     }
 }
 
+#[derive(Component)]
 struct Planet;
 
 fn setup(

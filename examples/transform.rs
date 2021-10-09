@@ -32,6 +32,7 @@ fn update(data: Res<Data>, mut query: Query<(&Cube, &mut Transform)>) {
     }
 }
 
+#[derive(Component)]
 struct Cube;
 
 fn setup(

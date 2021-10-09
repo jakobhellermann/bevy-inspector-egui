@@ -27,13 +27,13 @@ struct Resources {
     clear_color: ResourceInspector<ClearColor>,
 }
 
-#[derive(Inspectable, Default)]
+#[derive(Component, Inspectable, Default)]
 pub struct MyInspectableComponent {
     foo: f32,
     bar: usize,
 }
 
-#[derive(Reflect, Default)]
+#[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct MyReflectedComponent {
     str: String,

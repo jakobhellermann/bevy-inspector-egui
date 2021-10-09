@@ -2,10 +2,10 @@ use bevy::prelude::*;
 
 use bevy_inspector_egui::{widgets::InspectableButton, Inspectable, InspectorPlugin};
 
-#[derive(Default)]
+#[derive(Component, Default)]
 struct Print;
 
-#[derive(Default, Inspectable)]
+#[derive(Inspectable, Default)]
 struct Inspector {
     shape: Shape,
     #[inspectable(label = "", text = "Print")]

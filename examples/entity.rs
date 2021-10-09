@@ -14,6 +14,7 @@ fn main() {
         .run();
 }
 
+#[derive(Component)]
 struct Cube;
 
 fn setup(

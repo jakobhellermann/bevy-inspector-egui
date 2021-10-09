@@ -1,6 +1,6 @@
 use crate::{Context, Inspectable};
 use bevy::app::Events;
-use bevy::{ecs::component::Component, prelude::*};
+use bevy::prelude::*;
 use std::marker::PhantomData;
 
 #[allow(missing_docs)]
@@ -34,7 +34,7 @@ impl<E> std::fmt::Debug for InspectableButton<E> {
     }
 }
 
-impl<E: Component + Default> Inspectable for InspectableButton<E> {
+impl<E: Send + Sync + 'static + Default> Inspectable for InspectableButton<E> {
     type Attributes = ButtonAttributes;
 
     fn ui(

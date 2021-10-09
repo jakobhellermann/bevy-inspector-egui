@@ -18,6 +18,7 @@ fn main() {
         .run();
 }
 
+#[derive(Component)]
 struct Player;
 
 fn setup(
