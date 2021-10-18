@@ -71,18 +71,21 @@ If you want custom types to be displayed in the inspector, you'll need to regist
 
 ```rust
 use bevy::prelude::*;
-use bevy_inspector_egui::InspectableRegistry;
+use bevy_inspector_egui::{WorldInspector, RegisterInspectable};
+
+#[derive(Reflect)]
+struct ReflectedType;
+
+#[derive(Reflect)]
+struct InspectableType;
 
 fn main() {
-  let mut app = App::build();
-  // add plugins and systems
-
-  let mut registry = app
-      .world_mut()
-      .get_resource_mut::<InspectableRegistry>()
-      .unwrap();
-  registry.register::<Data>();
-  registry.register::<OtherComponent>();
+  App::build()
+    .add_plugins(DefaultPlugins)
+    .add_plugin(WorldInspectorPlugin::new())
+    .register_type::<ReflectedType>()
+    .register_inspectable::<InspectableType>()
+    .run();
 }
 ```
 More examples (with pictures) can be found in the [`examples folder`](examples).

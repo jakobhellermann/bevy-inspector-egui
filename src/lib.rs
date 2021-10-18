@@ -77,6 +77,11 @@ pub mod plugin;
 /// Configuration for the [`WorldInspectorPlugin`](crate::world_inspector::WorldInspectorPlugin)
 pub mod world_inspector;
 
+/// Commonly used imports
+pub mod prelude {
+    pub use crate::{Inspectable, InspectorPlugin, RegisterInspectable, WorldInspectorPlugin};
+}
+
 use std::hash::Hasher;
 
 use bevy::prelude::{AppBuilder, World};
@@ -229,4 +234,21 @@ pub trait Inspectable {
     /// Required setup for the bevy application, e.g. registering events. Note that this method will run for every instance of a type.
     #[allow(unused_variables)]
     fn setup(app: &mut AppBuilder) {}
+}
+
+/// Helper trait for enabling `app.register_inspectable::<T>()`
+pub trait RegisterInspectable {
+    /// Register type `T` so that it can be displayed by the [`WorldInspectorPlugin`](crate::WorldInspectorPlugin).
+    /// Forwards to [`InspectableRegistry::register`].
+    fn register_inspectable<T: Inspectable + 'static>(&mut self) -> &mut Self;
+}
+
+impl RegisterInspectable for AppBuilder {
+    fn register_inspectable<T: Inspectable + 'static>(&mut self) -> &mut Self {
+        self.world_mut()
+            .get_resource_mut::<InspectableRegistry>()
+            .unwrap()
+            .register::<T>();
+        self
+    }
 }

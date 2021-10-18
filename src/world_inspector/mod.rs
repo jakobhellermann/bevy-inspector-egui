@@ -371,7 +371,7 @@ impl<'a> WorldUIContext<'a> {
                 };
 
                 if result.is_err() {
-                    ui.label("This component does not derive Inspectable or it isn't registered to a InspectableRegistry");
+                    ui.label("This component is neither `Reflect` nor `Inspectable`.\nMake sure to also call `app.register_type` or `app.register_inspectable`.");
                 }
 
                 result.unwrap_or(false)
