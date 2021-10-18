@@ -5,7 +5,7 @@ use quote::ToTokens;
 use std::borrow::Cow;
 
 use crate::{
-    attributes::{inspectable_attributes, InspectableAttributes},
+    attributes::{inspectable_field_attributes, InspectableFieldAttributes},
     utils,
 };
 
@@ -14,6 +14,9 @@ pub fn expand_enum(
     data: &syn::DataEnum,
 ) -> syn::Result<TokenStream> {
     let name = &derive_input.ident;
+
+    let container_attributes =
+        crate::attributes::inspectable_container_attributes(&derive_input.attrs)?;
 
     let variant_names: Vec<_> = data.variants.iter().map(|variant| &variant.ident).collect();
 
@@ -31,7 +34,7 @@ pub fn expand_enum(
                 .into_iter()
                 .map(|(i, field)| {
                     let member = utils::field_accessor(field, i);
-                    let attributes = inspectable_attributes(&field.attrs)?;
+                    let attributes = inspectable_field_attributes(&field.attrs)?;
                     Ok((i, field, member, attributes))
                 })
                 .collect::<syn::Result<_>>()?;
@@ -68,8 +71,10 @@ pub fn expand_enum(
 
     let egui = quote! { bevy_inspector_egui::egui };
 
-    let generic_for_impl = utils::with_inspectable_bound(&derive_input.generics);
+    let generic_for_impl =
+        utils::with_inspectable_bound(&derive_input.generics, &container_attributes.generics);
     let (impl_generics, ty_generics, where_clause) = generic_for_impl.split_for_impl();
+    let where_clause = container_attributes.generics.as_ref().or(where_clause);
 
     Ok(quote! {
         impl #impl_generics bevy_inspector_egui::Inspectable for #name #ty_generics #where_clause {
@@ -155,7 +160,7 @@ fn enum_variants<'a>(
 // }
 fn field_ui(
     variant: &syn::Ident,
-    f: &[(usize, &syn::Field, syn::Member, InspectableAttributes)],
+    f: &[(usize, &syn::Field, syn::Member, InspectableFieldAttributes)],
 ) -> TokenStream {
     let field_names = f.iter().map(|(i, field, _, _)| name_for_member(field, *i));
     let members = f.iter().map(|(_, _, m, _)| m);

@@ -10,11 +10,14 @@ pub fn expand_struct(
 ) -> syn::Result<TokenStream> {
     let name = &derive_input.ident;
 
+    let container_attributes =
+        crate::attributes::inspectable_container_attributes(&derive_input.attrs)?;
+
     let fields: Vec<_> = data
         .fields
         .iter()
         .map(|field| {
-            let attributes = crate::attributes::inspectable_attributes(&field.attrs)?;
+            let attributes = crate::attributes::inspectable_field_attributes(&field.attrs)?;
 
             if attributes.default.is_some() {
                 let span = match field.attrs.as_slice() {
@@ -75,8 +78,10 @@ pub fn expand_struct(
         }
     });
 
-    let generic_for_impl = utils::with_inspectable_bound(&derive_input.generics);
+    let generic_for_impl =
+        utils::with_inspectable_bound(&derive_input.generics, &container_attributes.generics);
     let (impl_generics, ty_generics, where_clause) = generic_for_impl.split_for_impl();
+    let where_clause = container_attributes.generics.as_ref().or(where_clause);
 
     Ok(quote! {
         #[allow(clippy::all)]

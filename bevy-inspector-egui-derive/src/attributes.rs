@@ -2,6 +2,75 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::spanned::Spanned;
 
+#[derive(Default)]
+pub struct InspectableContainerAttributes {
+    pub generics: Option<syn::WhereClause>,
+}
+
+pub fn inspectable_container_attributes(
+    attrs: &[syn::Attribute],
+) -> syn::Result<InspectableContainerAttributes> {
+    let attrs = attrs
+        .iter()
+        .filter(|attr| attr.path.get_ident().map_or(false, |p| p == "inspectable"))
+        .map(|attr| attr.parse_meta());
+
+    let mut all = InspectableContainerAttributes::default();
+
+    for attr in attrs {
+        let list = match attr? {
+            syn::Meta::List(list) => list,
+            meta => {
+                return Err(syn::Error::new(
+                    meta.span(),
+                    "invalid attribute, expected #[inspectable(...)]",
+                ))
+            }
+        };
+        for attr in list.nested {
+            let meta = match attr {
+                syn::NestedMeta::Meta(meta) => meta,
+                other => {
+                    return Err(syn::Error::new(
+                        other.span(),
+                        "invalid attribute, expected #[inspectable(options)",
+                    ))
+                }
+            };
+
+            match meta {
+                syn::Meta::NameValue(name_value)
+                    if name_value
+                        .path
+                        .get_ident()
+                        .map_or(false, |i| i == "override_where_clause") =>
+                {
+                    let where_clause = match &name_value.lit {
+                        syn::Lit::Str(str) => {
+                            let where_clause = format!("where {}", str.value());
+                            let where_clause: syn::WhereClause = syn::parse_str(&where_clause)
+                                .map_err(|e| {
+                                    syn::Error::new(
+                                        str.span(),
+                                        format!("failed to parse where clause: {}", e),
+                                    )
+                                })?;
+                            where_clause
+                        }
+                        other => {
+                            return Err(syn::Error::new(other.span(), "expected string literal"))
+                        }
+                    };
+                    all.generics = Some(where_clause);
+                }
+                other => return Err(syn::Error::new(other.span(), "invalid attribute")),
+            }
+        }
+    }
+
+    Ok(all)
+}
+
 pub enum InspectableAttribute {
     Assignment(syn::Member, syn::Expr),
     Tag(syn::Member),
@@ -21,7 +90,7 @@ impl InspectableAttribute {
         }
     }
 
-    pub fn is_builtin(&self) -> bool {
+    pub fn is_field_builtin(&self) -> bool {
         let ident = match self.lhs() {
             syn::Member::Named(ident) => ident,
             syn::Member::Unnamed(_) => return false,
@@ -70,7 +139,7 @@ fn extract_inspectable_attributes(
 }
 
 #[derive(Default)]
-pub struct InspectableAttributes {
+pub struct InspectableFieldAttributes {
     pub collapse: bool,
     pub label: Option<String>,
     pub default: Option<syn::Expr>,
@@ -80,7 +149,7 @@ pub struct InspectableAttributes {
     pub custom_attributes: Vec<InspectableAttribute>,
 }
 
-impl InspectableAttributes {
+impl InspectableFieldAttributes {
     pub fn create_options_struct(&self, ty: &syn::Type) -> TokenStream {
         let fields = self.custom_attributes.iter().map(|attribute| {
             let name = attribute.lhs();
@@ -116,13 +185,15 @@ impl InspectableAttributes {
     }
 }
 
-pub fn inspectable_attributes(attrs: &[syn::Attribute]) -> syn::Result<InspectableAttributes> {
-    let mut all = InspectableAttributes::default();
+pub fn inspectable_field_attributes(
+    attrs: &[syn::Attribute],
+) -> syn::Result<InspectableFieldAttributes> {
+    let mut all = InspectableFieldAttributes::default();
 
     let (builtin_attributes, custom_attributes): (Vec<_>, Vec<_>) =
         extract_inspectable_attributes(attrs)?
             .into_iter()
-            .partition(InspectableAttribute::is_builtin);
+            .partition(InspectableAttribute::is_field_builtin);
 
     // builtins
     for builtin_attribute in builtin_attributes {

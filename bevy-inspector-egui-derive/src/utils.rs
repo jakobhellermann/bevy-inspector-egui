@@ -12,14 +12,19 @@ pub fn field_label(field: &syn::Field, i: usize) -> String {
     }
 }
 
-pub fn with_inspectable_bound(generics: &syn::Generics) -> syn::Generics {
+pub fn with_inspectable_bound(
+    generics: &syn::Generics,
+    override_where_clause: &Option<syn::WhereClause>,
+) -> syn::Generics {
     let mut generics = generics.clone();
-    for param in &mut generics.params {
-        if let syn::GenericParam::Type(type_param) = param {
-            type_param
+
+    if override_where_clause.is_none() {
+        for param in generics.type_params_mut() {
+            param
                 .bounds
                 .push(syn::parse_quote!(bevy_inspector_egui::Inspectable));
         }
     }
+
     generics
 }

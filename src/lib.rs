@@ -192,6 +192,7 @@ impl<'a> Context<'a> {
 /// - **collapse**: wraps the ui in an [`egui::CollapsingHeader`].
 /// - **default**: only for enums, specifies the default value when selecting a new variant
 /// - **wrapper**: wrap field UI in a custom function. Demo in the [rust_types example](https://github.com/jakobhellermann/bevy-inspector-egui/blob/main/examples/rust_types.rs#L20).
+/// - **override_where_clause**: specifies which type bounds should be used for generics. For example `#[inspectable(override_where_clause = "") struct Struct(PhantomData<M>)` won't include a `M: Inspectable` bound.
 pub trait Inspectable {
     /// The `Attributes` associated type specifies what attributes can be passed to a field.
     /// See the following snippet for an example:
