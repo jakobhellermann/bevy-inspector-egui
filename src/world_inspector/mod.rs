@@ -47,6 +47,8 @@ pub struct WorldInspectorParams {
     pub window: WindowId,
     /// Filter entities by name.
     pub name_filter: Option<String>,
+    /// Highlight when components are changed in the world
+    pub highlight_changes: bool,
 }
 
 impl WorldInspectorParams {
@@ -59,6 +61,7 @@ impl WorldInspectorParams {
             despawnable_entities: false,
             window: WindowId::primary(),
             name_filter: Some(String::new()),
+            highlight_changes: false,
         }
     }
 
@@ -237,24 +240,28 @@ impl<'a> WorldUIContext<'a> {
 
         let mut changed = false;
 
-        changed |= self.component_kind_ui(
-            ui,
-            archetype.table_components(),
-            "Components",
-            entity,
-            entity_location,
-            params,
-            id,
-        );
-        changed |= self.component_kind_ui(
-            ui,
-            archetype.sparse_set_components(),
-            "Components (Sparse)",
-            entity,
-            entity_location,
-            params,
-            id,
-        );
+        // Safety:
+        // `entity_location` has been obtained for an entity that exists in the world
+        unsafe {
+            changed |= self.component_kind_ui(
+                ui,
+                archetype.table_components(),
+                "Components",
+                entity,
+                entity_location,
+                params,
+                id,
+            );
+            changed |= self.component_kind_ui(
+                ui,
+                archetype.sparse_set_components(),
+                "Components (Sparse)",
+                entity,
+                entity_location,
+                params,
+                id,
+            );
+        }
 
         ui.separator();
 
@@ -278,7 +285,9 @@ impl<'a> WorldUIContext<'a> {
         changed
     }
 
-    fn component_kind_ui(
+    /// Safety:
+    /// `entity_location` must point to a valid archetype and index.
+    unsafe fn component_kind_ui(
         &self,
         ui: &mut egui::Ui,
         components: &[ComponentId],
@@ -316,7 +325,9 @@ impl<'a> WorldUIContext<'a> {
         }
     }
 
-    fn component_ui(
+    /// Safety:
+    /// `entity_location` must point to a valid archetype and index.
+    unsafe fn component_ui(
         &self,
         ui: &mut egui::Ui,
         name: String,
@@ -342,33 +353,68 @@ impl<'a> WorldUIContext<'a> {
         let type_registry = self.world.get_resource::<TypeRegistryArc>().unwrap();
         let type_registry = &*type_registry.internal.read();
 
+        // Safety: according to this function's contract, entity_location is valid,
+        // and self.world gives us exclusive access.
+        let (component_ptr, component_ticks) = {
+            let (ptr, ticks) =
+                get_component_and_ticks(&self.world, component_info.id(), entity, entity_location)
+                    .unwrap();
+            (ptr, { &mut *ticks })
+        };
+        if params.highlight_changes
+            && component_ticks
+                .is_changed(self.world.last_change_tick(), self.world.read_change_tick())
+        {
+            ui.style_mut().visuals.collapsing_header_frame = true;
+            ui.style_mut().visuals.widgets.inactive.bg_stroke = egui::Stroke {
+                width: 1.0,
+                color: egui::Color32::GOLD,
+            };
+            ui.style_mut().visuals.widgets.active.bg_stroke = egui::Stroke {
+                width: 1.0,
+                color: egui::Color32::GOLD,
+            };
+            ui.style_mut().visuals.widgets.hovered.bg_stroke = egui::Stroke {
+                width: 1.0,
+                color: egui::Color32::GOLD,
+            };
+            ui.style_mut().visuals.widgets.noninteractive.bg_stroke = egui::Stroke {
+                width: 1.0,
+                color: egui::Color32::GOLD,
+            };
+        }
+
         let id = id.with(component_info.id());
-        CollapsingHeader::new(name)
+        let changed = CollapsingHeader::new(name)
             .id_source(id)
             .show(ui, |ui| {
+                ui.reset_style();
+
                 if params.is_read_only(type_id) {
                     ui.set_enabled(false);
                 }
 
                 let world_ptr = self.world as *const _ as *mut _;
-                let context = unsafe {
+                // Safety: self.world gives us exclusive access
+                let context = {
                     let id = id_to_u64(&id);
                     Context::new_ptr(self.ui_ctx, world_ptr).with_id(id)
                 };
 
-                let result = unsafe {
+                // Safety: according to this function's contract, entity_location (and therefore component_ptr, component_ticks) are valid
+                let result =
                     try_display(
                         &self.world,
                         entity,
-                        entity_location,
+                        component_ptr,
+                        component_ticks,
                         component_info,
                         type_id,
                         inspectable_registry,
                         type_registry,
                         ui,
                         &context,
-                    )
-                };
+                    );
 
                 if result.is_err() {
                     ui.label("This component is neither `Reflect` nor `Inspectable`.\nMake sure to also call `app.register_type` or `app.register_inspectable`.");
@@ -377,7 +423,10 @@ impl<'a> WorldUIContext<'a> {
                 result.unwrap_or(false)
             })
             .body_returned
-            .unwrap_or(false)
+            .unwrap_or(false);
+
+        ui.reset_style();
+        changed
     }
 
     fn entity_name(&self, entity: Entity) -> Cow<'_, str> {
@@ -389,12 +438,12 @@ impl<'a> WorldUIContext<'a> {
 }
 
 /// Safety:
-/// The `location` must point to a valid archetype and index,
-/// and the function must have unique access to the components.
+/// `component_ptr` must point to a valid component, and the function must have unique access.
 pub(crate) unsafe fn try_display(
     world: &World,
     entity: Entity,
-    location: EntityLocation,
+    component_ptr: *mut u8,
+    component_ticks: &mut ComponentTicks,
     component_info: &ComponentInfo,
     type_id: TypeId,
     inspectable_registry: &InspectableRegistry,
@@ -403,12 +452,12 @@ pub(crate) unsafe fn try_display(
     context: &Context,
 ) -> Result<bool, ()> {
     if let Some(inspect_callback) = inspectable_registry.impls.get(&type_id) {
+        // Safety: propagates this functions' requirement of a valid component_ptr
         let changed = display_by_inspectable_registry(
             inspect_callback,
             world,
-            location,
-            entity,
-            component_info,
+            component_ptr,
+            component_ticks,
             ui,
             context,
         );
@@ -426,23 +475,20 @@ pub(crate) unsafe fn try_display(
     Err(())
 }
 
+/// Safety:
+/// `component_ptr` must point to a valid component, and the function must have unique access.
 unsafe fn display_by_inspectable_registry(
     inspect_callback: &InspectCallback,
     world: &World,
-    location: EntityLocation,
-    entity: Entity,
-    component_info: &ComponentInfo,
+    component_ptr: *mut u8,
+    component_ticks: &mut ComponentTicks,
     ui: &mut egui::Ui,
     context: &Context,
 ) -> bool {
-    let (ptr, ticks) =
-        get_component_and_ticks(world, component_info.id(), entity, location).unwrap();
-    let ticks = { &mut *ticks };
-
-    let changed = inspect_callback(ptr, ui, &context);
+    let changed = inspect_callback(component_ptr, ui, &context);
 
     if changed {
-        ticks.set_changed(world.read_change_tick());
+        component_ticks.set_changed(world.read_change_tick());
     }
 
     changed
