@@ -240,24 +240,28 @@ impl<'a> WorldUIContext<'a> {
 
         let mut changed = false;
 
-        changed |= self.component_kind_ui(
-            ui,
-            archetype.table_components(),
-            "Components",
-            entity,
-            entity_location,
-            params,
-            id,
-        );
-        changed |= self.component_kind_ui(
-            ui,
-            archetype.sparse_set_components(),
-            "Components (Sparse)",
-            entity,
-            entity_location,
-            params,
-            id,
-        );
+        // Safety:
+        // `entity_location` has been obtained for an entity that exists in the world
+        unsafe {
+            changed |= self.component_kind_ui(
+                ui,
+                archetype.table_components(),
+                "Components",
+                entity,
+                entity_location,
+                params,
+                id,
+            );
+            changed |= self.component_kind_ui(
+                ui,
+                archetype.sparse_set_components(),
+                "Components (Sparse)",
+                entity,
+                entity_location,
+                params,
+                id,
+            );
+        }
 
         ui.separator();
 
@@ -281,7 +285,9 @@ impl<'a> WorldUIContext<'a> {
         changed
     }
 
-    fn component_kind_ui(
+    /// Safety:
+    /// `entity_location` must point to a valid archetype and index.
+    unsafe fn component_kind_ui(
         &self,
         ui: &mut egui::Ui,
         components: &[ComponentId],
@@ -319,7 +325,9 @@ impl<'a> WorldUIContext<'a> {
         }
     }
 
-    fn component_ui(
+    /// Safety:
+    /// `entity_location` must point to a valid archetype and index.
+    unsafe fn component_ui(
         &self,
         ui: &mut egui::Ui,
         name: String,
@@ -345,10 +353,9 @@ impl<'a> WorldUIContext<'a> {
         let type_registry = self.world.get_resource::<TypeRegistryArc>().unwrap();
         let type_registry = &*type_registry.internal.read();
 
-        // Safety:
-        // The `location` must point to a valid archetype and index,
-        // and the function must have unique access to the components.
-        let (component_ptr, component_ticks) = unsafe {
+        // Safety: according to this function's contract, entity_location is valid,
+        // and self.world gives us exclusive access.
+        let (component_ptr, component_ticks) = {
             let (ptr, ticks) =
                 get_component_and_ticks(&self.world, component_info.id(), entity, entity_location)
                     .unwrap();
@@ -388,11 +395,13 @@ impl<'a> WorldUIContext<'a> {
                 }
 
                 let world_ptr = self.world as *const _ as *mut _;
-                let context = unsafe {
+                // Safety: self.world gives us exclusive access
+                let context = {
                     let id = id_to_u64(&id);
                     Context::new_ptr(self.ui_ctx, world_ptr).with_id(id)
                 };
 
+                // Safety: according to this function's contract, entity_location (and therefore component_ptr, component_ticks) are valid
                 let result =
                     try_display(
                         &self.world,
@@ -428,7 +437,9 @@ impl<'a> WorldUIContext<'a> {
     }
 }
 
-pub(crate) fn try_display(
+/// Safety:
+/// `component_ptr` must point to a valid component, and the function must have unique access.
+pub(crate) unsafe fn try_display(
     world: &World,
     entity: Entity,
     component_ptr: *mut u8,
@@ -441,6 +452,7 @@ pub(crate) fn try_display(
     context: &Context,
 ) -> Result<bool, ()> {
     if let Some(inspect_callback) = inspectable_registry.impls.get(&type_id) {
+        // Safety: propagates this functions' requirement of a valid component_ptr
         let changed = display_by_inspectable_registry(
             inspect_callback,
             world,
@@ -463,7 +475,9 @@ pub(crate) fn try_display(
     Err(())
 }
 
-fn display_by_inspectable_registry(
+/// Safety:
+/// `component_ptr` must point to a valid component, and the function must have unique access.
+unsafe fn display_by_inspectable_registry(
     inspect_callback: &InspectCallback,
     world: &World,
     component_ptr: *mut u8,
