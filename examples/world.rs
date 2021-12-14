@@ -156,6 +156,7 @@ impl Default for TeleportState {
 }
 
 /// simple movement in the scene
+#[allow(clippy::type_complexity)]
 fn movement(
     time: Res<Time>,
     mut state: Local<TeleportState>,

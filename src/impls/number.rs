@@ -25,6 +25,7 @@ impl<T> Default for NumberAttributes<T> {
 
 impl<T> NumberAttributes<T> {
     pub(crate) fn map<U>(&self, f: impl Fn(&T) -> U) -> NumberAttributes<U> {
+        #[allow(clippy::redundant_closure)] // false positive
         NumberAttributes {
             min: self.min.as_ref().map(|v| f(v)),
             max: self.max.as_ref().map(f),

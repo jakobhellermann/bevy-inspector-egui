@@ -355,7 +355,7 @@ impl<'a> WorldUIContext<'a> {
         // and self.world gives us exclusive access.
         let (component_ptr, component_ticks) = {
             let (ptr, ticks) =
-                get_component_and_ticks(&self.world, component_info.id(), entity, entity_location)
+                get_component_and_ticks(self.world, component_info.id(), entity, entity_location)
                     .unwrap();
             (ptr, { &mut *ticks })
         };
@@ -483,7 +483,7 @@ unsafe fn display_by_inspectable_registry(
     ui: &mut egui::Ui,
     context: &Context,
 ) -> bool {
-    let changed = inspect_callback(component_ptr, ui, &context);
+    let changed = inspect_callback(component_ptr, ui, context);
 
     if changed {
         component_ticks.set_changed(world.read_change_tick());
