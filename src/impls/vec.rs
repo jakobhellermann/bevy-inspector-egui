@@ -30,7 +30,7 @@ impl Inspectable for Vec2 {
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
         options: Self::Attributes,
-        context: &Context,
+        context: &mut Context,
     ) -> bool {
         if options.visual {
             point_select(self, ui, options)
@@ -150,7 +150,7 @@ impl Widget for PointSelect<'_> {
 impl Inspectable for Vec3 {
     type Attributes = NumberAttributes<Vec3>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         let mut changed = false;
         ui.scope(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
@@ -168,7 +168,7 @@ impl Inspectable for Vec3 {
 impl Inspectable for Vec4 {
     type Attributes = NumberAttributes<Vec4>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         let mut changed = false;
         ui.scope(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
@@ -187,7 +187,7 @@ impl Inspectable for Vec4 {
 impl Inspectable for UVec4 {
     type Attributes = NumberAttributes<UVec4>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         let mut changed = false;
         ui.scope(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
@@ -205,7 +205,7 @@ impl Inspectable for UVec4 {
 impl Inspectable for IVec4 {
     type Attributes = NumberAttributes<IVec4>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         let mut changed = false;
         ui.scope(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
@@ -223,7 +223,7 @@ impl Inspectable for IVec4 {
 impl Inspectable for DVec4 {
     type Attributes = NumberAttributes<DVec4>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         let mut changed = false;
         ui.scope(|ui| {
             ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);

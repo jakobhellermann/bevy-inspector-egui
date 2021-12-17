@@ -61,7 +61,7 @@ impl<T> DerefMut for InNewWindow<T> {
 impl<T: Inspectable + 'static> Inspectable for InNewWindow<T> {
     type Attributes = WindowAttributes<T>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         let ui_ctx = match context.ui_ctx {
             Some(ctx) => ctx,
             None => {

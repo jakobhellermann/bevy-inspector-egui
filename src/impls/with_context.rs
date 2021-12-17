@@ -1,7 +1,7 @@
 use std::collections::hash_map::Entry;
 
 use crate::{
-    utils::{self, image_texture_conversion},
+    utils::{self, error_label_needs_world, image_texture_conversion},
     Context, Inspectable,
 };
 use bevy::{
@@ -33,7 +33,7 @@ macro_rules! expect_handle {
 impl Inspectable for HandleId {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &mut Context) -> bool {
         ui.label("<handle id>");
         false
     }
@@ -42,18 +42,20 @@ impl Inspectable for HandleId {
 impl<T: Asset + Inspectable> Inspectable for Handle<T> {
     type Attributes = T::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         if self.id == HandleId::default::<T>() {
             ui.label("<default handle>");
             return false;
         }
 
-        let world = expect_world!(ui, context, "Handle<T>");
-        let mut assets = world.get_resource_mut::<Assets<T>>().unwrap();
-
-        let value = expect_handle!(ui, assets, get_mut self);
-
-        value.ui(ui, options, context)
+        context.resource_scope(
+            ui,
+            "Handle<T>",
+            |ui, context, mut assets: Mut<Assets<T>>| {
+                let value = expect_handle!(ui, assets, get_mut self);
+                value.ui(ui, options, context)
+            },
+        )
     }
 }
 
@@ -80,16 +82,22 @@ impl Default for TextureAttributes {
 impl Inspectable for Handle<Image> {
     type Attributes = TextureAttributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
-        let world = expect_world!(ui, context, "Handle<Image>");
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
+        let id = context.id();
+
+        let world = match unsafe { context.world_mut() } {
+            Some(world) => world,
+            None => return error_label_needs_world(ui, "Handle<Image>"),
+        };
+
         let _ = world.get_resource_or_insert_with(ScaledDownTextures::default);
 
         let world = world.cell();
-        let asset_server = world.get_resource::<AssetServer>().unwrap();
         let mut textures = world.get_resource_mut::<Assets<Image>>().unwrap();
-        let file_events = world.get_resource::<Events<FileDragAndDrop>>().unwrap();
         let mut scaled_down_textures = world.get_resource_mut().unwrap();
         let mut egui_context = world.get_resource_mut::<bevy_egui::EguiContext>().unwrap();
+        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        let file_events = world.get_resource::<Events<FileDragAndDrop>>().unwrap();
 
         if !textures.contains(&*self) {
             let response = utils::ui::drag_and_drop_target(ui);
@@ -99,7 +107,7 @@ impl Inspectable for Handle<Image> {
             return false;
         }
 
-        let (texture, id) = match options.rescale {
+        let (texture, texture_id) = match options.rescale {
             Some(_) => rescaled_image(
                 self,
                 &mut scaled_down_textures,
@@ -110,7 +118,7 @@ impl Inspectable for Handle<Image> {
         };
 
         let texture = textures.get(texture).unwrap();
-        let response = show_texture(texture, id, ui, context);
+        let response = show_texture(texture, texture_id, ui, id);
 
         if response.map_or(false, |res| res.hovered()) {
             utils::ui::replace_handle_if_dropped(self, &*file_events, &*asset_server)
@@ -156,8 +164,12 @@ fn rescaled_image<'a>(
 impl Inspectable for Handle<Font> {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
-        let world = expect_world!(ui, context, "Handle<Texture>");
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &mut Context) -> bool {
+        let world = match context.world() {
+            Some(world) => world,
+            None => return error_label_needs_world(ui, "Handle<Font>"),
+        };
+
         let asset_server = world.get_resource::<AssetServer>().unwrap();
         let file_events = world.get_resource::<Events<FileDragAndDrop>>().unwrap();
 
@@ -181,7 +193,7 @@ fn show_texture(
     texture: &Image,
     texture_id: TextureId,
     ui: &mut egui::Ui,
-    context: &Context,
+    id: egui::Id,
 ) -> Option<egui::Response> {
     let size = texture.texture_descriptor.size;
     let size = [size.width as f32, size.height as f32];
@@ -189,7 +201,7 @@ fn show_texture(
     let max = size[0].max(size[1]);
     if max >= 128.0 {
         let response = egui::CollapsingHeader::new("Texture")
-            .id_source(context.id())
+            .id_source(id)
             .show(ui, |ui| ui.image(texture_id, size));
         response.body_response
     } else {

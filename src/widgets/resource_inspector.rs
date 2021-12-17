@@ -1,5 +1,7 @@
 use std::marker::PhantomData;
 
+use bevy::prelude::Mut;
+
 use crate::Inspectable;
 
 /// The resource inspector can be used to edit resources in the inspector.
@@ -31,11 +33,11 @@ impl<T: Inspectable + Send + Sync + 'static> Inspectable for ResourceInspector<T
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
         options: Self::Attributes,
-        context: &crate::Context,
+        context: &mut crate::Context,
     ) -> bool {
-        let world = expect_world!(ui, context, "ResourceInspector");
-        let mut val = world.get_resource_mut::<T>().unwrap();
-        val.ui(ui, options, context)
+        context.resource_scope(ui, "ResourceInspector", |ui, context, mut res: Mut<T>| {
+            res.ui(ui, options, context)
+        })
     }
 }
 

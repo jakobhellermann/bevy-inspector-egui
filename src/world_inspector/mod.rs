@@ -463,13 +463,12 @@ pub(crate) unsafe fn try_display(
     id: egui::Id,
 ) -> Result<bool, ()> {
     if let Some(inspect_callback) = inspectable_registry.impls.get(&type_id) {
-        let context = {
-            let id = id_to_u64(&id);
-            Context::new_world_access(ui_ctx, world).with_id(id)
-        };
+        let id = id_to_u64(&id);
+        let mut context = Context::new_world_access(ui_ctx, world);
+        let mut context = context.with_id(id);
 
         let changed =
-            display_by_inspectable_registry(inspect_callback, component_ptr, ui, &context);
+            display_by_inspectable_registry(inspect_callback, component_ptr, ui, &mut context);
         return Ok(changed);
     }
 
@@ -492,7 +491,7 @@ unsafe fn display_by_inspectable_registry(
     inspect_callback: &InspectCallback,
     component_ptr: *mut u8,
     ui: &mut egui::Ui,
-    context: &Context,
+    context: &mut Context,
 ) -> bool {
     inspect_callback(component_ptr, ui, context)
 }
@@ -521,22 +520,20 @@ fn display_by_reflection(
     };
 
     let mut reflected = {
-        // TODO: safety comment
         let world = unsafe { &mut *(world as *mut _) };
         reflect_component
             .reflect_component_mut(world, entity)
             .ok_or(())?
     };
 
-    let context = {
-        let id = id_to_u64(&id);
-        Context::new_world_access(ui_ctx, world).with_id(id)
-    };
+    let id = id_to_u64(&id);
+    let mut context = Context::new_world_access(ui_ctx, world);
+    let mut context = context.with_id(id);
 
     Ok(crate::reflect::ui_for_reflect(
         &mut *reflected,
         ui,
-        &context,
+        &mut context,
     ))
 }
 

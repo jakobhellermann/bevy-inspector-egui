@@ -41,19 +41,23 @@ impl<E: Send + Sync + 'static + Default> Inspectable for InspectableButton<E> {
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
         options: Self::Attributes,
-        context: &Context,
+        context: &mut Context,
     ) -> bool {
-        let world = expect_world!(ui, context, "InspectableButton");
-        let mut events = world.get_resource_mut::<Events<E>>().unwrap();
-
-        if ui.button(options.text).clicked() {
-            events.send(E::default());
-        }
-
-        false
+        context.resource_scope(
+            ui,
+            "InspectableButton<E>",
+            |ui, _, mut events: Mut<Events<E>>| {
+                if ui.button(options.text).clicked() {
+                    events.send(E::default());
+                }
+                false
+            },
+        )
     }
 
     fn setup(app: &mut App) {
-        app.add_event::<E>();
+        if !app.world.contains_resource::<Events<E>>() {
+            app.add_event::<E>();
+        }
     }
 }

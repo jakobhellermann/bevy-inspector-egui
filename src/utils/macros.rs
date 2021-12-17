@@ -3,7 +3,7 @@ macro_rules! impl_for_simple_enum {
         impl $crate::Inspectable for $name {
             type Attributes = ();
 
-            fn ui(&mut self, ui: &mut $crate::egui::Ui, _: Self::Attributes, context: &$crate::Context) -> bool {
+            fn ui(&mut self, ui: &mut $crate::egui::Ui, _: Self::Attributes, context: &mut $crate::Context) -> bool {
                 let mut changed = false;
                 crate::egui::ComboBox::from_id_source(context.id())
                     .selected_text(format!("{:?}", self))
@@ -27,7 +27,7 @@ macro_rules! impl_for_struct_delegate_fields {
         impl $crate::Inspectable for $ty {
             type Attributes = ();
 
-            fn ui(&mut self, ui: &mut $crate::egui::Ui, _: Self::Attributes, context: &$crate::Context) -> bool {
+            fn ui(&mut self, ui: &mut $crate::egui::Ui, _: Self::Attributes, context: &mut $crate::Context) -> bool {
                 let mut changed = false;
 
                 ui.vertical_centered(|ui| {
@@ -47,7 +47,7 @@ macro_rules! impl_for_struct_delegate_fields {
 
                             let mut attrs = Default::default();
                             $(attrs = $attrs;)?
-                            changed |= self.$field.ui(ui, attrs, &context.with_id(i));
+                            changed |= self.$field.ui(ui, attrs, &mut context.with_id(i));
                             ui.end_row();
                             i += 1;
                         )*
@@ -70,7 +70,7 @@ macro_rules! impl_for_bitflags {
                 &mut self,
                 ui: &mut egui::Ui,
                 _: Self::Attributes,
-                _: &Context,
+                _: &mut Context,
             ) -> bool {
                 let mut changed = false;
 
@@ -97,7 +97,12 @@ macro_rules! impl_defer_to {
         impl $crate::Inspectable for $ty {
             type Attributes = ();
 
-            fn ui(&mut self, ui: &mut egui::Ui, (): Self::Attributes, context: &Context) -> bool {
+            fn ui(
+                &mut self,
+                ui: &mut egui::Ui,
+                (): Self::Attributes,
+                context: &mut Context,
+            ) -> bool {
                 self.$inner.ui(ui, Default::default(), context)
             }
         }

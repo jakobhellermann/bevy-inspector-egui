@@ -34,7 +34,7 @@ struct AxisAngle((Vec3, f32));
 impl Inspectable for Quat {
     type Attributes = QuatAttributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         match options.display {
             QuatDisplay::Raw => {
                 let mut vec4 = Vec4::from(*self);

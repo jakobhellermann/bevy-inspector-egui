@@ -20,7 +20,7 @@ pub struct StringAttributes {
 impl Inspectable for String {
     type Attributes = StringAttributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &mut Context) -> bool {
         let widget = match options.multiline {
             false => widgets::TextEdit::singleline(self),
             true => widgets::TextEdit::multiline(self),
@@ -33,7 +33,7 @@ impl Inspectable for String {
 impl<'a> Inspectable for &'a str {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &mut Context) -> bool {
         ui.label(*self);
         false
     }
@@ -41,7 +41,7 @@ impl<'a> Inspectable for &'a str {
 
 impl Inspectable for bool {
     type Attributes = ();
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &mut Context) -> bool {
         ui.checkbox(self, "").changed()
     }
 }
@@ -52,15 +52,15 @@ where
 {
     type Attributes = T::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         let mut changed = false;
         ui.horizontal(|ui| {
             let replacement = T::default()..=T::default();
             let (mut start, mut end) = std::mem::replace(self, replacement).into_inner();
 
-            changed |= start.ui(ui, options.clone(), &context.with_id(0));
+            changed |= start.ui(ui, options.clone(), &mut context.with_id(0));
             ui.label("..=");
-            changed |= end.ui(ui, options, &context.with_id(1));
+            changed |= end.ui(ui, options, &mut context.with_id(1));
 
             *self = start..=end;
         });
@@ -74,12 +74,12 @@ where
 {
     type Attributes = T::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         let mut changed = false;
         ui.horizontal(|ui| {
-            changed |= self.start.ui(ui, options.clone(), &context.with_id(0));
+            changed |= self.start.ui(ui, options.clone(), &mut context.with_id(0));
             ui.label("..");
-            changed |= self.end.ui(ui, options, &context.with_id(1));
+            changed |= self.end.ui(ui, options, &mut context.with_id(1));
         });
         changed
     }
@@ -112,7 +112,7 @@ impl<T: Inspectable> Default for OptionAttributes<T> {
 impl<T: Inspectable> Inspectable for Option<T> {
     type Attributes = OptionAttributes<T>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         let mut changed = false;
         match self {
             Some(val) => {
@@ -141,7 +141,7 @@ impl<T: Inspectable> Inspectable for Option<T> {
 impl Inspectable for Duration {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &mut Context) -> bool {
         let mut seconds = self.as_secs_f32();
         let attributes = NumberAttributes {
             min: Some(0.0),

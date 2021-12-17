@@ -3,7 +3,6 @@ use bevy::render::{
     texture::{Image, TextureFormatPixelInfo},
 };
 
-// TODO: fix name?
 /// Helper method to convert a `DynamicImage` to a `Texture`
 pub(crate) fn image_to_texture(dyn_img: image::DynamicImage) -> Image {
     use bevy::core::cast_slice;
@@ -89,7 +88,6 @@ pub(crate) fn image_to_texture(dyn_img: image::DynamicImage) -> Image {
                 Vec::with_capacity(width as usize * height as usize * format.pixel_size());
 
             for pixel in image.into_raw().chunks_exact(3) {
-                // TODO unsafe_get in release builds?
                 let r = pixel[0];
                 let g = pixel[1];
                 let b = pixel[2];

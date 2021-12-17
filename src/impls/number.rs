@@ -70,7 +70,12 @@ macro_rules! impl_num {
         impl Inspectable for $ty {
             type Attributes = NumberAttributes<$ty>;
 
-            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) -> bool {
+            fn ui(
+                &mut self,
+                ui: &mut egui::Ui,
+                options: Self::Attributes,
+                _: &mut Context,
+            ) -> bool {
                 num_ui(self, options, ui, None)
             }
         }
@@ -91,14 +96,14 @@ impl_num!(usize);
 impl Inspectable for f32 {
     type Attributes = NumberAttributes<f32>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &mut Context) -> bool {
         num_ui(self, options, ui, Some(0.1))
     }
 }
 impl Inspectable for f64 {
     type Attributes = NumberAttributes<f64>;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, _: &mut Context) -> bool {
         num_ui(self, options, ui, Some(0.1))
     }
 }

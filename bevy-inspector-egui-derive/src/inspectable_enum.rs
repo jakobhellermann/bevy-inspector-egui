@@ -81,7 +81,7 @@ pub fn expand_enum(
             type Attributes = ();
 
 
-            fn ui(&mut self, ui: &mut #egui::Ui, options: Self::Attributes, context: &bevy_inspector_egui::Context) -> bool {
+            fn ui(&mut self, ui: &mut #egui::Ui, options: Self::Attributes, context: &mut bevy_inspector_egui::Context) -> bool {
                 let mut variant = match self {
                     #(Self::#variant_names { .. } => stringify!(#variant_names),)*
                 };

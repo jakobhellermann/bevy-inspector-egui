@@ -83,9 +83,12 @@ pub mod prelude {
 }
 
 use std::hash::Hasher;
+use std::marker::PhantomData;
 
-use bevy::prelude::{App, World};
+use bevy::ecs::system::Resource;
+use bevy::prelude::{App, Mut, World};
 use egui::CtxRef;
+use utils::error_label_needs_world;
 #[doc(inline)]
 pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 
@@ -114,45 +117,114 @@ pub struct Context<'a> {
     pub ui_ctx: Option<&'a CtxRef>,
     /// The world is only available when not using `InspectablePlugin::shared()`
     world: Option<*mut World>,
+    _world_marker: PhantomData<&'a mut ()>,
 
     /// Something to distinguish between siblings.
     pub id: Option<u64>,
 }
+
 impl<'a> Context<'a> {
-    /// Gives mutable access to the [bevy::ecs::world::World]
+    /// Returns a reference to the world if the context has access to it
+    pub fn world(&self) -> Option<&'a World> {
+        match self.world {
+            Some(world) => Some(unsafe { &*world }),
+            None => None,
+        }
+    }
+
+    /// Get a mutable reference to the `world` if the inspector has access to it.
+    ///
     /// # Safety
-    /// The pointer provided in `Context::new_raw` must give unique access.
-    pub unsafe fn world(&'a self) -> Option<&'a mut World> {
-        self.world.map(|ptr| &mut *ptr)
+    /// Users of this function are only allowed to mutate resources and components,
+    /// but can't do any changes that would result in changes of archetypes.
+    pub unsafe fn world_mut(&mut self) -> Option<&'a mut World> {
+        match self.world {
+            Some(world) => Some(&mut *world),
+            None => None,
+        }
+    }
+
+    /// Returns the provided closure with mutable access to the world, and a context
+    /// that has *no* access to the world.
+    ///
+    /// Will display an error message if the context doesn't have world access.
+    pub fn world_scope(
+        &mut self,
+        ui: &mut egui::Ui,
+        ty: &str,
+        f: impl FnOnce(&mut World, &mut egui::Ui, &mut Context) -> bool,
+    ) -> bool {
+        let world = match self.world.take() {
+            Some(world) => world,
+            None => return error_label_needs_world(ui, ty),
+        };
+        let mut cx = Context {
+            world: None,
+            ..*self
+        };
+        let world = unsafe { &mut *world };
+        let changed = f(world, ui, &mut cx);
+        self.world = Some(world);
+
+        changed
+    }
+
+    /// Like [`world_scope`], but the context will have world access as well.
+    pub unsafe fn world_scope_unchecked(
+        &mut self,
+        ui: &mut egui::Ui,
+        ty: &str,
+        f: impl FnOnce(&mut World, &mut egui::Ui, &mut Context) -> bool,
+    ) -> bool {
+        let world = match self.world {
+            Some(world) => &mut *world,
+            None => return error_label_needs_world(ui, ty),
+        };
+        let changed = f(world, ui, self);
+        self.world = Some(world);
+
+        changed
+    }
+
+    /// Temporarily removes a resource from the world and calls the provided closure with that resource
+    /// while still having `&mut Context` available.
+    ///
+    /// Will display an error message if the context doesn't have world access.
+    pub fn resource_scope<T: Resource, F: FnOnce(&mut egui::Ui, &mut Context, Mut<T>) -> bool>(
+        &mut self,
+        ui: &mut egui::Ui,
+        ty: &str,
+        f: F,
+    ) -> bool {
+        // Safety: the world is only used to modify a resource and doesn't change any archetypes
+        unsafe {
+            self.world_scope_unchecked(ui, ty, |world, ui, context| {
+                world.resource_scope(|world, res: Mut<T>| {
+                    let mut context = context.with_world(world);
+                    f(ui, &mut context, res)
+                })
+            })
+        }
+    }
+
+    fn take_world(&mut self) -> Option<(Context, &'a mut World)> {
+        let world = self.world.take()?;
+        let world = unsafe { &mut *world };
+        let context = Context {
+            world: None,
+            ..*self
+        };
+        Some((context, world))
     }
 }
 
 impl<'a> Context<'a> {
-    /// Create new context with exclusive access to the `World`
-    pub fn new(ui_ctx: &'a CtxRef, world: &'a mut World) -> Self {
-        Context {
-            ui_ctx: Some(ui_ctx),
-            world: Some(world as *mut _),
-            id: None,
-        }
-    }
-    /// Create a new context with access to the world
-    /// # Safety
-    /// The `world` pointer must come from a mutable reference to a world and no
-    /// other threads must be writing to it.
-    pub unsafe fn new_ptr(ui_ctx: Option<&'a CtxRef>, world: *mut World) -> Self {
-        Context {
-            ui_ctx,
-            world: Some(world),
-            id: None,
-        }
-    }
-
     /// Create a new context with access to the world
     pub fn new_world_access(ui_ctx: Option<&'a CtxRef>, world: &'a mut World) -> Self {
         Context {
             ui_ctx,
             world: Some(world),
+            _world_marker: PhantomData,
             id: None,
         }
     }
@@ -162,12 +234,21 @@ impl<'a> Context<'a> {
         Context {
             ui_ctx,
             world: None,
+            _world_marker: PhantomData,
             id: None,
         }
     }
 
-    /// Same context but with a specified `id`
-    pub fn with_id(&self, id: u64) -> Self {
+    /// Same context but with different `world`
+    pub fn with_world(&self, world: &'a mut World) -> Self {
+        Context {
+            world: Some(world),
+            ..*self
+        }
+    }
+
+    /// Same context but with a derived `id`
+    pub fn with_id<'d>(&'d mut self, id: u64) -> Context<'d> {
         let mut hasher = std::collections::hash_map::DefaultHasher::default();
         if let Some(id) = self.id {
             hasher.write_u64(id);
@@ -177,7 +258,12 @@ impl<'a> Context<'a> {
 
         Context {
             id: Some(id),
-            ..*self
+            world: match self.world {
+                Some(ref mut world) => Some(*world),
+                None => None,
+            },
+            _world_marker: PhantomData,
+            ui_ctx: self.ui_ctx,
         }
     }
 
@@ -214,7 +300,7 @@ pub trait Inspectable {
     /// impl Inspectable for MyCustomType {
     ///   type Attributes = MyWidgetAttributes;
     ///
-    ///   fn ui(&mut self, _: &mut egui::Ui, options: MyWidgetAttributes, context: &Context) -> bool {
+    ///   fn ui(&mut self, _: &mut egui::Ui, options: MyWidgetAttributes, context: &mut Context) -> bool {
     ///     println!("a = {}, b = {:?}", options.a, options.b);
     ///     false
     ///   }
@@ -232,13 +318,13 @@ pub trait Inspectable {
 
     /// This methods is responsible for building the egui ui.
     /// Returns whether any data was modified.
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool;
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool;
 
     /// Displays the value without any context. Useful for usage outside of the plugins, where
     /// there is no access to the world or [`EguiContext`](bevy_egui::EguiContext).
     fn ui_raw(&mut self, ui: &mut egui::Ui, options: Self::Attributes) {
-        let empty_context = Context::new_shared(None);
-        self.ui(ui, options, &empty_context);
+        let mut empty_context = Context::new_shared(None);
+        self.ui(ui, options, &mut empty_context);
     }
 
     /// Required setup for the bevy application, e.g. registering events. Note that this method will run for every instance of a type.

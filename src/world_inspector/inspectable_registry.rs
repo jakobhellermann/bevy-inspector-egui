@@ -10,7 +10,7 @@ use bevy_egui::egui;
 use std::any::TypeId;
 
 pub(crate) type InspectCallback =
-    Box<dyn Fn(*mut u8, &mut egui::Ui, &Context) -> bool + Send + Sync>;
+    Box<dyn Fn(*mut u8, &mut egui::Ui, &mut Context) -> bool + Send + Sync>;
 
 macro_rules! register {
     ($this:ident $($ty:ty),* $(,)?) => {
@@ -51,13 +51,15 @@ impl InspectableRegistry {
     /// Registers a type that doesn't need to implement [`Inspectable`](crate::Inspectable)
     pub fn register_raw<T: 'static, F>(&mut self, f: F)
     where
-        F: Fn(&mut T, &mut egui::Ui, &Context) -> bool + Send + Sync + 'static,
+        F: Fn(&mut T, &mut egui::Ui, &mut Context) -> bool + Send + Sync + 'static,
     {
         let type_id = TypeId::of::<T>();
-        let callback = Box::new(move |ptr: *mut u8, ui: &mut egui::Ui, context: &Context| {
-            let value: &mut T = unsafe { &mut *(ptr as *mut T) };
-            f(value, ui, context)
-        }) as InspectCallback;
+        let callback = Box::new(
+            move |ptr: *mut u8, ui: &mut egui::Ui, context: &mut Context| {
+                let value: &mut T = unsafe { &mut *(ptr as *mut T) };
+                f(value, ui, context)
+            },
+        ) as InspectCallback;
         self.impls.insert(type_id, callback);
     }
 
@@ -80,7 +82,7 @@ impl InspectableRegistry {
         &self,
         value: &mut dyn Reflect,
         ui: &mut egui::Ui,
-        context: &Context,
+        context: &mut Context,
     ) -> Result<bool, ()> {
         if let Some(inspect_callback) = self.impls.get(&value.type_id()) {
             let ptr = value as *mut dyn Reflect as *mut u8;

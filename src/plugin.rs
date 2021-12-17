@@ -194,8 +194,8 @@ fn shared_access_ui<T>(
         .show(egui_context.ctx(), |ui| {
             default_settings(ui);
 
-            let context = Context::new_shared(Some(ctx));
-            data.ui(ui, T::Attributes::default(), &context);
+            let mut context = Context::new_shared(Some(ctx));
+            data.ui(ui, T::Attributes::default(), &mut context);
         });
 }
 
@@ -216,7 +216,7 @@ where
                     None => return,
                 };
 
-                let context = Context::new_world_access(Some(ctx), world);
+                let mut context = Context::new_world_access(Some(ctx), world);
 
                 // This manually circumcents bevy's change detection and probably isn't sound.
                 // Todo: add bevy API to allow this safely
@@ -229,7 +229,7 @@ where
                     .show(ctx, |ui| {
                         default_settings(ui);
 
-                        changed = value.ui(ui, T::Attributes::default(), &context);
+                        changed = value.ui(ui, T::Attributes::default(), &mut context);
                     });
 
                 if changed {

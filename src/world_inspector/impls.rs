@@ -1,12 +1,11 @@
 use super::{WorldInspectorParams, WorldUIContext};
-use crate::{utils, Inspectable};
+use crate::Inspectable;
 use bevy::{
     ecs::query::{Fetch, FilterFetch, WorldQuery},
     prelude::*,
 };
 use bevy_egui::egui::CollapsingHeader;
 use std::marker::PhantomData;
-use utils::error_label;
 
 impl Inspectable for World {
     type Attributes = WorldInspectorParams;
@@ -15,7 +14,7 @@ impl Inspectable for World {
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
         mut options: Self::Attributes,
-        context: &crate::Context,
+        context: &mut crate::Context,
     ) -> bool {
         let mut world_ui_ctx = WorldUIContext::new(self, context.ui_ctx);
         world_ui_ctx.world_ui::<()>(ui, &mut options)
@@ -41,22 +40,28 @@ impl Inspectable for Entity {
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
         options: Self::Attributes,
-        context: &crate::Context,
+        context: &mut crate::Context,
     ) -> bool {
-        let world = expect_world!(ui, context, "Entity");
-        let mut world_inspector_params =
-            world.get_resource_or_insert_with(WorldInspectorParams::default);
-        let params = std::mem::replace(&mut *world_inspector_params, WorldInspectorParams::empty());
+        unsafe {
+            context.world_scope_unchecked(ui, "Entity", |world, ui, context| {
+                let mut world_inspector_params =
+                    world.get_resource_or_insert_with(WorldInspectorParams::default);
+                let params =
+                    std::mem::replace(&mut *world_inspector_params, WorldInspectorParams::empty());
 
-        let mut world_ui_ctx = WorldUIContext::new(world, context.ui_ctx);
-        let changed = ui
-            .vertical(|ui| world_ui_ctx.entity_ui_inner(ui, *self, &params, context.id(), &options))
-            .inner;
-        drop(world_ui_ctx);
+                let mut world_ui_ctx = WorldUIContext::new(world, context.ui_ctx);
+                let changed = ui
+                    .vertical(|ui| {
+                        world_ui_ctx.entity_ui_inner(ui, *self, &params, context.id(), &options)
+                    })
+                    .inner;
+                drop(world_ui_ctx);
 
-        *world.get_resource_mut::<WorldInspectorParams>().unwrap() = params;
+                *world.get_resource_mut::<WorldInspectorParams>().unwrap() = params;
 
-        changed
+                changed
+            })
+        }
     }
 }
 
@@ -108,34 +113,33 @@ where
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
         _options: Self::Attributes,
-        context: &crate::Context,
+        context: &mut crate::Context,
     ) -> bool {
-        let world = match context.world {
-            // Safety: the pointer provided in `Context::new` must be exclusive and valid.
-            Some(world) => unsafe { &mut *world },
-            None => {
-                error_label(ui, "Query needs exclusive access to the world".to_string());
-                return false;
-            }
-        };
+        unsafe {
+            context.world_scope_unchecked(ui, "InspectorQuery", |world, ui, context| {
+                let mut changed = false;
 
-        let mut changed = false;
+                ui.vertical(move |ui| {
+                    let mut query_state = world.query_filtered::<Q, F>();
 
-        ui.vertical(move |ui| {
-            let mut query_state = world.query_filtered::<Q, F>();
+                    for (i, mut value) in query_state.iter_mut(world).enumerate() {
+                        let name = pretty_type_name::pretty_type_name::<Q>();
+                        CollapsingHeader::new(name)
+                            .id_source(context.id().with(i))
+                            .show(ui, |ui| {
+                                // TODO figure out how to use options
+                                changed |= value.ui(
+                                    ui,
+                                    Default::default(),
+                                    &mut context.with_id(i as u64),
+                                );
+                            });
+                    }
+                });
 
-            for (i, mut value) in query_state.iter_mut(world).enumerate() {
-                let name = pretty_type_name::pretty_type_name::<Q>();
-                CollapsingHeader::new(name)
-                    .id_source(context.id().with(i))
-                    .show(ui, |ui| {
-                        // TODO figure out how to use options
-                        changed |= value.ui(ui, Default::default(), &context.with_id(i as u64));
-                    });
-            }
-        });
-
-        changed
+                changed
+            })
+        }
     }
 }
 
@@ -185,44 +189,38 @@ where
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
         _options: Self::Attributes,
-        context: &crate::Context,
+        context: &mut crate::Context,
     ) -> bool {
-        let world = match context.world {
-            // Safety: the pointer provided in `Context::new` must be exclusive and valid.
-            Some(world) => unsafe { &mut *world },
-            None => {
-                error_label(ui, "Query needs exclusive access to the world".to_string());
-                return false;
-            }
-        };
+        unsafe {
+            context.world_scope_unchecked(ui, "InspectorQuerySingle", |world, ui, context| {
+                let mut changed = false;
+                ui.vertical(move |ui| {
+                    let mut query_state = world.query_filtered::<Q, F>();
+                    let mut iter = query_state.iter_mut(world);
+                    let value = iter.next();
+                    let has_more = iter.next().is_some();
 
-        let mut changed = false;
+                    match (value, has_more) {
+                        (None, _) => {
+                            ui.label("No entity matches the query.");
+                        }
+                        (Some(_), true) => {
+                            ui.label("More than one entity matches the query.");
+                        }
+                        (Some(mut value), false) => {
+                            let name = pretty_type_name::pretty_type_name::<Q>();
+                            CollapsingHeader::new(name)
+                                .id_source(context.id())
+                                .show(ui, |ui| {
+                                    // TODO: figure out how to use options
+                                    changed |= value.ui(ui, Default::default(), context);
+                                });
+                        }
+                    };
+                });
 
-        ui.vertical(move |ui| {
-            let mut query_state = world.query_filtered::<Q, F>();
-            let mut iter = query_state.iter_mut(world);
-            let value = iter.next();
-            let has_more = iter.next().is_some();
-
-            match (value, has_more) {
-                (None, _) => {
-                    ui.label("No entity matches the query.");
-                }
-                (Some(_), true) => {
-                    ui.label("More than one entity matches the query.");
-                }
-                (Some(mut value), false) => {
-                    let name = pretty_type_name::pretty_type_name::<Q>();
-                    CollapsingHeader::new(name)
-                        .id_source(context.id())
-                        .show(ui, |ui| {
-                            // TODO: figure out how to use options
-                            changed |= value.ui(ui, Default::default(), context);
-                        });
-                }
-            };
-        });
-
-        changed
+                changed
+            })
+        }
     }
 }

@@ -15,7 +15,7 @@ impl<T: Scalar + Inspectable, R: Dim, C: Dim, S: StorageMut<T, R, C>> Inspectabl
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
         _: Self::Attributes,
-        context: &crate::Context,
+        context: &mut crate::Context,
     ) -> bool {
         let mut changed = false;
 
@@ -54,7 +54,7 @@ impl<T: Scalar + Inspectable, const D: usize> Inspectable for Translation<T, D> 
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
         options: Self::Attributes,
-        context: &crate::Context,
+        context: &mut crate::Context,
     ) -> bool {
         self.vector.ui(ui, options, context)
     }
@@ -67,7 +67,7 @@ impl Inspectable for Unit<Quaternion<f32>> {
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
         _: Self::Attributes,
-        context: &crate::Context,
+        context: &mut crate::Context,
     ) -> bool {
         let vec: bevy::math::Vec4 = (*self.as_vector()).into();
         let mut quat = bevy::math::Quat::from(vec);
@@ -86,7 +86,7 @@ impl Inspectable for Unit<Quaternion<f32>> {
 impl Inspectable for Unit<Complex<f32>> {
     type Attributes = ();
 
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &crate::Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &mut crate::Context) -> bool {
         let mut angle = self.angle();
         let changed = ui.drag_angle_tau(&mut angle).changed();
         if changed {
@@ -103,7 +103,7 @@ impl<T: Inspectable + Scalar, R: Inspectable, const D: usize> Inspectable for Is
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
         _: Self::Attributes,
-        context: &crate::Context,
+        context: &mut crate::Context,
     ) -> bool {
         let mut changed = false;
 
@@ -112,12 +112,12 @@ impl<T: Inspectable + Scalar, R: Inspectable, const D: usize> Inspectable for Is
                 ui.label("Rotation");
                 changed |= self
                     .rotation
-                    .ui(ui, Default::default(), &context.with_id(0));
+                    .ui(ui, Default::default(), &mut context.with_id(0));
                 ui.end_row();
                 ui.label("Translation");
                 changed |= self
                     .translation
-                    .ui(ui, Default::default(), &context.with_id(1));
+                    .ui(ui, Default::default(), &mut context.with_id(1));
                 ui.end_row();
             });
         });

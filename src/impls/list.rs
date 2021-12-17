@@ -9,7 +9,7 @@ where
 {
     type Attributes = <T as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         let mut changed = false;
 
         ui.vertical(|ui| {
@@ -21,7 +21,7 @@ where
                     if utils::ui::label_button(ui, "✖", egui::Color32::RED) {
                         to_delete = Some(i);
                     }
-                    changed |= val.ui(ui, options.clone(), &context.with_id(i as u64));
+                    changed |= val.ui(ui, options.clone(), &mut context.with_id(i as u64));
                 });
 
                 if i != len - 1 {
@@ -53,13 +53,13 @@ where
 impl<T: Inspectable, const N: usize> Inspectable for [T; N] {
     type Attributes = <T as Inspectable>::Attributes;
 
-    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         let mut changed = false;
         ui.vertical(|ui| {
             for (i, val) in self.iter_mut().enumerate() {
                 ui.horizontal(|ui| {
                     ui.label(i.to_string());
-                    changed |= val.ui(ui, options.clone(), &context.with_id(i as u64));
+                    changed |= val.ui(ui, options.clone(), &mut context.with_id(i as u64));
                 });
             }
         });
@@ -77,7 +77,7 @@ macro_rules! impl_for_tuple {
         impl<$($ty: Inspectable + 'static),*> Inspectable for ($($ty,)*) {
             type Attributes = ($(<$ty as Inspectable>::Attributes,)*);
 
-            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &Context) -> bool {
+            fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
                 #[allow(unused_mut)]
                 let mut inline = true;
                 $(inline &= should_display_inline::<$ty>();)*
@@ -89,7 +89,7 @@ macro_rules! impl_for_tuple {
                     ui.horizontal(|ui| {
                         let ($($ty,)*) = options;
                         ui.label("(");
-                        $(changed |= self.$i.ui(ui, $ty, &context.with_id($i));)*
+                        $(changed |= self.$i.ui(ui, $ty, &mut context.with_id($i));)*
                         ui.label(")");
                     });
                 } else {
@@ -100,7 +100,7 @@ macro_rules! impl_for_tuple {
                             if $i != 0 {
                                 ui.separator();
                             }
-                            changed |= self.$i.ui(ui, $ty, &context.with_id($i));
+                            changed |= self.$i.ui(ui, $ty, &mut context.with_id($i));
                         )*
                     });
                 }

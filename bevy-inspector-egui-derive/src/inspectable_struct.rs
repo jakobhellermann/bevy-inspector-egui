@@ -67,7 +67,7 @@ pub fn expand_struct(
 
         let ui = quote! {
             let options = #options;
-            changed |= <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options, &context.with_id(#i as u64));
+            changed |= <#ty as bevy_inspector_egui::Inspectable>::ui(&mut self.#accessor, ui, options, &mut context.with_id(#i as u64));
         };
         let ui = attributes.decorate_ui(ui, field_label, i);
 
@@ -89,7 +89,7 @@ pub fn expand_struct(
             type Attributes = ();
 
 
-            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes, context: &bevy_inspector_egui::Context) -> bool {
+            fn ui(&mut self, ui: &mut bevy_inspector_egui::egui::Ui, options: Self::Attributes, context: &mut bevy_inspector_egui::Context) -> bool {
                 use bevy_inspector_egui::egui;
 
                 let mut changed = false;
