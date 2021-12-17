@@ -128,7 +128,10 @@ fn rescaled_image<'a>(
 ) -> (Handle<Image>, TextureId) {
     let id = id_of_handle(handle);
     let texture = match scaled_down_textures.textures.entry(handle.clone()) {
-        Entry::Occupied(handle) => handle.get().clone(),
+        Entry::Occupied(handle) => {
+            let handle: Handle<Image> = handle.get().clone();
+            handle
+        }
         Entry::Vacant(entry) => {
             let original = textures.get(handle).unwrap();
 

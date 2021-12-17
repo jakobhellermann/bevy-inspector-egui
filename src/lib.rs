@@ -148,6 +148,15 @@ impl<'a> Context<'a> {
         }
     }
 
+    /// Create a new context with access to the world
+    pub fn new_world_access(ui_ctx: Option<&'a CtxRef>, world: &'a mut World) -> Self {
+        Context {
+            ui_ctx,
+            world: Some(world),
+            id: None,
+        }
+    }
+
     /// Creates a context without access to `World`
     pub fn new_shared(ui_ctx: Option<&'a CtxRef>) -> Self {
         Context {

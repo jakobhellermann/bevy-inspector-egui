@@ -48,7 +48,7 @@ impl Inspectable for Entity {
             world.get_resource_or_insert_with(WorldInspectorParams::default);
         let params = std::mem::replace(&mut *world_inspector_params, WorldInspectorParams::empty());
 
-        let world_ui_ctx = WorldUIContext::new(world, context.ui_ctx);
+        let mut world_ui_ctx = WorldUIContext::new(world, context.ui_ctx);
         let changed = ui
             .vertical(|ui| world_ui_ctx.entity_ui_inner(ui, *self, &params, context.id(), &options))
             .inner;

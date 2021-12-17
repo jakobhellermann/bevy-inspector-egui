@@ -1,6 +1,6 @@
 use std::{any::TypeId, marker::PhantomData};
 
-use bevy::{ecs::component::ComponentTicks, prelude::*, window::WindowId};
+use bevy::{prelude::*, window::WindowId};
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 use pretty_type_name::pretty_type_name_str;
 
@@ -203,84 +203,44 @@ fn exclusive_access_ui<T>(world: &mut World)
 where
     T: Inspectable + Send + Sync + 'static,
 {
-    let window_data = {
-        let inspector_windows = world.get_resource_mut::<InspectorWindows>().unwrap();
-        let window_data = inspector_windows.window_data::<T>();
-        window_data.clone()
-    };
+    world.resource_scope(|world, inspector_windows: Mut<InspectorWindows>| {
+        world.resource_scope(|world, egui_context: Mut<EguiContext>| {
+            world.resource_scope(|world, mut data: Mut<T>| {
+                let window_data = inspector_windows.window_data::<T>();
+                if !window_data.visible {
+                    return;
+                }
 
-    let world_ptr = world as *mut _;
+                let ctx = match egui_context.try_ctx_for_window(window_data.window_id) {
+                    Some(ctx) => ctx,
+                    None => return,
+                };
 
-    let egui_context = unsafe { world.get_resource_unchecked_mut::<EguiContext>().unwrap() };
+                let context = Context::new_world_access(Some(ctx), world);
 
-    let ctx = match egui_context.try_ctx_for_window(window_data.window_id) {
-        Some(ctx) => ctx,
-        None => return,
-    };
+                // This manually circumcents bevy's change detection and probably isn't sound.
+                // Todo: add bevy API to allow this safely
+                let value = unsafe { &mut *(data.as_ref() as *const T as *mut T) };
 
-    let context = unsafe { Context::new_ptr(Some(ctx), world_ptr) };
-    let mut data = match get_silent_mut_unchecked::<T>(world) {
-        Some(data) => data,
-        None => return,
-    };
+                let mut changed = false;
+                egui::Window::new(&window_data.name)
+                    .resizable(false)
+                    .vscroll(true)
+                    .show(ctx, |ui| {
+                        default_settings(ui);
 
-    let mut changed = false;
+                        changed = value.ui(ui, T::Attributes::default(), &context);
+                    });
 
-    if !window_data.visible {
-        return;
-    }
-    egui::Window::new(window_data.name)
-        .resizable(false)
-        .vscroll(true)
-        .show(ctx, |ui| {
-            default_settings(ui);
-
-            let value = data.get_mut_silent();
-            changed = value.ui(ui, T::Attributes::default(), &context);
+                if changed {
+                    // trigger change detection
+                    data.as_mut();
+                }
+            });
         });
-
-    if changed {
-        data.mark_changed();
-    }
+    });
 }
 
 pub(crate) fn default_settings(ui: &mut egui::Ui) {
     ui.style_mut().wrap = Some(false);
-}
-
-fn get_silent_mut_unchecked<T: Send + Sync + 'static>(world: &World) -> Option<SilentMut<T>> {
-    let component_id = world.components().get_resource_id(TypeId::of::<T>())?;
-
-    let resource_archetype = world.archetypes().resource();
-    let unique_components = resource_archetype.unique_components();
-    let column = unique_components.get(component_id).and_then(|column| {
-        if column.is_empty() {
-            None
-        } else {
-            Some(column)
-        }
-    })?;
-
-    let value = unsafe {
-        SilentMut {
-            value: &mut *column.get_data_ptr().as_ptr().cast::<T>(),
-            component_ticks: &mut *(column.get_ticks_ptr() as *mut ComponentTicks),
-            change_tick: world.read_change_tick(),
-        }
-    };
-    Some(value)
-}
-
-struct SilentMut<'a, T> {
-    pub(crate) value: &'a mut T,
-    pub(crate) component_ticks: &'a mut ComponentTicks,
-    pub(crate) change_tick: u32,
-}
-impl<'a, T> SilentMut<'a, T> {
-    fn get_mut_silent(&mut self) -> &mut T {
-        self.value
-    }
-    fn mark_changed(&mut self) {
-        self.component_ticks.set_changed(self.change_tick);
-    }
 }

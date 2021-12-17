@@ -1,10 +1,7 @@
 #[macro_use]
 mod macros;
 pub mod image_texture_conversion;
-mod sort_if;
 pub mod ui;
-
-pub use sort_if::sort_iter_if;
 
 use bevy_egui::egui::{self, RichText};
 use egui::Color32;
