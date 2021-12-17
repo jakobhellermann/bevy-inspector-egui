@@ -7,11 +7,11 @@ pub mod ui;
 pub use sort_if::sort_iter_if;
 
 use bevy_egui::egui;
-use egui::{Color32, Label};
+use egui::Color32;
 
 const ERROR_COLOR: Color32 = Color32::from_rgb(255, 0, 0);
 
-pub(crate) fn error_label(ui: &mut egui::Ui, msg: impl Into<Label>) {
+pub(crate) fn error_label(ui: &mut egui::Ui, msg: impl ToString) {
     ui.colored_label(ERROR_COLOR, msg);
 }
 

@@ -84,7 +84,7 @@ impl<T: Inspectable + 'static> Inspectable for InNewWindow<T> {
         egui::Window::new(window_title)
             .id(id)
             .resizable(options.resizable)
-            .scroll(options.scrollable)
+            .vscroll(options.scrollable)
             .title_bar(options.title_bar)
             .collapsible(options.collapsible)
             .default_pos([400., 100.])

@@ -190,7 +190,7 @@ fn shared_access_ui<T>(
     }
     egui::Window::new(&window_data.name)
         .resizable(false)
-        .scroll(true)
+        .vscroll(true)
         .show(egui_context.ctx(), |ui| {
             default_settings(ui);
 
@@ -231,7 +231,7 @@ where
     }
     egui::Window::new(window_data.name)
         .resizable(false)
-        .scroll(true)
+        .vscroll(true)
         .show(ctx, |ui| {
             default_settings(ui);
 

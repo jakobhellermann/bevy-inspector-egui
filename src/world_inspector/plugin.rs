@@ -129,7 +129,7 @@ where
     let mut is_open = true;
     egui::Window::new("World")
         .open(&mut is_open)
-        .scroll(true)
+        .vscroll(true)
         .show(ctx, |ui| {
             crate::plugin::default_settings(ui);
             let world: &mut World = unsafe { &mut *world_ptr };
