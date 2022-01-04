@@ -47,7 +47,7 @@ where
         &mut self,
         ui: &mut bevy_inspector_egui::egui::Ui,
         _: Self::Attributes,
-        _: &bevy_inspector_egui::Context,
+        _: &mut bevy_inspector_egui::Context,
     ) -> bool {
         let mut display = T::default();
         if !self.from.is_empty() {

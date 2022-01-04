@@ -75,6 +75,7 @@ impl Inspectable for Entity {
 /// use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 /// use bevy_inspector_egui::widgets::InspectorQuery;
 ///
+/// #[derive(Component)]
 /// struct Collider;
 ///
 /// #[derive(Inspectable, Default)]
@@ -160,6 +161,7 @@ where
 /// use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 /// use bevy_inspector_egui::widgets::InspectorQuerySingle;
 ///
+/// #[derive(Component)]
 /// struct Player;
 ///
 /// #[derive(Inspectable, Default)]

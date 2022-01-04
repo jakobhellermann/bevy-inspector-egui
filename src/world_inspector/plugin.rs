@@ -75,6 +75,7 @@ impl WorldInspectorPlugin {
     /// ```rust,no_run
     /// # use bevy::prelude::*;
     /// # use bevy_inspector_egui::WorldInspectorPlugin;
+    /// #[derive(Component)]
     /// struct Show;
     ///
     /// App::new()

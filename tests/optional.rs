@@ -14,7 +14,7 @@ impl Inspectable for CustomType {
         &mut self,
         _: &mut bevy_inspector_egui::egui::Ui,
         _: Self::Attributes,
-        _: &Context,
+        _: &mut Context,
     ) -> bool {
         false
     }

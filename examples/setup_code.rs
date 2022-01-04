@@ -10,7 +10,7 @@ impl Inspectable for ExampleWidget {
         &mut self,
         _: &mut bevy_inspector_egui::egui::Ui,
         _: Self::Attributes,
-        _: &bevy_inspector_egui::Context,
+        _: &mut bevy_inspector_egui::Context,
     ) -> bool {
         false
     }
