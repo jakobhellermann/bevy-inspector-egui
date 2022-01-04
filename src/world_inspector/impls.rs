@@ -99,15 +99,16 @@ impl<Q, F> Default for InspectorQuery<Q, F> {
     }
 }
 
+type WorldQueryItem<'w, 's, Q> = <<Q as WorldQuery>::Fetch as Fetch<'w, 's>>::Item;
+
 impl<Q: 'static, F: 'static> Inspectable for InspectorQuery<Q, F>
 where
     Q: WorldQuery,
     F: WorldQuery,
     F::Fetch: FilterFetch,
-    for<'a, 's> <<Q as WorldQuery>::Fetch as Fetch<'a, 's>>::Item: Inspectable,
+    for<'w, 's> WorldQueryItem<'w, 's, Q>: Inspectable,
 {
-    type Attributes =
-        <<<Q as WorldQuery>::Fetch as Fetch<'static, 'static>>::Item as Inspectable>::Attributes;
+    type Attributes = <WorldQueryItem<'static, 'static, Q> as Inspectable>::Attributes;
 
     fn ui(
         &mut self,
@@ -180,10 +181,9 @@ where
     Q: WorldQuery + 'static,
     F: WorldQuery + 'static,
     F::Fetch: FilterFetch,
-    for<'a, 's> <<Q as WorldQuery>::Fetch as Fetch<'a, 's>>::Item: Inspectable,
+    for<'w, 's> WorldQueryItem<'w, 's, Q>: Inspectable,
 {
-    type Attributes =
-        <<<Q as WorldQuery>::Fetch as Fetch<'static, 'static>>::Item as Inspectable>::Attributes;
+    type Attributes = <WorldQueryItem<'static, 'static, Q> as Inspectable>::Attributes;
 
     fn ui(
         &mut self,
