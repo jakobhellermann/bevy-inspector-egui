@@ -6,6 +6,7 @@ use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 struct Data {
     query: InspectorQuery<Entity, With<Transform>>,
     has_material: InspectorQuery<&'static mut Handle<StandardMaterial>>,
+    #[inspectable(despawnable = true)]
     player: InspectorQuerySingle<Entity, With<Player>>,
 }
 

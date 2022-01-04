@@ -101,6 +101,16 @@ impl<Q, F> Default for InspectorQuery<Q, F> {
 
 type WorldQueryItem<'w, 's, Q> = <<Q as WorldQuery>::Fetch as Fetch<'w, 's>>::Item;
 
+unsafe fn extend_lifetime<'w, 's, Q>(
+    item: &<WorldQueryItem<'static, 'static, Q> as Inspectable>::Attributes,
+) -> <WorldQueryItem<'w, 's, Q> as Inspectable>::Attributes
+where
+    Q: WorldQuery,
+    for<'world, 'state> WorldQueryItem<'world, 'state, Q>: Inspectable,
+{
+    std::mem::transmute_copy(item)
+}
+
 impl<Q: 'static, F: 'static> Inspectable for InspectorQuery<Q, F>
 where
     Q: WorldQuery,
@@ -113,7 +123,7 @@ where
     fn ui(
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
-        _options: Self::Attributes,
+        options: Self::Attributes,
         context: &mut crate::Context,
     ) -> bool {
         unsafe {
@@ -128,12 +138,8 @@ where
                         CollapsingHeader::new(name)
                             .id_source(context.id().with(i))
                             .show(ui, |ui| {
-                                // TODO figure out how to use options
-                                changed |= value.ui(
-                                    ui,
-                                    Default::default(),
-                                    &mut context.with_id(i as u64),
-                                );
+                                let options = extend_lifetime::<Q>(&options);
+                                changed |= value.ui(ui, options, &mut context.with_id(i as u64));
                             });
                     }
                 });
@@ -188,7 +194,7 @@ where
     fn ui(
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
-        _options: Self::Attributes,
+        options: Self::Attributes,
         context: &mut crate::Context,
     ) -> bool {
         unsafe {
@@ -212,8 +218,8 @@ where
                             CollapsingHeader::new(name)
                                 .id_source(context.id())
                                 .show(ui, |ui| {
-                                    // TODO: figure out how to use options
-                                    changed |= value.ui(ui, Default::default(), context);
+                                    let options = extend_lifetime::<Q>(&options);
+                                    changed |= value.ui(ui, options, context);
                                 });
                         }
                     };
