@@ -30,7 +30,7 @@ bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-fe
     "bevy_render", "bevy_pbr", "bevy_sprite", "bevy_text"
 ] }
 bevy_egui = { git = "https://github.com/jakobhellermann/bevy_egui", branch = "bevy-main", default-features = false, features = ["open_url"] }
-emath = "0.15"
+emath = "0.16"
 pretty-type-name = "1.0"
 image = { version = "0.23", default-features = false }
 # bevy_rapier3d = { version = "0.10", optional = true }

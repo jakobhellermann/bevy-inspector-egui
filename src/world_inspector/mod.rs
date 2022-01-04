@@ -199,7 +199,7 @@ impl<'a> WorldUIContext<'a> {
             .unwrap_or(true);
 
         if show_entity {
-            CollapsingHeader::new(self.entity_name(entity))
+            CollapsingHeader::new(self.entity_name(entity).to_string())
                 .id_source(id.with(entity))
                 .show(ui, |ui| {
                     self.entity_ui_inner(ui, entity, params, id, entity_options)

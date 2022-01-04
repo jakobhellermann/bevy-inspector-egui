@@ -49,8 +49,8 @@ impl Inspectable for Quat {
             QuatDisplay::Euler => {
                 let mut euler_angles = ui
                     .memory()
-                    .id_data_temp
-                    .get_mut_or_insert_with(context.id(), || {
+                    .data
+                    .get_temp_mut_or_insert_with(context.id(), || {
                         Euler(Vec3::from(self.to_euler(EulerRot::XYZ)))
                     })
                     .0;
@@ -63,15 +63,17 @@ impl Inspectable for Quat {
                         euler_angles.y,
                         euler_angles.z,
                     );
-                    *ui.memory().id_data_temp.get_mut(&context.id()).unwrap() = Euler(euler_angles);
+                    ui.memory()
+                        .data
+                        .insert_temp(context.id(), Euler(euler_angles));
                 }
                 changed
             }
             QuatDisplay::YawPitchRoll => {
                 let (mut yaw, mut pitch, mut roll) = ui
                     .memory()
-                    .id_data_temp
-                    .get_mut_or_insert_with(context.id(), || {
+                    .data
+                    .get_temp_mut_or_insert_with(context.id(), || {
                         YawPitchRoll(self.to_euler(EulerRot::YXZ))
                     })
                     .0;
@@ -93,8 +95,9 @@ impl Inspectable for Quat {
 
                 if changed {
                     *self = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
-                    *ui.memory().id_data_temp.get_mut(&context.id()).unwrap() =
-                        YawPitchRoll((yaw, pitch, roll));
+                    ui.memory()
+                        .data
+                        .insert_temp(context.id(), YawPitchRoll((yaw, pitch, roll)));
                 }
 
                 changed
@@ -102,8 +105,8 @@ impl Inspectable for Quat {
             QuatDisplay::AxisAngle => {
                 let (mut axis, mut angle) = ui
                     .memory()
-                    .id_data_temp
-                    .get_mut_or_insert_with(context.id(), || AxisAngle(self.to_axis_angle()))
+                    .data
+                    .get_temp_mut_or_insert_with(context.id(), || AxisAngle(self.to_axis_angle()))
                     .0;
 
                 let mut changed = false;
@@ -119,8 +122,9 @@ impl Inspectable for Quat {
                 });
                 if changed {
                     *self = Quat::from_axis_angle(axis.normalize(), angle);
-                    *ui.memory().id_data_temp.get_mut(&context.id()).unwrap() =
-                        AxisAngle((axis, angle));
+                    ui.memory()
+                        .data
+                        .insert_temp(context.id(), AxisAngle((axis, angle)));
                 }
                 changed
             }

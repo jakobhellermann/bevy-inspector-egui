@@ -12,7 +12,7 @@ use bevy::{
     utils::HashMap,
 };
 use bevy_egui::{
-    egui::{self, Color32},
+    egui::{self, Color32, RichText},
     EguiContext,
 };
 use egui::TextureId;
@@ -163,7 +163,7 @@ impl Inspectable for Handle<Font> {
         let label = if fonts.contains(self.id) {
             egui::Label::new("<font>")
         } else {
-            egui::Label::new("No font").text_color(Color32::RED)
+            egui::Label::new(RichText::new("No font").color(Color32::RED))
         };
 
         if utils::ui::drag_and_drop_target_label(ui, label).hovered() {

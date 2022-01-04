@@ -3,7 +3,7 @@ use bevy::{
     asset::{Asset, AssetPath},
     prelude::*,
 };
-use bevy_egui::egui::{self, Response, Widget};
+use bevy_egui::egui::{self, Response, RichText, Widget};
 
 pub fn drag_and_drop_target(ui: &mut egui::Ui) -> Response {
     drag_and_drop_target_label(ui, egui::Label::new("Drag file here"))
@@ -31,6 +31,6 @@ pub fn replace_handle_if_dropped<T: Asset>(
 }
 
 pub fn label_button(ui: &mut egui::Ui, text: &str, text_color: egui::Color32) -> bool {
-    ui.add(egui::Button::new(text).text_color(text_color).frame(false))
+    ui.add(egui::Button::new(RichText::new(text).color(text_color)).frame(false))
         .clicked()
 }
