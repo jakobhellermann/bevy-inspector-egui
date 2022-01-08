@@ -73,6 +73,7 @@ impl InspectableRegistry {
     ///   .insert_resource(InspectableRegistry::default().with::<MyType>())
     ///   .run();
     /// ```
+    #[must_use]
     pub fn with<T: Inspectable + 'static>(mut self) -> Self {
         self.register::<T>();
         self

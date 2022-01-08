@@ -220,6 +220,7 @@ where
 
                 // This manually circumcents bevy's change detection and probably isn't sound.
                 // Todo: add bevy API to allow this safely
+                #[allow(clippy::cast_ref_to_mut)]
                 let value = unsafe { &mut *(data.as_ref() as *const T as *mut T) };
 
                 let mut changed = false;

@@ -79,11 +79,7 @@ macro_rules! try_downcast_ui {
 ///
 /// This function gets used for the implementation of [`Inspectable`](crate::Inspectable)
 /// for [`ReflectedUI`](ReflectedUI).
-pub fn ui_for_reflect<'a>(
-    value: &mut dyn Reflect,
-    ui: &mut egui::Ui,
-    context: &mut Context,
-) -> bool {
+pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &mut Context) -> bool {
     if let Some((cx, world)) = context.take_world() {
         if world.contains_resource::<InspectableRegistry>() {
             let res =

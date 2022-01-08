@@ -1,5 +1,6 @@
 #![warn(missing_docs)]
 #![allow(
+    clippy::return_self_not_must_use,
     clippy::unit_arg,
     clippy::needless_doctest_main,
     clippy::too_many_arguments,
@@ -126,10 +127,7 @@ pub struct Context<'a> {
 impl<'a> Context<'a> {
     /// Returns a reference to the world if the context has access to it
     pub fn world(&self) -> Option<&'a World> {
-        match self.world {
-            Some(world) => Some(unsafe { &*world }),
-            None => None,
-        }
+        self.world.map(|world| unsafe { &*world })
     }
 
     /// Get a mutable reference to the `world` if the inspector has access to it.
@@ -169,7 +167,12 @@ impl<'a> Context<'a> {
         changed
     }
 
-    /// Like [`world_scope`], but the context will have world access as well.
+    /// Like [`Context::world_scope`], but the context will have world access as well.
+    ///
+    /// # Safety
+    /// The function must not use the world in ways that would invalidate archetypes, as
+    /// types like the `InspectorQuery` will rely on them being the same before and after
+    /// calling `Inspectable::ui`.
     pub unsafe fn world_scope_unchecked(
         &mut self,
         ui: &mut egui::Ui,
@@ -248,7 +251,7 @@ impl<'a> Context<'a> {
     }
 
     /// Same context but with a derived `id`
-    pub fn with_id<'d>(&'d mut self, id: u64) -> Context<'d> {
+    pub fn with_id(&mut self, id: u64) -> Context<'_> {
         let mut hasher = std::collections::hash_map::DefaultHasher::default();
         if let Some(id) = self.id {
             hasher.write_u64(id);
@@ -258,10 +261,7 @@ impl<'a> Context<'a> {
 
         Context {
             id: Some(id),
-            world: match self.world {
-                Some(ref mut world) => Some(*world),
-                None => None,
-            },
+            world: self.world.as_mut().map(|world| *world),
             _world_marker: PhantomData,
             ui_ctx: self.ui_ctx,
         }
