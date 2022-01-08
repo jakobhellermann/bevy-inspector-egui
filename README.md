@@ -94,6 +94,7 @@ More examples (with pictures) can be found in the [`examples folder`](examples).
 
 | bevy    | bevy-inspector-egui |
 | ------- | ------------------- |
-| 0.5-0.6 | 0.5                 |
+| 0.6     | 0.7                 |
+| 0.5 | 0.5-0.6                 |
 | 0.5     | 0.4                 |
 | 0.4     | 0.1-0.3             |

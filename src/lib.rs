@@ -61,8 +61,8 @@
 //!
 //! # Features
 //! - **clipboard** (enabled by default): enables `egui`'s clipboard integratoin
-//! - **rapier**: adds support for [bevy_rapier3d](https://docs.rs/bevy_rapier3d)
-//! - **rapier2d**: adds support for [bevy_rapier2d](https://docs.rs/bevy_rapier2d)
+// //! - **rapier**: adds support for [bevy_rapier3d](https://docs.rs/bevy_rapier3d)
+// //! - **rapier2d**: adds support for [bevy_rapier2d](https://docs.rs/bevy_rapier2d)
 
 #[macro_use]
 mod utils;
