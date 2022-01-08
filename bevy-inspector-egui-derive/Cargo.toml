@@ -1,6 +1,6 @@
 [package]
 name = "bevy-inspector-egui-derive"
-version = "0.6.1"
+version = "0.7.1"
 authors = ["Jakob Hellermann <jakob.hellermann@protonmail.com>"]
 edition = "2018"
 license = "MIT"
