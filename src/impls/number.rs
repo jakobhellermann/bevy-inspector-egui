@@ -108,7 +108,7 @@ impl Inspectable for f64 {
     }
 }
 
-fn num_ui<T: emath::Numeric>(
+fn num_ui<T: egui::emath::Numeric>(
     value: &mut T,
     options: NumberAttributes<T>,
     ui: &mut egui::Ui,
