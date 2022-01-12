@@ -1,4 +1,6 @@
 use crate::{Context, Inspectable};
+use bevy::asset::HandleId;
+use bevy::math::{DVec2, DVec3, DVec4};
 use bevy::pbr::CubemapVisibleEntities;
 use bevy::render::camera::{DepthCalculation, ScalingMode, WindowOrigin};
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
@@ -15,6 +17,7 @@ pub(crate) type InspectCallback =
 macro_rules! register {
     ($this:ident $($ty:ty),* $(,)?) => {
         $($this.register::<$ty>();)*
+        $($this.register::<Option<$ty>>();)*
     };
 }
 
@@ -101,16 +104,17 @@ impl Default for InspectableRegistry {
             impls: HashMap::default(),
         };
 
+        // #[reflect_value]
+        register!(this Entity, HandleId);
+        register!(this IVec2, IVec3, IVec4, UVec2, UVec3, Vec2, DVec2, DVec3, DVec4, Vec3, Vec4, Mat3, Mat4, Quat);
+        register!(this u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, bool, f32, f64, String);
+        this.register::<Transform>();
+        this.register::<GlobalTransform>();
+
         this.register::<std::ops::Range<f32>>();
         this.register::<std::time::Duration>();
 
-        this.register::<Transform>();
-        this.register::<GlobalTransform>();
-        this.register::<Quat>();
-        register!(this Vec4, bevy::math::IVec4, bevy::math::DVec4, bevy::math::UVec4);
-
         this.register::<Color>();
-        this.register::<bevy::asset::HandleId>();
         this.register::<TextureAtlasSprite>();
         this.register::<TextureAtlas>();
         this.register::<PointLight>();

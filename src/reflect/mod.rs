@@ -63,18 +63,6 @@ impl<T: Reflect> Inspectable for ReflectedUI<T> {
     }
 }
 
-macro_rules! try_downcast_ui {
-    ($value:ident $ui:ident $context:ident => $ty:ty) => {
-        if let Some(v) = $value.downcast_mut::<$ty>() {
-            return <$ty as Inspectable>::ui(v, $ui, <$ty as Inspectable>::Attributes::default(), $context);
-        }
-    };
-
-    ( $value:ident $ui:ident $context:ident => $( $ty:ty ),+ $(,)? ) => {
-        $(try_downcast_ui!($value $ui $context => $ty);)*
-    };
-}
-
 /// Draws the inspector UI for the given value.
 ///
 /// This function gets used for the implementation of [`Inspectable`](crate::Inspectable)
@@ -82,29 +70,62 @@ macro_rules! try_downcast_ui {
 pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &mut Context) -> bool {
     if let Some((cx, world)) = context.take_world() {
         if world.contains_resource::<InspectableRegistry>() {
-            let res =
+            let changed =
                 world.resource_scope(|world, inspectable_registry: Mut<InspectableRegistry>| {
                     let mut context = cx.with_world(world);
-                    inspectable_registry.try_execute(value, ui, &mut context)
+                    ui_for_reflect_with_registry(
+                        value,
+                        ui,
+                        &mut context,
+                        Some(&inspectable_registry),
+                    )
                 });
-            if let Ok(changed) = res {
-                return changed;
-            }
-            context.world = Some(world);
+            return changed;
+        }
+        context.world = Some(world);
+    }
+
+    ui_for_reflect_with_registry(value, ui, context, None)
+}
+
+fn ui_for_reflect_with_registry(
+    value: &mut dyn Reflect,
+    ui: &mut egui::Ui,
+    context: &mut Context,
+    inspectable_registry: Option<&InspectableRegistry>,
+) -> bool {
+    if let Some(inspectable_registry) = inspectable_registry {
+        if let Ok(changed) = inspectable_registry.try_execute(value, ui, context) {
+            return changed;
         }
     }
 
     match value.reflect_mut() {
-        bevy::reflect::ReflectMut::Struct(s) => ui_for_reflect_struct(s, ui, context),
-        bevy::reflect::ReflectMut::TupleStruct(value) => ui_for_tuple_struct(value, ui, context),
-        bevy::reflect::ReflectMut::Tuple(value) => ui_for_tuple(value, ui, context),
-        bevy::reflect::ReflectMut::List(value) => ui_for_list(value, ui, context),
+        bevy::reflect::ReflectMut::Struct(s) => {
+            ui_for_reflect_struct(s, ui, context, inspectable_registry)
+        }
+        bevy::reflect::ReflectMut::TupleStruct(value) => {
+            ui_for_tuple_struct(value, ui, context, inspectable_registry)
+        }
+        bevy::reflect::ReflectMut::Tuple(value) => {
+            ui_for_tuple(value, ui, context, inspectable_registry)
+        }
+        bevy::reflect::ReflectMut::List(value) => {
+            ui_for_list(value, ui, context, inspectable_registry)
+        }
         bevy::reflect::ReflectMut::Map(value) => ui_for_map(value, ui),
-        bevy::reflect::ReflectMut::Value(value) => ui_for_reflect_value(value, ui, context),
+        bevy::reflect::ReflectMut::Value(value) => {
+            ui_for_reflect_value(value, ui, inspectable_registry)
+        }
     }
 }
 
-fn ui_for_reflect_struct(value: &mut dyn Struct, ui: &mut egui::Ui, context: &mut Context) -> bool {
+fn ui_for_reflect_struct(
+    value: &mut dyn Struct,
+    ui: &mut egui::Ui,
+    context: &mut Context,
+    inspectable_registry: Option<&InspectableRegistry>,
+) -> bool {
     let mut changed = false;
     ui.vertical_centered(|ui| {
         let grid = Grid::new(value.type_id());
@@ -115,7 +136,12 @@ fn ui_for_reflect_struct(value: &mut dyn Struct, ui: &mut egui::Ui, context: &mu
                     None => ui.label("<missing>"),
                 };
                 if let Some(field) = value.field_at_mut(i) {
-                    changed |= ui_for_reflect(field, ui, &mut context.with_id(i as u64));
+                    changed |= ui_for_reflect_with_registry(
+                        field,
+                        ui,
+                        &mut context.with_id(i as u64),
+                        inspectable_registry,
+                    );
                 } else {
                     ui.label("<missing>");
                 }
@@ -130,6 +156,7 @@ fn ui_for_tuple_struct(
     value: &mut dyn TupleStruct,
     ui: &mut egui::Ui,
     context: &mut Context,
+    inspectable_registry: Option<&InspectableRegistry>,
 ) -> bool {
     let mut changed = false;
     let grid = Grid::new(value.type_id());
@@ -137,7 +164,12 @@ fn ui_for_tuple_struct(
         for i in 0..value.field_len() {
             ui.label(i.to_string());
             if let Some(field) = value.field_mut(i) {
-                changed |= ui_for_reflect(field, ui, &mut context.with_id(i as u64));
+                changed |= ui_for_reflect_with_registry(
+                    field,
+                    ui,
+                    &mut context.with_id(i as u64),
+                    inspectable_registry,
+                );
             } else {
                 ui.label("<missing>");
             }
@@ -147,14 +179,24 @@ fn ui_for_tuple_struct(
     changed
 }
 
-fn ui_for_tuple(value: &mut dyn Tuple, ui: &mut egui::Ui, context: &mut Context) -> bool {
+fn ui_for_tuple(
+    value: &mut dyn Tuple,
+    ui: &mut egui::Ui,
+    context: &mut Context,
+    inspectable_registry: Option<&InspectableRegistry>,
+) -> bool {
     let mut changed = false;
     let grid = Grid::new(value.type_id());
     grid.show(ui, |ui| {
         for i in 0..value.field_len() {
             ui.label(i.to_string());
             if let Some(field) = value.field_mut(i) {
-                changed |= ui_for_reflect(field, ui, &mut context.with_id(i as u64));
+                changed |= ui_for_reflect_with_registry(
+                    field,
+                    ui,
+                    &mut context.with_id(i as u64),
+                    inspectable_registry,
+                );
             } else {
                 ui.label("<missing>");
             }
@@ -164,7 +206,12 @@ fn ui_for_tuple(value: &mut dyn Tuple, ui: &mut egui::Ui, context: &mut Context)
     changed
 }
 
-fn ui_for_list(list: &mut dyn List, ui: &mut egui::Ui, context: &mut Context) -> bool {
+fn ui_for_list(
+    list: &mut dyn List,
+    ui: &mut egui::Ui,
+    context: &mut Context,
+    inspectable_registry: Option<&InspectableRegistry>,
+) -> bool {
     let mut changed = false;
 
     ui.vertical(|ui| {
@@ -177,7 +224,12 @@ fn ui_for_list(list: &mut dyn List, ui: &mut egui::Ui, context: &mut Context) ->
                 /*if utils::ui::label_button(ui, "✖", egui::Color32::RED) {
                     to_delete = Some(i);
                 }*/
-                changed |= ui_for_reflect(val, ui, &mut context.with_id(i as u64));
+                changed |= ui_for_reflect_with_registry(
+                    val,
+                    ui,
+                    &mut context.with_id(i as u64),
+                    inspectable_registry,
+                );
             });
 
             if i != len - 1 {
@@ -209,17 +261,22 @@ fn ui_for_map(_value: &mut dyn Map, ui: &mut egui::Ui) -> bool {
     false
 }
 
-fn ui_for_reflect_value(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &mut Context) -> bool {
-    try_downcast_ui!(
-        value ui context =>
-        f32, f64, u8, u16, u32, u64, i8, i16, i32, i64,
-        String, bool,
-        Vec2, Vec3, Vec4, Mat3, Mat4,
-    );
-
-    try_downcast_ui!(value ui context => Option<String>);
-
-    ui.label(format!("Not implemented: {}", value.type_name()));
+fn ui_for_reflect_value(
+    value: &mut dyn Reflect,
+    ui: &mut egui::Ui,
+    inspectable_registry: Option<&InspectableRegistry>,
+) -> bool {
+    if inspectable_registry.is_some() {
+        ui.label(format!(
+            "{} is `#[reflect_value()]`, but not registered on the `InspectableRegistry`.",
+            value.type_name()
+        ));
+    } else {
+        ui.label(format!(
+            "{} (InspectableRegistry not accessible)",
+            value.type_name()
+        ));
+    }
 
     false
 }
