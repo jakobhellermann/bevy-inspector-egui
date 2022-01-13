@@ -88,7 +88,9 @@ pub fn ui_for_reflect(value: &mut dyn Reflect, ui: &mut egui::Ui, context: &mut 
     ui_for_reflect_with_registry(value, ui, context, None)
 }
 
-fn ui_for_reflect_with_registry(
+/// Same as `ui_for_reflect` but explicitly passes the `InspectableRegistry` instead of retrieving
+/// it from the `Context`.
+pub fn ui_for_reflect_with_registry(
     value: &mut dyn Reflect,
     ui: &mut egui::Ui,
     context: &mut Context,

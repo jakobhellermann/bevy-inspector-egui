@@ -476,9 +476,16 @@ pub(crate) unsafe fn try_display(
         return Ok(false);
     }
 
-    if let Ok(changed) =
-        display_by_reflection(type_registry, type_id, world, entity, ui, ui_ctx, id)
-    {
+    if let Ok(changed) = display_by_reflection(
+        type_registry,
+        inspectable_registry,
+        type_id,
+        world,
+        entity,
+        ui,
+        ui_ctx,
+        id,
+    ) {
         return Ok(changed);
     }
 
@@ -498,6 +505,7 @@ unsafe fn display_by_inspectable_registry(
 
 fn display_by_reflection(
     type_registry: &TypeRegistryInternal,
+    inspectable_registry: &InspectableRegistry,
     type_id: TypeId,
     world: &mut World,
     entity: Entity,
@@ -530,10 +538,11 @@ fn display_by_reflection(
     let mut context = Context::new_world_access(ui_ctx, world);
     let mut context = context.with_id(id);
 
-    Ok(crate::reflect::ui_for_reflect(
+    Ok(crate::reflect::ui_for_reflect_with_registry(
         &mut *reflected,
         ui,
         &mut context,
+        Some(inspectable_registry),
     ))
 }
 
