@@ -1,7 +1,7 @@
 use crate::options::{NumberAttributes, OptionAttributes, Vec2dAttributes};
 use crate::{Context, Inspectable};
 use bevy::math::Vec4Swizzles;
-use bevy::pbr::{CubemapVisibleEntities, StandardMaterial};
+use bevy::pbr::{Clusters, CubemapVisibleEntities, StandardMaterial, VisiblePointLights};
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
 use bevy::render::render_resource::PrimitiveTopology;
 use bevy::render::view::VisibleEntities;
@@ -435,6 +435,20 @@ impl Inspectable for VisibleEntities {
     }
 }
 
+impl Inspectable for VisiblePointLights {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, _: &mut Context) -> bool {
+        let len = self.len();
+        let entity = match len {
+            1 => "light",
+            _ => "lights",
+        };
+        ui.label(format!("{} visible point {}", self.entities.len(), entity));
+        false
+    }
+}
+
 impl Inspectable for CubemapVisibleEntities {
     type Attributes = ();
 
@@ -489,6 +503,14 @@ impl Inspectable for Plane {
             });
         });
         changed
+    }
+}
+
+impl Inspectable for Clusters {
+    type Attributes = ();
+
+    fn ui(&mut self, _: &mut egui::Ui, _: Self::Attributes, _: &mut Context) -> bool {
+        false
     }
 }
 

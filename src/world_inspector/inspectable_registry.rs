@@ -1,7 +1,7 @@
 use crate::{Context, Inspectable};
 use bevy::asset::HandleId;
 use bevy::math::{DVec2, DVec3, DVec4};
-use bevy::pbr::CubemapVisibleEntities;
+use bevy::pbr::{Clusters, CubemapVisibleEntities, VisiblePointLights};
 use bevy::render::camera::{DepthCalculation, ScalingMode, WindowOrigin};
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
 use bevy::render::render_resource::PrimitiveTopology;
@@ -128,10 +128,12 @@ impl Default for InspectableRegistry {
         this.register::<ScalingMode>();
         this.register::<DepthCalculation>();
         this.register::<VisibleEntities>();
+        this.register::<VisiblePointLights>();
         this.register::<CubemapVisibleEntities>();
         this.register::<CubemapFrusta>();
         this.register::<Frustum>();
         this.register::<Plane>();
+        this.register::<Clusters>();
 
         this.register::<Handle<Image>>();
         this.register::<Handle<StandardMaterial>>();
