@@ -308,33 +308,30 @@ impl Inspectable for StandardMaterial {
         let mut changed = false;
         ui.vertical_centered(|ui| {
             egui::Grid::new(context.id()).show(ui, |ui| {
-                ui.columns(2, |all| {
-                    egui::Grid::new("left").show(&mut all[0], |ui| {
-                        ui.label("base_color");
-                        changed |= self.base_color.ui(ui, Default::default(), context);
-                        ui.end_row();
+                egui::Grid::new("grid").show(ui, |ui| {
+                    ui.label("base_color");
+                    changed |= self.base_color.ui(ui, Default::default(), context);
+                    ui.end_row();
 
-                        ui.label("perceptual_roughness");
-                        changed |= self.perceptual_roughness.ui(ui, NumberAttributes::between(0.089, 1.0).speed(0.01), context);
-                        ui.end_row();
+                    ui.label("emissive");
+                    changed |= self.emissive.ui(ui, Default::default(), context);
+                    ui.end_row();
 
-                        ui.label("reflectance");
-                        changed |= self.reflectance.ui(ui, NumberAttributes::positive(), context);
-                        ui.end_row();
-                    });
-                    egui::Grid::new("right").show(&mut all[1], |ui| {
-                        ui.label("emissive");
-                        changed |= self.emissive.ui(ui, Default::default(), context);
-                        ui.end_row();
+                    ui.label("perceptual_roughness");
+                    changed |= self.perceptual_roughness.ui(ui, NumberAttributes::between(0.089, 1.0).speed(0.01), context);
+                    ui.end_row();
+                    
+                    ui.label("metallic");
+                    changed |= self.metallic.ui(ui, NumberAttributes::normalized().speed(0.01), context);
+                    ui.end_row();
 
-                        ui.label("metallic");
-                        changed |= self.metallic.ui(ui, NumberAttributes::normalized().speed(0.01), context);
-                        ui.end_row();
+                    ui.label("reflectance");
+                    changed |= self.reflectance.ui(ui, NumberAttributes::positive(), context);
+                    ui.end_row();
 
-                        ui.label("unlit");
-                        changed |= self.unlit.ui(ui, Default::default(), context);
-                        ui.end_row();
-                    });
+                    ui.label("unlit");
+                    changed |= self.unlit.ui(ui, Default::default(), context);
+                    ui.end_row();
                 });
             });
 
@@ -346,20 +343,20 @@ impl Inspectable for StandardMaterial {
                     changed |= self.base_color_texture.ui(ui, texture_option_attributes.clone(), &mut context.with_id(0));
                     ui.end_row();
 
-                    // ui.label("normal_map");
-                    // changed |= self.normal_map.ui(ui, texture_option_attributes.clone(), &mut context.with_id(0));
-                    // ui.end_row();
+                     ui.label("normal_map");
+                     changed |= self.normal_map_texture.ui(ui, texture_option_attributes.clone(), &mut context.with_id(1));
+                     ui.end_row();
 
                     ui.label("metallic_roughness");
-                    changed |= self.metallic_roughness_texture.ui(ui, texture_option_attributes.clone(), &mut context.with_id(1));
+                    changed |= self.metallic_roughness_texture.ui(ui, texture_option_attributes.clone(), &mut context.with_id(2));
                     ui.end_row();
 
                     ui.label("emmissive");
-                    changed |= self.emissive_texture.ui(ui, texture_option_attributes.clone(), &mut context.with_id(2));
+                    changed |= self.emissive_texture.ui(ui, texture_option_attributes.clone(), &mut context.with_id(3));
                     ui.end_row();
 
                     ui.label("occlusion texture");
-                    changed |= self.occlusion_texture.ui(ui, texture_option_attributes, &mut context.with_id(3));
+                    changed |= self.occlusion_texture.ui(ui, texture_option_attributes, &mut context.with_id(4));
                     ui.end_row();
                 });
             });
