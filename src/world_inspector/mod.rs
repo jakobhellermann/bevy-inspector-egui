@@ -20,7 +20,7 @@ use bevy::{
 use bevy_egui::egui::{self, Color32};
 use egui::CollapsingHeader;
 use pretty_type_name::pretty_type_name_str;
-use std::{any::TypeId, borrow::Cow, cell::Cell};
+use std::{any::TypeId, cell::Cell};
 
 use crate::{utils::ui::label_button, Context};
 use impls::EntityAttributes;
@@ -187,7 +187,7 @@ impl<'a> WorldUIContext<'a> {
         id: egui::Id,
         entity_options: &EntityAttributes,
     ) -> bool {
-        let entity_name = self.entity_name(entity);
+        let entity_name = entity_name(self.world, entity);
         let show_entity = params
             .name_filter
             .as_ref()
@@ -197,7 +197,7 @@ impl<'a> WorldUIContext<'a> {
             .unwrap_or(true);
 
         if show_entity {
-            CollapsingHeader::new(self.entity_name(entity).to_string())
+            CollapsingHeader::new(entity_name.to_string())
                 .id_source(id.with(entity))
                 .show(ui, |ui| {
                     self.entity_ui_inner(ui, entity, params, id, entity_options)
@@ -439,13 +439,6 @@ impl<'a> WorldUIContext<'a> {
         ui.reset_style();
         changed
     }
-
-    fn entity_name(&self, entity: Entity) -> Cow<'_, str> {
-        match self.world.get_entity(entity) {
-            Some(entity) => guess_entity_name(entity),
-            None => format!("Entity {} (inexistent)", entity.id()).into(),
-        }
-    }
 }
 
 /// Safety:
@@ -581,24 +574,34 @@ macro_rules! is_bundle {
     };
 }
 
-fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
-    if let Some(name) = entity.get::<Name>() {
-        return name.as_str().into();
+/// Guesses an appropriate entity name like `Light (6)` or falls back to `Entity (8)`
+pub fn entity_name(world: &World, entity: Entity) -> String {
+    match world.get_entity(entity) {
+        Some(entity) => guess_entity_name_inner(entity),
+        None => format!("Entity {} (inexistent)", entity.id()),
     }
+}
+
+fn guess_entity_name_inner(entity: EntityRef) -> String {
+    if let Some(name) = entity.get::<Name>() {
+        return name.as_str().to_string();
+    }
+
+    let id = entity.id().id();
 
     if let Some(camera) = entity.get::<Camera>() {
         match &camera.name {
-            Some(name) => return name.as_str().into(),
-            None => return "Camera".into(),
+            Some(name) => return name.to_string(),
+            None => return format!("Camera ({})", id),
         }
     }
 
     if is_bundle!(entity: PointLight, Transform, GlobalTransform) {
-        return format!("Light ({:?})", entity.id().id()).into();
+        return format!("Light ({})", id);
     }
 
     if is_bundle!(entity: DirectionalLight, Transform, GlobalTransform) {
-        return format!("Directional Light ({:?})", entity.id().id()).into();
+        return format!("Directional Light ({})", id);
     }
 
     if is_bundle!(
@@ -607,7 +610,7 @@ fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
         Transform,
         GlobalTransform
     ) {
-        return format!("Pbr Mesh ({:?})", entity.id().id()).into();
+        return format!("Pbr Mesh ({})", id);
     }
 
     if is_bundle!(
@@ -619,7 +622,7 @@ fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
         Transform,
         GlobalTransform
     ) {
-        return format!("Entity {:?} (Text)", entity.id().id()).into();
+        return format!("Test ({})", id);
     }
     if is_bundle!(
         entity: Text,
@@ -627,7 +630,7 @@ fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
         GlobalTransform,
         bevy::text::Text2dSize
     ) {
-        return format!("Entity {:?} (Text2d)", entity.id().id()).into();
+        return format!("Text2d ({})", id);
     }
     if is_bundle!(
         entity: Node,
@@ -637,10 +640,10 @@ fn guess_entity_name(entity: EntityRef) -> Cow<'_, str> {
         Transform,
         GlobalTransform
     ) {
-        return format!("Entity {:?} (Node)", entity.id().id()).into();
+        return format!("Node ({})", id);
     }
 
-    format!("Entity {:?}", entity.id()).into()
+    format!("Entity ({:?})", id)
 }
 
 fn id_to_u64(id: &egui::Id) -> u64 {
