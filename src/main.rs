@@ -1,26 +1,29 @@
-use bevy::prelude::*;
-use bevy_inspector_egui::{WorldInspectorParams, WorldInspectorPlugin};
-
-#[cfg(target_arch = "wasm32")]
 mod web;
 
-fn main() {
-    let mut app = App::build();
+use bevy::prelude::*;
+use bevy_inspector_egui::{widgets::ResourceInspector, Inspectable, InspectorPlugin};
+use bevy_inspector_egui::{WorldInspectorParams, WorldInspectorPlugin};
 
-    app.insert_resource(Msaa { samples: 4 })
+fn main() {
+    App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(WorldInspectorParams {
             despawnable_entities: true,
+            highlight_changes: true,
             ..Default::default()
         })
         .add_plugin(WorldInspectorPlugin::new())
-        .add_startup_system(setup.system());
+        .add_plugin(InspectorPlugin::<Resources>::new())
+        .add_startup_system(setup)
+        .add_system(movement)
+        .add_system(web::web_resize_system)
+        .run();
+}
 
-    #[cfg(target_arch = "wasm32")]
-    app.add_plugin(bevy_webgl2::WebGL2Plugin)
-        .add_system(web::web_resize_system.system());
-
-    app.run();
+#[derive(Inspectable, Default)]
+struct Resources {
+    ambient_light: ResourceInspector<AmbientLight>,
+    clear_color: ResourceInspector<ClearColor>,
 }
 
 /// set up a simple 3D scene
@@ -62,6 +65,7 @@ fn setup(
                     material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
                     ..Default::default()
                 })
+                .insert(TeleportTarget)
                 .insert(Name::new("Child"))
                 .with_children(|commands| {
                     commands
@@ -84,11 +88,12 @@ fn setup(
             material: materials.add(Color::RED.into()),
             ..Default::default()
         })
+        .insert(RotateTarget)
         .insert(Name::new("Sphere"));
     commands
-        .spawn_bundle(LightBundle {
+        .spawn_bundle(PointLightBundle {
             transform: Transform::from_xyz(10.3, 8.0, -2.3),
-            light: Light {
+            point_light: PointLight {
                 range: 20.0,
                 intensity: 1237.0,
                 ..Default::default()
@@ -97,9 +102,9 @@ fn setup(
         })
         .insert(Name::new("Light"));
     commands
-        .spawn_bundle(LightBundle {
+        .spawn_bundle(PointLightBundle {
             transform: Transform::from_xyz(-6.2, 8.0, 4.3),
-            light: Light {
+            point_light: PointLight {
                 range: 20.0,
                 intensity: 245.0,
                 ..Default::default()
@@ -107,4 +112,50 @@ fn setup(
             ..Default::default()
         })
         .insert(Name::new("Second Light"));
+}
+
+#[derive(Component)]
+struct RotateTarget;
+#[derive(Component)]
+struct TeleportTarget;
+
+struct TeleportState {
+    timer: Timer,
+    count: u32,
+}
+
+impl Default for TeleportState {
+    fn default() -> Self {
+        Self {
+            timer: Timer::from_seconds(1.0, true),
+            count: 0,
+        }
+    }
+}
+
+/// simple movement in the scene
+#[allow(clippy::type_complexity)]
+fn movement(
+    time: Res<Time>,
+    mut state: Local<TeleportState>,
+    mut qs: QuerySet<(
+        QueryState<&mut Transform, With<RotateTarget>>,
+        QueryState<&mut Transform, With<TeleportTarget>>,
+    )>,
+) {
+    for mut transform in qs.q0().iter_mut() {
+        // rotate around vertical axis through origin
+        transform.translation =
+            Quat::from_axis_angle(Vec3::Y, time.delta_seconds()) * transform.translation;
+    }
+    if state.timer.tick(time.delta()).just_finished() {
+        for mut transform in qs.q1().iter_mut() {
+            // jump to new position to the left or right
+            transform.translation += match state.count % 4 {
+                0 | 3 => -Vec3::X,
+                _ => Vec3::X,
+            };
+        }
+        state.count += 1;
+    }
 }

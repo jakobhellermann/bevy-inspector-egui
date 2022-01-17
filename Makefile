@@ -1,17 +1,16 @@
 .PHONY: build
 
-TARGET_DIR_WEB=target_web
 CRATE_NAME=bevy-inspector-egui-demo
 FLAGS=--release
 OUT_DIR=docs
 
-WASM_FILE=target_web/wasm32-unknown-unknown/release/${CRATE_NAME}.wasm
+WASM_FILE=~/.cache/rust/wasm32-unknown-unknown/release/${CRATE_NAME}.wasm
 
 serve: optimize
 	basic-http-server ${OUT_DIR}
 
 build:
-	cargo build --target-dir ${TARGET_DIR_WEB} --target wasm32-unknown-unknown ${FLAGS}
+	cargo build --target wasm32-unknown-unknown ${FLAGS}
 	@du -h ${WASM_FILE}
 
 optimize: build
