@@ -2,7 +2,10 @@ pub(crate) mod impls;
 mod inspectable_registry;
 mod plugin;
 
-use bevy::{ecs::archetype::Archetype, render::camera::Camera, ui::FocusPolicy, window::WindowId};
+use bevy::{
+    ecs::archetype::Archetype, reflect::TypeRegistration, render::camera::Camera, ui::FocusPolicy,
+    window::WindowId,
+};
 pub use inspectable_registry::InspectableRegistry;
 pub use plugin::WorldInspectorPlugin;
 
@@ -424,7 +427,7 @@ impl<'a> WorldUIContext<'a> {
                 });
 
                 if result.is_err() {
-                    ui.label("This component is neither `Reflect` nor `Inspectable`.\nMake sure to also call `app.register_type` or `app.register_inspectable`.");
+                    no_inspectable_error_message(ui);
                 }
 
                 result.unwrap_or(false)
@@ -511,10 +514,7 @@ fn display_by_reflection(
     let reflect_component = match registration.data::<ReflectComponent>() {
         Some(reflect_component) => reflect_component,
         None => {
-            ui.label(format!(
-                "`{}` implements reflect, but does not have a `#[reflect(Component)` attribute.",
-                registration.short_name(),
-            ));
+            reflection_error_message(ui, registration);
 
             return Ok(false);
         }
@@ -537,6 +537,41 @@ fn display_by_reflection(
         &mut context,
         Some(inspectable_registry),
     ))
+}
+
+macro_rules! layout_job {
+    ( $($kind:ident $text:expr),* $(,)?) => {{
+        let mut job = egui::epaint::text::LayoutJob::default();
+        $(
+            job.append(
+                $text,
+                0.0,
+                egui::TextFormat {
+                    style: egui::TextStyle::$kind,
+                    ..Default::default()
+                },
+            );
+        )*
+        job
+    }}
+}
+
+fn reflection_error_message(ui: &mut egui::Ui, registration: &TypeRegistration) {
+    let job = layout_job!(
+        Monospace registration.short_name(), Body " implements ", Monospace "Reflect",
+        Body ", but does not have a ", Monospace "#[reflect(Component)]", Body " attribute.",
+    );
+
+    ui.label(job);
+}
+
+fn no_inspectable_error_message(ui: &mut egui::Ui) {
+    let job = layout_job!(
+        Body "This component is neither ", Monospace "Reflect", Body " nor ", Monospace "Inspectable",
+        Body ".\nMake sure to also call ", Monospace "app.register_type", Body " or ", Monospace "app.register_inspectable", Body ".",
+    );
+
+    ui.label(job);
 }
 
 // copied from bevy
