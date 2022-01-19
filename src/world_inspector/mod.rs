@@ -405,26 +405,27 @@ impl<'a> WorldUIContext<'a> {
                     ui.set_enabled(false);
                 }
 
-                let result = self.world
-                    .resource_scope(|world, inspectable_registry: Mut<InspectableRegistry>| {
+                let result = self.world.resource_scope(
+                    |world, inspectable_registry: Mut<InspectableRegistry>| {
                         world.resource_scope(|world, type_registry: Mut<TypeRegistryArc>| {
-                        let type_registry = &*type_registry.internal.read();
+                            let type_registry = &*type_registry.internal.read();
 
-                        // Safety: according to this function's contract, entity_location (and therefore component_ptr) are valid
-                        try_display(
-                            world,
-                            entity,
-                            component_ptr,
-                            is_zst,
-                            type_id,
-                            &*inspectable_registry,
-                            type_registry,
-                            ui,
-                            self.ui_ctx,
-                            id,
-                        )
-                    })
-                });
+                            // Safety: according to this function's contract, entity_location (and therefore component_ptr) are valid
+                            try_display(
+                                world,
+                                entity,
+                                component_ptr,
+                                is_zst,
+                                type_id,
+                                &*inspectable_registry,
+                                type_registry,
+                                ui,
+                                self.ui_ctx,
+                                id,
+                            )
+                        })
+                    },
+                );
 
                 if result.is_err() {
                     no_inspectable_error_message(ui);
