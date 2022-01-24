@@ -5,7 +5,6 @@ use bevy_inspector_egui::{WorldInspectorParams, WorldInspectorPlugin};
 
 fn main() {
     App::new()
-        .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         .insert_resource(WorldInspectorParams {
             despawnable_entities: true,
@@ -16,8 +15,8 @@ fn main() {
         .add_plugin(InspectorPlugin::<Resources>::new())
         .register_type::<MyReflectedComponent>()
         .register_inspectable::<MyInspectableComponent>()
-        .add_startup_system(setup.system())
-        .add_system(movement.system())
+        .add_startup_system(setup)
+        .add_system(movement)
         .run();
 }
 

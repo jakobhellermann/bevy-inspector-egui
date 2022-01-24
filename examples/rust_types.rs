@@ -67,7 +67,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
-        .add_system(setup.system())
+        .add_system(setup)
         .run();
 }
 

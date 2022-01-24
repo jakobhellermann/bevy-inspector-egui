@@ -15,7 +15,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
         .add_plugin(InspectorPlugin::<InspectorQuerySingle<Entity, With<Player>>>::new())
-        .add_startup_system(setup.system())
+        .add_startup_system(setup)
         .run();
 }
 

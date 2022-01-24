@@ -11,7 +11,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
-        .add_system(toggle_inspector.system())
+        .add_system(toggle_inspector)
         .run();
 }
 

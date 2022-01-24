@@ -18,14 +18,13 @@ use once_cell::sync::Lazy;
 /// This example creates a second window and draws a mesh from two different cameras.
 fn main() {
     App::new()
-        .insert_resource(Msaa { samples: 4 })
         .add_state(AppState::CreateWindow)
         .add_plugins(DefaultPlugins)
         .add_system_set(
-            SystemSet::on_update(AppState::CreateWindow).with_system(setup_window.system()),
+            SystemSet::on_update(AppState::CreateWindow).with_system(setup_window),
         )
-        .add_system_set(SystemSet::on_update(AppState::Setup).with_system(setup.system()))
-        .add_system_set(SystemSet::on_update(AppState::Done).with_system(ui.system()))
+        .add_system_set(SystemSet::on_update(AppState::Setup).with_system(setup))
+        .add_system_set(SystemSet::on_update(AppState::Done).with_system(ui))
         .add_plugin(InspectorPlugin::<Primary>::new())
         .add_plugin(InspectorPlugin::<Secondary>::new().on_window(*SECOND_WINDOW_ID))
         .run();

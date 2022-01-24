@@ -12,11 +12,10 @@ use bevy_rapier3d::{
 
 fn main() {
     App::new()
-        .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<InspectorQuerySingle<Entity, With<Cube>>>::new())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_startup_system(setup.system())
+        .add_startup_system(setup)
         .run();
 }
 

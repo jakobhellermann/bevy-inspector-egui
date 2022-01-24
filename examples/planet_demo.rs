@@ -66,12 +66,11 @@ fn main() {
     eprintln!("Try running with --release, it is much more responsive.");
 
     App::new()
-        .insert_resource(Msaa { samples: 4 })
         .insert_resource(ClearColor(Color::rgb(0.058, 0.078, 0.098)))
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
-        .add_startup_system(setup.system())
-        .add_system(generate.system())
+        .add_startup_system(setup)
+        .add_system(generate)
         .run();
 }
 

@@ -10,8 +10,8 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
-        .add_startup_system(spawn_player.system())
-        .add_system(player_movement.system())
+        .add_startup_system(spawn_player)
+        .add_system(player_movement)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .run();
 }

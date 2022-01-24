@@ -43,8 +43,8 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
         .add_startup_system(setup)
-        .add_system(text_update_system.system())
-        .add_system(shape_update_system.system())
+        .add_system(text_update_system)
+        .add_system(shape_update_system)
         .run();
 }
 

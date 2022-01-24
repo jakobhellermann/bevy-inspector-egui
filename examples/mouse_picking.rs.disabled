@@ -12,7 +12,6 @@ struct Inspector {
 
 fn main() {
     App::new()
-        .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         // add bevy_mod_picking plugins
         .add_plugin(PickingPlugin)
@@ -22,10 +21,10 @@ fn main() {
         .add_system_to_stage(
             CoreStage::PostUpdate,
             maintain_inspected_entities
-                .system()
+                
                 .after(bevy_mod_picking::PickingSystem::Focus),
         )
-        .add_startup_system(setup.system())
+        .add_startup_system(setup)
         .run();
 }
 

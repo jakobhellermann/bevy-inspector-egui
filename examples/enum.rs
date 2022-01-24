@@ -49,7 +49,7 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.039, 0.055, 0.078)))
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Inspector>::new())
-        .add_system(print_inspector.system())
+        .add_system(print_inspector)
         .run();
 }
 

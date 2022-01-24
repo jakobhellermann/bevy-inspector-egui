@@ -29,11 +29,10 @@ impl Default for WhichOne {
 
 fn main() {
     App::new()
-        .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         .add_plugin(InspectorPlugin::<Data>::new())
-        .add_startup_system(setup.system())
-        .add_system(update.system())
+        .add_startup_system(setup)
+        .add_system(update)
         .run();
 }
 
