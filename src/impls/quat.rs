@@ -90,7 +90,12 @@ impl RotationEdit for AxisAngle {
 
     fn to_quat(self) -> Quat {
         let (axis, angle) = self.0;
-        Quat::from_axis_angle(axis.normalize(), angle)
+        let axis = axis.normalize();
+        if axis.is_nan() {
+            Quat::IDENTITY
+        } else {
+            Quat::from_axis_angle(axis.normalize(), angle)
+        }
     }
 
     fn ui(&mut self, ui: &mut egui::Ui, context: &mut Context) -> bool {
