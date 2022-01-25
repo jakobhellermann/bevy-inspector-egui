@@ -107,22 +107,27 @@ impl Inspectable for Handle<Image> {
             return false;
         }
 
-        let (texture, texture_id) = match options.rescale {
+        let texture = match options.rescale {
             Some(_) => rescaled_image(
                 self,
                 &mut scaled_down_textures,
                 &mut textures,
                 &mut egui_context,
             ),
-            None => (self.clone(), TextureId::User(id_of_handle(self))),
+            None => Some((self.clone(), TextureId::User(id_of_handle(self)))),
         };
 
-        let texture = textures.get(texture).unwrap();
-        let response = show_texture(texture, texture_id, ui, id);
+        if let Some((texture, texture_id)) = texture {
+            let texture = textures.get(texture).unwrap();
+            let response = show_texture(texture, texture_id, ui, id);
 
-        if response.map_or(false, |res| res.hovered()) {
-            utils::ui::replace_handle_if_dropped(self, &*file_events, &*asset_server)
+            if response.map_or(false, |res| res.hovered()) {
+                utils::ui::replace_handle_if_dropped(self, &*file_events, &*asset_server)
+            } else {
+                false
+            }
         } else {
+            ui.label("<texture>");
             false
         }
     }
@@ -133,7 +138,7 @@ fn rescaled_image<'a>(
     scaled_down_textures: &'a mut ScaledDownTextures,
     textures: &mut Assets<Image>,
     egui_context: &mut EguiContext,
-) -> (Handle<Image>, TextureId) {
+) -> Option<(Handle<Image>, TextureId)> {
     let id = id_of_handle(handle);
     let texture = match scaled_down_textures.textures.entry(handle.clone()) {
         Entry::Occupied(handle) => {
@@ -143,7 +148,7 @@ fn rescaled_image<'a>(
         Entry::Vacant(entry) => {
             let original = textures.get(handle).unwrap();
 
-            let image = image_texture_conversion::texture_to_image(original).unwrap();
+            let image = image_texture_conversion::texture_to_image(original)?;
             let resized = image.resize(50, 50, FilterType::Nearest);
             let resized = image_texture_conversion::image_to_texture(resized);
 
@@ -158,7 +163,7 @@ fn rescaled_image<'a>(
 
     let id = TextureId::User(id);
 
-    (texture, id)
+    Some((texture, id))
 }
 
 impl Inspectable for Handle<Font> {
