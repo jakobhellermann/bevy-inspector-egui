@@ -21,6 +21,39 @@ macro_rules! impl_for_simple_enum {
     }
 }
 
+macro_rules! display_struct_delegate_fields {
+    ($val:ident $ui:ident $context:ident $ty:ty: $($field:ident $(inline $dummy:ident)? $(with $attrs:expr)? ),* $(,)?) => {{
+        let ui = $ui;
+        let context = $context;
+        let val = $val;
+        let mut changed = false;
+        ui.vertical_centered(|ui| {
+            $crate::egui::Grid::new(context.id()).show(ui, |ui| {
+                let mut i = 0;
+                $(
+
+                    let mut show_label = true;
+                    $(
+                        show_label = false;
+                        let $dummy = ();
+                    )?
+
+                    if show_label {
+                        ui.label(stringify!($field));
+                    }
+
+                    let mut attrs = Default::default();
+                    $(attrs = $attrs;)?
+                    changed |= val.$field.ui(ui, attrs, &mut context.with_id(i));
+                    ui.end_row();
+                    i += 1;
+                )*
+            });
+        });
+        changed
+    }}
+}
+
 macro_rules! impl_for_struct_delegate_fields {
     ($ty:ty: $($field:ident $(inline $dummy:ident)? $(with $attrs:expr)? ),* $(,)?) => {
         #[allow(unused)]
@@ -28,33 +61,7 @@ macro_rules! impl_for_struct_delegate_fields {
             type Attributes = ();
 
             fn ui(&mut self, ui: &mut $crate::egui::Ui, _: Self::Attributes, context: &mut $crate::Context) -> bool {
-                let mut changed = false;
-
-                ui.vertical_centered(|ui| {
-                    $crate::egui::Grid::new(context.id()).show(ui, |ui| {
-                        let mut i = 0;
-                        $(
-
-                            let mut show_label = true;
-                            $(
-                                show_label = false;
-                                let $dummy = ();
-                            )?
-
-                            if show_label {
-                                ui.label(stringify!($field));
-                            }
-
-                            let mut attrs = Default::default();
-                            $(attrs = $attrs;)?
-                            changed |= self.$field.ui(ui, attrs, &mut context.with_id(i));
-                            ui.end_row();
-                            i += 1;
-                        )*
-                    });
-                });
-
-                changed
+                display_struct_delegate_fields! { self ui context $ty: $($field $(inline $dummy)? $(with $attrs)? ),* }
             }
         }
     };
