@@ -3,7 +3,7 @@ use crate::{Context, Inspectable};
 use bevy::math::Vec4Swizzles;
 use bevy::pbr::{Clusters, CubemapVisibleEntities, StandardMaterial, VisiblePointLights};
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
-use bevy::render::render_resource::PrimitiveTopology;
+use bevy::render::render_resource::{PrimitiveTopology, ShaderImport};
 use bevy::render::view::VisibleEntities;
 use bevy::{
     asset::HandleId,
@@ -14,7 +14,7 @@ use bevy::{
     },
 };
 use bevy::{pbr::AmbientLight, prelude::*};
-use bevy_egui::egui;
+use bevy_egui::egui::{self, RichText};
 use egui::Grid;
 
 impl_for_struct_delegate_fields!(
@@ -37,6 +37,8 @@ impl_for_struct_delegate_fields!(
     shadow_normal_bias with NumberAttributes::positive(),
 );
 
+impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
+
 impl_for_struct_delegate_fields!(
     OrthographicProjection:
     left with NumberAttributes::positive(),
@@ -51,7 +53,6 @@ impl_for_struct_delegate_fields!(
     depth_calculation
 );
 
-// impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
 impl_for_simple_enum!(
     PrimitiveTopology: PointList,
     LineList,
@@ -519,5 +520,36 @@ impl<'a, T: Inspectable> Inspectable for Mut<'a, T> {
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
         (**self).ui(ui, options, context)
+    }
+}
+
+impl Inspectable for Shader {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, (): Self::Attributes, _: &mut Context) -> bool {
+        if let Some(import) = self.import_path() {
+            ui.label(RichText::new(shader_import_to_string(import)).color(egui::Color32::WHITE));
+        } else {
+            ui.label(RichText::new("<no import path>").color(egui::Color32::WHITE));
+        }
+
+        let imports = self.imports();
+        if imports.len() > 0 {
+            ui.label("Imports:");
+            for import in imports {
+                ui.label(format!("- {}", shader_import_to_string(import)));
+            }
+        }
+
+        false
+    }
+}
+
+fn shader_import_to_string(import: &ShaderImport) -> String {
+    match import {
+        ShaderImport::AssetPath(path) => {
+            format!("\"{}\"", path)
+        }
+        ShaderImport::Custom(custom) => custom.clone(),
     }
 }

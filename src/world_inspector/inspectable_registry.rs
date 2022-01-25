@@ -122,9 +122,7 @@ impl Default for InspectableRegistry {
         this.register::<TextureAtlas>();
         this.register::<PointLight>();
         this.register::<DirectionalLight>();
-        this.register::<StandardMaterial>();
         this.register::<PrimitiveTopology>();
-        this.register::<Mesh>();
         this.register::<bevy::sprite::Rect>();
 
         this.register::<WindowOrigin>();
@@ -138,13 +136,23 @@ impl Default for InspectableRegistry {
         this.register::<Plane>();
         this.register::<Clusters>();
 
+        // this.register::<Image>();
         this.register::<Handle<Image>>();
+        this.register::<StandardMaterial>();
         this.register::<Handle<StandardMaterial>>();
+        // this.register::<Handle<TextureAtlas>>();
         this.register::<Handle<TextureAtlas>>();
+        this.register::<Mesh>();
         this.register::<Handle<Mesh>>();
+        this.register::<Shader>();
+        this.register::<Handle<Shader>>();
+        this.register::<ColorMaterial>();
+        this.register::<Handle<ColorMaterial>>();
 
         this.register::<ClearColor>();
         this.register::<AmbientLight>();
+        this.register::<Shader>();
+        this.register::<ColorMaterial>();
 
         register!(this Display, Style, Size<f32>, Size<Val>, Val, bevy::ui::FocusPolicy);
         register!(this VerticalAlign, HorizontalAlign, TextAlignment, TextStyle, TextSection, Text);
