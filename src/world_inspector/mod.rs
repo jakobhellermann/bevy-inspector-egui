@@ -268,9 +268,8 @@ impl<'a> WorldUIContext<'a> {
         changed
     }
 
-    /// Safety:
-    /// `entity_location` must point to a valid archetype and index.
-    fn component_kind_ui(
+    /// Displays the components of an entity
+    pub fn component_kind_ui(
         &mut self,
         ui: &mut egui::Ui,
         components: impl Fn(&Archetype) -> &[ComponentId],
