@@ -97,7 +97,7 @@ pub fn ui_for_reflect_with_registry(
     inspectable_registry: Option<&InspectableRegistry>,
 ) -> bool {
     if let Some(inspectable_registry) = inspectable_registry {
-        if let Ok(changed) = inspectable_registry.try_execute(value, ui, context) {
+        if let Ok(changed) = inspectable_registry.try_execute(value.any_mut(), ui, context) {
             return changed;
         }
     }

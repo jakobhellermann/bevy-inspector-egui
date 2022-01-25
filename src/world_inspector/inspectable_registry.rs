@@ -9,7 +9,7 @@ use bevy::render::view::VisibleEntities;
 use bevy::utils::HashMap;
 use bevy::{pbr::AmbientLight, prelude::*};
 use bevy_egui::egui;
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 
 pub(crate) type InspectCallback =
     Box<dyn Fn(*mut u8, &mut egui::Ui, &mut Context) -> bool + Send + Sync>;
@@ -82,14 +82,17 @@ impl InspectableRegistry {
         self
     }
 
-    pub(crate) fn try_execute(
+    /// Try to run the provided inspectable callback and return whether it has changed the value.
+    pub fn try_execute(
         &self,
-        value: &mut dyn Reflect,
+        value: &mut dyn Any,
         ui: &mut egui::Ui,
         context: &mut Context,
     ) -> Result<bool, ()> {
-        if let Some(inspect_callback) = self.impls.get(&value.type_id()) {
-            let ptr = value as *mut dyn Reflect as *mut u8;
+        let type_id = (*value).type_id();
+        if let Some(inspect_callback) = self.impls.get(&type_id) {
+            // SAFETY: we maintain the invariant that any callback in the hashmap receives a the type with the type_id specified in the key
+            let ptr = value as *mut dyn Any as *mut u8;
             let changed = inspect_callback(ptr, ui, context);
             Ok(changed)
         } else {
