@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.7
+- update `egui` to 0.16 and `bevy` to 0.6
+- ability to filter entities by name in world inspector
+- add `app.register_inspectable` for easy `InspectableRegistry` access
+- add `highlight_changes` to world inspector params
+- use `&mut Context` instead of `&Context`
+- fix external changes to quaternions not being displayed
+
 ## Version 0.6
 - update to `egui` 0.13, `bevy_egui` 0.6
 - update to rapier `0.10`
