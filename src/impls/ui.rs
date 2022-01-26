@@ -45,7 +45,7 @@ impl_for_struct_delegate_fields!(Text: sections, alignment);
 
 impl_for_struct_delegate_fields!(
     Style:
-    //display,
+    display,
     position_type,
     direction,
     flex_direction,
@@ -54,10 +54,10 @@ impl_for_struct_delegate_fields!(
     align_self,
     align_content,
     justify_content,
-    //position,
-    //margin,
-    //padding,
-    //border,
+    position,
+    margin,
+    padding,
+    border,
     flex_grow with NumberAttributes::positive(),
     flex_shrink with NumberAttributes::positive(),
     flex_basis,
@@ -85,6 +85,40 @@ impl<T: Inspectable + Reflect + PartialEq> Inspectable for Size<T> {
 
                 ui.label("height");
                 changed |= self.height.ui(ui, options, &mut context.with_id(1));
+                ui.end_row();
+            });
+            ui.separator();
+        });
+        changed
+    }
+}
+
+impl<T: Inspectable + Reflect + PartialEq> Inspectable for Rect<T> {
+    type Attributes = T::Attributes;
+
+    fn ui(
+        &mut self,
+        ui: &mut bevy_egui::egui::Ui,
+        options: Self::Attributes,
+        context: &mut crate::Context,
+    ) -> bool {
+        let mut changed = false;
+        ui.vertical_centered(|ui| {
+            crate::egui::Grid::new(context.id()).show(ui, |ui| {
+                ui.label("left");
+                changed |= self.left.ui(ui, options.clone(), &mut context.with_id(0));
+                ui.end_row();
+
+                ui.label("right");
+                changed |= self.right.ui(ui, options.clone(), &mut context.with_id(1));
+                ui.end_row();
+
+                ui.label("top");
+                changed |= self.top.ui(ui, options.clone(), &mut context.with_id(2));
+                ui.end_row();
+
+                ui.label("bottom");
+                changed |= self.bottom.ui(ui, options.clone(), &mut context.with_id(3));
                 ui.end_row();
             });
             ui.separator();
