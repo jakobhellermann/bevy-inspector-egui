@@ -3,7 +3,7 @@ use bevy_egui::egui;
 
 use crate::Inspectable;
 
-use super::NumberAttributes;
+use super::{NumberAttributes, OptionAttributes};
 
 impl_for_simple_enum!(Display: Flex, None);
 impl_for_simple_enum!(bevy::ui::FocusPolicy: Block, Pass);
@@ -64,7 +64,7 @@ impl_for_struct_delegate_fields!(
     size,
     min_size,
     max_size,
-    // aspect_ratio,
+    aspect_ratio with OptionAttributes { deletable: true, replacement: Some(|| 1.), inner: NumberAttributes::positive() },
 );
 
 impl<T: Inspectable + Reflect + PartialEq> Inspectable for Size<T> {
