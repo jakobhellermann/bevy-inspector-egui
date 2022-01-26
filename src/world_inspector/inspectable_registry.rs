@@ -162,29 +162,6 @@ impl Default for InspectableRegistry {
         register!(this VerticalAlign, HorizontalAlign, TextAlignment, TextStyle, TextSection, Text);
         register!(this PositionType, Direction, FlexDirection, FlexWrap, AlignItems, AlignSelf, JustifyContent);
 
-        #[cfg(feature = "rapier")]
-        {
-            use bevy_rapier3d::prelude::*;
-            register!(this
-                RigidBodyType, RigidBodyPosition, RigidBodyVelocity, RigidBodyMassProps, RigidBodyMassPropsFlags,
-                RigidBodyForces, RigidBodyActivation, RigidBodyDamping, RigidBodyDominance, RigidBodyCcd, RigidBodyChanges,
-                ColliderType, ColliderPosition, ColliderMaterial, CoefficientCombineRule, ColliderFlags, RigidBodyHandle,
-                ActiveCollisionTypes, ActiveHooks, ActiveEvents, InteractionGroups, ColliderChanges, ColliderParent,
-                ColliderPositionSync, SharedShape, RigidBodyColliders, ColliderMassProps
-            );
-        }
-        #[cfg(feature = "rapier2d")]
-        {
-            use bevy_rapier2d::prelude::*;
-            register!(this
-                RigidBodyType, RigidBodyPosition, RigidBodyVelocity, RigidBodyMassProps, RigidBodyMassPropsFlags,
-                RigidBodyForces, RigidBodyActivation, RigidBodyDamping, RigidBodyDominance, RigidBodyCcd, RigidBodyChanges,
-                ColliderType, ColliderPosition, ColliderMaterial, CoefficientCombineRule, ColliderFlags, RigidBodyHandle,
-                ActiveCollisionTypes, ActiveHooks, ActiveEvents, InteractionGroups, ColliderChanges, ColliderParent,
-                ColliderPositionSync, SharedShape, RigidBodyColliders, ColliderMassProps
-            );
-        }
-
         this
     }
 }
