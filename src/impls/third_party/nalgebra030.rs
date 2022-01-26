@@ -1,7 +1,7 @@
 use bevy_egui::egui;
-use nalgebra::{
-    storage::StorageMut, Complex, Dim, Isometry, Matrix, Quaternion, SVector, Scalar, Translation,
-    Unit,
+use nalgebra030::{
+    allocator::Allocator, storage::StorageMut, Complex, DefaultAllocator, Dim, DimName, Isometry,
+    Matrix, OPoint, Quaternion, SVector, Scalar, Translation, Unit,
 };
 
 use crate::Inspectable;
@@ -47,6 +47,22 @@ impl<T: Scalar + Inspectable, R: Dim, C: Dim, S: StorageMut<T, R, C>> Inspectabl
     }
 }
 
+impl<T: Scalar + Inspectable, D: DimName> Inspectable for OPoint<T, D>
+where
+    DefaultAllocator: Allocator<T, D>,
+{
+    type Attributes = ();
+
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: Self::Attributes,
+        context: &mut crate::Context,
+    ) -> bool {
+        self.coords.ui(ui, options, context)
+    }
+}
+
 impl<T: Scalar + Inspectable, const D: usize> Inspectable for Translation<T, D> {
     type Attributes = <SVector<T, D> as Inspectable>::Attributes;
 
@@ -69,12 +85,11 @@ impl Inspectable for Unit<Quaternion<f32>> {
         _: Self::Attributes,
         context: &mut crate::Context,
     ) -> bool {
-        let vec: bevy::math::Vec4 = (*self.as_vector()).into();
-        let mut quat = bevy::math::Quat::from(vec);
+        let mut quat = bevy::math::Quat::from_slice(self.as_vector().as_slice());
         let changed = quat.ui(ui, Default::default(), context);
         if changed {
-            let vec: bevy::math::Vec4 = quat.into();
-            let quat = Quaternion::<f32>::from_vector(vec.into());
+            let values: [f32; 4] = quat.into();
+            let quat = Quaternion::<f32>::from_vector(values.into());
             let quat = Unit::<Quaternion<f32>>::new_normalize(quat);
             *self = quat;
         }
@@ -109,15 +124,15 @@ impl<T: Inspectable + Scalar, R: Inspectable, const D: usize> Inspectable for Is
 
         ui.vertical_centered(|ui| {
             crate::egui::Grid::new(context.id()).show(ui, |ui| {
-                ui.label("Rotation");
-                changed |= self
-                    .rotation
-                    .ui(ui, Default::default(), &mut context.with_id(0));
-                ui.end_row();
                 ui.label("Translation");
                 changed |= self
                     .translation
                     .ui(ui, Default::default(), &mut context.with_id(1));
+                ui.end_row();
+                ui.label("Rotation");
+                changed |= self
+                    .rotation
+                    .ui(ui, Default::default(), &mut context.with_id(0));
                 ui.end_row();
             });
         });
