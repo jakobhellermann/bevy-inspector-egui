@@ -204,40 +204,39 @@ where
     T: Inspectable + Send + Sync + 'static,
 {
     world.resource_scope(|world, inspector_windows: Mut<InspectorWindows>| {
-        world.resource_scope(|world, egui_context: Mut<EguiContext>| {
-            world.resource_scope(|world, mut data: Mut<T>| {
-                let window_data = inspector_windows.window_data::<T>();
-                if !window_data.visible {
-                    return;
-                }
+        world.resource_scope(|world, mut data: Mut<T>| {
+            let window_data = inspector_windows.window_data::<T>();
+            if !window_data.visible {
+                return;
+            }
 
-                let ctx = match egui_context.try_ctx_for_window(window_data.window_id) {
-                    Some(ctx) => ctx,
-                    None => return,
-                };
+            let egui_context = world.get_resource::<EguiContext>().unwrap();
+            let ctx = match egui_context.try_ctx_for_window(window_data.window_id) {
+                Some(ctx) => ctx.clone(),
+                None => return,
+            };
 
-                let mut context = Context::new_world_access(Some(ctx), world);
+            let mut context = Context::new_world_access(Some(&ctx), world);
 
-                // This manually circumcents bevy's change detection and probably isn't sound.
-                // Todo: add bevy API to allow this safely
-                #[allow(clippy::cast_ref_to_mut)]
-                let value = unsafe { &mut *(data.as_ref() as *const T as *mut T) };
+            // This manually circumcents bevy's change detection and probably isn't sound.
+            // Todo: add bevy API to allow this safely
+            #[allow(clippy::cast_ref_to_mut)]
+            let value = unsafe { &mut *(data.as_ref() as *const T as *mut T) };
 
-                let mut changed = false;
-                egui::Window::new(&window_data.name)
-                    .resizable(false)
-                    .vscroll(true)
-                    .show(ctx, |ui| {
-                        default_settings(ui);
+            let mut changed = false;
+            egui::Window::new(&window_data.name)
+                .resizable(false)
+                .vscroll(true)
+                .show(&ctx, |ui| {
+                    default_settings(ui);
 
-                        changed = value.ui(ui, T::Attributes::default(), &mut context);
-                    });
+                    changed = value.ui(ui, T::Attributes::default(), &mut context);
+                });
 
-                if changed {
-                    // trigger change detection
-                    data.as_mut();
-                }
-            });
+            if changed {
+                // trigger change detection
+                data.as_mut();
+            }
         });
     });
 }
