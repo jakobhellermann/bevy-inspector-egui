@@ -70,6 +70,13 @@ impl_for_simple_enum!(
 );
 impl_for_simple_enum!(DepthCalculation: Distance, ZDifference);
 
+impl_for_struct_delegate_fields!(Sprite:
+    color,
+    flip_x,
+    flip_y,
+    custom_size with OptionAttributes { replacement: Some(|| Vec2::splat(50.0)), deletable: true, inner: Vec2dAttributes::positive() }
+);
+
 //////// SHAPES ////////
 
 impl_for_struct_delegate_fields!(shape::Cube: size);

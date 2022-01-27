@@ -124,6 +124,7 @@ impl Default for InspectableRegistry {
         this.register::<DirectionalLight>();
         this.register::<PrimitiveTopology>();
         this.register::<bevy::sprite::Rect>();
+        this.register::<Sprite>();
 
         this.register::<WindowOrigin>();
         this.register::<ScalingMode>();

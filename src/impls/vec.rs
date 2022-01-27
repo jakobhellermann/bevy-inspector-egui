@@ -21,6 +21,13 @@ impl Vec2dAttributes {
             ..Default::default()
         }
     }
+
+    pub fn positive() -> Self {
+        Vec2dAttributes {
+            min: Some(Vec2::ZERO),
+            ..Default::default()
+        }
+    }
 }
 
 impl Inspectable for Vec2 {
