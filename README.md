@@ -63,28 +63,34 @@ fn main() {
 
 <img src="./docs/examples/world_inspector.png" alt="world inspector ui" width="600"/>
 
-
 You can configure the `WorldInspectorPlugin` by inserting the `WorldInspectorParams` resource.
 If you want to only display some components, you may want to use the [InspectorQuery](./examples/README.md#inspector-query-source) instead.
 
-If you want custom types to be displayed in the inspector, you'll need to register them on the `InspectableRegistry`:
+### Custom components in world inspector
+
+By default, types implementing `Inspectable` will not be displayed in the `WorldInspector`, because the there is no way to know of the trait implementation at runtime.
+You can call `world.register_inspectable::<T>()` to tell `bevy-inspector-egui` how that type should be displayed, and it will show up correctly in the world inspector.
+
+Alternatively, you can `#[derive(Reflect)]` and call `world.register_type::<T>()`. This will enable bevy's reflection feature for the type, and it will show up in the world inspector.
 
 ```rust
 use bevy::prelude::*;
 use bevy_inspector_egui::{WorldInspector, RegisterInspectable};
 
-#[derive(Reflect)]
-struct ReflectedType;
 
-#[derive(Reflect)]
+#[derive(Inspectable, Component)]
 struct InspectableType;
+
+#[derive(Reflect, Component)]
+#[reflect(Component)]
+struct ReflectedType;
 
 fn main() {
   App::build()
     .add_plugins(DefaultPlugins)
     .add_plugin(WorldInspectorPlugin::new())
-    .register_type::<ReflectedType>()
-    .register_inspectable::<InspectableType>()
+    .register_inspectable::<InspectableType>() // tells bevy-inspector-egui how to display the struct in the world inspector
+    .register_type::<ReflectedType>() // registers the type in the `bevy_reflect` machinery, so that even without implementing `Inspectable` we can display the struct fields
     .run();
 }
 ```
