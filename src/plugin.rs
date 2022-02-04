@@ -172,7 +172,7 @@ where
 
 fn shared_access_ui<T>(
     data: Option<ResMut<T>>,
-    egui_context: ResMut<EguiContext>,
+    mut egui_context: ResMut<EguiContext>,
     inspector_windows: Res<InspectorWindows>,
 ) where
     T: Inspectable + Send + Sync + 'static,
@@ -183,7 +183,8 @@ fn shared_access_ui<T>(
     };
 
     let window_data = inspector_windows.window_data::<T>();
-    let ctx = egui_context.ctx_for_window(window_data.window_id);
+    let [window_ctx, primary_ctx] =
+        egui_context.ctx_for_windows_mut([window_data.window_id, WindowId::primary()]);
 
     if !window_data.visible {
         return;
@@ -191,10 +192,10 @@ fn shared_access_ui<T>(
     egui::Window::new(&window_data.name)
         .resizable(false)
         .vscroll(true)
-        .show(egui_context.ctx(), |ui| {
+        .show(primary_ctx, |ui| {
             default_settings(ui);
 
-            let mut context = Context::new_shared(Some(ctx));
+            let mut context = Context::new_shared(Some(window_ctx));
             data.ui(ui, T::Attributes::default(), &mut context);
         });
 }
@@ -210,8 +211,8 @@ where
                 return;
             }
 
-            let egui_context = world.get_resource::<EguiContext>().unwrap();
-            let ctx = match egui_context.try_ctx_for_window(window_data.window_id) {
+            let mut egui_context = world.get_resource_mut::<EguiContext>().unwrap();
+            let ctx = match egui_context.try_ctx_for_window_mut(window_data.window_id) {
                 Some(ctx) => ctx.clone(),
                 None => return,
             };

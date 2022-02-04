@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use bevy::{
     ecs::query::{FilterFetch, WorldQuery},
     prelude::*,
+    window::WindowId,
 };
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
@@ -112,17 +113,22 @@ where
 {
     let world_ptr = world as *mut _;
 
-    let egui_context = world.get_resource::<EguiContext>().expect("EguiContext");
-    let ctx = {
+    let window_id = {
         let params = world.get_resource::<WorldInspectorParams>().unwrap();
         if !params.enabled {
             return;
         }
-        let ctx = match egui_context.try_ctx_for_window(params.window) {
-            Some(ctx) => ctx,
-            None => return,
-        };
-        ctx
+        params.window
+    };
+
+    let mut egui_context = world
+        .get_resource_mut::<EguiContext>()
+        .expect("EguiContext");
+    let [window_ctx, primary_ctx] = {
+        match egui_context.try_ctx_for_windows_mut([window_id, WindowId::primary()]) {
+            [Some(window_ctx), Some(primary_ctx)] => [window_ctx, primary_ctx],
+            _ => return,
+        }
     };
     let world: &mut World = unsafe { &mut *world_ptr };
     let mut params = world.get_resource_mut::<WorldInspectorParams>().unwrap();
@@ -131,10 +137,10 @@ where
     egui::Window::new("World")
         .open(&mut is_open)
         .vscroll(true)
-        .show(ctx, |ui| {
+        .show(window_ctx, |ui| {
             crate::plugin::default_settings(ui);
             let world: &mut World = unsafe { &mut *world_ptr };
-            let mut ui_context = WorldUIContext::new(world, Some(egui_context.ctx()));
+            let mut ui_context = WorldUIContext::new(world, Some(primary_ctx));
             ui_context.world_ui::<F>(ui, &mut params);
         });
 

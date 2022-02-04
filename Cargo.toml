@@ -28,7 +28,7 @@ nightly = []
 bevy = { version = "0.6", default-features = false, features = [
     "bevy_render", "bevy_pbr", "bevy_sprite", "bevy_text", "bevy_ui"
 ] }
-bevy_egui = { version = "0.10", default-features = false, features = ["open_url"] }
+bevy_egui = { version = "0.11.1", default-features = false, features = ["open_url"] }
 pretty-type-name = "1.0"
 image = { version = "0.23", default-features = false }
 # bevy_rapier3d = { version = "0.10", optional = true }
