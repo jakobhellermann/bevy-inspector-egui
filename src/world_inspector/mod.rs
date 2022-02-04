@@ -55,7 +55,7 @@ impl WorldInspectorParams {
         WorldInspectorParams {
             ignore_components: HashSet::default(),
             read_only_components: HashSet::default(),
-            sort_components: false,
+            sort_components: true,
             enabled: true,
             despawnable_entities: false,
             window: WindowId::primary(),
