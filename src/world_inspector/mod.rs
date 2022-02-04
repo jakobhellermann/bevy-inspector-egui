@@ -74,11 +74,13 @@ impl WorldInspectorParams {
         self.name_filter = Some(filter.into());
     }
 
-    fn should_ignore_component(&self, type_id: TypeId) -> bool {
+    /// Returns whether the type is in the list of components that should be ignored
+    pub fn should_ignore_component(&self, type_id: TypeId) -> bool {
         self.ignore_components.contains(&type_id)
     }
 
-    fn is_read_only(&self, type_id: TypeId) -> bool {
+    /// Returns whether the type is in the list of components marked read-only
+    pub fn is_read_only(&self, type_id: TypeId) -> bool {
         self.read_only_components.contains(&type_id)
     }
 
@@ -657,7 +659,7 @@ fn guess_entity_name_inner(entity: EntityRef) -> String {
         Transform,
         GlobalTransform
     ) {
-        return format!("Test ({})", id);
+        return format!("Text ({})", id);
     }
     if is_bundle!(
         entity: Text,
