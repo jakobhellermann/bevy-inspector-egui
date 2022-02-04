@@ -75,17 +75,17 @@ Alternatively, you can `#[derive(Reflect)]` and call `world.register_type::<T>()
 
 ```rust
 use bevy::prelude::*;
-use bevy_inspector_egui::{WorldInspector, RegisterInspectable};
+use bevy_inspector_egui::{WorldInspectorPlugin, Inspectable, RegisterInspectable};
 
 #[derive(Inspectable, Component)]
 struct InspectableType;
 
-#[derive(Reflect, Component)]
+#[derive(Reflect, Component, Default)]
 #[reflect(Component)]
 struct ReflectedType;
 
 fn main() {
-  App::build()
+  App::new()
     .add_plugins(DefaultPlugins)
     .add_plugin(WorldInspectorPlugin::new())
     .register_inspectable::<InspectableType>() // tells bevy-inspector-egui how to display the struct in the world inspector
@@ -99,6 +99,7 @@ More examples (with pictures) can be found in the [`examples folder`](examples).
 
 | bevy    | bevy-inspector-egui |
 | ------- | ------------------- |
+| 0.6     | 0.8                 |
 | 0.6     | 0.7                 |
 | 0.5 | 0.5-0.6                 |
 | 0.5     | 0.4                 |

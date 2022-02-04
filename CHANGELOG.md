@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.8
+- update to `bevy_egui` 0.11
+- sort components in world inspector by default
+
 ## Version 0.7
 - update `egui` to 0.16 and `bevy` to 0.6
 - ability to filter entities by name in world inspector

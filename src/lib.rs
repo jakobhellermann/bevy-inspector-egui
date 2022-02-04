@@ -56,8 +56,37 @@
 //! }
 //! # fn setup() {}
 //! ```
-//! You can configure it by inserting the [`WorldInspectorParams`] resource.
-//! In order for custom components to be displayed in the world inspector, you'll need to [register](world_inspector::InspectableRegistry::register) it on the [`InspectableRegistry`](world_inspector::InspectableRegistry).
+//!
+//! You can configure the `WorldInspectorPlugin` by inserting the `WorldInspectorParams` resource.
+//! If you want to only display some components, you may want to use the [InspectorQuery](./examples/README.md#inspector-query-source) instead.
+//!
+//! ### Custom components in the world inspector
+//!
+//! By default, types implementing `Inspectable` will not be displayed in the `WorldInspector`, because the there is no way to know of the trait implementation at runtime.
+//! You can call `world.register_inspectable::<T>()` to tell `bevy-inspector-egui` how that type should be displayed, and it will show up correctly in the world inspector.
+//!
+//! Alternatively, you can `#[derive(Reflect)]` and call `world.register_type::<T>()`. This will enable bevy's reflection feature for the type, and it will show up in the world inspector.
+//!
+//! ```rust
+//! use bevy::prelude::*;
+//! use bevy_inspector_egui::{WorldInspectorPlugin, Inspectable, RegisterInspectable};
+//!
+//! #[derive(Inspectable, Component)]
+//! struct InspectableType;
+//!
+//! #[derive(Reflect, Component, Default)]
+//! #[reflect(Component)]
+//! struct ReflectedType;
+//!
+//! fn main() {
+//!   App::new()
+//!     .add_plugins(DefaultPlugins)
+//!     .add_plugin(WorldInspectorPlugin::new())
+//!     .register_inspectable::<InspectableType>() // tells bevy-inspector-egui how to display the struct in the world inspector
+//!     .register_type::<ReflectedType>() // registers the type in the `bevy_reflect` machinery, so that even without implementing `Inspectable` we can display the struct fields
+//!     .run();
+//! }
+//! ```
 //!
 //! # Features
 //! - **clipboard** (enabled by default): enables `egui`'s clipboard integratoin
