@@ -3,7 +3,6 @@ use std::marker::PhantomData;
 use bevy::{
     ecs::query::{FilterFetch, WorldQuery},
     prelude::*,
-    window::WindowId,
 };
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
@@ -124,9 +123,9 @@ where
     let mut egui_context = world
         .get_resource_mut::<EguiContext>()
         .expect("EguiContext");
-    let [window_ctx, primary_ctx] = {
-        match egui_context.try_ctx_for_windows_mut([window_id, WindowId::primary()]) {
-            [Some(window_ctx), Some(primary_ctx)] => [window_ctx, primary_ctx],
+    let ctx = {
+        match egui_context.try_ctx_for_window_mut(window_id) {
+            Some(ctx) => ctx,
             _ => return,
         }
     };
@@ -137,10 +136,10 @@ where
     egui::Window::new("World")
         .open(&mut is_open)
         .vscroll(true)
-        .show(window_ctx, |ui| {
+        .show(ctx, |ui| {
             crate::plugin::default_settings(ui);
             let world: &mut World = unsafe { &mut *world_ptr };
-            let mut ui_context = WorldUIContext::new(world, Some(primary_ctx));
+            let mut ui_context = WorldUIContext::new(world, Some(ctx));
             ui_context.world_ui::<F>(ui, &mut params);
         });
 

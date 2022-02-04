@@ -183,8 +183,7 @@ fn shared_access_ui<T>(
     };
 
     let window_data = inspector_windows.window_data::<T>();
-    let [window_ctx, primary_ctx] =
-        egui_context.ctx_for_windows_mut([window_data.window_id, WindowId::primary()]);
+    let ctx = egui_context.ctx_for_window_mut(window_data.window_id);
 
     if !window_data.visible {
         return;
@@ -192,10 +191,10 @@ fn shared_access_ui<T>(
     egui::Window::new(&window_data.name)
         .resizable(false)
         .vscroll(true)
-        .show(primary_ctx, |ui| {
+        .show(ctx, |ui| {
             default_settings(ui);
 
-            let mut context = Context::new_shared(Some(window_ctx));
+            let mut context = Context::new_shared(Some(ctx));
             data.ui(ui, T::Attributes::default(), &mut context);
         });
 }
