@@ -18,7 +18,8 @@ pub fn replace_handle_if_dropped<T: Asset>(
     events: &Events<FileDragAndDrop>,
     asset_server: &AssetServer,
 ) -> bool {
-    let drag_and_drop_event = ManualEventReader::default().iter(events).next_back();
+    let mut reader = ManualEventReader::default();
+    let drag_and_drop_event = reader.iter(events).next_back();
     if let Some(FileDragAndDrop::DroppedFile { path_buf, .. }) = &drag_and_drop_event {
         let asset_path = AssetPath::new_ref(path_buf, None);
         let new_handle: Handle<T> = asset_server.load(asset_path);
