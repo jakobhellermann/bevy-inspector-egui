@@ -175,8 +175,10 @@ impl<'a> WorldUIContext<'a> {
             });
         }
 
-        let entites = root_entities.iter(self.world).collect::<Vec<_>>();
-        for entity in entites {
+        let mut entities = root_entities.iter(self.world).collect::<Vec<_>>();
+        entities.sort();
+
+        for entity in entities {
             changed |= self.entity_ui(ui, entity, params, dummy_id.with(entity), &entity_options);
         }
 
