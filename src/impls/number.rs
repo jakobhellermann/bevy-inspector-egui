@@ -51,8 +51,21 @@ impl<T> NumberAttributes<T> {
         }
     }
 
-    pub(crate) fn speed(self, speed: f32) -> Self {
+    pub fn with_speed(self, speed: f32) -> Self {
         NumberAttributes { speed, ..self }
+    }
+
+    pub fn with_min(self, min: T) -> Self {
+        NumberAttributes {
+            min: Some(min),
+            ..self
+        }
+    }
+    pub fn with_max(self, max: T) -> Self {
+        NumberAttributes {
+            max: Some(max),
+            ..self
+        }
     }
 }
 impl NumberAttributes<f32> {
@@ -61,7 +74,7 @@ impl NumberAttributes<f32> {
     }
 
     pub(crate) fn normalized() -> Self {
-        NumberAttributes::between(0.0, 1.0).speed(0.1)
+        NumberAttributes::between(0.0, 1.0).with_speed(0.1)
     }
 }
 
