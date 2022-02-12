@@ -5,6 +5,7 @@ use bevy::pbr::{Clusters, CubemapVisibleEntities, StandardMaterial, VisiblePoint
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
 use bevy::render::render_resource::{PrimitiveTopology, ShaderImport};
 use bevy::render::view::{RenderLayers, VisibleEntities};
+use bevy::text::Text2dSize;
 use bevy::{
     asset::HandleId,
     pbr::DirectionalLight,
@@ -280,6 +281,8 @@ impl_for_struct_delegate_fields!(bevy::sprite::Rect:
     max with Vec2dAttributes::integer(),
 );
 impl_for_struct_delegate_fields!(TextureAtlasSprite: color, index, flip_x, flip_y);
+
+impl_for_struct_delegate_fields!(Text2dSize: size);
 
 impl Inspectable for TextureAtlas {
     type Attributes = ();

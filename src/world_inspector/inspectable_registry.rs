@@ -6,6 +6,7 @@ use bevy::render::camera::{DepthCalculation, ScalingMode, WindowOrigin};
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
 use bevy::render::render_resource::PrimitiveTopology;
 use bevy::render::view::VisibleEntities;
+use bevy::text::Text2dSize;
 use bevy::utils::HashMap;
 use bevy::{pbr::AmbientLight, prelude::*};
 use bevy_egui::egui;
@@ -150,6 +151,7 @@ impl Default for InspectableRegistry {
         this.register::<Handle<Shader>>();
         this.register::<ColorMaterial>();
         this.register::<Handle<ColorMaterial>>();
+        this.register::<Text2dSize>();
 
         this.register::<ClearColor>();
         this.register::<AmbientLight>();
