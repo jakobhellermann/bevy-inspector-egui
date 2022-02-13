@@ -38,7 +38,7 @@
 //! }
 //! ```
 //!
-//! The list of built-in attributes is documented [here](trait.Inspectable.html#default-attributes).
+//! The list of built-in attributes is documented [here](Inspectable#default-attributes).
 //!
 //! ## World Inspector
 //!
@@ -296,7 +296,7 @@ impl<'a> Context<'a> {
         }
     }
 
-    /// Returns the [id](struct.Context.html#structfield.id) if present, otherwise a dummy id.
+    /// Returns the [id](Context#structfield.id) if present, otherwise a dummy id.
     pub fn id(&self) -> egui::Id {
         let dummy_id = egui::Id::new(42);
         match self.id {
