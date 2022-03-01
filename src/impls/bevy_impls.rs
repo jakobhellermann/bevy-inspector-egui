@@ -42,12 +42,12 @@ impl_for_struct_delegate_fields!(ColorMaterial: color, texture);
 
 impl_for_struct_delegate_fields!(
     OrthographicProjection:
-    left with NumberAttributes::positive(),
-    right with NumberAttributes::positive(),
-    bottom with NumberAttributes::positive(),
-    top with NumberAttributes::positive(),
-    near with NumberAttributes::positive(),
-    far with NumberAttributes::positive(),
+    left,
+    right,
+    bottom,
+    top,
+    near,
+    far,
     window_origin,
     scaling_mode,
     scale with NumberAttributes::positive(),
