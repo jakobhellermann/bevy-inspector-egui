@@ -392,6 +392,9 @@ impl Inspectable for Mesh {
                 Mesh::ATTRIBUTE_UV_0,
                 Mesh::ATTRIBUTE_NORMAL,
                 Mesh::ATTRIBUTE_TANGENT,
+                Mesh::ATTRIBUTE_COLOR,
+                Mesh::ATTRIBUTE_JOINT_INDEX,
+                Mesh::ATTRIBUTE_JOINT_WEIGHT,
             ];
             ui.end_row();
 
@@ -412,9 +415,9 @@ impl Inspectable for Mesh {
             ui.label("Vertex Attributes");
             ui.collapsing("Attributes", |ui| {
                 ui.vertical(|ui| {
-                    for &attribute in attributes {
-                        if self.attribute(attribute).is_some() {
-                            ui.label(attribute);
+                    for attribute in attributes {
+                        if self.attribute(attribute.id).is_some() {
+                            ui.label(attribute.name);
                         }
                     }
                 });
