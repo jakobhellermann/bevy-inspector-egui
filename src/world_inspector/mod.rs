@@ -21,7 +21,7 @@ use bevy::{
     utils::HashSet,
 };
 use bevy_egui::egui::{self, Color32};
-use egui::CollapsingHeader;
+use egui::{epaint::FontId, CollapsingHeader};
 use pretty_type_name::pretty_type_name_str;
 use std::{any::TypeId, cell::Cell};
 
@@ -113,7 +113,7 @@ impl Default for WorldInspectorParams {
 /// Context for providing the [`WorldInspectorPlugin`](crate::WorldInspectorPlugin)'s ui
 pub struct WorldUIContext<'a> {
     world: &'a mut World,
-    ui_ctx: Option<&'a egui::CtxRef>,
+    ui_ctx: Option<&'a egui::Context>,
     delete_entity: Cell<Option<Entity>>,
 }
 
@@ -127,7 +127,7 @@ impl Drop for WorldUIContext<'_> {
 
 impl<'a> WorldUIContext<'a> {
     /// Create a new world ui context.
-    pub fn new(world: &'a mut World, ui_ctx: Option<&'a egui::CtxRef>) -> WorldUIContext<'a> {
+    pub fn new(world: &'a mut World, ui_ctx: Option<&'a egui::Context>) -> WorldUIContext<'a> {
         WorldUIContext {
             world,
             ui_ctx,
@@ -440,7 +440,7 @@ pub(crate) unsafe fn try_display(
     inspectable_registry: &InspectableRegistry,
     type_registry: &TypeRegistryInternal,
     ui: &mut egui::Ui,
-    ui_ctx: Option<&egui::CtxRef>,
+    ui_ctx: Option<&egui::Context>,
     id: egui::Id,
 ) -> Result<bool, ()> {
     if let Some(inspect_callback) = inspectable_registry.impls.get(&type_id) {
@@ -491,7 +491,7 @@ fn display_by_reflection(
     world: &mut World,
     entity: Entity,
     ui: &mut egui::Ui,
-    ui_ctx: Option<&egui::CtxRef>,
+    ui_ctx: Option<&egui::Context>,
     id: egui::Id,
 ) -> Result<bool, ()> {
     let registration = type_registry.get(type_id).ok_or(())?;
@@ -524,37 +524,46 @@ fn display_by_reflection(
     ))
 }
 
-macro_rules! layout_job {
-    ( $($kind:ident $text:expr),* $(,)?) => {{
-        let mut job = egui::epaint::text::LayoutJob::default();
-        $(
-            job.append(
-                $text,
-                0.0,
-                egui::TextFormat {
-                    style: egui::TextStyle::$kind,
-                    ..Default::default()
-                },
-            );
-        )*
-        job
-    }}
+fn layout_job(text: Vec<(FontId, &str)>) -> egui::epaint::text::LayoutJob {
+    let mut job = egui::epaint::text::LayoutJob::default();
+    for (font_id, text) in text {
+        job.append(
+            text,
+            0.0,
+            egui::TextFormat {
+                font_id,
+                ..Default::default()
+            },
+        );
+    }
+    job
 }
 
 fn reflection_error_message(ui: &mut egui::Ui, registration: &TypeRegistration) {
-    let job = layout_job!(
-        Monospace registration.short_name(), Body " implements ", Monospace "Reflect",
-        Body ", but does not have a ", Monospace "#[reflect(Component)]", Body " attribute.",
-    );
+    let job = layout_job(vec![
+        (FontId::monospace(14.0), registration.short_name()),
+        (FontId::default(), " implements "),
+        (FontId::monospace(14.0), "Reflect"),
+        (FontId::default(), ", but does not have a "),
+        (FontId::monospace(14.0), "#[reflect(Component)]"),
+        (FontId::default(), " attribute."),
+    ]);
 
     ui.label(job);
 }
 
 fn no_inspectable_error_message(ui: &mut egui::Ui) {
-    let job = layout_job!(
-        Body "This component is neither ", Monospace "Reflect", Body " nor ", Monospace "Inspectable",
-        Body ".\nMake sure to also call ", Monospace "app.register_type", Body " or ", Monospace "app.register_inspectable", Body ".",
-    );
+    let job = layout_job(vec![
+        (FontId::default(), "This component is neither "),
+        (FontId::monospace(14.0), "Reflect"),
+        (FontId::default(), " nor "),
+        (FontId::monospace(14.0), "Inspectable"),
+        (FontId::default(), ".\nMake sure to also call "),
+        (FontId::monospace(14.0), "app.register_type"),
+        (FontId::default(), " or "),
+        (FontId::monospace(14.0), "app.register_inspectable"),
+        (FontId::default(), "."),
+    ]);
 
     ui.label(job);
 }
