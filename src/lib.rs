@@ -115,7 +115,6 @@ use std::marker::PhantomData;
 
 use bevy::ecs::system::Resource;
 use bevy::prelude::{App, Mut, World};
-use egui::CtxRef;
 use utils::error_label_needs_world;
 #[doc(inline)]
 pub use world_inspector::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
@@ -142,7 +141,7 @@ pub mod options {
 /// The context passed to [`Inspectable::ui`].
 pub struct Context<'a> {
     /// egui ui context
-    pub ui_ctx: Option<&'a CtxRef>,
+    pub ui_ctx: Option<&'a egui::Context>,
     /// The world is only available when not using `InspectablePlugin::shared()`
     world: Option<*mut World>,
     _world_marker: PhantomData<&'a mut ()>,
@@ -250,7 +249,7 @@ impl<'a> Context<'a> {
 
 impl<'a> Context<'a> {
     /// Create a new context with access to the world
-    pub fn new_world_access(ui_ctx: Option<&'a CtxRef>, world: &'a mut World) -> Self {
+    pub fn new_world_access(ui_ctx: Option<&'a egui::Context>, world: &'a mut World) -> Self {
         Context {
             ui_ctx,
             world: Some(world),
@@ -260,7 +259,7 @@ impl<'a> Context<'a> {
     }
 
     /// Creates a context without access to `World`
-    pub fn new_shared(ui_ctx: Option<&'a CtxRef>) -> Self {
+    pub fn new_shared(ui_ctx: Option<&'a egui::Context>) -> Self {
         Context {
             ui_ctx,
             world: None,

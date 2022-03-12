@@ -114,7 +114,7 @@ impl Inspectable for Handle<Image> {
                 &mut textures,
                 &mut egui_context,
             ),
-            None => Some((self.clone(), TextureId::User(id_of_handle(self)))),
+            None => Some((self.clone(), egui_context.add_image(self.clone_weak()))),
         };
 
         if let Some((texture, texture_id)) = texture {
@@ -139,11 +139,10 @@ fn rescaled_image<'a>(
     textures: &mut Assets<Image>,
     egui_context: &mut EguiContext,
 ) -> Option<(Handle<Image>, TextureId)> {
-    let id = id_of_handle(handle);
-    let texture = match scaled_down_textures.textures.entry(handle.clone()) {
+    let (texture, texture_id) = match scaled_down_textures.textures.entry(handle.clone()) {
         Entry::Occupied(handle) => {
             let handle: Handle<Image> = handle.get().clone();
-            handle
+            (handle.clone(), egui_context.add_image(handle))
         }
         Entry::Vacant(entry) => {
             let original = textures.get(handle).unwrap();
@@ -154,16 +153,14 @@ fn rescaled_image<'a>(
 
             let handle = textures.add(resized);
             let weak = handle.clone_weak();
-            egui_context.set_egui_texture(id, handle.clone());
+            let texture_id = egui_context.add_image(handle.clone());
             entry.insert(handle);
 
-            weak
+            (weak, texture_id)
         }
     };
 
-    let id = TextureId::User(id);
-
-    Some((texture, id))
+    Some((texture, texture_id))
 }
 
 impl Inspectable for Handle<Font> {
@@ -213,11 +210,4 @@ fn show_texture(
         let response = ui.image(texture_id, size);
         Some(response)
     }
-}
-
-pub(crate) fn id_of_handle(handle: &Handle<Image>) -> u64 {
-    use std::hash::{Hash, Hasher};
-    let mut hasher = std::collections::hash_map::DefaultHasher::default();
-    handle.hash(&mut hasher);
-    hasher.finish()
 }

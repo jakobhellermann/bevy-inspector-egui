@@ -77,7 +77,7 @@ fn point_select(value: &mut Vec2, ui: &mut egui::Ui, options: Vec2dAttributes) -
     };
 
     let mut frame = containers::Frame::dark_canvas(ui.style());
-    frame.margin = egui::Vec2::ZERO;
+    frame.margin = egui::Vec2::ZERO.into();
 
     frame
         .show(ui, |ui| {
