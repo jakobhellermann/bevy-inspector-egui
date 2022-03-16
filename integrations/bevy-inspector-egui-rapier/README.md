@@ -2,7 +2,7 @@
 
 ```toml
 [dependencies]
-bevy-inspector-egui = "0.8"
+bevy-inspector-egui = "0.9"
 bevy-inspector-egui-rapier = { version = "0.1", features = ["rapier3d"] }
 ```
 
@@ -24,4 +24,4 @@ fn main() {
 
 | bevy    | bevy-inspector-egui | bevy-inspector-egui-rapier | bevy_rapier
 | ------- | ------------------- | -------------------------- | ------
-| 0.6     | 0.8                 | 0.1                        | 0.12
+| 0.6     | 0.9                 | 0.1                        | 0.12

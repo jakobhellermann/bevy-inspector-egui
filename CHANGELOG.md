@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.9
+- add `nalgebra` features for `bevy-inspector-egui-rapier` integration crate
+- update to `bevy_egui` 0.12
+- fix allowed value range for `OrthographicProjection`
+
 ## Version 0.8
 - update to `bevy_egui` 0.11
 - sort components in world inspector by default
