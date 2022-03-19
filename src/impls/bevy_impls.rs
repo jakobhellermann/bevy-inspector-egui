@@ -2,9 +2,11 @@ use crate::options::{NumberAttributes, OptionAttributes, Vec2dAttributes};
 use crate::{utils, Context, Inspectable};
 use bevy::math::Vec4Swizzles;
 use bevy::pbr::{Clusters, CubemapVisibleEntities, StandardMaterial, VisiblePointLights};
+use bevy::render::mesh::VertexAttributeValues;
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
 use bevy::render::render_resource::{PrimitiveTopology, ShaderImport};
 use bevy::render::view::{RenderLayers, VisibleEntities};
+use bevy::sprite::Mesh2dHandle;
 use bevy::text::Text2dSize;
 use bevy::{
     asset::HandleId,
@@ -331,7 +333,7 @@ impl Inspectable for StandardMaterial {
                     ui.label("perceptual_roughness");
                     changed |= self.perceptual_roughness.ui(ui, NumberAttributes::between(0.089, 1.0).with_speed(0.01), context);
                     ui.end_row();
-                    
+
                     ui.label("metallic");
                     changed |= self.metallic.ui(ui, NumberAttributes::normalized().with_speed(0.01), context);
                     ui.end_row();
@@ -418,6 +420,96 @@ impl Inspectable for Mesh {
                 });
             });
         });
+
+        false
+    }
+}
+
+impl Inspectable for Mesh2dHandle {
+    type Attributes = ();
+
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &mut Context) -> bool {
+        // Get the mesh from the handle
+        if let Some(mesh) = context
+            .world()
+            .map(|world| world.get_resource::<Assets<Mesh>>())
+            .flatten()
+            .map(|meshes| meshes.get(&self.0))
+            .flatten()
+        {
+            // Get 2D mesh attributes
+            let indices = mesh.indices();
+            let vertices = mesh.attribute(Mesh::ATTRIBUTE_POSITION);
+            let colors = mesh.attribute(Mesh::ATTRIBUTE_COLOR);
+
+            if let Some(((indices, vertices), colors)) = indices.zip(vertices).zip(colors) {
+                // Convert the mesh into colored triangles
+                if let Indices::U32(indices) = indices {
+                    if let VertexAttributeValues::Float32x3(vertices) = vertices {
+                        if let VertexAttributeValues::Float32x4(colors) = colors {
+                            // Convert the mesh data into plot data
+                            let vertices_and_colors = indices
+                                .iter()
+                                .map(|index| {
+                                    let pos = vertices[*index as usize];
+                                    let color = colors[*index as usize];
+                                    (
+                                        // Convert the bevy position to an egui position, discarding the Z value
+                                        egui::plot::Value::new(pos[0], pos[1]),
+                                        // Convert the bevy color to an egui color
+                                        egui::Color32::from_rgba_unmultiplied(
+                                            (color[0] * 255.0) as u8,
+                                            (color[1] * 255.0) as u8,
+                                            (color[2] * 255.0) as u8,
+                                            (color[3] * 255.0) as u8,
+                                        ),
+                                    )
+                                })
+                                .collect::<Vec<_>>();
+
+                            // Draw a grid with all the triangles
+                            Grid::new(context.id()).show(ui, |ui| {
+                                let plot = egui::plot::Plot::new("triangles")
+                                    .legend(egui::plot::Legend::default())
+                                    .data_aspect(0.8)
+                                    .min_size(egui::Vec2::new(250.0, 250.0))
+                                    .show_x(true)
+                                    .show_y(true);
+
+                                plot.show(ui, |plot_ui| {
+                                    vertices_and_colors.chunks_exact(3).for_each(|triangle| {
+                                        plot_ui.polygon(
+                                            egui::plot::Polygon::new(
+                                                egui::plot::Values::from_values_iter(
+                                                    triangle
+                                                        .iter()
+                                                        .map(|vertex_and_color| vertex_and_color.0),
+                                                ),
+                                            )
+                                            // Add thicker strokes and reduce the fill
+                                            // transparency
+                                            .highlight(true)
+                                            .color(triangle[0].1)
+                                            // Use the color as the name so everything
+                                            // with the same color will be grouped
+                                            .name(
+                                                format!(
+                                                    "#{:02X?}{:02X?}{:02X?}{:02X?}",
+                                                    triangle[0].1.r(),
+                                                    triangle[0].1.g(),
+                                                    triangle[0].1.b(),
+                                                    triangle[0].1.a()
+                                                ),
+                                            ),
+                                        );
+                                    });
+                                });
+                            });
+                        }
+                    }
+                }
+            }
+        }
 
         false
     }
