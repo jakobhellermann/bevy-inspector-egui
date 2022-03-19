@@ -1,5 +1,4 @@
-use crate::inspectable;
-use crate::{flags, grid, simple_enum};
+use crate::macros::{inspectable, flags, grid, simple_enum};
 
 use bevy_inspector_egui::{
     egui::{self, ComboBox},

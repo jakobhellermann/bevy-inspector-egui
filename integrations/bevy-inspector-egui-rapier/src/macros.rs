@@ -1,4 +1,5 @@
-#[macro_export]
+#![allow(unused)]
+
 macro_rules! grid {
     ($ui:ident $context:ident $val:expr; $($field:ident $(by $ui_fn:ident)? $(with $attrs:expr)?),*) => {{
         let val = $val;
@@ -31,7 +32,6 @@ macro_rules! grid {
     }};
 }
 
-#[macro_export]
 macro_rules! flags {
     ($ui:ident $context:ident $val:expr; $ty:ty: $($flag:ident)|*) => {{
         let val = $val;
@@ -49,7 +49,6 @@ macro_rules! flags {
     }};
 }
 
-#[macro_export]
 macro_rules! simple_enum {
     ($ui:ident $context:ident $val:expr; $ty:ty : $($variant:ident)|*) => {{
         let val = $val;
@@ -65,7 +64,6 @@ macro_rules! simple_enum {
     }};
 }
 
-#[macro_export]
 macro_rules! inspectable {
     (grid $name:ident $ty:ty as $wrapper:ty: $($tt:tt)*) => {
         fn $name(val: &mut $wrapper, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
@@ -88,3 +86,5 @@ macro_rules! inspectable {
         }
     }
 }
+
+pub(crate) use {flags, grid, inspectable, simple_enum};
