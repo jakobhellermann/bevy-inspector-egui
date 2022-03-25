@@ -4,8 +4,8 @@ use crate::{
 };
 use bevy::utils::Entry;
 use bevy::{
-    app::Events,
     asset::{Asset, HandleId},
+    ecs::event::Events,
     prelude::*,
     render::texture::Image,
     utils::HashMap,

@@ -186,6 +186,7 @@ macro_rules! impl_for_vec {
 
 impl_for_vec!(Vec3: 3 x y z);
 impl_for_vec!(Vec4: 4 x y z w);
+impl_for_vec!(Vec3A: 3 x y z);
 
 impl_for_vec!(UVec2: 2 x y);
 impl_for_vec!(UVec3: 3 x y z);

@@ -3,7 +3,10 @@ mod inspectable_registry;
 mod plugin;
 
 use bevy::{
-    ecs::archetype::Archetype, reflect::TypeRegistration, render::camera::Camera, ui::FocusPolicy,
+    ecs::archetype::Archetype,
+    reflect::TypeRegistration,
+    render::camera::{Camera2d, Camera3d},
+    ui::FocusPolicy,
     window::WindowId,
 };
 pub use inspectable_registry::InspectableRegistry;
@@ -618,11 +621,14 @@ fn guess_entity_name_inner(entity: EntityRef) -> String {
 
     let id = entity.id().id();
 
-    if let Some(camera) = entity.get::<Camera>() {
-        match &camera.name {
-            Some(name) => return name.to_string(),
-            None => return format!("Camera ({})", id),
-        }
+    if entity.get::<Camera3d>().is_some() {
+        return format!("Camera3d ({})", id);
+    }
+    if entity.get::<Camera2d>().is_some() {
+        return format!("Camera2d ({})", id);
+    }
+    if entity.get::<CameraUi>().is_some() {
+        return format!("CameraUi ({})", id);
     }
 
     if is_bundle!(entity: PointLight, Transform, GlobalTransform) {

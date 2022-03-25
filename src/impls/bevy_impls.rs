@@ -1,6 +1,5 @@
 use crate::options::{NumberAttributes, OptionAttributes, Vec2dAttributes};
 use crate::{utils, Context, Inspectable};
-use bevy::math::Vec4Swizzles;
 use bevy::pbr::{Clusters, CubemapVisibleEntities, StandardMaterial, VisiblePointLights};
 use bevy::render::mesh::VertexAttributeValues;
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
@@ -550,7 +549,7 @@ impl Inspectable for VisiblePointLights {
             1 => "light",
             _ => "lights",
         };
-        ui.label(format!("{} visible point {}", self.entities.len(), entity));
+        ui.label(format!("{} visible point {}", len, entity));
         false
     }
 }
@@ -596,16 +595,16 @@ impl Inspectable for Plane {
         ui.vertical_centered(|ui| {
             Grid::new(context.id()).show(ui, |ui| {
                 ui.label("Normal");
-                let mut normal = self.normal_d.xyz();
+                let mut normal = self.normal();
                 changed |= normal.ui(ui, Default::default(), context);
                 ui.end_row();
 
                 ui.label("Distance");
-                let mut distance = self.normal_d.w;
+                let mut distance = self.d();
                 changed |= distance.ui(ui, Default::default(), context);
                 ui.end_row();
 
-                self.normal_d = normal.extend(distance);
+                *self = Self::new(normal.extend(distance));
             });
         });
         changed
