@@ -6,7 +6,6 @@ use bevy::{
     ecs::archetype::Archetype,
     reflect::TypeRegistration,
     render::camera::{Camera2d, Camera3d},
-    ui::FocusPolicy,
     window::WindowId,
 };
 pub use inspectable_registry::InspectableRegistry;
@@ -600,6 +599,7 @@ unsafe fn get_component_and_ticks(
     }
 }
 
+#[allow(unused)]
 macro_rules! is_bundle {
     ($entity:ident: $($ty:ty),* $(,)?) => {
         $( $entity.contains::<$ty>() && )* true
@@ -627,18 +627,22 @@ fn guess_entity_name_inner(entity: EntityRef) -> String {
     if entity.get::<Camera2d>().is_some() {
         return format!("Camera2d ({})", id);
     }
-    if entity.get::<CameraUi>().is_some() {
+    #[cfg(feature = "bevy_ui")]
+    if entity.get::<bevy::ui::entity::CameraUi>().is_some() {
         return format!("CameraUi ({})", id);
     }
 
+    #[cfg(feature = "bevy_pbr")]
     if is_bundle!(entity: PointLight, Transform, GlobalTransform) {
         return format!("Light ({})", id);
     }
 
+    #[cfg(feature = "bevy_pbr")]
     if is_bundle!(entity: DirectionalLight, Transform, GlobalTransform) {
         return format!("Directional Light ({})", id);
     }
 
+    #[cfg(feature = "bevy_pbr")]
     if is_bundle!(
         entity: Handle<Mesh>,
         Handle<StandardMaterial>,
@@ -648,17 +652,12 @@ fn guess_entity_name_inner(entity: EntityRef) -> String {
         return format!("Pbr Mesh ({})", id);
     }
 
-    if is_bundle!(
-        entity: Node,
-        Style,
-        Text,
-        CalculatedSize,
-        FocusPolicy,
-        Transform,
-        GlobalTransform
-    ) {
+    #[cfg(feature = "bevy_text")]
+    if is_bundle!(entity: Text, Transform, GlobalTransform) {
         return format!("Text ({})", id);
     }
+
+    #[cfg(feature = "bevy_text")]
     if is_bundle!(
         entity: Text,
         Transform,
@@ -667,6 +666,8 @@ fn guess_entity_name_inner(entity: EntityRef) -> String {
     ) {
         return format!("Text2d ({})", id);
     }
+
+    #[cfg(feature = "bevy_ui")]
     if is_bundle!(
         entity: Node,
         Style,

@@ -10,10 +10,7 @@ use bevy::{
     render::texture::Image,
     utils::HashMap,
 };
-use bevy_egui::{
-    egui::{self, Color32, RichText},
-    EguiContext,
-};
+use bevy_egui::{egui, EguiContext};
 use egui::TextureId;
 pub use image::imageops::FilterType;
 
@@ -160,34 +157,6 @@ fn rescaled_image<'a>(
     };
 
     Some((texture, texture_id))
-}
-
-impl Inspectable for Handle<Font> {
-    type Attributes = ();
-
-    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &mut Context) -> bool {
-        let world = match context.world() {
-            Some(world) => world,
-            None => return error_label_needs_world(ui, "Handle<Font>"),
-        };
-
-        let asset_server = world.get_resource::<AssetServer>().unwrap();
-        let file_events = world.get_resource::<Events<FileDragAndDrop>>().unwrap();
-
-        let fonts = world.get_resource::<Assets<Font>>().unwrap();
-
-        let label = if fonts.contains(self.id) {
-            egui::Label::new("<font>")
-        } else {
-            egui::Label::new(RichText::new("No font").color(Color32::RED))
-        };
-
-        if utils::ui::drag_and_drop_target_label(ui, label).hovered() {
-            utils::ui::replace_handle_if_dropped(self, file_events, asset_server)
-        } else {
-            false
-        }
-    }
 }
 
 fn show_texture(

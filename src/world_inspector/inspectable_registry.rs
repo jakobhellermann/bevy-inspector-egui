@@ -1,14 +1,12 @@
 use crate::{Context, Inspectable};
 use bevy::asset::HandleId;
 use bevy::math::{DVec2, DVec3, DVec4};
-use bevy::pbr::{Clusters, CubemapVisibleEntities, VisiblePointLights};
+use bevy::prelude::*;
 use bevy::render::camera::{DepthCalculation, ScalingMode, WindowOrigin};
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
 use bevy::render::render_resource::PrimitiveTopology;
 use bevy::render::view::VisibleEntities;
-use bevy::text::Text2dSize;
 use bevy::utils::HashMap;
-use bevy::{pbr::AmbientLight, prelude::*};
 use bevy_egui::egui;
 use std::any::{Any, TypeId};
 
@@ -119,48 +117,65 @@ impl Default for InspectableRegistry {
         this.register::<std::time::Duration>();
 
         this.register::<Color>();
-        this.register::<TextureAtlasSprite>();
-        this.register::<TextureAtlas>();
-        this.register::<PointLight>();
-        this.register::<DirectionalLight>();
+
+        #[cfg(feature = "bevy_pbr")]
+        {
+            use bevy::pbr::{Clusters, CubemapVisibleEntities, VisiblePointLights};
+
+            this.register::<DirectionalLight>();
+            this.register::<VisiblePointLights>();
+            this.register::<CubemapVisibleEntities>();
+            this.register::<Clusters>();
+            this.register::<PointLight>();
+            this.register::<StandardMaterial>();
+            this.register::<Handle<StandardMaterial>>();
+            this.register::<AmbientLight>();
+        }
+        #[cfg(feature = "bevy_text")]
+        {
+            use bevy::text::Text2dSize;
+            register!(this VerticalAlign, HorizontalAlign, TextAlignment, TextStyle, TextSection, Text);
+            this.register::<Text2dSize>();
+        }
+
+        #[cfg(feature = "bevy_sprite")]
+        {
+            this.register::<TextureAtlasSprite>();
+            this.register::<TextureAtlas>();
+            this.register::<bevy::sprite::Rect>();
+            this.register::<Sprite>();
+            this.register::<Handle<TextureAtlas>>();
+            this.register::<ColorMaterial>();
+            this.register::<Handle<ColorMaterial>>();
+        }
+
+        #[cfg(feature = "bevy_ui")]
+        {
+            register!(this Display, Style, Size<f32>, Size<Val>, Val, bevy::ui::FocusPolicy);
+            register!(this PositionType, Direction, FlexDirection, FlexWrap, AlignItems, AlignSelf, JustifyContent);
+        }
+
         this.register::<PrimitiveTopology>();
-        this.register::<bevy::sprite::Rect>();
-        this.register::<Sprite>();
         this.register::<bevy::render::view::RenderLayers>();
 
         this.register::<WindowOrigin>();
         this.register::<ScalingMode>();
         this.register::<DepthCalculation>();
         this.register::<VisibleEntities>();
-        this.register::<VisiblePointLights>();
-        this.register::<CubemapVisibleEntities>();
         this.register::<CubemapFrusta>();
         this.register::<Frustum>();
         this.register::<Plane>();
-        this.register::<Clusters>();
 
         // this.register::<Image>();
         this.register::<Handle<Image>>();
-        this.register::<StandardMaterial>();
-        this.register::<Handle<StandardMaterial>>();
         // this.register::<Handle<TextureAtlas>>();
-        this.register::<Handle<TextureAtlas>>();
         this.register::<Mesh>();
         this.register::<Handle<Mesh>>();
         this.register::<Shader>();
         this.register::<Handle<Shader>>();
-        this.register::<ColorMaterial>();
-        this.register::<Handle<ColorMaterial>>();
-        this.register::<Text2dSize>();
 
         this.register::<ClearColor>();
-        this.register::<AmbientLight>();
         this.register::<Shader>();
-        this.register::<ColorMaterial>();
-
-        register!(this Display, Style, Size<f32>, Size<Val>, Val, bevy::ui::FocusPolicy);
-        register!(this VerticalAlign, HorizontalAlign, TextAlignment, TextStyle, TextSection, Text);
-        register!(this PositionType, Direction, FlexDirection, FlexWrap, AlignItems, AlignSelf, JustifyContent);
 
         this
     }

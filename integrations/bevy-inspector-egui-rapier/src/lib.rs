@@ -27,7 +27,7 @@ use bevy_inspector_egui::{InspectableRegistry, WorldInspectorParams};
 pub struct InspectableRapierPlugin;
 
 #[cfg(all(not(feature = "rapier2d"), not(feature = "rapier3d")))]
-compile_error!("please select either the rapier2d or the rapier3d feature of the crate bevy-inspector-egui-rapier");
+//compile_error!("please select either the rapier2d or the rapier3d feature of the crate bevy-inspector-egui-rapier");
 impl Plugin for InspectableRapierPlugin {
     fn build(&self, app: &mut App) {
         #[allow(unused_mut)]

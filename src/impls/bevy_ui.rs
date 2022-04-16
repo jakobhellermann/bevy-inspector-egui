@@ -7,8 +7,6 @@ use super::{NumberAttributes, OptionAttributes};
 
 impl_for_simple_enum!(Display: Flex, None);
 impl_for_simple_enum!(bevy::ui::FocusPolicy: Block, Pass);
-impl_for_simple_enum!(VerticalAlign: Top, Center, Bottom);
-impl_for_simple_enum!(HorizontalAlign: Left, Center, Right);
 impl_for_simple_enum!(PositionType: Absolute, Relative);
 impl_for_simple_enum!(Direction: Inherit, LeftToRight, RightToLeft);
 impl_for_simple_enum!(FlexDirection: Row, Column, RowReverse, ColumnReverse);
@@ -38,11 +36,6 @@ impl_for_simple_enum!(
     SpaceEvenly
 );
 
-impl_for_struct_delegate_fields!(TextAlignment: vertical, horizontal);
-impl_for_struct_delegate_fields!(TextStyle: font, font_size, color);
-impl_for_struct_delegate_fields!(TextSection: value, style);
-impl_for_struct_delegate_fields!(Text: sections, alignment);
-
 impl_for_struct_delegate_fields!(
     Style:
     display,
@@ -66,32 +59,6 @@ impl_for_struct_delegate_fields!(
     max_size,
     aspect_ratio with OptionAttributes { deletable: true, replacement: Some(|| 1.), inner: NumberAttributes::positive() },
 );
-
-impl<T: Inspectable + Reflect + PartialEq> Inspectable for Size<T> {
-    type Attributes = T::Attributes;
-
-    fn ui(
-        &mut self,
-        ui: &mut bevy_egui::egui::Ui,
-        options: Self::Attributes,
-        context: &mut crate::Context,
-    ) -> bool {
-        let mut changed = false;
-        ui.vertical_centered(|ui| {
-            crate::egui::Grid::new(context.id()).show(ui, |ui| {
-                ui.label("width");
-                changed |= self.width.ui(ui, options.clone(), &mut context.with_id(0));
-                ui.end_row();
-
-                ui.label("height");
-                changed |= self.height.ui(ui, options, &mut context.with_id(1));
-                ui.end_row();
-            });
-            ui.separator();
-        });
-        changed
-    }
-}
 
 impl<T: Inspectable + Reflect + PartialEq> Inspectable for Rect<T> {
     type Attributes = T::Attributes;
