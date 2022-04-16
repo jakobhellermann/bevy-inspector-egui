@@ -1,5 +1,5 @@
 use crate::{Context, Inspectable};
-use bevy::app::Events;
+use bevy::ecs::event::Events;
 use bevy::prelude::*;
 use std::marker::PhantomData;
 

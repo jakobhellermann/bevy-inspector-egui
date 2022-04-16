@@ -1,6 +1,6 @@
 use bevy::{
-    app::{Events, ManualEventReader},
     asset::{Asset, AssetPath},
+    ecs::event::{Events, ManualEventReader},
     prelude::*,
 };
 use bevy_egui::egui::{self, Response, RichText, Widget};

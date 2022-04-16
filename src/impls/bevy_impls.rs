@@ -386,7 +386,7 @@ impl Inspectable for Mesh {
             ui.label("Primitive Topology");
             let _ = ui.button(format!("{:?}", self.primitive_topology()));
 
-            let attributes = &[
+            let attributes = [
                 Mesh::ATTRIBUTE_POSITION,
                 Mesh::ATTRIBUTE_COLOR,
                 Mesh::ATTRIBUTE_UV_0,
@@ -412,9 +412,9 @@ impl Inspectable for Mesh {
             ui.label("Vertex Attributes");
             ui.collapsing("Attributes", |ui| {
                 ui.vertical(|ui| {
-                    for &attribute in attributes {
-                        if self.attribute(attribute).is_some() {
-                            ui.label(attribute);
+                    for attribute in attributes {
+                        if self.attribute(attribute.clone()).is_some() {
+                            ui.label(attribute.name.to_string());
                         }
                     }
                 });
@@ -547,7 +547,7 @@ impl Inspectable for VisiblePointLights {
             1 => "light",
             _ => "lights",
         };
-        ui.label(format!("{} visible point {}", self.entities.len(), entity));
+        ui.label(format!("{} visible point {}", self.len(), entity));
         false
     }
 }
@@ -593,16 +593,16 @@ impl Inspectable for Plane {
         ui.vertical_centered(|ui| {
             Grid::new(context.id()).show(ui, |ui| {
                 ui.label("Normal");
-                let mut normal = self.normal_d.xyz();
+                let mut normal = self.normal_d().xyz();
                 changed |= normal.ui(ui, Default::default(), context);
                 ui.end_row();
 
                 ui.label("Distance");
-                let mut distance = self.normal_d.w;
+                let mut distance = self.normal_d().w;
                 changed |= distance.ui(ui, Default::default(), context);
                 ui.end_row();
 
-                self.normal_d = normal.extend(distance);
+                self.clone_from(&Plane::new(normal.extend(distance)));
             });
         });
         changed

@@ -618,11 +618,8 @@ fn guess_entity_name_inner(entity: EntityRef) -> String {
 
     let id = entity.id().id();
 
-    if let Some(camera) = entity.get::<Camera>() {
-        match &camera.name {
-            Some(name) => return name.to_string(),
-            None => return format!("Camera ({})", id),
-        }
+    if entity.get::<Camera>().is_some() {
+        return format!("Camera ({})", id);
     }
 
     if is_bundle!(entity: PointLight, Transform, GlobalTransform) {

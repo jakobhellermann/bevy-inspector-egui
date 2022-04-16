@@ -1,15 +1,13 @@
-use std::collections::hash_map::Entry;
-
 use crate::{
     utils::{self, error_label_needs_world, image_texture_conversion},
     Context, Inspectable,
 };
 use bevy::{
-    app::Events,
     asset::{Asset, HandleId},
+    ecs::event::Events,
     prelude::*,
     render::texture::Image,
-    utils::HashMap,
+    utils::{Entry, HashMap},
 };
 use bevy_egui::{
     egui::{self, Color32, RichText},

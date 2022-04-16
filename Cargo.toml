@@ -23,10 +23,10 @@ clipboard = ["bevy_egui/manage_clipboard"]
 nightly = []
 
 [dependencies]
-bevy = { version = "0.6", default-features = false, features = [
+bevy = { version = "0.7", default-features = false, features = [
     "bevy_render", "bevy_pbr", "bevy_sprite", "bevy_text", "bevy_ui"
 ] }
-bevy_egui = { version = "0.12.0", default-features = false, features = ["open_url"] }
+bevy_egui = { version = "0.13.0", default-features = false, features = ["open_url"] }
 pretty-type-name = "1.0"
 image = { version = "0.23", default-features = false }
 nalgebra030 = { package = "nalgebra", version = "0.30", optional = true }
@@ -35,7 +35,7 @@ bevy-inspector-egui-derive = { version = "0.7.1", path = "bevy-inspector-egui-de
 rand = "0.8"
 
 [dev-dependencies]
-bevy = { version = "0.6", default-features = false, features = ["x11", "bevy_winit"] }
+bevy = { version = "0.7", default-features = false, features = ["x11", "bevy_winit"] }
 # bevy_mod_picking = { version = "0.4" }
 noise = "0.7"
 once_cell = "1.0"
