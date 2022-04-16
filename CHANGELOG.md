@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.10
+- update to bevy 0.7
+- put `bevy_pbr`, `bevy_sprite`, `bevy_text`, `bevy_ui` behind feature flags (enabled by default)
+- implement `Inspectable` for `Mesh2dHandle` (thanks to @tversteeg [https://github.com/jakobhellermann/bevy-inspector-egui/pull/51](#51))
+
 ## Version 0.9
 - add `nalgebra` features for `bevy-inspector-egui-rapier` integration crate
 - update to `bevy_egui` 0.12
