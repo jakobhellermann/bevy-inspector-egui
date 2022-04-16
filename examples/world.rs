@@ -55,11 +55,7 @@ fn setup(
     ));
     commands
         .spawn_bundle(PerspectiveCameraBundle {
-            transform: Transform::from_matrix(Mat4::face_toward(
-                Vec3::new(-3.0, 5.0, 8.0),
-                Vec3::new(0.0, 0.0, 0.0),
-                Vec3::new(0.0, 1.0, 0.0),
-            )),
+            transform: Transform::from_xyz(-3.0, 5.0, 8.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..Default::default()
         })
         .insert(Name::new("Camera"));
@@ -159,18 +155,18 @@ impl Default for TeleportState {
 fn movement(
     time: Res<Time>,
     mut state: Local<TeleportState>,
-    mut qs: QuerySet<(
-        QueryState<&mut Transform, With<RotateTarget>>,
-        QueryState<&mut Transform, With<TeleportTarget>>,
+    mut qs: ParamSet<(
+        Query<&mut Transform, With<RotateTarget>>,
+        Query<&mut Transform, With<TeleportTarget>>,
     )>,
 ) {
-    for mut transform in qs.q0().iter_mut() {
+    for mut transform in qs.p0().iter_mut() {
         // rotate around vertical axis through origin
         transform.translation =
             Quat::from_axis_angle(Vec3::Y, time.delta_seconds()) * transform.translation;
     }
     if state.timer.tick(time.delta()).just_finished() {
-        for mut transform in qs.q1().iter_mut() {
+        for mut transform in qs.p1().iter_mut() {
             // jump to new position to the left or right
             transform.translation += match state.count % 4 {
                 0 | 3 => -Vec3::X,
