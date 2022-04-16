@@ -121,15 +121,14 @@ pub fn expand_enum(
     })
 }
 
-fn enum_variants<'a>(
-    data: &'a syn::DataEnum,
-) -> impl Iterator<Item = (&'a syn::Ident, Vec<(usize, &'a syn::Field)>)> {
+fn enum_variants(
+    data: &syn::DataEnum,
+) -> impl Iterator<Item = (&syn::Ident, Vec<(usize, &syn::Field)>)> {
     data.variants.iter().map(|variant| {
         let has_inspectable_attr = variant
             .attrs
             .iter()
-            .find(|attr| attr.path.get_ident().map_or(false, |p| p == "inspectable"))
-            .is_some();
+            .any(|attr| attr.path.get_ident().map_or(false, |p| p == "inspectable"));
         assert!(
             !has_inspectable_attr,
             "inspectable attributes are not supported on enum variants."
@@ -191,8 +190,8 @@ fn field_ui(
             }
         };
 
-        let ui = attributes.decorate_ui(ui, field_label, *i);
-        ui
+        
+        attributes.decorate_ui(ui, field_label, *i)
     });
 
     quote! {

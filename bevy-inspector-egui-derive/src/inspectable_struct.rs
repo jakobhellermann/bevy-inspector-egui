@@ -27,7 +27,7 @@ pub fn expand_struct(
                 };
                 let span = span
                     .or_else(|| field.ident.as_ref().map(|i| i.span()))
-                    .unwrap_or(field.ty.span());
+                    .unwrap_or_else(|| field.ty.span());
 
                 return Err(syn::Error::new(
                     span,

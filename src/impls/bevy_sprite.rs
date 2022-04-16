@@ -57,16 +57,15 @@ impl Inspectable for Mesh2dHandle {
         // Get the mesh from the handle
         if let Some(mesh) = context
             .world()
-            .map(|world| world.get_resource::<Assets<Mesh>>())
-            .flatten()
-            .map(|meshes| meshes.get(&self.0))
-            .flatten()
+            .and_then(|world| world.get_resource::<Assets<Mesh>>())
+            .and_then(|meshes| meshes.get(&self.0))
         {
             // Get 2D mesh attributes
             let indices = mesh.indices();
             let vertices = mesh.attribute(Mesh::ATTRIBUTE_POSITION);
             let colors = mesh.attribute(Mesh::ATTRIBUTE_COLOR);
 
+            #[allow(clippy::collapsible_match)]
             if let Some(((indices, vertices), colors)) = indices.zip(vertices).zip(colors) {
                 // Convert the mesh into colored triangles
                 if let Indices::U32(indices) = indices {
