@@ -1,6 +1,6 @@
 [package]
 name = "bevy-inspector-egui"
-version = "0.9.0"
+version = "0.10.0"
 authors = [
     "Jakob Hellermann <jakob.hellermann@protonmail.com>",
     "Will Crichton <wcrichto@cs.stanford.edu>",
@@ -23,19 +23,18 @@ clipboard = ["bevy_egui/manage_clipboard"]
 nightly = []
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", default-features = false, features = [
+bevy = { version = "0.7", default-features = false, features = [
     "bevy_render", "bevy_pbr", "bevy_sprite", "bevy_text", "bevy_ui"
 ] }
-bevy_egui = { git = "https://github.com/jakobhellermann/bevy_egui", branch = "bevy-main", default-features = false, features = ["open_url"] }
+bevy_egui = { version = "0.13", default-features = false, features = ["open_url"] }
 pretty-type-name = "1.0"
 image = { version = "0.23", default-features = false }
 nalgebra030 = { package = "nalgebra", version = "0.30", optional = true }
 
-bevy-inspector-egui-derive = { version = "0.7.1", path = "bevy-inspector-egui-derive" }
-rand = "0.8"
+bevy-inspector-egui-derive = { version = "0.10.0", path = "bevy-inspector-egui-derive" }
 
 [dev-dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", default-features = false, features = ["x11", "bevy_winit"] }
+bevy = { version = "0.7", default-features = false, features = ["x11", "bevy_winit"] }
 # bevy_mod_picking = { version = "0.4" }
 noise = "0.7"
 once_cell = "1.0"

@@ -99,6 +99,7 @@ More examples (with pictures) can be found in the [`examples folder`](examples).
 
 | bevy    | bevy-inspector-egui |
 | ------- | ------------------- |
+| 0.7     | 0.10                |
 | 0.6     | 0.9                 |
 | 0.6     | 0.8                 |
 | 0.6     | 0.7                 |
