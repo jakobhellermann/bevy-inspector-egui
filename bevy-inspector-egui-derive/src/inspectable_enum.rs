@@ -190,7 +190,6 @@ fn field_ui(
             }
         };
 
-        
         attributes.decorate_ui(ui, field_label, *i)
     });
 
