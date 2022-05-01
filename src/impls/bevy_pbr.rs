@@ -1,10 +1,11 @@
 use bevy::{
     asset::HandleId,
     pbr::{
-        AmbientLight, Clusters, CubemapVisibleEntities, DirectionalLight, PointLight,
+        AlphaMode, AmbientLight, Clusters, CubemapVisibleEntities, DirectionalLight, PointLight,
         StandardMaterial, VisiblePointLights,
     },
     prelude::{Color, Handle, Image},
+    render::render_resource::Face,
 };
 use bevy_egui::egui;
 
@@ -75,6 +76,44 @@ impl Inspectable for StandardMaterial {
                     ui.label("unlit");
                     changed |= self.unlit.ui(ui, Default::default(), context);
                     ui.end_row();
+
+                    ui.label("cull_mode");
+                    egui::ComboBox::from_id_source("cull_mode")
+                        .selected_text(format!("{:?}", self.cull_mode))
+                        .show_ui(ui, |ui| {
+                            changed |= ui.selectable_value(&mut self.cull_mode, None, "None").changed();
+                            changed |= ui.selectable_value(&mut self.cull_mode, Some(Face::Front), "Front").changed();
+                            changed |= ui.selectable_value(&mut self.cull_mode, Some(Face::Back), "Back").changed();
+                        });
+                    ui.end_row();
+
+                    ui.label("flip_normal_map_y");
+                    changed |= self.flip_normal_map_y.ui(ui, Default::default(), context);
+                    ui.end_row();
+
+                    ui.label("double_sided");
+                    changed |= self.double_sided.ui(ui, Default::default(), context);
+                    ui.end_row();
+
+                    ui.label("alpha_mode");
+                    egui::ComboBox::from_id_source("alpha_mode")
+                        .selected_text(format!("{:?}", self.alpha_mode))
+                        .show_ui(ui, |ui| {
+                            changed |= ui.selectable_value(&mut self.alpha_mode, AlphaMode::Blend, "Blend").changed();
+                            let alpha_mask = match self.alpha_mode {
+                                AlphaMode::Mask(m) => m,
+                                _ => 0.0
+                            };
+                            changed |= ui.selectable_value(&mut self.alpha_mode, AlphaMode::Mask(alpha_mask), "Mask").changed();
+                            changed |= ui.selectable_value(&mut self.alpha_mode, AlphaMode::Opaque, "Opaque").changed();
+                        });
+                    ui.end_row();
+
+                    if let AlphaMode::Mask(ref mut alpha_mask) = self.alpha_mode {
+                        ui.label("alpha_mask");
+                        changed |= alpha_mask.ui(ui, NumberAttributes::positive(), context);
+                        ui.end_row();
+                    }
                 });
             });
 
