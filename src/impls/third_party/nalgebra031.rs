@@ -1,5 +1,5 @@
 use bevy_egui::egui;
-use nalgebra030::{
+use nalgebra031::{
     allocator::Allocator, storage::StorageMut, Complex, DefaultAllocator, Dim, DimName, Isometry,
     Matrix, OPoint, Quaternion, SVector, Scalar, Translation, Unit,
 };
