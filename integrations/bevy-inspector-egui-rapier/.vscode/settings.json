@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.cargo.features": [
+        "rapier2d",
+        "rapier3d"
+    ]
+}

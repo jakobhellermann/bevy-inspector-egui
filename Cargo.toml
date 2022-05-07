@@ -54,8 +54,8 @@ name = "world"
 [patch.crates-io]
 
 [workspace]
-members = [".", "bevy-inspector-egui-derive"]
-# members = [".", "bevy-inspector-egui-derive", "integrations/*"]
+# members = [".", "bevy-inspector-egui-derive"]
+members = [".", "bevy-inspector-egui-derive", "integrations/*"]
 
 [profile.dev.package."*"]
 opt-level = 2

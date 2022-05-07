@@ -1,18 +1,14 @@
 use bevy::prelude::*;
 use bevy::render::mesh::shape;
-use bevy_inspector_egui::{widgets::InspectorQuerySingle, InspectorPlugin, WorldInspectorParams};
+use bevy_inspector_egui::{widgets::InspectorQuerySingle, InspectorPlugin};
 use bevy_inspector_egui_rapier::InspectableRapierPlugin;
 use bevy_rapier3d::prelude::*;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(RapierRenderPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .insert_resource(WorldInspectorParams {
-            sort_components: true,
-            ..Default::default()
-        })
+        .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(InspectorPlugin::<InspectorQuerySingle<Entity, With<Cube>>>::new())
         .add_plugin(InspectableRapierPlugin)
         .add_startup_system(setup)
@@ -39,16 +35,9 @@ fn setup(
     commands
         // .spawn_bundle(floor)
         .spawn()
-        .insert(ColliderDebugRender::with_id(0))
         .insert(Name::new("Floor"))
-        .insert_bundle(RigidBodyBundle {
-            body_type: RigidBodyType::Static.into(),
-            ..Default::default()
-        })
-        .insert_bundle(ColliderBundle {
-            shape: ColliderShape::cuboid(floor_size / 2.0, 0.1, floor_size / 2.0).into(),
-            ..Default::default()
-        });
+        .insert(RigidBody::Fixed)
+        .insert(Collider::cuboid(floor_size / 2.0, 0.1, floor_size / 2.0));
 
     let _cube = PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: cube_size })),
@@ -59,18 +48,15 @@ fn setup(
     commands
         // .spawn_bundle(cube)
         .spawn()
-        .insert(ColliderDebugRender::with_id(1))
         .insert(Cube)
         .insert(Name::new("Cube"))
-        .insert_bundle(ColliderBundle {
-            shape: ColliderShape::cuboid(cube_size / 2.0, cube_size / 2.0, cube_size / 2.0).into(),
-            ..Default::default()
-        })
-        .insert_bundle(RigidBodyBundle {
-            position: Vec3::new(0.0, 2.0, 0.0).into(),
-            ..Default::default()
-        })
-        .insert(ColliderPositionSync::Discrete);
+        .insert(Collider::cuboid(
+            cube_size / 2.0,
+            cube_size / 2.0,
+            cube_size / 2.0,
+        ))
+        .insert(RigidBody::Dynamic)
+        .insert(Transform::from_xyz(0.0, 2.0, 0.0));
 
     commands.spawn_bundle(PointLightBundle {
         transform: Transform::from_xyz(4.0, 8.0, 4.0),

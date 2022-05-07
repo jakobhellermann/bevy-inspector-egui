@@ -22,6 +22,13 @@ impl Vec2dAttributes {
         }
     }
 
+    pub fn min(value: Vec2) -> Self {
+        Vec2dAttributes {
+            min: Some(value),
+            ..Default::default()
+        }
+    }
+
     pub fn positive() -> Self {
         Vec2dAttributes {
             min: Some(Vec2::ZERO),

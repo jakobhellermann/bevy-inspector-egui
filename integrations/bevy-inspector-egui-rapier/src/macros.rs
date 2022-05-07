@@ -12,7 +12,7 @@ macro_rules! grid {
             ui.label(stringify!($field));
             let field = &mut val.$field;
             let context = &mut $context.with_id(i);
-            changed |= grid!(@field ui context field; $(by $ui_fn)? $(with $attrs)?);
+            changed |= $crate::macros::grid!(@field ui context field; $(by $ui_fn)? $(with $attrs)?);
             ui.end_row();
             i += 1;
             )*
@@ -64,27 +64,53 @@ macro_rules! simple_enum {
     }};
 }
 
+macro_rules! enum_one {
+    ($ui:ident $context:ident $val:ident; $ty:ident: $($variant:ident {$attributes:expr})|*) => {{
+        let selected = match $val {
+            $($ty::$variant(_) => stringify!($variant),)*
+        };
+        ComboBox::from_id_source($context.id())
+            .selected_text(selected)
+            .show_ui($ui, |ui| {
+                $(if ui
+                    .selectable_label(matches!($val, $ty::$variant(_)), stringify!($variant))
+                    .clicked()
+                {
+                    *$val = $ty::$variant(Default::default());
+                })*
+            });
+        match $val {
+            $($ty::$variant(val) => val.ui($ui, $attributes, $context),)*
+        }
+    }};
+}
+
 macro_rules! inspectable {
-    (grid $name:ident $ty:ty as $wrapper:ty: $($tt:tt)*) => {
-        fn $name(val: &mut $wrapper, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
-            grid!(ui context &mut val.0; $($tt)*)
+    (grid $name:ident $ty:ty: $($tt:tt)*) => {
+        fn $name(val: &mut $ty, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
+            $crate::macros::grid!(ui context val; $($tt)*)
         }
     };
-    (flags $name:ident $ty:ty as $wrapper:ty: $($tt:tt)*) => {
-        fn $name(val: &mut $wrapper, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
-            flags!(ui context &mut val.0; $ty: $($tt)*)
+    (flags $name:ident $ty:ty: $($tt:tt)*) => {
+        fn $name(val: &mut $ty, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
+            $crate::macros::flags!(ui context val; $ty: $($tt)*)
         }
     };
-    (enum $name:ident $ty:ty as $wrapper:ty: $($tt:tt)*) => {
-        fn $name(val: &mut $wrapper, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
-            simple_enum!(ui context &mut val.0; $ty: $($tt)*)
+    (enum $name:ident $ty:ty: $($tt:tt)*) => {
+        fn $name(val: &mut $ty, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
+            $crate::macros::simple_enum!(ui context val; $ty: $($tt)*)
         }
     };
-    (defer $name:ident $ty:ty as $wrapper:ty: $val:tt) => {
-        fn $name(val: &mut $wrapper, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
-            val.0.$val.ui(ui, Default::default(), context)
+    (enum_one $name:ident $ty:ident: $($tt:tt)*) => {
+        fn $name(val: &mut $ty, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
+            $crate::macros::enum_one!(ui context val; $ty: $($tt)*)
+        }
+    };
+    (defer $name:ident $ty:ty: $val:tt) => {
+        fn $name(val: &mut $ty, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
+            val.$val.ui(ui, Default::default(), context)
         }
     }
 }
 
-pub(crate) use {flags, grid, inspectable, simple_enum};
+pub(crate) use {enum_one, flags, grid, inspectable, simple_enum};

@@ -4,16 +4,19 @@
 //! bevy-inspector-egui-rapier = { version = "0.1", features = ["rapier3d"] }
 //! ```
 //!
-//! ```rust
+//! ```rust,no_run
 //! use bevy::prelude::*;
+//! use bevy_inspector_egui::WorldInspectorPlugin;
+//! use bevy_inspector_egui_rapier::InspectableRapierPlugin;
+//! use bevy_rapier3d::prelude::*;
 //!
 //! fn main() {
 //!     App::new()
 //!         .add_plugins(DefaultPlugins)
-//!         .add_plugin(RapierRenderPlugin)
+//!         .add_plugin(RapierDebugRenderPlugin::default())
 //!         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
 //!         .add_plugin(InspectableRapierPlugin) // <--- register the inspectable UI functions for rapier types
-//!         .add_plugin(WorldInpsectorPlugin)
+//!         .add_plugin(WorldInspectorPlugin::default())
 //!         .run();
 //! }
 //! ```
@@ -21,13 +24,14 @@
 mod macros;
 
 use bevy::prelude::{App, Plugin};
-use bevy_inspector_egui::{InspectableRegistry, WorldInspectorParams};
+use bevy_inspector_egui::InspectableRegistry;
 
 /// Plugin that will add register rapier components on the [`InspectableRegistry`]
 pub struct InspectableRapierPlugin;
 
 #[cfg(all(not(feature = "rapier2d"), not(feature = "rapier3d")))]
-//compile_error!("please select either the rapier2d or the rapier3d feature of the crate bevy-inspector-egui-rapier");
+compile_error!("please select either the rapier2d or the rapier3d feature of the crate bevy-inspector-egui-rapier");
+
 impl Plugin for InspectableRapierPlugin {
     fn build(&self, app: &mut App) {
         #[allow(unused_mut)]
@@ -39,29 +43,25 @@ impl Plugin for InspectableRapierPlugin {
         rapier_2d::register(&mut inspectable_registry);
         #[cfg(feature = "rapier3d")]
         rapier_3d::register(&mut inspectable_registry);
-
-        #[allow(unused_mut)]
-        let mut world_inspector_params = app
-            .world
-            .get_resource_or_insert_with(WorldInspectorParams::default);
-
-        #[cfg(feature = "rapier2d")]
-        rapier_2d::register_params(&mut world_inspector_params);
-        #[cfg(feature = "rapier3d")]
-        rapier_3d::register_params(&mut world_inspector_params);
     }
 }
 
 #[cfg(feature = "rapier2d")]
 mod rapier_2d {
-    use bevy_rapier2d::prelude::*;
+    use bevy_rapier2d as bevy_rapier;
+
+    type Vect = bevy::math::Vec2;
+    type VectAttributes = bevy_inspector_egui::options::Vec2dAttributes;
 
     include!("./rapier_impl.rs");
 }
 
 #[cfg(feature = "rapier3d")]
 mod rapier_3d {
-    use bevy_rapier3d::prelude::*;
+    use bevy_rapier3d as bevy_rapier;
+
+    type Vect = bevy::math::Vec3;
+    type VectAttributes = bevy_inspector_egui::options::NumberAttributes<Vect>;
 
     include!("./rapier_impl.rs");
 }
