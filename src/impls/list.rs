@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use bevy::prelude::App;
 
 use crate::{egui, Context};
@@ -32,6 +34,53 @@ where
             ui.vertical_centered_justified(|ui| {
                 if ui.button("+").clicked() {
                     self.push(T::default());
+                    changed = true;
+                }
+            });
+
+            if let Some(i) = to_delete {
+                self.remove(i);
+                changed = true;
+            }
+        });
+
+        changed
+    }
+
+    fn setup(app: &mut App) {
+        T::setup(app);
+    }
+}
+
+impl<T> Inspectable for VecDeque<T>
+where
+    T: Inspectable + Default,
+{
+    type Attributes = <T as Inspectable>::Attributes;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
+        let mut changed = false;
+
+        ui.vertical(|ui| {
+            let mut to_delete = None;
+
+            let len = self.len();
+            for (i, val) in self.iter_mut().enumerate() {
+                ui.horizontal(|ui| {
+                    if utils::ui::label_button(ui, "✖", egui::Color32::RED) {
+                        to_delete = Some(i);
+                    }
+                    changed |= val.ui(ui, options.clone(), &mut context.with_id(i as u64));
+                });
+
+                if i != len - 1 {
+                    ui.separator();
+                }
+            }
+
+            ui.vertical_centered_justified(|ui| {
+                if ui.button("+").clicked() {
+                    self.push_back(T::default());
                     changed = true;
                 }
             });
