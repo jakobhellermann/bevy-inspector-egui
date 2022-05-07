@@ -27,6 +27,8 @@ You can either inspect a single resource using the `InspectorPlugin`, or use the
 
 ## InspectorPlugin
 
+The `InspectorPlugin<T>` will insert a resource of type `T` and display UI for editing that resource.
+
 ```rust
 use bevy::prelude::*;
 use bevy_inspector_egui::{InspectorPlugin, Inspectable};
