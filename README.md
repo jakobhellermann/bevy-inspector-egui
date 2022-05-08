@@ -97,6 +97,26 @@ fn main() {
 ```
 More examples (with pictures) can be found in the [`examples folder`](examples).
 
+## Common issues
+
+<details>
+<summary>CJK characters aren't rendered correctly</summary>
+
+This is because the default egui font does not support rendering these characters, but you can add your own font with support for it by configuring the `EguiContext`:
+
+```rust
+fn configure_visuals(mut egui_ctx: ResMut<EguiContext>) {
+  let mut fonts = egui::FontDefinitions::default();
+  // install your own font (.ttf and .otf supported)
+  fonts.font_data.insert("cjk_font".to_string(), egui::FontData::from_static(include_bytes!("../assets/fonts/SourceHanSansCN-Normal.otf")));
+  // insert it at the beginning for highest priority
+  fonts.families.get_mut(&egui::FontFamily::Proportional).unwrap().insert(0, "cjk_font".to_owned());
+  egui_ctx.ctx_mut().set_fonts(fonts);
+}
+```
+
+</details>
+
 ## Bevy support table
 
 | bevy    | bevy-inspector-egui |
