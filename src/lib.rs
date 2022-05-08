@@ -14,7 +14,7 @@
 //! Your struct will then be available to you as a bevy resource.
 //!
 //! ## Example
-//! ```rust
+//! ```rust,no_run
 //! use bevy_inspector_egui::Inspectable;
 //!
 //! #[derive(Inspectable, Default)]
@@ -68,7 +68,7 @@
 //!
 //! Alternatively, you can `#[derive(Reflect)]` and call `world.register_type::<T>()`. This will enable bevy's reflection feature for the type, and it will show up in the world inspector.
 //!
-//! ```rust
+//! ```rust,no_run
 //! use bevy::prelude::*;
 //! use bevy_inspector_egui::{WorldInspectorPlugin, Inspectable, RegisterInspectable};
 //!
