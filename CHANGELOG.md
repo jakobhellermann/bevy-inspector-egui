@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.11
+- update to `bevy_egui` 0.14
+- update nalgebra feature to `nalgebra` `0.31`
+- implement `Inspectable` for `VecDeque`
+
 ## Version 0.10
 - update to bevy 0.7
 - put `bevy_pbr`, `bevy_sprite`, `bevy_text`, `bevy_ui` behind feature flags (enabled by default)
