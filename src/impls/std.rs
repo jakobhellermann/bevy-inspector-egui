@@ -142,7 +142,7 @@ impl Inspectable for Duration {
     type Attributes = ();
 
     fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &mut Context) -> bool {
-        let mut seconds = self.as_secs_f32();
+        let mut seconds = self.as_secs_f64();
         let attributes = NumberAttributes {
             min: Some(0.0),
             suffix: "s".to_string(),
@@ -150,7 +150,7 @@ impl Inspectable for Duration {
         };
         let changed = seconds.ui(ui, attributes, context);
         if changed { // floating point conversion is lossy
-            *self = Duration::from_secs_f32(seconds);
+            *self = Duration::from_secs_f64(seconds);
         }
         changed
     }
