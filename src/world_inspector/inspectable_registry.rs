@@ -1,6 +1,6 @@
 use crate::{Context, Inspectable};
 use bevy::asset::HandleId;
-use bevy::math::{DVec2, DVec3, DVec4};
+use bevy::math::{Vec3A, DVec2, DVec3, DVec4};
 use bevy::prelude::*;
 use bevy::render::camera::{DepthCalculation, ScalingMode, WindowOrigin};
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
@@ -108,7 +108,7 @@ impl Default for InspectableRegistry {
 
         // #[reflect_value]
         register!(this Entity, HandleId);
-        register!(this IVec2, IVec3, IVec4, UVec2, UVec3, Vec2, DVec2, DVec3, DVec4, Vec3, Vec4, Mat3, Mat4, Quat);
+        register!(this IVec2, IVec3, IVec4, UVec2, UVec3, Vec2, DVec2, DVec3, DVec4, Vec3, Vec3A, Vec4, Mat3, Mat4, Quat);
         register!(this u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, bool, f32, f64, String);
         this.register::<Transform>();
         this.register::<GlobalTransform>();
