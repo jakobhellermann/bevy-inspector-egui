@@ -1,6 +1,6 @@
 use crate::{Context, Inspectable};
 use bevy::asset::HandleId;
-use bevy::math::{Vec3A, DVec2, DVec3, DVec4};
+use bevy::math::{DVec2, DVec3, DVec4, Vec3A};
 use bevy::prelude::*;
 use bevy::render::camera::{DepthCalculation, ScalingMode, WindowOrigin};
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
