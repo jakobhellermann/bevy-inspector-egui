@@ -161,9 +161,15 @@ impl Inspectable for VisibleEntities {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct ColorAttributes {
     pub alpha: bool,
+}
+
+impl Default for ColorAttributes {
+    fn default() -> Self {
+        Self { alpha: true }
+    }
 }
 
 impl Inspectable for Color {
