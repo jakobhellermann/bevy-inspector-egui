@@ -162,7 +162,6 @@ impl Inspectable for Val {
                     };
 
                     let attrs = NumberAttributes {
-                        min: Some(0.0),
                         speed: 10.0,
                         ..Default::default()
                     };
@@ -175,12 +174,7 @@ impl Inspectable for Val {
                         _ => 0.0,
                     };
 
-                    let attrs = NumberAttributes {
-                        min: Some(0.0),
-                        max: Some(100.0),
-                        ..Default::default()
-                    };
-                    changed |= value.ui(&mut ui[1], attrs, context);
+                    changed |= value.ui(&mut ui[1], Default::default(), context);
                     *self = Val::Percent(value);
                 }
                 None => {}
