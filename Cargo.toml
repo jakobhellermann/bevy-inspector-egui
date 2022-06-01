@@ -22,6 +22,7 @@ default = ["clipboard", "bevy_pbr", "bevy_sprite", "bevy_text", "bevy_ui"]
 
 clipboard = ["bevy_egui/manage_clipboard"]
 nightly = [] 
+immutable_ctx = ["bevy_egui/immutable_ctx"]
 
 bevy_render = ["bevy/bevy_render"]
 bevy_pbr = ["bevy/bevy_pbr"]
