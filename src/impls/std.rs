@@ -149,7 +149,8 @@ impl Inspectable for Duration {
             ..Default::default()
         };
         let changed = seconds.ui(ui, attributes, context);
-        if changed { // floating point conversion is lossy
+        if changed {
+            // floating point conversion is lossy
             *self = Duration::from_secs_f64(seconds);
         }
         changed
