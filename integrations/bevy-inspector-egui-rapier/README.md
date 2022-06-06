@@ -25,8 +25,9 @@ fn main() {
 
 ## Bevy support table
 
-| bevy    | bevy-inspector-egui | bevy-inspector-egui-rapier | bevy_rapier
+| bevy    | bevy-inspector-egui | bevy-inspector-egui-rapier | bevy\_rapier
 | ------- | ------------------- | -------------------------- | ------
+| 0.7     | 0.11                | 0.4                        | 0.14
 | 0.7     | 0.11                | 0.3                        | 0.13
 | 0.7     | 0.10                | 0.2                        | 0.12
 | 0.6     | 0.9                 | 0.1                        | 0.12
