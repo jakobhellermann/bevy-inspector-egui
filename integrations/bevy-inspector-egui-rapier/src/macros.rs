@@ -110,7 +110,12 @@ macro_rules! inspectable {
         fn $name(val: &mut $ty, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
             val.$val.ui(ui, Default::default(), context)
         }
-    }
+    };
+    (marker $name:ident $ty:ty) => {
+        fn $name(val: &mut $ty, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
+            val.ui(ui, Default::default(), context)
+        }
+    };
 }
 
 pub(crate) use {enum_one, flags, grid, inspectable, simple_enum};
