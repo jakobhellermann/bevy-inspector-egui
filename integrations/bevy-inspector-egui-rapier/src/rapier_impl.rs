@@ -11,7 +11,7 @@ use bevy_rapier::prelude::*;
 
 inspectable!(defer ccd Ccd: enabled);
 inspectable!(defer gravity_scale GravityScale: 0);
-inspectable!(defer sensor Sensor);
+inspectable!(marker sensor Sensor);
 inspectable!(enum active_collision_types ActiveCollisionTypes: DYNAMIC_DYNAMIC|DYNAMIC_KINEMATIC|DYNAMIC_STATIC|KINEMATIC_KINEMATIC|KINEMATIC_STATIC|STATIC_STATIC);
 inspectable!(enum active_hooks ActiveHooks: FILTER_CONTACT_PAIRS|FILTER_INTERSECTION_PAIR|MODIFY_SOLVER_CONTACTS);
 inspectable!(enum coefficient_combine_rule CoefficientCombineRule: Average|Min|Multiply|Max);
