@@ -1,5 +1,6 @@
 mod bevy_impls;
 mod bevy_math;
+mod hash;
 mod list;
 mod number;
 mod quat;
