@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::prelude::*;
 use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 
@@ -19,6 +21,7 @@ struct Data {
     #[inspectable(visual, min = Vec2::new(-200., -200.), max = Vec2::new(200., 200.))]
     position: Vec2,
     list: Vec<f32>,
+    hash: HashMap<String, String>,
     #[inspectable(replacement = String::default as fn() -> _)]
     option: Option<String>,
 }
@@ -33,6 +36,10 @@ impl Default for Data {
             color: Color::BLUE,
             position: Vec2::default(),
             list: vec![0.0],
+            hash: HashMap::from([
+                ("one".to_string(), "two".to_string()),
+                ("three".to_string(), "four".to_string()),
+            ]),
             option: None,
         }
     }
