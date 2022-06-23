@@ -71,9 +71,9 @@ If you want to only display some components, you may want to use the [InspectorQ
 ### Custom components in the world inspector
 
 By default, types implementing `Inspectable` will not be displayed in the `WorldInspector`, because the there is no way to know of the trait implementation at runtime.
-You can call `world.register_inspectable::<T>()` to tell `bevy-inspector-egui` how that type should be displayed, and it will show up correctly in the world inspector.
+You can call `app.register_inspectable::<T>()` to tell `bevy-inspector-egui` how that type should be displayed, and it will show up correctly in the world inspector.
 
-Alternatively, you can `#[derive(Reflect)]` and call `world.register_type::<T>()`. This will enable bevy's reflection feature for the type, and it will show up in the world inspector.
+Alternatively, you can `#[derive(Reflect)]` and call `app.register_type::<T>()`. This will enable bevy's reflection feature for the type, and it will show up in the world inspector.
 
 ```rust
 use bevy::prelude::*;
