@@ -44,7 +44,7 @@ fn additional_mass_properties(
         .selected_text(selected)
         .show_ui(ui, |ui| {
             if ui
-                .selectable_label(matches!(val, AdditionalMassProperties::Density(_)), "Mass")
+                .selectable_label(matches!(val, AdditionalMassProperties::Mass(_)), "Mass")
                 .clicked()
             {
                 *val = AdditionalMassProperties::Mass(1.0);
@@ -92,7 +92,7 @@ fn collider_mass_properties(
                 *val = ColliderMassProperties::Density(1.0);
             }
             if ui
-                .selectable_label(matches!(val, ColliderMassProperties::Density(_)), "Mass")
+                .selectable_label(matches!(val, ColliderMassProperties::Mass(_)), "Mass")
                 .clicked()
             {
                 *val = ColliderMassProperties::Mass(1.0);
