@@ -35,7 +35,40 @@ fn additional_mass_properties(
     ui: &mut egui::Ui,
     context: &mut Context<'_>,
 ) -> bool {
-    mass_properties(&mut val.0, ui, context)
+    let selected = match val {
+        AdditionalMassProperties::Mass(_) => "Mass",
+        AdditionalMassProperties::MassProperties(_) => "MassProperties",
+    };
+
+    ComboBox::from_id_source(context.id())
+        .selected_text(selected)
+        .show_ui(ui, |ui| {
+            if ui
+                .selectable_label(matches!(val, AdditionalMassProperties::Density(_)), "Mass")
+                .clicked()
+            {
+                *val = AdditionalMassProperties::Mass(1.0);
+            }
+            if ui
+                .selectable_label(
+                    matches!(val, AdditionalMassProperties::MassProperties(_)),
+                    "MassProperties",
+                )
+                .clicked()
+            {
+                *val = AdditionalMassProperties::MassProperties(MassProperties::from_rapier(
+                    bevy_rapier::rapier::dynamics::MassProperties::from_ball(1.0, 1.0),
+                    1.0,
+                ));
+            }
+        });
+
+    match val {
+        AdditionalMassProperties::Mass(mass) => {
+            mass.ui(ui, NumberAttributes::positive(), context)
+        }
+        AdditionalMassProperties::MassProperties(props) => mass_properties(props, ui, context),
+    }
 }
 
 fn collider_mass_properties(
@@ -45,6 +78,7 @@ fn collider_mass_properties(
 ) -> bool {
     let selected = match val {
         ColliderMassProperties::Density(_) => "Density",
+        ColliderMassProperties::Mass(_) => "Mass",
         ColliderMassProperties::MassProperties(_) => "MassProperties",
     };
 
@@ -56,6 +90,12 @@ fn collider_mass_properties(
                 .clicked()
             {
                 *val = ColliderMassProperties::Density(1.0);
+            }
+            if ui
+                .selectable_label(matches!(val, ColliderMassProperties::Density(_)), "Mass")
+                .clicked()
+            {
+                *val = ColliderMassProperties::Mass(1.0);
             }
             if ui
                 .selectable_label(
@@ -74,6 +114,9 @@ fn collider_mass_properties(
     match val {
         ColliderMassProperties::Density(density) => {
             density.ui(ui, NumberAttributes::positive(), context)
+        }
+        ColliderMassProperties::Mass(mass) => {
+            mass.ui(ui, NumberAttributes::positive(), context)
         }
         ColliderMassProperties::MassProperties(props) => mass_properties(props, ui, context),
     }
