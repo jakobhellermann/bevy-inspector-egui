@@ -1,4 +1,4 @@
-use bevy::core_pipeline::ClearColor;
+use bevy::prelude::ClearColor;
 use bevy::prelude::Color;
 use bevy_egui::egui;
 

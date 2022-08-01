@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
 use crate::{Context, Inspectable};
-use bevy::{math::*, prelude::Reflect};
+use bevy::{math::*, prelude::Reflect, ui::Size};
 use bevy_egui::egui::{self, containers, Rect};
 use egui::{Pos2, Sense, Widget};
 

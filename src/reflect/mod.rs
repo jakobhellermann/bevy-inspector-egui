@@ -97,7 +97,7 @@ pub fn ui_for_reflect_with_registry(
     inspectable_registry: Option<&InspectableRegistry>,
 ) -> bool {
     if let Some(inspectable_registry) = inspectable_registry {
-        if let Ok(changed) = inspectable_registry.try_execute(value.any_mut(), ui, context) {
+        if let Ok(changed) = inspectable_registry.try_execute(value.as_any_mut(), ui, context) {
             return changed;
         }
     }
@@ -119,6 +119,7 @@ pub fn ui_for_reflect_with_registry(
         bevy::reflect::ReflectMut::Value(value) => {
             ui_for_reflect_value(value, ui, inspectable_registry)
         }
+        bevy::reflect::ReflectMut::Array(_) => todo!(),
     }
 }
 

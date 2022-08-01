@@ -30,8 +30,8 @@ bevy_text = ["bevy/bevy_text"]
 bevy_ui = ["bevy/bevy_ui"]
 
 [dependencies]
-bevy = { version = "0.7", default-features = false, features = ["bevy_render", "bevy_core_pipeline"] }
-bevy_egui = { version = "0.14", default-features = false, features = ["open_url"] }
+bevy = { version = "0.8", default-features = false, features = ["bevy_render", "bevy_core_pipeline"] }
+bevy_egui = { version = "0.15", default-features = false, features = ["open_url"] }
 pretty-type-name = "1.0"
 image = { version = "0.23", default-features = false }
 nalgebra031 = { package = "nalgebra", version = "0.31", optional = true }
@@ -39,7 +39,7 @@ nalgebra031 = { package = "nalgebra", version = "0.31", optional = true }
 bevy-inspector-egui-derive = { version = "0.11.0", path = "bevy-inspector-egui-derive" }
 
 [dev-dependencies]
-bevy = { version = "0.7", default-features = false, features = ["x11", "bevy_winit"] }
+bevy = { version = "0.8", default-features = false, features = ["x11", "bevy_winit"] }
 # bevy_mod_picking = { version = "0.4" }
 noise = "0.7"
 once_cell = "1.0"
