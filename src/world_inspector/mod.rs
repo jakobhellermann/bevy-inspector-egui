@@ -191,10 +191,13 @@ impl<'a> WorldUIContext<'a> {
                 .body_returned
                 .unwrap_or(false)
         } else {
-            let children = self.world.get::<Children>(entity);
+            let children = self
+                .world
+                .get::<Children>(entity)
+                .map(|children| children.iter().copied().collect::<Vec<_>>());
             if let Some(children) = children {
-                for &child in children.iter() {
-                    self.entity_ui(ui, child, params, id.with(child), entity_options);
+                for child in children.iter() {
+                    self.entity_ui(ui, *child, params, id.with(child), entity_options);
                 }
             }
             false
@@ -231,7 +234,10 @@ impl<'a> WorldUIContext<'a> {
 
         ui.separator();
 
-        let children = self.world.get::<Children>(entity);
+        let children = self
+            .world
+            .get::<Children>(entity)
+            .map(|children| children.iter().copied().collect::<Vec<_>>());
         if let Some(children) = children {
             ui.label("Children");
             for &child in children.iter() {
@@ -593,7 +599,7 @@ unsafe fn get_component_and_ticks(
                 .and_then(|sparse_set| {
                     sparse_set
                         .get_with_ticks(entity)
-                        .and_then(|(data, ticks)| Some((data.as_ptr(), ticks.get())))
+                        .map(|(data, ticks)| (data.as_ptr(), ticks.get()))
                 })
         }
     }

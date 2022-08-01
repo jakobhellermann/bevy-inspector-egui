@@ -36,12 +36,68 @@ impl_for_simple_enum!(
 );
 
 impl_for_simple_enum!(WindowOrigin: Center, BottomLeft);
-impl_for_simple_enum!(
-    ScalingMode: None,
-    WindowSize,
-    FixedVertical,
-    FixedHorizontal
-);
+
+impl Inspectable for ScalingMode {
+    type Attributes = ();
+    fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, context: &mut Context) -> bool {
+        let mut changed = false;
+        crate::egui::ComboBox::from_id_source(context.id())
+            .selected_text(format!("{self:?}"))
+            .show_ui(ui, |ui| {
+                if ui
+                    .selectable_label(
+                        matches!(self, <ScalingMode>::None),
+                        format!("{:?}", ScalingMode::None),
+                    )
+                    .clicked()
+                {
+                    *self = <ScalingMode>::None;
+                    changed = true;
+                }
+                if ui
+                    .selectable_label(
+                        matches!(self, <ScalingMode>::WindowSize),
+                        format!("{:?}", ScalingMode::WindowSize),
+                    )
+                    .clicked()
+                {
+                    *self = <ScalingMode>::WindowSize;
+                    changed = true;
+                }
+                if ui
+                    .selectable_label(
+                        matches!(self, ScalingMode::Auto { .. }),
+                        format!("{self:?}"),
+                    )
+                    .clicked()
+                {
+                    // *self = <ScalingMode>::Auto;
+                    changed = true;
+                }
+                if ui
+                    .selectable_label(
+                        matches!(self, ScalingMode::FixedVertical(_)),
+                        format!("{self:?}"),
+                    )
+                    .clicked()
+                {
+                    // *self = <ScalingMode>::FixedVertical;
+                    changed = true;
+                }
+                if ui
+                    .selectable_label(
+                        matches!(self, ScalingMode::FixedHorizontal(_)),
+                        format!("{self:?}"),
+                    )
+                    .clicked()
+                {
+                    // *self = <ScalingMode>::FixedHorizontal;
+                    changed = true;
+                }
+            });
+        changed
+    }
+}
 impl_for_simple_enum!(DepthCalculation: Distance, ZDifference);
 
 //////// SHAPES ////////
