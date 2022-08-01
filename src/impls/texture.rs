@@ -16,7 +16,7 @@ pub use image::imageops::FilterType;
 
 macro_rules! expect_handle {
     ($ui:ident, $assets:ident, $method:ident $asset:ident) => {
-        match $assets.$method(&$asset.clone()) {
+        match $assets.$method($asset) {
             Some(val) => val,
             None => {
                 utils::error_label($ui, format!("No value for handle {:?}", $asset));

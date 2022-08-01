@@ -85,8 +85,8 @@ fn generate(
     }
 
     for (_, mesh, material) in query.iter() {
-        let mesh = meshes.get_mut(&mesh.clone()).unwrap();
-        let material = materials.get_mut(&material.clone()).unwrap();
+        let mesh = meshes.get_mut(mesh).unwrap();
+        let material = materials.get_mut(material).unwrap();
 
         *mesh = data.as_mesh();
         material.base_color = data.color;
