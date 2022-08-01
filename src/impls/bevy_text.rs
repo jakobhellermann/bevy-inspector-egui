@@ -28,7 +28,7 @@ impl Inspectable for Handle<Font> {
 
         let fonts = world.get_resource::<Assets<Font>>().unwrap();
 
-        let label = if fonts.contains(self.id) {
+        let label = if fonts.contains(self) {
             egui::Label::new("<font>")
         } else {
             egui::Label::new(RichText::new("No font").color(Color32::RED))

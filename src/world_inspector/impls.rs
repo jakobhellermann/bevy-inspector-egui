@@ -1,7 +1,7 @@
 use super::{WorldInspectorParams, WorldUIContext};
 use crate::Inspectable;
 use bevy::{
-    ecs::query::{Fetch, FilterFetch, WorldQuery},
+    ecs::query::{Fetch, WorldQuery, WorldQueryGats},
     prelude::*,
 };
 use bevy_egui::egui::CollapsingHeader;
@@ -100,7 +100,7 @@ impl<Q, F> Default for InspectorQuery<Q, F> {
     }
 }
 
-type WorldQueryItem<'w, 's, Q> = <<Q as WorldQuery>::Fetch as Fetch<'w, 's>>::Item;
+type WorldQueryItem<'w, 's, Q> = <<Q as WorldQueryGats<'w>>::Fetch as Fetch<'w>>::Item;
 
 unsafe fn extend_lifetime<'w, 's, Q>(
     item: &<WorldQueryItem<'static, 'static, Q> as Inspectable>::Attributes,
@@ -116,7 +116,6 @@ impl<Q: 'static, F: 'static> Inspectable for InspectorQuery<Q, F>
 where
     Q: WorldQuery,
     F: WorldQuery,
-    F::Fetch: FilterFetch,
     for<'w, 's> WorldQueryItem<'w, 's, Q>: Inspectable,
 {
     type Attributes = <WorldQueryItem<'static, 'static, Q> as Inspectable>::Attributes;
@@ -188,7 +187,6 @@ impl<Q, F> Inspectable for InspectorQuerySingle<Q, F>
 where
     Q: WorldQuery + 'static,
     F: WorldQuery + 'static,
-    F::Fetch: FilterFetch,
     for<'w, 's> WorldQueryItem<'w, 's, Q>: Inspectable,
 {
     type Attributes = <WorldQueryItem<'static, 'static, Q> as Inspectable>::Attributes;

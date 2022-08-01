@@ -16,7 +16,7 @@ pub use image::imageops::FilterType;
 
 macro_rules! expect_handle {
     ($ui:ident, $assets:ident, $method:ident $asset:ident) => {
-        match $assets.$method($asset.clone()) {
+        match $assets.$method(&$asset.clone()) {
             Some(val) => val,
             None => {
                 utils::error_label($ui, format!("No value for handle {:?}", $asset));
@@ -114,7 +114,7 @@ impl Inspectable for Handle<Image> {
         };
 
         if let Some((texture, texture_id)) = texture {
-            let texture = textures.get(texture).unwrap();
+            let texture = textures.get(&texture).unwrap();
             let response = show_texture(texture, texture_id, ui, id);
 
             if response.map_or(false, |res| res.hovered()) {

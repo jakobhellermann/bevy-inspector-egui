@@ -60,7 +60,7 @@ impl_for_struct_delegate_fields!(
     aspect_ratio with OptionAttributes { deletable: true, replacement: Some(|| 1.), inner: NumberAttributes::positive() },
 );
 
-impl<T: Inspectable + Reflect + PartialEq> Inspectable for Rect<T> {
+impl<T: Inspectable + Reflect + PartialEq> Inspectable for UiRect<T> {
     type Attributes = T::Attributes;
 
     fn ui(
