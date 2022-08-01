@@ -84,21 +84,19 @@ fn shape_update_system(data: Res<Data>, mut query: Query<(&mut Sprite, &mut Tran
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let font_handle = asset_server.load("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
 
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    commands.spawn_bundle(UiCameraBundle::default());
+    commands.spawn_bundle(Camera2dBundle::default());
     commands.spawn_bundle(TextBundle {
         style: Style {
             align_self: AlignSelf::FlexEnd,
             ..Default::default()
         },
-        text: Text::with_section(
+        text: Text::from_section(
             "",
             TextStyle {
                 font_size: 50.0,
                 font: font_handle,
                 ..Default::default()
             },
-            Default::default(),
         ),
         ..Default::default()
     });

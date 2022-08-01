@@ -26,9 +26,7 @@ struct Player(f32);
 fn spawn_player(mut commands: Commands, mut rapier_config: ResMut<RapierConfiguration>) {
     // Set gravity to 0.0 and spawn camera.
     rapier_config.gravity = Vec2::ZERO;
-    commands
-        .spawn()
-        .insert_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn().insert_bundle(Camera2dBundle::default());
 
     let sprite_size = 100.0;
 

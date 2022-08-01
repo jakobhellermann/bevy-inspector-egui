@@ -85,8 +85,8 @@ fn generate(
     }
 
     for (_, mesh, material) in query.iter() {
-        let mesh = meshes.get_mut(mesh.clone()).unwrap();
-        let material = materials.get_mut(material.clone()).unwrap();
+        let mesh = meshes.get_mut(&mesh.clone()).unwrap();
+        let material = materials.get_mut(&material.clone()).unwrap();
 
         *mesh = data.as_mesh();
         material.base_color = data.color;
@@ -115,7 +115,7 @@ fn setup(
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
         ..Default::default()
     });
-    commands.spawn_bundle(PerspectiveCameraBundle {
+    commands.spawn_bundle(Camera3dBundle {
         transform: Transform::from_xyz(-3.0, 5.0, 10.0).looking_at(Vec3::default(), Vec3::Y),
         ..Default::default()
     });

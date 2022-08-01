@@ -72,5 +72,5 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn_bundle(PerspectiveCameraBundle::default());
+    commands.spawn_bundle(Camera3dBundle::default());
 }
