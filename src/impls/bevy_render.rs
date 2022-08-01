@@ -46,52 +46,61 @@ impl Inspectable for ScalingMode {
             .show_ui(ui, |ui| {
                 if ui
                     .selectable_label(
-                        matches!(self, <ScalingMode>::None),
+                        matches!(self, ScalingMode::None),
                         format!("{:?}", ScalingMode::None),
                     )
                     .clicked()
                 {
-                    *self = <ScalingMode>::None;
+                    *self = ScalingMode::None;
                     changed = true;
                 }
                 if ui
                     .selectable_label(
-                        matches!(self, <ScalingMode>::WindowSize),
+                        matches!(self, ScalingMode::WindowSize),
                         format!("{:?}", ScalingMode::WindowSize),
                     )
                     .clicked()
                 {
-                    *self = <ScalingMode>::WindowSize;
+                    *self = ScalingMode::WindowSize;
                     changed = true;
                 }
                 if ui
                     .selectable_label(
                         matches!(self, ScalingMode::Auto { .. }),
-                        format!("{self:?}"),
+                        format!(
+                            "{:?}",
+                            ScalingMode::Auto {
+                                min_width: 10.0,
+                                min_height: 10.0
+                            }
+                        ),
                     )
                     .clicked()
                 {
-                    // *self = <ScalingMode>::Auto;
+                    *self = ScalingMode::Auto {
+                        min_width: 10.0,
+                        min_height: 10.0,
+                    };
                     changed = true;
                 }
                 if ui
                     .selectable_label(
                         matches!(self, ScalingMode::FixedVertical(_)),
-                        format!("{self:?}"),
+                        format!("{:?}", ScalingMode::FixedVertical(10.0)),
                     )
                     .clicked()
                 {
-                    // *self = <ScalingMode>::FixedVertical;
+                    *self = ScalingMode::FixedVertical(10.0);
                     changed = true;
                 }
                 if ui
                     .selectable_label(
                         matches!(self, ScalingMode::FixedHorizontal(_)),
-                        format!("{self:?}"),
+                        format!("{:?}", ScalingMode::FixedHorizontal(10.0)),
                     )
                     .clicked()
                 {
-                    // *self = <ScalingMode>::FixedHorizontal;
+                    *self = ScalingMode::FixedHorizontal(10.0);
                     changed = true;
                 }
             });
