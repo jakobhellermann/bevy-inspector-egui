@@ -67,13 +67,7 @@ impl Inspectable for ScalingMode {
                 if ui
                     .selectable_label(
                         matches!(self, ScalingMode::Auto { .. }),
-                        format!(
-                            "{:?}",
-                            ScalingMode::Auto {
-                                min_width: 10.0,
-                                min_height: 10.0
-                            }
-                        ),
+                        "ScalingMode::Auto",
                     )
                     .clicked()
                 {
@@ -86,7 +80,7 @@ impl Inspectable for ScalingMode {
                 if ui
                     .selectable_label(
                         matches!(self, ScalingMode::FixedVertical(_)),
-                        format!("{:?}", ScalingMode::FixedVertical(10.0)),
+                        "ScalingMode::FixedVertical",
                     )
                     .clicked()
                 {
@@ -96,7 +90,7 @@ impl Inspectable for ScalingMode {
                 if ui
                     .selectable_label(
                         matches!(self, ScalingMode::FixedHorizontal(_)),
-                        format!("{:?}", ScalingMode::FixedHorizontal(10.0)),
+                        "ScalingMode::FixedHorizontal",
                     )
                     .clicked()
                 {

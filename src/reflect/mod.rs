@@ -119,7 +119,10 @@ pub fn ui_for_reflect_with_registry(
         bevy::reflect::ReflectMut::Value(value) => {
             ui_for_reflect_value(value, ui, inspectable_registry)
         }
-        bevy::reflect::ReflectMut::Array(_) => todo!(),
+        bevy::reflect::ReflectMut::Array(_) => {
+            ui.label("Reflect array inspection is not yet implemented");
+            false
+        }
     }
 }
 
