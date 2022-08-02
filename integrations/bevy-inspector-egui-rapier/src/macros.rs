@@ -112,7 +112,7 @@ macro_rules! inspectable {
         }
     };
     (marker $name:ident $ty:ty) => {
-        fn $name(val: &mut $ty, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
+        fn $name(_val: &mut $ty, _ui: &mut egui::Ui, _context: &mut Context<'_>) -> bool {
             false
         }
     };
