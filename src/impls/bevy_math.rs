@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
 use crate::{Context, Inspectable};
-use bevy::{math::*, prelude::Reflect, ui::Size};
+use bevy::math::*;
 use bevy_egui::egui::{self, containers, Rect};
 use egui::{Pos2, Sense, Widget};
 
@@ -186,32 +186,6 @@ impl Inspectable for Mat4 {
             changed |= self.y_axis.ui(ui, Default::default(), context);
             changed |= self.z_axis.ui(ui, Default::default(), context);
             changed |= self.w_axis.ui(ui, Default::default(), context);
-        });
-        changed
-    }
-}
-
-impl<T: Inspectable + Reflect + PartialEq> Inspectable for Size<T> {
-    type Attributes = T::Attributes;
-
-    fn ui(
-        &mut self,
-        ui: &mut bevy_egui::egui::Ui,
-        options: Self::Attributes,
-        context: &mut crate::Context,
-    ) -> bool {
-        let mut changed = false;
-        ui.vertical_centered(|ui| {
-            crate::egui::Grid::new(context.id()).show(ui, |ui| {
-                ui.label("width");
-                changed |= self.width.ui(ui, options.clone(), &mut context.with_id(0));
-                ui.end_row();
-
-                ui.label("height");
-                changed |= self.height.ui(ui, options, &mut context.with_id(1));
-                ui.end_row();
-            });
-            ui.separator();
         });
         changed
     }
