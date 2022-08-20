@@ -140,7 +140,7 @@ impl Inspectable for shape::Box {
                 changed |= min.ui(ui, Default::default(), &mut context.with_id(0));
                 ui.end_row();
                 ui.label("Max");
-                changed |= max.ui(ui, Default::default(), &mut context.with_id(0));
+                changed |= max.ui(ui, Default::default(), &mut context.with_id(1));
                 ui.end_row();
             });
         });
@@ -264,8 +264,8 @@ impl Inspectable for CubemapFrusta {
     type Attributes = ();
 
     fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, cx: &mut Context) -> bool {
-        for frustrum in self.iter_mut() {
-            frustrum.ui(ui, (), cx);
+        for (i, frustrum) in self.iter_mut().enumerate() {
+            frustrum.ui(ui, (), &mut cx.with_id(i as u64));
         }
         false
     }
@@ -275,8 +275,8 @@ impl Inspectable for Frustum {
     type Attributes = ();
 
     fn ui(&mut self, ui: &mut egui::Ui, _: Self::Attributes, cx: &mut Context) -> bool {
-        for plane in self.planes.iter_mut() {
-            plane.ui(ui, (), cx);
+        for (i, plane) in self.planes.iter_mut().enumerate() {
+            plane.ui(ui, (), &mut cx.with_id(i as u64));
         }
         false
     }
