@@ -1,4 +1,4 @@
-use bevy::input::gamepad::GamepadButtonType;
+use bevy::{input::gamepad::GamepadButtonType, prelude::GamepadAxisType};
 
 impl_for_simple_enum!(
     GamepadButtonType: South,
@@ -20,4 +20,13 @@ impl_for_simple_enum!(
     DPadDown,
     DPadLeft,
     DPadRight
+);
+
+impl_for_simple_enum!(
+    GamepadAxisType: LeftStickX,
+    LeftStickY,
+    LeftZ,
+    RightStickX,
+    RightStickY,
+    RightZ
 );
