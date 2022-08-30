@@ -9,6 +9,7 @@ pub(crate) mod texture;
 mod third_party;
 
 mod bevy_core_pipeline;
+mod bevy_input;
 mod bevy_render;
 
 #[cfg(feature = "bevy_pbr")]
