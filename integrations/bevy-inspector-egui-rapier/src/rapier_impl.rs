@@ -35,39 +35,38 @@ fn additional_mass_properties(
     ui: &mut egui::Ui,
     context: &mut Context<'_>,
 ) -> bool {
+    use bevy_rapier::rapier::dynamics;
+    use AdditionalMassProperties::{Mass, MassProperties as Properties};
+
     let selected = match val {
-        AdditionalMassProperties::Mass(_) => "Mass",
-        AdditionalMassProperties::MassProperties(_) => "MassProperties",
+        Mass(_) => "Mass",
+        Properties(_) => "MassProperties",
     };
 
     ComboBox::from_id_source(context.id())
         .selected_text(selected)
         .show_ui(ui, |ui| {
-            if ui
-                .selectable_label(matches!(val, AdditionalMassProperties::Mass(_)), "Mass")
-                .clicked()
-            {
-                *val = AdditionalMassProperties::Mass(1.0);
+            macro_rules! clicked {
+                ($compare: pat, $name: expr) => {
+                    ui.selectable_label(matches!(val, $compare), $name)
+                        .clicked()
+                };
             }
-            if ui
-                .selectable_label(
-                    matches!(val, AdditionalMassProperties::MassProperties(_)),
-                    "MassProperties",
-                )
-                .clicked()
-            {
-                *val = AdditionalMassProperties::MassProperties(MassProperties::from_rapier(
-                    bevy_rapier::rapier::dynamics::MassProperties::from_ball(1.0, 1.0),
-                    1.0,
-                ));
-            }
+            match () {
+                () if clicked!(Mass(_), "Mass") => *val = Mass(1.0),
+                () if clicked!(Properties(_), "MassProperties") => {
+                    *val = Properties(MassProperties::from_rapier(
+                        dynamics::MassProperties::from_ball(1.0, 1.0),
+                        1.0,
+                    ))
+                }
+                () => {}
+            };
         });
 
     match val {
-        AdditionalMassProperties::Mass(mass) => {
-            mass.ui(ui, NumberAttributes::positive(), context)
-        }
-        AdditionalMassProperties::MassProperties(props) => mass_properties(props, ui, context),
+        Mass(mass) => mass.ui(ui, NumberAttributes::positive(), context),
+        Properties(props) => mass_properties(props, ui, context),
     }
 }
 
@@ -76,50 +75,223 @@ fn collider_mass_properties(
     ui: &mut egui::Ui,
     context: &mut Context<'_>,
 ) -> bool {
+    use bevy_rapier::rapier::dynamics;
+    use ColliderMassProperties::{Density, Mass, MassProperties as Properties};
+
     let selected = match val {
-        ColliderMassProperties::Density(_) => "Density",
-        ColliderMassProperties::Mass(_) => "Mass",
-        ColliderMassProperties::MassProperties(_) => "MassProperties",
+        Density(_) => "Density",
+        Mass(_) => "Mass",
+        Properties(_) => "MassProperties",
     };
 
     ComboBox::from_id_source(context.id())
         .selected_text(selected)
         .show_ui(ui, |ui| {
-            if ui
-                .selectable_label(matches!(val, ColliderMassProperties::Density(_)), "Density")
-                .clicked()
-            {
-                *val = ColliderMassProperties::Density(1.0);
+            macro_rules! clicked {
+                ($compare: pat, $name: expr) => {
+                    ui.selectable_label(matches!(val, $compare), $name)
+                        .clicked()
+                };
             }
-            if ui
-                .selectable_label(matches!(val, ColliderMassProperties::Mass(_)), "Mass")
-                .clicked()
-            {
-                *val = ColliderMassProperties::Mass(1.0);
-            }
-            if ui
-                .selectable_label(
-                    matches!(val, ColliderMassProperties::MassProperties(_)),
-                    "MassProperties",
-                )
-                .clicked()
-            {
-                *val = ColliderMassProperties::MassProperties(MassProperties::from_rapier(
-                    bevy_rapier::rapier::dynamics::MassProperties::from_ball(1.0, 1.0),
-                    1.0,
-                ));
+            match () {
+                () if clicked!(Mass(_), "Mass") => *val = Mass(1.0),
+                () if clicked!(Density(_), "Density") => *val = Density(1.0),
+                () if clicked!(Properties(_), "MassProperties") => {
+                    *val = Properties(MassProperties::from_rapier(
+                        dynamics::MassProperties::from_ball(1.0, 1.0),
+                        1.0,
+                    ))
+                }
+                () => {}
             }
         });
 
     match val {
-        ColliderMassProperties::Density(density) => {
-            density.ui(ui, NumberAttributes::positive(), context)
-        }
-        ColliderMassProperties::Mass(mass) => {
-            mass.ui(ui, NumberAttributes::positive(), context)
-        }
-        ColliderMassProperties::MassProperties(props) => mass_properties(props, ui, context),
+        Properties(props) => mass_properties(props, ui, context),
+        Density(density) => density.ui(ui, NumberAttributes::positive(), context),
+        Mass(mass) => mass.ui(ui, NumberAttributes::positive(), context),
     }
+}
+
+fn collider(val: &mut Collider, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
+    let mut changed = false;
+
+    egui::Grid::new("collider").show(ui, |ui| {
+        ui.label("shape");
+        changed |= collider_shape(val, ui, context);
+        ui.end_row();
+    });
+
+    changed
+}
+
+fn collider_shape(old_val: &mut Collider, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
+    #[cfg(feature = "rapier2d")]
+    use bevy::math::Vec2 as Vect;
+    #[cfg(feature = "rapier3d")]
+    use bevy::math::Vec3 as Vect;
+    use bevy_rapier::parry::shape::ShapeType as Cv;
+
+    let mut val = old_val.raw.0.clone_box();
+    let shape_name = match val.shape_type() {
+        Cv::Ball => "Ball",
+        Cv::Cuboid => "Cuboid",
+        Cv::Capsule => "Capsule",
+        Cv::Segment => "Segment",
+        Cv::Triangle => "Triangle",
+        Cv::TriMesh => "TriMesh",
+        Cv::Polyline => "Polyline",
+        Cv::HalfSpace => "HalfSpace",
+        Cv::HeightField => "HeightField",
+        Cv::Compound => "Compound",
+        Cv::RoundCuboid => "RoundCuboid",
+        Cv::RoundTriangle => "RoundTriangle",
+        // 2d
+        #[cfg(feature = "rapier2d")]
+        Cv::ConvexPolygon => "ConvexPolygon",
+        #[cfg(feature = "rapier2d")]
+        Cv::RoundConvexPolygon => "RoundConvexPolygon",
+        // 3d
+        #[cfg(feature = "rapier3d")]
+        Cv::ConvexPolyhedron => "ConvexPolyhedron",
+        #[cfg(feature = "rapier3d")]
+        Cv::Cylinder => "Cylinder",
+        #[cfg(feature = "rapier3d")]
+        Cv::Cone => "Cone",
+        #[cfg(feature = "rapier3d")]
+        Cv::RoundCylinder => "RoundCylinder",
+        #[cfg(feature = "rapier3d")]
+        Cv::RoundCone => "RoundCone",
+        #[cfg(feature = "rapier3d")]
+        Cv::RoundConvexPolyhedron => "RoundConvexPolyhedron",
+        Cv::Custom => "Custom shape",
+    };
+
+    let mut changed = false;
+    ComboBox::from_id_source(context.id())
+        .selected_text(shape_name)
+        .show_ui(ui, |ui| {
+            use bevy_rapier::parry::shape::{Ball, Capsule, Cuboid, RoundShape, Triangle};
+            #[cfg(feature = "rapier3d")]
+            use bevy_rapier::parry::shape::{Cone, Cylinder};
+
+            macro_rules! clicked {
+                ($compare: pat, $name: expr) => {
+                    ui.selectable_label(matches!(val.shape_type(), $compare), $name)
+                        .clicked()
+                };
+            }
+            changed = true;
+            match () {
+                () if clicked!(Cv::Ball, "Ball") => val = Box::new(Ball::new(1.0)),
+
+                () if clicked!(Cv::Cuboid, "Cuboid") => {
+                    val = Box::new(Cuboid::new(Vect::ONE.into()))
+                }
+
+                () if clicked!(Cv::Capsule, "Capsule") => val = Box::new(Capsule::new_y(1.0, 1.0)),
+
+                () if clicked!(Cv::Triangle, "Triangle") => {
+                    val = Box::new(Triangle::new(
+                        Vect::ZERO.into(),
+                        Vect::X.into(),
+                        Vect::Y.into(),
+                    ))
+                }
+                () if clicked!(Cv::RoundCuboid, "RoundCuboid") => {
+                    val = Box::new(RoundShape {
+                        inner_shape: Cuboid::new(Vect::ONE.into()),
+                        border_radius: 0.2,
+                    })
+                }
+                () if clicked!(Cv::RoundTriangle, "RoundTriangle") => {
+                    val = Box::new(RoundShape {
+                        inner_shape: Triangle::new(
+                            Vect::ZERO.into(),
+                            Vect::X.into(),
+                            Vect::Y.into(),
+                        ),
+                        border_radius: 0.2,
+                    })
+                }
+
+                #[cfg(feature = "rapier3d")]
+                () if clicked!(Cv::Cylinder, "Cylinder") => val = Box::new(Cylinder::new(1.0, 0.5)),
+                #[cfg(feature = "rapier3d")]
+                () if clicked!(Cv::Cone, "Cone") => val = Box::new(Cone::new(1.0, 0.5)),
+                #[cfg(feature = "rapier3d")]
+                () if clicked!(Cv::RoundCylinder, "RoundCylinder") => {
+                    val = Box::new(RoundShape {
+                        inner_shape: Cylinder::new(1.0, 0.5),
+                        border_radius: 0.1,
+                    })
+                }
+                #[cfg(feature = "rapier3d")]
+                () if clicked!(Cv::RoundCone, "RoundCone") => {
+                    val = Box::new(RoundShape {
+                        inner_shape: Cone::new(1.0, 0.5),
+                        border_radius: 0.1,
+                    })
+                }
+                // Uneditable shape, do nothing
+                () => changed = false,
+            }
+        });
+
+    ui.end_row();
+    let pos = NumberAttributes::positive;
+    if let Some(ball) = val.as_ball_mut() {
+        ui.label("radius");
+        changed |= ball.radius.ui(ui, pos(), context);
+    } else if let Some(cuboid) = val.as_cuboid_mut() {
+        ui.label("half extents");
+        changed |= cuboid.half_extents.ui(ui, (), context);
+    } else if let Some(capsule) = val.as_capsule_mut() {
+        ui.label("base point");
+        changed |= capsule.segment.a.ui(ui, (), context);
+        ui.end_row();
+
+        ui.label("top point");
+        changed |= capsule.segment.b.ui(ui, (), context);
+        ui.end_row();
+
+        ui.label("radius");
+        changed |= capsule.radius.ui(ui, pos(), context);
+    } else if let Some(triangle) = val.as_triangle_mut() {
+        ui.label("a");
+        changed |= triangle.a.ui(ui, (), context);
+        ui.end_row();
+
+        ui.label("b");
+        changed |= triangle.b.ui(ui, (), context);
+        ui.end_row();
+
+        ui.label("c");
+        changed |= triangle.c.ui(ui, (), context);
+    } else {
+        ui.label("Shape doesn't support editing (yet)");
+    };
+    #[cfg(feature = "rapier3d")]
+    if let Some(cylinder) = val.as_cylinder_mut() {
+        ui.label("half height");
+        changed |= cylinder.half_height.ui(ui, pos(), context);
+        ui.end_row();
+
+        ui.label("radius");
+        changed |= cylinder.radius.ui(ui, pos(), context);
+    } else if let Some(cone) = val.as_cone_mut() {
+        ui.label("half height");
+        changed |= cone.half_height.ui(ui, pos(), context);
+        ui.end_row();
+
+        ui.label("radius");
+        changed |= cone.radius.ui(ui, pos(), context);
+    };
+
+    if changed {
+        *old_val = bevy_rapier::rapier::geometry::SharedShape(val.into()).into();
+    }
+    changed
 }
 
 fn mass_properties(
@@ -127,13 +299,7 @@ fn mass_properties(
     ui: &mut egui::Ui,
     context: &mut Context<'_>,
 ) -> bool {
-    fn inv(val: f32) -> f32 {
-        if val == 0.0 {
-            val
-        } else {
-            1.0 / val
-        }
-    }
+    let inv = |val: f32| if val == 0.0 { val } else { 1.0 / val };
 
     let mut props = props_.into_rapier(1.0);
 
@@ -142,7 +308,7 @@ fn mass_properties(
 
     egui::Grid::new("collision groups").show(ui, |ui| {
         ui.label("local_com");
-        changed |= props.local_com.ui(ui, Default::default(), context);
+        changed |= props.local_com.ui(ui, (), context);
         ui.end_row();
 
         let mut mass = inv(props.inv_mass);
@@ -159,49 +325,6 @@ fn mass_properties(
     *props_ = MassProperties::from_rapier(props, 1.0);
 
     changed
-}
-
-fn collider(val: &mut Collider, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
-    let mut changed = false;
-
-    egui::Grid::new("collider").show(ui, |ui| {
-        ui.label("shape");
-        changed |= collider_shape(val, ui, context);
-        ui.end_row();
-    });
-
-    changed
-}
-
-fn collider_shape(val: &mut Collider, ui: &mut egui::Ui, _context: &mut Context<'_>) -> bool {
-    let shape_name = match val.as_unscaled_typed_shape() {
-        ColliderView::Ball(_) => "Ball",
-        ColliderView::Cuboid(_) => "Cuboid",
-        ColliderView::Capsule(_) => "Capsule",
-        ColliderView::Segment(_) => "Segment",
-        ColliderView::Triangle(_) => "Triangle",
-        ColliderView::TriMesh(_) => "TriMesh",
-        ColliderView::Polyline(_) => "Polyline",
-        ColliderView::HalfSpace(_) => "HalfSpace",
-        ColliderView::HeightField(_) => "HeightField",
-        ColliderView::Compound(_) => "Compound",
-        ColliderView::RoundCuboid(_) => "RoundCuboid",
-        ColliderView::RoundTriangle(_) => "RoundTriangle",
-        _ => "Unknown",
-        // 2d
-        // ColliderView::ConvexPolygon(_) => "ConvexPolygon",
-        // ColliderView::RoundConvexPolygon(_) => "RoundConvexPolygon",
-        // 3d
-        // ColliderView::ConvexPolyhedron(_) => "ConvexPolyhedron",
-        // ColliderView::Cylinder(_) => "Cylinder",
-        // ColliderView::Cone(_) => "Cone",
-        // ColliderView::RoundCylinder(_) => "RoundCylinder",
-        // ColliderView::RoundCone(_) => "RoundCone",
-        // ColliderView::RoundConvexPolyhedron(_) => "RoundConvexPolyhedron",
-    };
-
-    ui.label(shape_name);
-    false
 }
 
 pub fn register(inspectable_registry: &mut InspectableRegistry) {
