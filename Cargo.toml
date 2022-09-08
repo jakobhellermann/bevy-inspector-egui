@@ -1,3 +1,9 @@
 [workspace]
 resolver = "2"
 members = ["crates/*"]
+
+
+[patch."https://github.com/bevyengine/bevy"]
+bevy_ecs = { git = "https://github.com/jakobhellermann/bevy", branch = "relax-sized-change-detetion" }
+bevy_reflect = { git = "https://github.com/jakobhellermann/bevy", branch = "relax-sized-change-detetion" }
+bevy = { git = "https://github.com/jakobhellermann/bevy", branch = "relax-sized-change-detetion" }
