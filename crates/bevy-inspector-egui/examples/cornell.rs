@@ -36,6 +36,7 @@ struct Config {
 }
 
 #[derive(Resource, Reflect, Default)]
+#[reflect(Resource)]
 struct UiData {
     config: Config,
     shape: Shape,
@@ -50,6 +51,7 @@ fn main() {
         .insert_resource(UiData::default())
         .register_type::<Config>()
         .register_type::<Shape>()
+        .register_type::<UiData>()
         .register_type_data::<f32, ReflectDefault>()
         .register_type_data::<usize, ReflectDefault>()
         .run();
@@ -61,14 +63,27 @@ fn ui_example(world: &mut World) {
 
         world.resource_scope::<EguiContext, _>(|world, mut egui_context| {
             egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {
-                let mut data = world.resource_mut::<UiData>();
                 let overrides = InspectorEguiOverrides::default();
 
-                InspectorUi::new(&type_registry, &overrides, &mut Context).ui_for_reflect(
-                    &mut *data,
-                    ui,
-                    egui::Id::new(()),
-                );
+                let mut cx = Context;
+                let mut env = InspectorUi::new(&type_registry, &overrides, &mut cx);
+
+                let resources: Vec<_> = type_registry
+                    .iter()
+                    .filter_map(|registration| {
+                        Some((
+                            registration.short_name().to_owned(),
+                            registration.data::<ReflectResource>()?.clone(),
+                        ))
+                    })
+                    .collect();
+                for (name, reflect_resource) in resources {
+                    if let Some(mut value) = reflect_resource.reflect_mut(world) {
+                        ui.collapsing(&name, |ui| {
+                            env.ui_for_reflect(&mut *value, ui, egui::Id::new(&name));
+                        });
+                    }
+                }
             });
         });
     });
