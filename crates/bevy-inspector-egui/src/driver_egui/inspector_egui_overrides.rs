@@ -1,12 +1,16 @@
-use super::Context;
+use bevy_reflect::TypeRegistry;
+use std::time::Instant;
+
+use super::{Context, InspectorUi};
 use crate::options::std_options::NumberOptions;
 use std::{
     any::{Any, TypeId},
     collections::HashMap,
+    time::Duration,
 };
 
 type InspectorOverrideFn =
-    Box<dyn Fn(&mut dyn Any, &mut egui::Ui, &dyn Any, &mut Context) -> bool + Send + Sync>;
+    Box<dyn Fn(&mut dyn Any, &mut egui::Ui, &dyn Any, InspectorUi<'_>) -> bool + Send + Sync>;
 pub struct InspectorEguiOverrides {
     fns: HashMap<TypeId, InspectorOverrideFn>,
 }
@@ -14,18 +18,21 @@ pub struct InspectorEguiOverrides {
 impl Default for InspectorEguiOverrides {
     fn default() -> Self {
         let mut overrides = Self::empty();
-        overrides.register::<f32, _>(num_override_slow);
-        overrides.register::<f64, _>(num_override_slow);
-        overrides.register::<i8, _>(num_override);
-        overrides.register::<i16, _>(num_override);
-        overrides.register::<i32, _>(num_override);
-        overrides.register::<i64, _>(num_override);
-        overrides.register::<isize, _>(num_override);
-        overrides.register::<u8, _>(num_override);
-        overrides.register::<u16, _>(num_override);
-        overrides.register::<u32, _>(num_override);
-        overrides.register::<u64, _>(num_override);
-        overrides.register::<usize, _>(num_override);
+        overrides.register::<f32, _>(number_ui_subint);
+        overrides.register::<f64, _>(number_ui_subint);
+        overrides.register::<i8, _>(number_ui);
+        overrides.register::<i16, _>(number_ui);
+        overrides.register::<i32, _>(number_ui);
+        overrides.register::<i64, _>(number_ui);
+        overrides.register::<isize, _>(number_ui);
+        overrides.register::<u8, _>(number_ui);
+        overrides.register::<u16, _>(number_ui);
+        overrides.register::<u32, _>(number_ui);
+        overrides.register::<u64, _>(number_ui);
+        overrides.register::<usize, _>(number_ui);
+
+        overrides.register::<Duration, _>(duration);
+        overrides.register::<Instant, _>(instant);
 
         overrides
     }
@@ -40,16 +47,16 @@ impl InspectorEguiOverrides {
 
     pub fn register<T: 'static, F>(&mut self, f: F)
     where
-        F: Fn(&mut T, &mut egui::Ui, &dyn Any, &mut Context) -> bool + Send + Sync + 'static,
+        F: Fn(&mut T, &mut egui::Ui, &dyn Any, InspectorUi<'_>) -> bool + Send + Sync + 'static,
     {
         let type_id = TypeId::of::<T>();
         let callback = Box::new(
             move |value: &mut dyn Any,
                   ui: &mut egui::Ui,
                   options: &dyn Any,
-                  context: &mut Context| {
+                  env: InspectorUi<'_>| {
                 let value: &mut T = value.downcast_mut().unwrap();
-                f(value, ui, options, context)
+                f(value, ui, options, env)
             },
         ) as InspectorOverrideFn;
         self.fns.insert(type_id, callback);
@@ -61,40 +68,45 @@ impl InspectorEguiOverrides {
         ui: &mut egui::Ui,
         options: &dyn Any,
         context: &mut Context,
+        type_registry: &TypeRegistry,
     ) -> Option<bool> {
         let type_id = Any::type_id(value);
-        self.fns
-            .get(&type_id)
-            .map(|f| f(value, ui, options, context))
+        self.fns.get(&type_id).map(|f| {
+            f(
+                value,
+                ui,
+                options,
+                InspectorUi::new(type_registry, self, context),
+            )
+        })
     }
 }
 
-fn num_override<T: egui::emath::Numeric>(
+fn number_ui<T: egui::emath::Numeric>(
     value: &mut T,
     ui: &mut egui::Ui,
     options: &dyn Any,
-    _: &mut Context,
+    _: InspectorUi<'_>,
 ) -> bool {
     let options = options
         .downcast_ref::<NumberOptions<T>>()
         .cloned()
         .unwrap_or_default();
-    num_ui(value, &options, ui, 1.0)
+    display_number(value, &options, ui, 1.0)
 }
-fn num_override_slow<T: egui::emath::Numeric>(
+fn number_ui_subint<T: egui::emath::Numeric>(
     value: &mut T,
     ui: &mut egui::Ui,
     options: &dyn Any,
-    _: &mut Context,
+    _: InspectorUi<'_>,
 ) -> bool {
     let options = options
         .downcast_ref::<NumberOptions<T>>()
         .cloned()
         .unwrap_or_default();
-    num_ui(value, &options, ui, 0.1)
+    display_number(value, &options, ui, 0.1)
 }
-
-fn num_ui<T: egui::emath::Numeric>(
+fn display_number<T: egui::emath::Numeric>(
     value: &mut T,
     options: &NumberOptions<T>,
     ui: &mut egui::Ui,
@@ -136,4 +148,28 @@ fn num_ui<T: egui::emath::Numeric>(
         }
     }
     changed
+}
+
+fn duration(
+    value: &mut Duration,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    mut env: InspectorUi<'_>,
+) -> bool {
+    let mut seconds = value.as_secs_f64();
+    let options = NumberOptions {
+        min: Some(0.0f64),
+        suffix: "s".to_string(),
+        ..Default::default()
+    };
+
+    let changed = env.ui_for_reflect_with_options(&mut seconds, ui, egui::Id::new(0), &options);
+    if changed {
+        *value = Duration::from_secs_f64(seconds);
+    }
+    changed
+}
+fn instant(value: &mut Instant, ui: &mut egui::Ui, _: &dyn Any, _: InspectorUi<'_>) -> bool {
+    ui.label(format!("{} seconds ago", value.elapsed().as_secs_f32()));
+    false
 }

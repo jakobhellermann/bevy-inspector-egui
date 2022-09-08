@@ -43,7 +43,7 @@ impl<'a> InspectorUi<'a> {
         self.ui_for_reflect_with_options(value, ui, id, &())
     }
 
-    fn ui_for_reflect_with_options(
+    pub fn ui_for_reflect_with_options(
         &mut self,
         value: &mut dyn Reflect,
         ui: &mut egui::Ui,
@@ -60,10 +60,13 @@ impl<'a> InspectorUi<'a> {
             }
         }
 
-        if let Some(changed) =
-            self.egui_overrides
-                .try_execute_mut(value.as_any_mut(), ui, options, self.context)
-        {
+        if let Some(changed) = self.egui_overrides.try_execute_mut(
+            value.as_any_mut(),
+            ui,
+            options,
+            self.context,
+            self.type_registry,
+        ) {
             return changed;
         }
 
