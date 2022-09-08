@@ -1,0 +1,13 @@
+[package]
+name = "bevy-inspector-egui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy-inspector-egui-derive = { path = "../bevy-inspector-egui-derive" }
+bevy_reflect = { git = "https://github.com/bevyengine/bevy" }
+egui = "0.19.0"
+
+[dev-dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy", default-features = false, features = ["render", "x11", "bevy_winit"] }
+bevy_egui = { git = "https://github.com/jakobhellermann/bevy_egui", branch = "bevy-main" }
