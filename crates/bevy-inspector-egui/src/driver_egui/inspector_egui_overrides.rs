@@ -11,6 +11,7 @@ use std::{
 
 type InspectorOverrideFn =
     Box<dyn Fn(&mut dyn Any, &mut egui::Ui, &dyn Any, InspectorUi<'_>) -> bool + Send + Sync>;
+
 pub struct InspectorEguiOverrides {
     fns: HashMap<TypeId, InspectorOverrideFn>,
 }

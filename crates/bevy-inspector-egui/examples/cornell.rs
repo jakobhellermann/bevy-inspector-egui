@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_egui::{EguiContext, EguiPlugin};
-use bevy_inspector_egui::driver_egui::{Context, InspectorEguiOverrides, InspectorUi};
+use bevy_inspector_egui::driver_egui::Context;
 use bevy_inspector_egui::prelude::*;
 
 #[derive(Default, Reflect, InspectorOptions)]
@@ -58,33 +58,22 @@ fn main() {
 }
 
 fn ui_example(world: &mut World) {
-    world.resource_scope::<AppTypeRegistry, _>(|world, type_registry| {
-        let type_registry = type_registry.read();
+    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
+    let type_registry = type_registry.read();
 
-        world.resource_scope::<EguiContext, _>(|world, mut egui_context| {
-            egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {
-                let overrides = InspectorEguiOverrides::default();
+    world.resource_scope::<EguiContext, _>(|world, mut egui_context| {
+        egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {
+            let resources: Vec<_> = type_registry
+                .iter()
+                .filter(|registration| registration.data::<ReflectResource>().is_some())
+                .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
+                .collect();
 
-                let mut cx = Context;
-                let mut env = InspectorUi::new(&type_registry, &overrides, &mut cx);
-
-                let resources: Vec<_> = type_registry
-                    .iter()
-                    .filter_map(|registration| {
-                        Some((
-                            registration.short_name().to_owned(),
-                            registration.data::<ReflectResource>()?.clone(),
-                        ))
-                    })
-                    .collect();
-                for (name, reflect_resource) in resources {
-                    if let Some(mut value) = reflect_resource.reflect_mut(world) {
-                        ui.collapsing(&name, |ui| {
-                            env.ui_for_reflect(&mut *value, ui, egui::Id::new(&name));
-                        });
-                    }
-                }
-            });
+            for (name, type_id) in resources {
+                ui.collapsing(&name, |ui| {
+                    bevy_inspector_egui::bevy_ecs_inspector::ui_for_resource(world, type_id, ui);
+                });
+            }
         });
     });
 }

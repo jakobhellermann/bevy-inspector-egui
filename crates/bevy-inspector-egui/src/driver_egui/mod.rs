@@ -12,6 +12,22 @@ mod inspector_egui_overrides;
 
 pub use inspector_egui_overrides::InspectorEguiOverrides;
 
+pub fn ui_for_reflect(
+    type_registry: &TypeRegistry,
+    egui_overrides: &InspectorEguiOverrides,
+    context: &mut Context,
+    value: &mut dyn Reflect,
+    ui: &mut egui::Ui,
+    options: &dyn Any,
+) {
+    InspectorUi::new(type_registry, egui_overrides, context).ui_for_reflect_with_options(
+        value,
+        ui,
+        egui::Id::null(),
+        options,
+    );
+}
+
 pub struct Context;
 
 pub struct InspectorUi<'a> {
