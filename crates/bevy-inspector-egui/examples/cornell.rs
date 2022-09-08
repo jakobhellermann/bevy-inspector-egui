@@ -1,11 +1,10 @@
 use bevy::prelude::*;
 use bevy_egui::{EguiContext, EguiPlugin};
-use bevy_inspector_egui::{
-    driver_egui::{Context, InspectorEguiOverrides, InspectorUi},
-    InspectorOptions,
-};
+use bevy_inspector_egui::driver_egui::{Context, InspectorEguiOverrides, InspectorUi};
+use bevy_inspector_egui::prelude::*;
 
 #[derive(Default, Reflect, InspectorOptions)]
+#[reflect(InspectorOptions)]
 enum Shape {
     Box {
         size: Vec3,
@@ -29,6 +28,7 @@ enum Shape {
 }
 
 #[derive(Reflect, Default, InspectorOptions)]
+#[reflect(InspectorOptions)]
 struct Config {
     #[inspector(min = 10.0, max = 70.0)]
     font_size: f32,
@@ -48,6 +48,8 @@ fn main() {
         .add_startup_system(setup)
         .add_system(ui_example.exclusive_system())
         .insert_resource(UiData::default())
+        .register_type::<Config>()
+        .register_type::<Shape>()
         .register_type_data::<f32, ReflectDefault>()
         .register_type_data::<usize, ReflectDefault>()
         .run();
@@ -66,7 +68,6 @@ fn ui_example(world: &mut World) {
                     &mut *data,
                     ui,
                     egui::Id::new(()),
-                    &(),
                 );
             });
         });

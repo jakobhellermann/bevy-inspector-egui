@@ -1,5 +1,7 @@
 use std::{any::Any, borrow::Cow, collections::HashMap};
 
+use bevy_reflect::{FromType, TypeData};
+
 pub mod std_options;
 
 #[derive(Hash, PartialEq, Eq, Clone)]
@@ -10,15 +12,38 @@ pub enum Target {
 
 #[derive(Default)]
 pub struct InspectorOptions {
-    options: HashMap<Target, Box<dyn Any>>,
+    options: HashMap<Target, Box<dyn TypeData>>,
+}
+impl Clone for InspectorOptions {
+    fn clone(&self) -> Self {
+        Self {
+            options: self
+                .options
+                .iter()
+                .map(|(target, data)| (target.clone(), TypeData::clone_type_data(&**data)))
+                .collect(),
+        }
+    }
 }
 impl InspectorOptions {
-    pub fn insert<T: Any>(&mut self, target: Target, options: T) {
+    pub fn insert<T: TypeData>(&mut self, target: Target, options: T) {
         self.options.insert(target, Box::new(options));
     }
 
     pub fn get(&self, target: Target) -> Option<&dyn Any> {
-        self.options.get(&target).map(|value| &**value)
+        self.options.get(&target).map(|value| value.as_any())
+    }
+}
+
+#[derive(Clone)]
+pub struct ReflectInspectorOptions(pub InspectorOptions);
+
+impl<T> FromType<T> for ReflectInspectorOptions
+where
+    InspectorOptions: FromType<T>,
+{
+    fn from_type() -> Self {
+        ReflectInspectorOptions(InspectorOptions::from_type())
     }
 }
 

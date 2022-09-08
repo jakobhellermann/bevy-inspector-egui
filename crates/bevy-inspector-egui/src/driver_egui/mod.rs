@@ -1,4 +1,4 @@
-use crate::options::{InspectorOptions, Target};
+use crate::options::{InspectorOptions, ReflectInspectorOptions, Target};
 use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, List, Map, Reflect, Struct, Tuple,
@@ -39,8 +39,27 @@ impl<'a> InspectorUi<'a> {
         value: &mut dyn Reflect,
         ui: &mut egui::Ui,
         id: egui::Id,
+    ) -> bool {
+        self.ui_for_reflect_with_options(value, ui, id, &())
+    }
+
+    fn ui_for_reflect_with_options(
+        &mut self,
+        value: &mut dyn Reflect,
+        ui: &mut egui::Ui,
+        id: egui::Id,
         options: &dyn Any,
     ) -> bool {
+        let mut options = options;
+        if options.is::<()>() {
+            if let Some(data) = self
+                .type_registry
+                .get_type_data::<ReflectInspectorOptions>(Any::type_id(value))
+            {
+                options = &data.0;
+            }
+        }
+
         if let Some(changed) =
             self.egui_overrides
                 .try_execute_mut(value.as_any_mut(), ui, options, self.context)
@@ -79,7 +98,7 @@ impl<'a> InspectorUi<'a> {
                         None => ui.label("<missing>"),
                     };
                     if let Some(field) = value.field_at_mut(i) {
-                        changed |= self.ui_for_reflect(
+                        changed |= self.ui_for_reflect_with_options(
                             field,
                             ui,
                             id.with(i),
@@ -108,7 +127,7 @@ impl<'a> InspectorUi<'a> {
             for i in 0..value.field_len() {
                 ui.label(i.to_string());
                 if let Some(field) = value.field_mut(i) {
-                    changed |= self.ui_for_reflect(
+                    changed |= self.ui_for_reflect_with_options(
                         field,
                         ui,
                         id.with(i),
@@ -136,7 +155,7 @@ impl<'a> InspectorUi<'a> {
             for i in 0..value.field_len() {
                 ui.label(i.to_string());
                 if let Some(field) = value.field_mut(i) {
-                    changed |= self.ui_for_reflect(
+                    changed |= self.ui_for_reflect_with_options(
                         field,
                         ui,
                         id.with(i),
@@ -170,7 +189,7 @@ impl<'a> InspectorUi<'a> {
                     /*if utils::ui::label_button(ui, "✖", egui::Color32::RED) {
                         to_delete = Some(i);
                     }*/
-                    changed |= self.ui_for_reflect(val, ui, id.with(i), options);
+                    changed |= self.ui_for_reflect_with_options(val, ui, id.with(i), options);
                 });
 
                 if i != len - 1 {
@@ -247,7 +266,7 @@ impl<'a> InspectorUi<'a> {
                     let field_value = value
                         .field_at_mut(i)
                         .expect("invalid reflect impl: field len");
-                    changed |= self.ui_for_reflect(
+                    changed |= self.ui_for_reflect_with_options(
                         field_value,
                         ui,
                         id.with(i),
