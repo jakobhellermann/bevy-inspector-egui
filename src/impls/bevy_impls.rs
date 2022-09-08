@@ -1,4 +1,3 @@
-use crate::options::NumberAttributes;
 use crate::{Context, Inspectable};
 use bevy::ecs::system::Resource;
 use bevy::prelude::*;
@@ -28,11 +27,7 @@ impl Inspectable for Transform {
                 ui.end_row();
 
                 ui.label("Scale");
-                let scale_attributes = NumberAttributes {
-                    min: Some(Vec3::splat(0.0)),
-                    ..Default::default()
-                };
-                changed |= self.scale.ui(ui, scale_attributes, context);
+                changed |= self.scale.ui(ui, Default::default(), context);
                 ui.end_row();
             });
         });
