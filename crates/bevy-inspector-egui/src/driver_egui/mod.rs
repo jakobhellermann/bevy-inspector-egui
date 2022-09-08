@@ -1,4 +1,5 @@
 use crate::options::{InspectorOptions, ReflectInspectorOptions, Target};
+use bevy_ecs::prelude::World;
 use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, List, Map, Reflect, Struct, Tuple,
@@ -12,10 +13,10 @@ mod inspector_egui_overrides;
 
 pub use inspector_egui_overrides::InspectorEguiOverrides;
 
-pub fn ui_for_reflect(
-    type_registry: &TypeRegistry,
-    egui_overrides: &InspectorEguiOverrides,
-    context: &mut Context,
+pub fn ui_for_reflect<'a>(
+    type_registry: &'a TypeRegistry,
+    egui_overrides: &'a InspectorEguiOverrides,
+    context: &'a mut Context<'a>,
     value: &mut dyn Reflect,
     ui: &mut egui::Ui,
     options: &dyn Any,
@@ -28,19 +29,62 @@ pub fn ui_for_reflect(
     );
 }
 
-pub struct Context;
-
-pub struct InspectorUi<'a> {
-    type_registry: &'a TypeRegistry,
-    egui_overrides: &'a InspectorEguiOverrides,
-    context: &'a mut Context,
+pub fn split_world_permission<'a>(
+    world: &'a mut World,
+    except: TypeId,
+) -> (NoResourceRefsWorld<'a>, OnlyResourceAccessWorld<'a>) {
+    (
+        NoResourceRefsWorld { world, except },
+        OnlyResourceAccessWorld { world, except },
+    )
 }
 
-impl<'a> InspectorUi<'a> {
+pub struct NoResourceRefsWorld<'a> {
+    world: &'a World,
+    except: TypeId,
+}
+impl<'a> NoResourceRefsWorld<'a> {
+    /// # Safety
+    /// Any usages of the world must not keep resources alive around calls having access to the [`OnlyResourceAccessWorld`], except for the resource with the type id returned by `except`.
+    pub unsafe fn get(&self) -> &World {
+        self.world
+    }
+
+    pub fn except(&self) -> TypeId {
+        self.except
+    }
+}
+pub struct OnlyResourceAccessWorld<'a> {
+    world: &'a World,
+    except: TypeId,
+}
+impl<'a> OnlyResourceAccessWorld<'a> {
+    /// # Safety
+    /// The returned world must only be used to access resources (possibly mutably), but it may not access the resource with the type id returned by `except`.
+    pub unsafe fn get(&self) -> &World {
+        self.world
+    }
+
+    pub fn except(&self) -> TypeId {
+        self.except
+    }
+}
+
+pub struct Context<'a> {
+    pub world: Option<OnlyResourceAccessWorld<'a>>,
+}
+
+pub struct InspectorUi<'a, 'c> {
+    type_registry: &'a TypeRegistry,
+    egui_overrides: &'a InspectorEguiOverrides,
+    context: &'a mut Context<'c>,
+}
+
+impl<'a, 'c> InspectorUi<'a, 'c> {
     pub fn new(
         type_registry: &'a TypeRegistry,
         egui_overrides: &'a InspectorEguiOverrides,
-        context: &'a mut Context,
+        context: &'a mut Context<'c>,
     ) -> Self {
         Self {
             type_registry,

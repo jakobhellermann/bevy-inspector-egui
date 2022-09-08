@@ -10,7 +10,7 @@ use std::{
 };
 
 type InspectorOverrideFn =
-    Box<dyn Fn(&mut dyn Any, &mut egui::Ui, &dyn Any, InspectorUi<'_>) -> bool + Send + Sync>;
+    Box<dyn Fn(&mut dyn Any, &mut egui::Ui, &dyn Any, InspectorUi<'_, '_>) -> bool + Send + Sync>;
 
 pub struct InspectorEguiOverrides {
     fns: HashMap<TypeId, InspectorOverrideFn>,
@@ -48,14 +48,14 @@ impl InspectorEguiOverrides {
 
     pub fn register<T: 'static, F>(&mut self, f: F)
     where
-        F: Fn(&mut T, &mut egui::Ui, &dyn Any, InspectorUi<'_>) -> bool + Send + Sync + 'static,
+        F: Fn(&mut T, &mut egui::Ui, &dyn Any, InspectorUi<'_, '_>) -> bool + Send + Sync + 'static,
     {
         let type_id = TypeId::of::<T>();
         let callback = Box::new(
             move |value: &mut dyn Any,
                   ui: &mut egui::Ui,
                   options: &dyn Any,
-                  env: InspectorUi<'_>| {
+                  env: InspectorUi<'_, '_>| {
                 let value: &mut T = value.downcast_mut().unwrap();
                 f(value, ui, options, env)
             },
@@ -63,13 +63,13 @@ impl InspectorEguiOverrides {
         self.fns.insert(type_id, callback);
     }
 
-    pub(crate) fn try_execute_mut(
-        &self,
+    pub(crate) fn try_execute_mut<'a, 'c: 'a>(
+        &'a self,
         value: &mut dyn Any,
         ui: &mut egui::Ui,
         options: &dyn Any,
-        context: &mut Context,
-        type_registry: &TypeRegistry,
+        context: &'a mut Context<'c>,
+        type_registry: &'a TypeRegistry,
     ) -> Option<bool> {
         let type_id = Any::type_id(value);
         self.fns.get(&type_id).map(|f| {
@@ -87,7 +87,7 @@ fn number_ui<T: egui::emath::Numeric>(
     value: &mut T,
     ui: &mut egui::Ui,
     options: &dyn Any,
-    _: InspectorUi<'_>,
+    _: InspectorUi<'_, '_>,
 ) -> bool {
     let options = options
         .downcast_ref::<NumberOptions<T>>()
@@ -99,7 +99,7 @@ fn number_ui_subint<T: egui::emath::Numeric>(
     value: &mut T,
     ui: &mut egui::Ui,
     options: &dyn Any,
-    _: InspectorUi<'_>,
+    _: InspectorUi<'_, '_>,
 ) -> bool {
     let options = options
         .downcast_ref::<NumberOptions<T>>()
@@ -155,7 +155,7 @@ fn duration(
     value: &mut Duration,
     ui: &mut egui::Ui,
     _: &dyn Any,
-    mut env: InspectorUi<'_>,
+    mut env: InspectorUi<'_, '_>,
 ) -> bool {
     let mut seconds = value.as_secs_f64();
     let options = NumberOptions {
@@ -170,7 +170,7 @@ fn duration(
     }
     changed
 }
-fn instant(value: &mut Instant, ui: &mut egui::Ui, _: &dyn Any, _: InspectorUi<'_>) -> bool {
+fn instant(value: &mut Instant, ui: &mut egui::Ui, _: &dyn Any, _: InspectorUi<'_, '_>) -> bool {
     ui.label(format!("{} seconds ago", value.elapsed().as_secs_f32()));
     false
 }

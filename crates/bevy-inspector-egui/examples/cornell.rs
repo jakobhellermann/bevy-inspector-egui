@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_egui::{EguiContext, EguiPlugin};
-use bevy_inspector_egui::driver_egui::Context;
 use bevy_inspector_egui::prelude::*;
 
 #[derive(Default, Reflect, InspectorOptions)]
