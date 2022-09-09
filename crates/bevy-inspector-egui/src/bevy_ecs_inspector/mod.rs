@@ -359,7 +359,7 @@ fn error_message_entity_does_not_exist(ui: &mut egui::Ui, entity: Entity) {
 
     ui.label(job);
 }
-fn error_message_no_world_in_context(ui: &mut egui::Ui, type_name: &str) {
+pub fn error_message_no_world_in_context(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
         (FontId::monospace(14.0), type_name),
         (FontId::default(), " needs the bevy world in the "),
