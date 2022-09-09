@@ -1,4 +1,7 @@
-use std::{any::TypeId, sync::Arc};
+use std::{
+    any::TypeId,
+    sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard},
+};
 
 use bevy_app::prelude::AppTypeRegistry;
 use bevy_ecs::prelude::*;
@@ -12,7 +15,15 @@ use crate::{
 };
 
 #[derive(Resource, Default, Clone)]
-pub struct AppInspectorEguiOverrides(pub Arc<InspectorEguiOverrides>);
+pub struct AppInspectorEguiOverrides(Arc<RwLock<InspectorEguiOverrides>>);
+impl AppInspectorEguiOverrides {
+    pub fn read(&self) -> RwLockReadGuard<InspectorEguiOverrides> {
+        self.0.read().unwrap()
+    }
+    pub fn write(&self) -> RwLockWriteGuard<InspectorEguiOverrides> {
+        self.0.write().unwrap()
+    }
+}
 
 pub fn ui_for_resource(world: &mut World, resource_type_id: TypeId, ui: &mut egui::Ui) {
     world.init_resource::<AppInspectorEguiOverrides>();
@@ -23,6 +34,7 @@ pub fn ui_for_resource(world: &mut World, resource_type_id: TypeId, ui: &mut egu
     let egui_overrides = world
         .get_resource_or_insert_with(AppInspectorEguiOverrides::default)
         .clone();
+    let egui_overrides = egui_overrides.read();
 
     let (no_resource_refs_world, only_resource_access_world) =
         split_world_permission(world, Some(resource_type_id));
@@ -30,7 +42,7 @@ pub fn ui_for_resource(world: &mut World, resource_type_id: TypeId, ui: &mut egu
     let mut cx = Context {
         world: Some(only_resource_access_world),
     };
-    let mut env = InspectorUi::new(&type_registry, &egui_overrides.0, &mut cx);
+    let mut env = InspectorUi::new(&type_registry, &egui_overrides, &mut cx);
 
     // SAFETY: in the code below, the only reference to a resource is the one specified as `except` in `split_world_permission`
     let nrr_world = unsafe { no_resource_refs_world.get() };
@@ -61,6 +73,7 @@ pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
     let egui_overrides = world
         .get_resource_or_insert_with(AppInspectorEguiOverrides::default)
         .clone();
+    let egui_overrides = egui_overrides.read();
 
     ui_for_entity_with(
         world,
@@ -68,7 +81,7 @@ pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
         ui,
         egui::Id::new(entity),
         &type_registry,
-        &egui_overrides.0,
+        &egui_overrides,
     );
 }
 
