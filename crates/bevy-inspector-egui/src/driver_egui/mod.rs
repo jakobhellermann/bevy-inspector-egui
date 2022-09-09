@@ -431,7 +431,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
 
                             let variant_is_constructable =
                                 is_variant_constructable(self.type_registry, variant);
-                            if !variant_is_constructable {
+                            if !variant_is_constructable && !is_active_variant {
                                 unconstructable_variants.push(variant_name);
                             }
                             ui.add_enabled_ui(variant_is_constructable, |ui| {
