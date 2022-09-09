@@ -60,7 +60,9 @@ fn main() {
 fn ui_example(world: &mut World) {
     world.resource_scope::<EguiContext, _>(|world, mut egui_context| {
         egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {
-            bevy_inspector_egui::bevy_ecs_inspector::ui_for_world(world, ui);
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                bevy_inspector_egui::bevy_ecs_inspector::ui_for_world(world, ui);
+            });
         });
     });
 }
