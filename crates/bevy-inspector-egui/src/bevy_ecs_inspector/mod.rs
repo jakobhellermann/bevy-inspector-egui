@@ -4,7 +4,7 @@ use std::{
 };
 
 use bevy_app::prelude::AppTypeRegistry;
-use bevy_asset::HandleId;
+use bevy_asset::{HandleId, HandleUntyped, ReflectAsset};
 use bevy_ecs::{component::ComponentId, prelude::*, world::EntityRef};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
@@ -38,14 +38,28 @@ pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
         ui_for_world_entities_with(world, ui, &type_registry, &egui_overrides);
     });
     egui::CollapsingHeader::new("Resources").show(ui, |ui| {
-        let resources: Vec<_> = type_registry
+        let mut resources: Vec<_> = type_registry
             .iter()
             .filter(|registration| registration.data::<ReflectResource>().is_some())
             .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
             .collect();
+        resources.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
         for (name, type_id) in resources {
             ui.collapsing(&name, |ui| {
                 ui_for_resource_with(world, type_id, ui, &type_registry, &egui_overrides);
+            });
+        }
+    });
+    egui::CollapsingHeader::new("Assets").show(ui, |ui| {
+        let mut assets: Vec<_> = type_registry
+            .iter()
+            .filter(|registration| registration.data::<ReflectAsset>().is_some())
+            .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
+            .collect();
+        assets.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
+        for (name, type_id) in assets {
+            ui.collapsing(&name, |ui| {
+                ui_for_asset_with(world, type_id, ui, &type_registry, &egui_overrides);
             });
         }
     });
@@ -97,6 +111,48 @@ pub fn ui_for_resource_with(
     // SAFETY: value type is the type of the `ReflectFromPtr`
     let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(value.into_inner()) };
     env.ui_for_reflect(value, ui, egui::Id::new(resource_type_id));
+}
+
+pub fn ui_for_asset_with(
+    world: &mut World,
+    asset_type_id: TypeId,
+    ui: &mut egui::Ui,
+    type_registry: &TypeRegistry,
+    egui_overrides: &InspectorEguiOverrides,
+) {
+    let registration = type_registry.get(asset_type_id).unwrap();
+    let reflect_asset = registration.data::<ReflectAsset>().unwrap();
+
+    let mut ids: Vec<_> = reflect_asset.ids(world).collect();
+    ids.sort();
+
+    let (no_resource_refs_world, only_resource_access_world) =
+        split_world_permission(world, Some(reflect_asset.assets_resource_type_id()));
+    let mut cx = Context {
+        world: Some(only_resource_access_world),
+    };
+
+    // SAFETY: in the code below, the only reference to a resource is the one specified as `except` in `split_world_permission`
+    let nrr_world = unsafe { no_resource_refs_world.get() };
+
+    for handle_id in ids {
+        let id = egui::Id::new(handle_id);
+        egui::CollapsingHeader::new(format!("Handle({id:?})"))
+            .id_source(id)
+            .show(ui, |ui| {
+                // SAFETY: the `NoResourceRefs` allows mutable access, and in particular to the resource assets resource of the asset
+                // since we specified it as the exception
+                let value = unsafe {
+                    reflect_asset
+                        .get_unchecked_mut(nrr_world, HandleUntyped::weak(handle_id))
+                        .unwrap()
+                };
+
+                let mut env =
+                    InspectorUi::new(type_registry, egui_overrides, &mut cx, Some(short_circuit));
+                env.ui_for_reflect(value, ui, id);
+            });
+    }
 }
 
 pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
