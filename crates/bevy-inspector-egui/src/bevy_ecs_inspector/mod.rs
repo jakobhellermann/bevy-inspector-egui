@@ -1,7 +1,4 @@
-use std::{
-    any::{Any, TypeId},
-    sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard},
-};
+use std::any::{Any, TypeId};
 
 use bevy_app::prelude::AppTypeRegistry;
 use bevy_asset::{HandleId, HandleUntyped, ReflectAsset};
@@ -11,33 +8,18 @@ use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
 use egui::FontId;
 
 use crate::{
-    driver_egui::{split_world_permission, Context, InspectorEguiOverrides, InspectorUi},
+    driver_egui::{split_world_permission, Context, InspectorUi},
     egui_utils::layout_job,
 };
 
-#[derive(Resource, Default, Clone)]
-pub struct AppInspectorEguiOverrides(Arc<RwLock<InspectorEguiOverrides>>);
-impl AppInspectorEguiOverrides {
-    pub fn read(&self) -> RwLockReadGuard<InspectorEguiOverrides> {
-        self.0.read().unwrap()
-    }
-    pub fn write(&self) -> RwLockWriteGuard<InspectorEguiOverrides> {
-        self.0.write().unwrap()
-    }
-}
-
 pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
-    crate::setup_default_inspector_options(world);
+    crate::setup_default_inspector_config(world);
 
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
-    let egui_overrides = world
-        .get_resource_or_insert_with(AppInspectorEguiOverrides::default)
-        .clone();
-    let egui_overrides = egui_overrides.read();
 
     egui::CollapsingHeader::new("Entities").show(ui, |ui| {
-        ui_for_world_entities_with(world, ui, &type_registry, &egui_overrides);
+        ui_for_world_entities_with(world, ui, &type_registry);
     });
     egui::CollapsingHeader::new("Resources").show(ui, |ui| {
         let mut resources: Vec<_> = type_registry
@@ -48,7 +30,7 @@ pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
         resources.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
         for (name, type_id) in resources {
             ui.collapsing(&name, |ui| {
-                ui_for_resource_with(world, type_id, ui, &type_registry, &egui_overrides);
+                ui_for_resource_with(world, type_id, ui, &type_registry);
             });
         }
     });
@@ -61,7 +43,7 @@ pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
         assets.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
         for (name, type_id) in assets {
             ui.collapsing(&name, |ui| {
-                ui_for_asset_with(world, type_id, ui, &type_registry, &egui_overrides);
+                ui_for_asset_with(world, type_id, ui, &type_registry);
             });
         }
     });
@@ -70,12 +52,8 @@ pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
 pub fn ui_for_resource(world: &mut World, resource_type_id: TypeId, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
-    let egui_overrides = world
-        .get_resource_or_insert_with(AppInspectorEguiOverrides::default)
-        .clone();
-    let egui_overrides = egui_overrides.read();
 
-    ui_for_resource_with(world, resource_type_id, ui, &type_registry, &egui_overrides);
+    ui_for_resource_with(world, resource_type_id, ui, &type_registry);
 }
 
 pub fn ui_for_resource_with(
@@ -83,9 +61,8 @@ pub fn ui_for_resource_with(
     resource_type_id: TypeId,
     ui: &mut egui::Ui,
     type_registry: &TypeRegistry,
-    egui_overrides: &InspectorEguiOverrides,
 ) {
-    crate::setup_default_inspector_options(world);
+    crate::setup_default_inspector_config(world);
 
     let (no_resource_refs_world, only_resource_access_world) =
         split_world_permission(world, Some(resource_type_id));
@@ -93,7 +70,7 @@ pub fn ui_for_resource_with(
     let mut cx = Context {
         world: Some(only_resource_access_world),
     };
-    let mut env = InspectorUi::new(type_registry, egui_overrides, &mut cx, Some(short_circuit));
+    let mut env = InspectorUi::new(type_registry, &mut cx, Some(short_circuit));
 
     // SAFETY: in the code below, the only reference to a resource is the one specified as `except` in `split_world_permission`;
     debug_assert!(no_resource_refs_world.allows_access_to(resource_type_id));
@@ -126,9 +103,8 @@ pub fn ui_for_asset_with(
     asset_type_id: TypeId,
     ui: &mut egui::Ui,
     type_registry: &TypeRegistry,
-    egui_overrides: &InspectorEguiOverrides,
 ) {
-    crate::setup_default_inspector_options(world);
+    crate::setup_default_inspector_config(world);
 
     let registration = type_registry.get(asset_type_id).unwrap();
     let reflect_asset = registration.data::<ReflectAsset>().unwrap();
@@ -158,8 +134,7 @@ pub fn ui_for_asset_with(
                         .unwrap()
                 };
 
-                let mut env =
-                    InspectorUi::new(type_registry, egui_overrides, &mut cx, Some(short_circuit));
+                let mut env = InspectorUi::new(type_registry, &mut cx, Some(short_circuit));
                 env.ui_for_reflect(value, ui, id);
             });
     }
@@ -168,21 +143,16 @@ pub fn ui_for_asset_with(
 pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
-    let egui_overrides = world
-        .get_resource_or_insert_with(AppInspectorEguiOverrides::default)
-        .clone();
-    let egui_overrides = egui_overrides.read();
 
-    ui_for_world_entities_with(world, ui, &type_registry, &egui_overrides);
+    ui_for_world_entities_with(world, ui, &type_registry);
 }
 
 pub fn ui_for_world_entities_with(
     world: &mut World,
     ui: &mut egui::Ui,
     type_registry: &TypeRegistry,
-    egui_overrides: &InspectorEguiOverrides,
 ) {
-    crate::setup_default_inspector_options(world);
+    crate::setup_default_inspector_config(world);
 
     let mut root_entities = world.query_filtered::<Entity, Without<Parent>>();
     let mut entities = root_entities.iter(world).collect::<Vec<_>>();
@@ -190,33 +160,15 @@ pub fn ui_for_world_entities_with(
 
     let id = egui::Id::new("world ui");
     for entity in entities {
-        ui_for_entity_with(
-            world,
-            entity,
-            ui,
-            id.with(entity),
-            type_registry,
-            egui_overrides,
-        );
+        ui_for_entity_with(world, entity, ui, id.with(entity), type_registry);
     }
 }
 
 pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
-    let egui_overrides = world
-        .get_resource_or_insert_with(AppInspectorEguiOverrides::default)
-        .clone();
-    let egui_overrides = egui_overrides.read();
 
-    ui_for_entity_with(
-        world,
-        entity,
-        ui,
-        egui::Id::new(entity),
-        &type_registry,
-        &egui_overrides,
-    );
+    ui_for_entity_with(world, entity, ui, egui::Id::new(entity), &type_registry);
 }
 
 pub fn ui_for_entity_with(
@@ -225,14 +177,13 @@ pub fn ui_for_entity_with(
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
-    egui_overrides: &InspectorEguiOverrides,
 ) {
     let entity_name = guess_entity_name::entity_name(world, entity);
 
     egui::CollapsingHeader::new(entity_name)
         .id_source(id)
         .show(ui, |ui| {
-            ui_for_entity_components(world, entity, ui, id, type_registry, egui_overrides);
+            ui_for_entity_components(world, entity, ui, id, type_registry);
 
             let children = world
                 .get::<Children>(entity)
@@ -242,7 +193,7 @@ pub fn ui_for_entity_with(
                     ui.label("Children");
                     for &child in children.iter() {
                         let id = id.with(child);
-                        ui_for_entity_with(world, child, ui, id, type_registry, egui_overrides);
+                        ui_for_entity_with(world, child, ui, id, type_registry);
                     }
                 }
             }
@@ -255,7 +206,6 @@ fn ui_for_entity_components(
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
-    egui_overrides: &InspectorEguiOverrides,
 ) {
     let entity_ref = match world.get_entity(entity) {
         Some(entity) => entity,
@@ -303,8 +253,11 @@ fn ui_for_entity_components(
                 // SAFETY: value is of correct type, as checked above
                 let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(value.into_inner()) };
 
-                InspectorUi::new(type_registry, egui_overrides, &mut cx, Some(short_circuit))
-                    .ui_for_reflect(value, ui, id.with(component_id));
+                InspectorUi::new(type_registry, &mut cx, Some(short_circuit)).ui_for_reflect(
+                    value,
+                    ui,
+                    id.with(component_id),
+                );
             });
     }
 }
@@ -455,7 +408,6 @@ fn short_circuit(
 
         let mut restricted_env = InspectorUi {
             type_registry: env.type_registry,
-            egui_overrides: env.egui_overrides,
             context: &mut Context {
                 world: more_restricted_world,
             },

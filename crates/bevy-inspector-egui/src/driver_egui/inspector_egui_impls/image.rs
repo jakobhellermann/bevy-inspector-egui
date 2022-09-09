@@ -15,11 +15,12 @@ use crate::{bevy_ecs_inspector::error_message_no_world_in_context, driver_egui::
 mod image_texture_conversion;
 
 pub fn image_ui(
-    value: &mut Handle<Image>,
+    value: &mut dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
     env: InspectorUi<'_, '_>,
 ) -> bool {
+    let value = value.downcast_mut::<Handle<Image>>().unwrap();
     let world = match &env.context.world {
         Some(world) => world,
         None => {

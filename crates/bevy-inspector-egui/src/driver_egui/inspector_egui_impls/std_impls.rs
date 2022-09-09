@@ -5,11 +5,12 @@ use crate::options::std_options::NumberOptions;
 use std::{any::Any, time::Duration};
 
 pub fn number_ui<T: egui::emath::Numeric>(
-    value: &mut T,
+    value: &mut dyn Any,
     ui: &mut egui::Ui,
     options: &dyn Any,
     _: InspectorUi<'_, '_>,
 ) -> bool {
+    let value = value.downcast_mut::<T>().unwrap();
     let options = options
         .downcast_ref::<NumberOptions<T>>()
         .cloned()
@@ -17,11 +18,12 @@ pub fn number_ui<T: egui::emath::Numeric>(
     display_number(value, &options, ui, 1.0)
 }
 pub fn number_ui_subint<T: egui::emath::Numeric>(
-    value: &mut T,
+    value: &mut dyn Any,
     ui: &mut egui::Ui,
     options: &dyn Any,
     _: InspectorUi<'_, '_>,
 ) -> bool {
+    let value = value.downcast_mut::<T>().unwrap();
     let options = options
         .downcast_ref::<NumberOptions<T>>()
         .cloned()
@@ -72,16 +74,23 @@ fn display_number<T: egui::emath::Numeric>(
     changed
 }
 
-pub fn bool_ui(value: &mut bool, ui: &mut egui::Ui, _: &dyn Any, _: InspectorUi<'_, '_>) -> bool {
+pub fn bool_ui(
+    value: &mut dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: InspectorUi<'_, '_>,
+) -> bool {
+    let value = value.downcast_mut::<bool>().unwrap();
     ui.checkbox(value, "").changed()
 }
 
-pub fn duration(
-    value: &mut Duration,
+pub fn duration_ui(
+    value: &mut dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
     mut env: InspectorUi<'_, '_>,
 ) -> bool {
+    let value = value.downcast_mut::<Duration>().unwrap();
     let mut seconds = value.as_secs_f64();
     let options = NumberOptions {
         min: Some(0.0f64),
@@ -96,12 +105,13 @@ pub fn duration(
     changed
 }
 
-pub fn instant(
-    value: &mut Instant,
+pub fn instant_ui(
+    value: &mut dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
     _: InspectorUi<'_, '_>,
 ) -> bool {
+    let value = value.downcast_mut::<Instant>().unwrap();
     ui.label(format!("{} seconds ago", value.elapsed().as_secs_f32()));
     false
 }

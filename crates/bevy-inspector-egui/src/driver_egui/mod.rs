@@ -11,21 +11,24 @@ use smallvec::SmallVec;
 use std::any::{Any, TypeId};
 use std::borrow::Cow;
 
-mod inspector_egui_overrides;
+use inspector_egui_impls::InspectorEguiImpl;
 
-pub use inspector_egui_overrides::InspectorEguiOverrides;
+pub(crate) mod inspector_egui_impls;
 
 pub fn ui_for_reflect<'a>(
     type_registry: &'a TypeRegistry,
-    egui_overrides: &'a InspectorEguiOverrides,
     context: &'a mut Context<'a>,
     short_circuit: Option<ShortCircuitFn>,
     value: &mut dyn Reflect,
     ui: &mut egui::Ui,
     options: &dyn Any,
 ) {
-    InspectorUi::new(type_registry, egui_overrides, context, short_circuit)
-        .ui_for_reflect_with_options(value, ui, egui::Id::null(), options);
+    InspectorUi::new(type_registry, context, short_circuit).ui_for_reflect_with_options(
+        value,
+        ui,
+        egui::Id::null(),
+        options,
+    );
 }
 
 pub fn split_world_permission<'a>(
@@ -107,7 +110,6 @@ type ShortCircuitFn = fn(
 
 pub struct InspectorUi<'a, 'c> {
     pub type_registry: &'a TypeRegistry,
-    pub egui_overrides: &'a InspectorEguiOverrides,
     pub context: &'a mut Context<'c>,
 
     pub short_circuit: ShortCircuitFn,
@@ -116,13 +118,11 @@ pub struct InspectorUi<'a, 'c> {
 impl<'a, 'c> InspectorUi<'a, 'c> {
     pub fn new(
         type_registry: &'a TypeRegistry,
-        egui_overrides: &'a InspectorEguiOverrides,
         context: &'a mut Context<'c>,
         short_circuit: Option<ShortCircuitFn>,
     ) -> Self {
         Self {
             type_registry,
-            egui_overrides,
             context,
             short_circuit: short_circuit.unwrap_or(|_, _, _, _, _| None),
         }
@@ -155,15 +155,20 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             }
         }
 
-        if let Some(changed) = self.egui_overrides.try_execute_mut(
-            value.as_any_mut(),
-            ui,
-            options,
-            self.context,
-            self.type_registry,
-            self.short_circuit,
-        ) {
-            return changed;
+        if let Some(s) = self
+            .type_registry
+            .get_type_data::<InspectorEguiImpl>(Any::type_id(value))
+        {
+            return s.execute(
+                value.as_any_mut(),
+                ui,
+                options,
+                InspectorUi {
+                    type_registry: self.type_registry,
+                    context: self.context,
+                    short_circuit: self.short_circuit,
+                },
+            );
         }
 
         if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
@@ -478,7 +483,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         _id: egui::Id,
         _options: &dyn Any,
     ) -> bool {
-        error_message_reflect_value_no_override(ui, value.type_name());
+        error_message_reflect_value_no_impl(ui, value.type_name());
         false
     }
 }
@@ -572,14 +577,16 @@ fn construct_default_variant(
     Ok(dynamic_enum)
 }
 
-fn error_message_reflect_value_no_override(ui: &mut egui::Ui, type_name: &str) {
+fn error_message_reflect_value_no_impl(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
         (FontId::monospace(14.0), type_name),
         (FontId::default(), " is "),
         (FontId::monospace(14.0), "#[reflect_value]"),
-        (FontId::default(), ", but not registered on the "),
-        (FontId::monospace(14.0), "InspectorEguiOverrides"),
-        (FontId::default(), "."),
+        (FontId::default(), ", but has no "),
+        (FontId::monospace(14.0), "InspectorEguiImpl"),
+        (FontId::default(), " registered in the "),
+        (FontId::monospace(14.0), "TypeRegistry"),
+        (FontId::default(), " ."),
     ]);
 
     ui.label(job);

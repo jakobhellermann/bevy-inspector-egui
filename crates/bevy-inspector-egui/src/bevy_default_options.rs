@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 
-use bevy_app::AppTypeRegistry;
 use bevy_reflect::{TypeData, TypeInfo, TypeRegistry};
 
 use crate::{
@@ -54,7 +53,7 @@ fn insert_options_enum<T: 'static>(
     }
 }
 
-fn insert_default_options(type_registry: &mut TypeRegistry) {
+pub fn register_default_options(type_registry: &mut TypeRegistry) {
     insert_options_enum::<bevy_render::color::Color>(
         type_registry,
         &[
@@ -89,14 +88,4 @@ fn insert_default_options(type_registry: &mut TypeRegistry) {
             ("depth_bias", &NumberOptions::<f32>::positive()),
         ],
     );
-}
-
-pub fn setup_default_inspector_options(world: &bevy_ecs::world::World) {
-    static ONCE: std::sync::Once = std::sync::Once::new();
-    ONCE.call_once(|| {
-        let type_registry = world.resource::<AppTypeRegistry>();
-        let mut type_registry = type_registry.write();
-
-        insert_default_options(&mut type_registry)
-    });
 }
