@@ -358,13 +358,22 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
 
     fn ui_for_reflect_map(
         &mut self,
-        _value: &mut dyn Map,
+        map: &mut dyn Map,
         ui: &mut egui::Ui,
-        _id: egui::Id,
+        id: egui::Id,
         _options: &dyn Any,
     ) -> bool {
-        ui.label("Map not yet implemented");
-        false
+        let mut changed = false;
+        egui::Grid::new(id).show(ui, |ui| {
+            for (i, (_key, value)) in map.iter_mut().enumerate() {
+                // TODO: display key immutably
+                ui.label("<key>");
+                changed |= self.ui_for_reflect(value, ui, id.with(i));
+                ui.end_row();
+            }
+        });
+
+        changed
     }
 
     fn ui_for_array(
