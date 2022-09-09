@@ -145,10 +145,6 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
-        if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
-            return changed;
-        }
-
         let mut options = options;
         if options.is::<()>() {
             if let Some(data) = self
@@ -167,6 +163,10 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             self.type_registry,
             self.short_circuit,
         ) {
+            return changed;
+        }
+
+        if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
             return changed;
         }
 
