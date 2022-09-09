@@ -130,50 +130,6 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             return changed;
         }
 
-        if let Some(reflect_handle) = self
-            .type_registry
-            .get_type_data::<bevy_asset::ReflectHandle>(Any::type_id(value))
-        {
-            let handle = reflect_handle
-                .downcast_handle_untyped(value.as_any())
-                .unwrap();
-            let reflect_asset = self
-                .type_registry
-                .get_type_data::<bevy_asset::ReflectAsset>(reflect_handle.asset_type_id())
-                .unwrap();
-
-            let world = match &self.context.world {
-                Some(world) => world,
-                None => {
-                    ui.label("Handle needs world in context");
-                    return false;
-                }
-            };
-            assert_ne!(
-                world.except_resource(),
-                Some(reflect_asset.assets_resource_type_id())
-            );
-            // SAFETY: the following code only accesses resources through the world (namely `Assets<T>`)
-            let ora_world = unsafe { world.get() };
-            // SAFETY: the `OnlyResourceAccessWorld` allows mutable access (except for the `except_resource`),
-            // and we create only one reference to an asset at the same time.
-            let asset_value = unsafe { reflect_asset.get_unchecked_mut(ora_world, handle) };
-            let asset_value = match asset_value {
-                Some(value) => value,
-                None => {
-                    ui.label("Asset handle points to nothing");
-                    return false;
-                }
-            };
-            let mut restricted_env = InspectorUi {
-                type_registry: self.type_registry,
-                egui_overrides: self.egui_overrides,
-                context: &mut Context { world: None },
-                short_circuit: self.short_circuit,
-            };
-            return restricted_env.ui_for_reflect(asset_value, ui, id.with("asset"));
-        }
-
         let mut options = options;
         if options.is::<()>() {
             if let Some(data) = self
