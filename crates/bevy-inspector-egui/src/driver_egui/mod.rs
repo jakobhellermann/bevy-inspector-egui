@@ -54,8 +54,8 @@ impl<'a> NoResourceRefsWorld<'a> {
         self.world
     }
 
-    pub fn except_resource(&self) -> Option<TypeId> {
-        self.except_resource
+    pub fn allows_access_to(&self, type_id: TypeId) -> bool {
+        self.except_resource.map_or(false, |allow| allow == type_id)
     }
 }
 pub struct OnlyResourceAccessWorld<'a> {
@@ -69,8 +69,9 @@ impl<'a> OnlyResourceAccessWorld<'a> {
         self.world
     }
 
-    pub fn except_resource(&self) -> Option<TypeId> {
+    pub fn forbids_access_to(&self, type_id: TypeId) -> bool {
         self.except_resource
+            .map_or(false, |forbid| forbid == type_id)
     }
 }
 

@@ -95,7 +95,8 @@ pub fn ui_for_resource_with(
     };
     let mut env = InspectorUi::new(type_registry, egui_overrides, &mut cx, Some(short_circuit));
 
-    // SAFETY: in the code below, the only reference to a resource is the one specified as `except` in `split_world_permission`
+    // SAFETY: in the code below, the only reference to a resource is the one specified as `except` in `split_world_permission`;
+    debug_assert!(no_resource_refs_world.allows_access_to(resource_type_id));
     let nrr_world = unsafe { no_resource_refs_world.get() };
     let component_id = nrr_world
         .components()
@@ -432,10 +433,7 @@ fn short_circuit(
                 return Some(false);
             }
         };
-        assert_ne!(
-            world.except_resource(),
-            Some(reflect_asset.assets_resource_type_id())
-        );
+        assert!(!world.forbids_access_to(reflect_asset.assets_resource_type_id()));
         // SAFETY: the following code only accesses resources through the world (namely `Assets<T>`)
         let ora_world = unsafe { world.get() };
         // SAFETY: the `OnlyResourceAccessWorld` allows mutable access (except for the `except_resource`),
