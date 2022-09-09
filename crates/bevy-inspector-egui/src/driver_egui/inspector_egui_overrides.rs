@@ -31,6 +31,7 @@ impl Default for InspectorEguiOverrides {
         overrides.register::<u32, _>(number_ui);
         overrides.register::<u64, _>(number_ui);
         overrides.register::<usize, _>(number_ui);
+        overrides.register::<bool, _>(bool_ui);
 
         overrides.register::<Duration, _>(duration);
         overrides.register::<Instant, _>(instant);
@@ -149,6 +150,10 @@ fn display_number<T: egui::emath::Numeric>(
         }
     }
     changed
+}
+
+fn bool_ui(value: &mut bool, ui: &mut egui::Ui, _: &dyn Any, _: InspectorUi<'_, '_>) -> bool {
+    ui.checkbox(value, "").changed()
 }
 
 fn duration(
