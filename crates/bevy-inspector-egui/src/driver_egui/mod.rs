@@ -158,6 +158,10 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
+        if value.field_len() == 0 {
+            return false;
+        };
+
         let mut changed = false;
         ui.vertical_centered(|ui| {
             let grid = Grid::new(id);
@@ -191,6 +195,10 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
+        if value.field_len() == 0 {
+            return false;
+        };
+
         let mut changed = false;
         let grid = Grid::new(id);
         grid.show(ui, |ui| {
@@ -219,6 +227,10 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
+        if value.field_len() == 0 {
+            return false;
+        };
+
         let mut changed = false;
         let grid = Grid::new(id);
         grid.show(ui, |ui| {
