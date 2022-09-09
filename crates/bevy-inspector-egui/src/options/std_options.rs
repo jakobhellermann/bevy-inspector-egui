@@ -30,6 +30,51 @@ impl<T> Default for NumberOptions<T> {
     }
 }
 
+impl<T> NumberOptions<T> {
+    pub fn between(min: T, max: T) -> NumberOptions<T> {
+        NumberOptions {
+            min: Some(min),
+            max: Some(max),
+            speed: 0.0,
+            prefix: String::new(),
+            suffix: String::new(),
+        }
+    }
+}
+impl<T: egui::emath::Numeric> NumberOptions<T> {
+    pub fn positive() -> NumberOptions<T> {
+        NumberOptions {
+            min: Some(T::from_f64(0.0)),
+            max: None,
+            speed: 0.0,
+            prefix: String::new(),
+            suffix: String::new(),
+        }
+    }
+}
+impl NumberOptions<f32> {
+    pub fn normalized() -> Self {
+        NumberOptions {
+            min: Some(0.0),
+            max: Some(1.0),
+            speed: 0.01,
+            prefix: String::new(),
+            suffix: String::new(),
+        }
+    }
+}
+impl NumberOptions<f64> {
+    pub fn normalized() -> Self {
+        NumberOptions {
+            min: Some(0.0),
+            max: Some(1.0),
+            speed: 0.01,
+            prefix: String::new(),
+            suffix: String::new(),
+        }
+    }
+}
+
 impl_options!(f32 => NumberOptions<f32>);
 impl_options!(usize => NumberOptions<usize>);
 

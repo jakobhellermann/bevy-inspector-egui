@@ -4,7 +4,7 @@ use bevy_reflect::{FromType, TypeData};
 
 pub mod std_options;
 
-#[derive(Hash, PartialEq, Eq, Clone)]
+#[derive(Hash, PartialEq, Eq, Clone, Debug)]
 pub enum Target {
     Field(usize),
     VariantField(Cow<'static, str>, usize),
@@ -26,10 +26,16 @@ impl Clone for InspectorOptions {
     }
 }
 impl InspectorOptions {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     pub fn insert<T: TypeData>(&mut self, target: Target, options: T) {
         self.options.insert(target, Box::new(options));
     }
-
+    pub fn insert_boxed(&mut self, target: Target, options: Box<dyn TypeData>) {
+        self.options.insert(target, options);
+    }
     pub fn get(&self, target: Target) -> Option<&dyn Any> {
         self.options.get(&target).map(|value| value.as_any())
     }
