@@ -39,6 +39,7 @@ struct Config {
 struct UiData {
     config: Config,
     shape: Shape,
+    entity: Option<Entity>,
 }
 
 fn main() {
@@ -62,16 +63,23 @@ fn ui_example(world: &mut World) {
 
     world.resource_scope::<EguiContext, _>(|world, mut egui_context| {
         egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {
-            let resources: Vec<_> = type_registry
+            let _resources: Vec<_> = type_registry
                 .iter()
                 .filter(|registration| registration.data::<ReflectResource>().is_some())
                 .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
                 .collect();
 
-            for (name, type_id) in resources {
+            /*for (name, type_id) in resources {
                 ui.collapsing(&name, |ui| {
-                    bevy_inspector_egui::bevy_ecs_inspector::ui_for_resource(world, type_id, ui);
+                    bevy_inspector_egui::bevy_ecs_inspector::ui_for_resource(
+                        world, type_id, ui,
+                    );
                 });
+            }*/
+
+            let ui_data = world.resource::<UiData>();
+            if let Some(entity) = ui_data.entity {
+                bevy_inspector_egui::bevy_ecs_inspector::ui_for_entity(world, entity, ui);
             }
         });
     });
@@ -82,6 +90,7 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut ui_data: ResMut<UiData>,
 ) {
     let box_size = 2.0;
     let box_thickness = 0.15;
@@ -170,32 +179,35 @@ fn setup(
         brightness: 0.02,
     });
     // top light
-    commands
-        .spawn_bundle(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Plane { size: 0.4 })),
-            transform: Transform::from_matrix(Mat4::from_scale_rotation_translation(
-                Vec3::ONE,
-                Quat::from_rotation_x(std::f32::consts::PI),
-                Vec3::new(0.0, box_size + 0.5 * box_thickness, 0.0),
-            )),
-            material: materials.add(StandardMaterial {
-                base_color: Color::WHITE,
-                emissive: Color::WHITE * 100.0,
-                ..Default::default()
-            }),
-            ..Default::default()
-        })
-        .with_children(|builder| {
-            builder.spawn_bundle(PointLightBundle {
-                point_light: PointLight {
-                    color: Color::WHITE,
-                    intensity: 25.0,
+    ui_data.entity = Some(
+        commands
+            .spawn_bundle(PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Plane { size: 0.4 })),
+                transform: Transform::from_matrix(Mat4::from_scale_rotation_translation(
+                    Vec3::ONE,
+                    Quat::from_rotation_x(std::f32::consts::PI),
+                    Vec3::new(0.0, box_size + 0.5 * box_thickness, 0.0),
+                )),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::WHITE,
+                    emissive: Color::WHITE * 100.0,
                     ..Default::default()
-                },
-                transform: Transform::from_translation((box_thickness + 0.05) * Vec3::Y),
+                }),
                 ..Default::default()
-            });
-        });
+            })
+            .with_children(|builder| {
+                builder.spawn_bundle(PointLightBundle {
+                    point_light: PointLight {
+                        color: Color::WHITE,
+                        intensity: 25.0,
+                        ..Default::default()
+                    },
+                    transform: Transform::from_translation((box_thickness + 0.05) * Vec3::Y),
+                    ..Default::default()
+                });
+            })
+            .id(),
+    );
     // directional light
     const HALF_SIZE: f32 = 10.0;
     commands.spawn_bundle(DirectionalLightBundle {

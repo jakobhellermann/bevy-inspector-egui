@@ -1,3 +1,4 @@
+use crate::egui_utils::layout_job;
 use crate::options::{InspectorOptions, ReflectInspectorOptions, Target};
 use bevy_ecs::prelude::World;
 use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
@@ -31,17 +32,23 @@ pub fn ui_for_reflect<'a>(
 
 pub fn split_world_permission<'a>(
     world: &'a mut World,
-    except: TypeId,
+    except_resource: Option<TypeId>,
 ) -> (NoResourceRefsWorld<'a>, OnlyResourceAccessWorld<'a>) {
     (
-        NoResourceRefsWorld { world, except },
-        OnlyResourceAccessWorld { world, except },
+        NoResourceRefsWorld {
+            world,
+            except_resource,
+        },
+        OnlyResourceAccessWorld {
+            world,
+            except_resource,
+        },
     )
 }
 
 pub struct NoResourceRefsWorld<'a> {
     world: &'a World,
-    except: TypeId,
+    except_resource: Option<TypeId>,
 }
 impl<'a> NoResourceRefsWorld<'a> {
     /// # Safety
@@ -50,13 +57,13 @@ impl<'a> NoResourceRefsWorld<'a> {
         self.world
     }
 
-    pub fn except(&self) -> TypeId {
-        self.except
+    pub fn except_resource(&self) -> Option<TypeId> {
+        self.except_resource
     }
 }
 pub struct OnlyResourceAccessWorld<'a> {
     world: &'a World,
-    except: TypeId,
+    except_resource: Option<TypeId>,
 }
 impl<'a> OnlyResourceAccessWorld<'a> {
     /// # Safety
@@ -65,8 +72,8 @@ impl<'a> OnlyResourceAccessWorld<'a> {
         self.world
     }
 
-    pub fn except(&self) -> TypeId {
-        self.except
+    pub fn except_resource(&self) -> Option<TypeId> {
+        self.except_resource
     }
 }
 
@@ -508,22 +515,8 @@ fn construct_default_variant(
     Ok(dynamic_enum)
 }
 
-fn layout_job(text: Vec<(FontId, &str)>) -> egui::epaint::text::LayoutJob {
-    let mut job = egui::epaint::text::LayoutJob::default();
-    for (font_id, text) in text {
-        job.append(
-            text,
-            0.0,
-            egui::TextFormat {
-                font_id,
-                ..Default::default()
-            },
-        );
-    }
-    job
-}
 fn error_message_reflect_value_no_override(ui: &mut egui::Ui, type_name: &str) {
-    let job = layout_job(vec![
+    let job = layout_job(&[
         (FontId::monospace(14.0), type_name),
         (FontId::default(), " is "),
         (FontId::monospace(14.0), "#[reflect_value]"),
@@ -535,13 +528,13 @@ fn error_message_reflect_value_no_override(ui: &mut egui::Ui, type_name: &str) {
     ui.label(job);
 }
 fn error_message_no_default_value(ui: &mut egui::Ui, type_name: &str) {
-    let job = layout_job(vec![
+    let job = layout_job(&[
         (FontId::monospace(14.0), type_name),
         (FontId::default(), " has no "),
         (FontId::monospace(14.0), "ReflectDefault"),
         (
             FontId::default(),
-            ", type data, so no value of it can be constructed.",
+            " type data, so no value of it can be constructed.",
         ),
     ]);
 
@@ -568,7 +561,7 @@ fn error_message_unconstructable_variants(
         (FontId::monospace(14.0), "ReflectDefault"),
         (FontId::default(), " for all fields."),
     ]);
-    let job = layout_job(vec);
+    let job = layout_job(&vec);
 
     ui.label(job);
 }
