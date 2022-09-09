@@ -12,11 +12,13 @@ fn main() {
 }
 
 fn ui_example(world: &mut World) {
-    world.resource_scope::<bevy_egui::EguiContext, _>(|world, mut egui_context| {
-        egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                bevy_inspector_egui::bevy_ecs_inspector::ui_for_world(world, ui);
-            });
+    let egui_context = world
+        .resource_mut::<bevy_egui::EguiContext>()
+        .ctx_mut()
+        .clone();
+    egui::Window::new("Hello").show(&egui_context, |ui| {
+        egui::ScrollArea::vertical().show(ui, |ui| {
+            bevy_inspector_egui::bevy_ecs_inspector::ui_for_world(world, ui);
         });
     });
 }

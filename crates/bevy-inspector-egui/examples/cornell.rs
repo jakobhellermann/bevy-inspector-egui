@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_inspector_egui::prelude::*;
 
 #[derive(Default, Reflect, InspectorOptions)]
@@ -45,7 +44,7 @@ struct UiData {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(EguiPlugin)
+        .add_plugin(bevy_egui::EguiPlugin)
         .add_startup_system(setup)
         .add_system(ui_example.exclusive_system())
         .insert_resource(UiData::default())
@@ -58,11 +57,13 @@ fn main() {
 }
 
 fn ui_example(world: &mut World) {
-    world.resource_scope::<EguiContext, _>(|world, mut egui_context| {
-        egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                bevy_inspector_egui::bevy_ecs_inspector::ui_for_world(world, ui);
-            });
+    let egui_context = world
+        .resource_mut::<bevy_egui::EguiContext>()
+        .ctx_mut()
+        .clone();
+    egui::Window::new("Hello").show(&egui_context, |ui| {
+        egui::ScrollArea::vertical().show(ui, |ui| {
+            bevy_inspector_egui::bevy_ecs_inspector::ui_for_world(world, ui);
         });
     });
 }
