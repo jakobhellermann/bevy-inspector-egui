@@ -58,29 +58,9 @@ fn main() {
 }
 
 fn ui_example(world: &mut World) {
-    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
-    let type_registry = type_registry.read();
-
     world.resource_scope::<EguiContext, _>(|world, mut egui_context| {
         egui::Window::new("Hello").show(egui_context.ctx_mut(), |ui| {
-            let _resources: Vec<_> = type_registry
-                .iter()
-                .filter(|registration| registration.data::<ReflectResource>().is_some())
-                .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
-                .collect();
-
-            /*for (name, type_id) in resources {
-                ui.collapsing(&name, |ui| {
-                    bevy_inspector_egui::bevy_ecs_inspector::ui_for_resource(
-                        world, type_id, ui,
-                    );
-                });
-            }*/
-
-            let ui_data = world.resource::<UiData>();
-            if let Some(entity) = ui_data.entity {
-                bevy_inspector_egui::bevy_ecs_inspector::ui_for_entity(world, entity, ui);
-            }
+            bevy_inspector_egui::bevy_ecs_inspector::ui_for_world(world, ui);
         });
     });
 }

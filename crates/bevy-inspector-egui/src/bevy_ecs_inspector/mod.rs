@@ -4,8 +4,8 @@ use std::{
 };
 
 use bevy_app::prelude::AppTypeRegistry;
-use bevy_ecs::prelude::*;
-use bevy_hierarchy::Children;
+use bevy_ecs::{component::ComponentId, prelude::*, world::EntityRef};
+use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::{ReflectFromPtr, TypeRegistry};
 use egui::FontId;
 
@@ -25,17 +25,49 @@ impl AppInspectorEguiOverrides {
     }
 }
 
-pub fn ui_for_resource(world: &mut World, resource_type_id: TypeId, ui: &mut egui::Ui) {
-    world.init_resource::<AppInspectorEguiOverrides>();
-
+pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
-
     let egui_overrides = world
         .get_resource_or_insert_with(AppInspectorEguiOverrides::default)
         .clone();
     let egui_overrides = egui_overrides.read();
 
+    egui::CollapsingHeader::new("Entities").show(ui, |ui| {
+        ui_for_world_entities_with(world, ui, &type_registry, &egui_overrides);
+    });
+    egui::CollapsingHeader::new("Resources").show(ui, |ui| {
+        let resources: Vec<_> = type_registry
+            .iter()
+            .filter(|registration| registration.data::<ReflectResource>().is_some())
+            .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
+            .collect();
+        for (name, type_id) in resources {
+            ui.collapsing(&name, |ui| {
+                ui_for_resource_with(world, type_id, ui, &type_registry, &egui_overrides);
+            });
+        }
+    });
+}
+
+pub fn ui_for_resource(world: &mut World, resource_type_id: TypeId, ui: &mut egui::Ui) {
+    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
+    let type_registry = type_registry.read();
+    let egui_overrides = world
+        .get_resource_or_insert_with(AppInspectorEguiOverrides::default)
+        .clone();
+    let egui_overrides = egui_overrides.read();
+
+    ui_for_resource_with(world, resource_type_id, ui, &type_registry, &egui_overrides);
+}
+
+pub fn ui_for_resource_with(
+    world: &mut World,
+    resource_type_id: TypeId,
+    ui: &mut egui::Ui,
+    type_registry: &TypeRegistry,
+    egui_overrides: &InspectorEguiOverrides,
+) {
     let (no_resource_refs_world, only_resource_access_world) =
         split_world_permission(world, Some(resource_type_id));
 
@@ -66,10 +98,43 @@ pub fn ui_for_resource(world: &mut World, resource_type_id: TypeId, ui: &mut egu
     env.ui_for_reflect(value, ui, egui::Id::new(resource_type_id));
 }
 
+pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
+    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
+    let type_registry = type_registry.read();
+    let egui_overrides = world
+        .get_resource_or_insert_with(AppInspectorEguiOverrides::default)
+        .clone();
+    let egui_overrides = egui_overrides.read();
+
+    ui_for_world_entities_with(world, ui, &type_registry, &egui_overrides);
+}
+
+pub fn ui_for_world_entities_with(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    type_registry: &TypeRegistry,
+    egui_overrides: &InspectorEguiOverrides,
+) {
+    let mut root_entities = world.query_filtered::<Entity, Without<Parent>>();
+    let mut entities = root_entities.iter(world).collect::<Vec<_>>();
+    entities.sort();
+
+    let id = egui::Id::new("world ui");
+    for entity in entities {
+        ui_for_entity_with(
+            world,
+            entity,
+            ui,
+            id.with(entity),
+            type_registry,
+            egui_overrides,
+        );
+    }
+}
+
 pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
-
     let egui_overrides = world
         .get_resource_or_insert_with(AppInspectorEguiOverrides::default)
         .clone();
@@ -85,7 +150,7 @@ pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
     );
 }
 
-fn ui_for_entity_with(
+pub fn ui_for_entity_with(
     world: &mut World,
     entity: Entity,
     ui: &mut egui::Ui,
@@ -130,17 +195,7 @@ fn ui_for_entity_components(
             return;
         }
     };
-    let archetype = entity_ref.archetype();
-    let mut components: Vec<_> = archetype
-        .components()
-        .map(|component_id| {
-            let info = world.components().get_info(component_id).unwrap();
-            let name = pretty_type_name::pretty_type_name_str(info.name());
-
-            (name, component_id, info.type_id(), info.layout().size())
-        })
-        .collect();
-    components.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
+    let components = components_of_entity(entity_ref, world);
 
     let (no_resource_refs_world, only_resource_access_world) = split_world_permission(world, None);
     let mut cx = Context {
@@ -186,6 +241,24 @@ fn ui_for_entity_components(
                 );
             });
     }
+}
+
+fn components_of_entity(
+    entity_ref: EntityRef,
+    world: &World,
+) -> Vec<(String, ComponentId, Option<TypeId>, usize)> {
+    let archetype = entity_ref.archetype();
+    let mut components: Vec<_> = archetype
+        .components()
+        .map(|component_id| {
+            let info = world.components().get_info(component_id).unwrap();
+            let name = pretty_type_name::pretty_type_name_str(info.name());
+
+            (name, component_id, info.type_id(), info.layout().size())
+        })
+        .collect();
+    components.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
+    components
 }
 
 fn error_message_no_type_id(ui: &mut egui::Ui, component_name: &str) {

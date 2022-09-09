@@ -4,6 +4,13 @@ members = ["crates/*"]
 
 
 [patch."https://github.com/bevyengine/bevy"]
-bevy_ecs = { git = "https://github.com/jakobhellermann/bevy", branch = "relax-sized-change-detetion" }
-bevy_reflect = { git = "https://github.com/jakobhellermann/bevy", branch = "relax-sized-change-detetion" }
-bevy = { git = "https://github.com/jakobhellermann/bevy", branch = "relax-sized-change-detetion" }
+# bevy_ecs = { git = "https://github.com/jakobhellermann/bevy", branch = "relax-sized-change-detetion" }
+# bevy_reflect = { git = "https://github.com/jakobhellermann/bevy", branch = "relax-sized-change-detetion" }
+# bevy_app = { git = "https://github.com/jakobhellermann/bevy", branch = "relax-sized-change-detetion" }
+# bevy = { git = "https://github.com/jakobhellermann/bevy", branch = "relax-sized-change-detetion" }
+bevy_ecs = { path = "../bevy/crates/bevy_ecs" }
+bevy_hierarchy = { path = "../bevy/crates/bevy_hierarchy" }
+bevy_reflect = { path = "../bevy/crates/bevy_reflect" }
+bevy_app = { path = "../bevy/crates/bevy_app" }
+bevy_core = { path = "../bevy/crates/bevy_core" }
+bevy = { path = "../bevy" }
