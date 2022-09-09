@@ -1,12 +1,13 @@
 use std::{
-    any::TypeId,
+    any::{Any, TypeId},
     sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard},
 };
 
 use bevy_app::prelude::AppTypeRegistry;
+use bevy_asset::HandleId;
 use bevy_ecs::{component::ComponentId, prelude::*, world::EntityRef};
 use bevy_hierarchy::{Children, Parent};
-use bevy_reflect::{ReflectFromPtr, TypeRegistry};
+use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
 use egui::FontId;
 
 use crate::{
@@ -74,7 +75,7 @@ pub fn ui_for_resource_with(
     let mut cx = Context {
         world: Some(only_resource_access_world),
     };
-    let mut env = InspectorUi::new(&type_registry, &egui_overrides, &mut cx);
+    let mut env = InspectorUi::new(type_registry, egui_overrides, &mut cx, Some(short_circuit));
 
     // SAFETY: in the code below, the only reference to a resource is the one specified as `except` in `split_world_permission`
     let nrr_world = unsafe { no_resource_refs_world.get() };
@@ -234,11 +235,8 @@ fn ui_for_entity_components(
                 // SAFETY: value is of correct type, as checked above
                 let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(value.into_inner()) };
 
-                InspectorUi::new(type_registry, egui_overrides, &mut cx).ui_for_reflect(
-                    value,
-                    ui,
-                    id.with(component_id),
-                );
+                InspectorUi::new(type_registry, egui_overrides, &mut cx, Some(short_circuit))
+                    .ui_for_reflect(value, ui, id.with(component_id));
             });
     }
 }
@@ -293,6 +291,28 @@ fn error_message_entity_does_not_exist(ui: &mut egui::Ui, entity: Entity) {
 
     ui.label(job);
 }
+fn error_message_no_world_in_context(ui: &mut egui::Ui, type_name: &str) {
+    let job = layout_job(&[
+        (FontId::monospace(14.0), type_name),
+        (FontId::default(), " needs the bevy world in the "),
+        (FontId::monospace(14.0), "InspectorUi"),
+        (
+            FontId::default(),
+            " context to provide meaningful information.",
+        ),
+    ]);
+
+    ui.label(job);
+}
+fn error_message_dead_asset_handle(ui: &mut egui::Ui, handle: HandleId) {
+    let job = layout_job(&[
+        (FontId::default(), "Handle "),
+        (FontId::monospace(14.0), &format!("{:?}", handle)),
+        (FontId::default(), " points to no asset."),
+    ]);
+
+    ui.label(job);
+}
 
 mod guess_entity_name {
     use bevy_core::Name;
@@ -315,4 +335,65 @@ mod guess_entity_name {
 
         format!("Entity ({:?})", id)
     }
+}
+
+// Short circuit reflect UI in cases where we have better information available through the world (e.g. handles to assets)
+fn short_circuit(
+    env: &mut InspectorUi,
+    value: &mut dyn Reflect,
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    options: &dyn Any,
+) -> Option<bool> {
+    if let Some(reflect_handle) = env
+        .type_registry
+        .get_type_data::<bevy_asset::ReflectHandle>(Any::type_id(value))
+    {
+        let handle = reflect_handle
+            .downcast_handle_untyped(value.as_any())
+            .unwrap();
+        let handle_id = handle.id;
+        let reflect_asset = env
+            .type_registry
+            .get_type_data::<bevy_asset::ReflectAsset>(reflect_handle.asset_type_id())
+            .unwrap();
+
+        let world = match &env.context.world {
+            Some(world) => world,
+            None => {
+                error_message_no_world_in_context(ui, value.type_name());
+                return Some(false);
+            }
+        };
+        assert_ne!(
+            world.except_resource(),
+            Some(reflect_asset.assets_resource_type_id())
+        );
+        // SAFETY: the following code only accesses resources through the world (namely `Assets<T>`)
+        let ora_world = unsafe { world.get() };
+        // SAFETY: the `OnlyResourceAccessWorld` allows mutable access (except for the `except_resource`),
+        // and we create only one reference to an asset at the same time.
+        let asset_value = unsafe { reflect_asset.get_unchecked_mut(ora_world, handle) };
+        let asset_value = match asset_value {
+            Some(value) => value,
+            None => {
+                error_message_dead_asset_handle(ui, handle_id);
+                return Some(false);
+            }
+        };
+        let mut restricted_env = InspectorUi {
+            type_registry: env.type_registry,
+            egui_overrides: env.egui_overrides,
+            context: &mut Context { world: None },
+            short_circuit: env.short_circuit,
+        };
+        return Some(restricted_env.ui_for_reflect_with_options(
+            asset_value,
+            ui,
+            id.with("asset"),
+            options,
+        ));
+    }
+
+    None
 }

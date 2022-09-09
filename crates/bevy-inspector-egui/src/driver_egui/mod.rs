@@ -18,16 +18,13 @@ pub fn ui_for_reflect<'a>(
     type_registry: &'a TypeRegistry,
     egui_overrides: &'a InspectorEguiOverrides,
     context: &'a mut Context<'a>,
+    short_circuit: Option<ShortCircuitFn>,
     value: &mut dyn Reflect,
     ui: &mut egui::Ui,
     options: &dyn Any,
 ) {
-    InspectorUi::new(type_registry, egui_overrides, context).ui_for_reflect_with_options(
-        value,
-        ui,
-        egui::Id::null(),
-        options,
-    );
+    InspectorUi::new(type_registry, egui_overrides, context, short_circuit)
+        .ui_for_reflect_with_options(value, ui, egui::Id::null(), options);
 }
 
 pub fn split_world_permission<'a>(
@@ -81,18 +78,20 @@ pub struct Context<'a> {
     pub world: Option<OnlyResourceAccessWorld<'a>>,
 }
 
-pub struct InspectorUi<'a, 'c> {
-    type_registry: &'a TypeRegistry,
-    egui_overrides: &'a InspectorEguiOverrides,
-    context: &'a mut Context<'c>,
+type ShortCircuitFn = fn(
+    &mut InspectorUi<'_, '_>,
+    value: &mut dyn Reflect,
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    options: &dyn Any,
+) -> Option<bool>;
 
-    shortcircuit: fn(
-        InspectorUi<'_, '_>,
-        value: &mut dyn Reflect,
-        ui: &mut egui::Ui,
-        id: egui::Id,
-        options: &dyn Any,
-    ) -> Option<bool>,
+pub struct InspectorUi<'a, 'c> {
+    pub type_registry: &'a TypeRegistry,
+    pub egui_overrides: &'a InspectorEguiOverrides,
+    pub context: &'a mut Context<'c>,
+
+    pub short_circuit: ShortCircuitFn,
 }
 
 impl<'a, 'c> InspectorUi<'a, 'c> {
@@ -100,20 +99,14 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         type_registry: &'a TypeRegistry,
         egui_overrides: &'a InspectorEguiOverrides,
         context: &'a mut Context<'c>,
+        short_circuit: Option<ShortCircuitFn>,
     ) -> Self {
         Self {
             type_registry,
             egui_overrides,
             context,
-            shortcircuit: |_, _, _, _, _| None,
+            short_circuit: short_circuit.unwrap_or(|_, _, _, _, _| None),
         }
-    }
-    pub fn shortcircuit(
-        mut self,
-        f: fn(InspectorUi<'_, '_>, &mut dyn Reflect, &mut egui::Ui, egui::Id, &dyn Any) -> Option<bool>,
-    ) -> Self {
-        self.shortcircuit = f;
-        self
     }
 
     /// Draws the inspector UI for the given value.
@@ -133,9 +126,10 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
-        if let Some(changed) = self.shortcircuit {
+        if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
             return changed;
         }
+
         if let Some(reflect_handle) = self
             .type_registry
             .get_type_data::<bevy_asset::ReflectHandle>(Any::type_id(value))
@@ -175,6 +169,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                 type_registry: self.type_registry,
                 egui_overrides: self.egui_overrides,
                 context: &mut Context { world: None },
+                short_circuit: self.short_circuit,
             };
             return restricted_env.ui_for_reflect(asset_value, ui, id.with("asset"));
         }
@@ -195,6 +190,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             options,
             self.context,
             self.type_registry,
+            self.short_circuit,
         ) {
             return changed;
         }

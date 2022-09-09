@@ -1,7 +1,7 @@
 use bevy_reflect::TypeRegistry;
 use std::time::Instant;
 
-use super::{Context, InspectorUi};
+use super::{Context, InspectorUi, ShortCircuitFn};
 use crate::options::std_options::NumberOptions;
 use std::{
     any::{Any, TypeId},
@@ -71,6 +71,7 @@ impl InspectorEguiOverrides {
         options: &dyn Any,
         context: &'a mut Context<'c>,
         type_registry: &'a TypeRegistry,
+        short_circuit_fn: ShortCircuitFn,
     ) -> Option<bool> {
         let type_id = Any::type_id(value);
         self.fns.get(&type_id).map(|f| {
@@ -78,7 +79,7 @@ impl InspectorEguiOverrides {
                 value,
                 ui,
                 options,
-                InspectorUi::new(type_registry, self, context),
+                InspectorUi::new(type_registry, self, context, Some(short_circuit_fn)),
             )
         })
     }
