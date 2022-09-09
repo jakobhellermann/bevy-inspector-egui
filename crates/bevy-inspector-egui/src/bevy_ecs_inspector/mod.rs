@@ -103,18 +103,21 @@ pub fn ui_for_resource_with(
         .unwrap();
     // SAFETY: component_id refers to the component use as the exception in `split_world_permission`,
     // `NoResourceRefsWorld` allows mutable access.
-    let value = unsafe {
+    let mut mut_untyped = unsafe {
         nrr_world
             .get_resource_unchecked_mut_by_id(component_id)
             .unwrap()
     };
+    // TODO: only do this if changed
+    mut_untyped.set_changed();
+
     let reflect_from_ptr = type_registry
         .get_type_data::<ReflectFromPtr>(resource_type_id)
         .unwrap();
     assert_eq!(reflect_from_ptr.type_id(), resource_type_id);
     // SAFETY: value type is the type of the `ReflectFromPtr`
-    let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(value.into_inner()) };
-    env.ui_for_reflect(value, ui, egui::Id::new(resource_type_id));
+    let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(mut_untyped.into_inner()) };
+    let _changed = env.ui_for_reflect(value, ui, egui::Id::new(resource_type_id));
 }
 
 pub fn ui_for_asset_with(
