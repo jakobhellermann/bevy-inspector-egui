@@ -13,4 +13,5 @@ bevy_hierarchy = { path = "../bevy/crates/bevy_hierarchy" }
 bevy_reflect = { path = "../bevy/crates/bevy_reflect" }
 bevy_app = { path = "../bevy/crates/bevy_app" }
 bevy_core = { path = "../bevy/crates/bevy_core" }
+bevy_asset = { path = "../bevy/crates/bevy_asset" }
 bevy = { path = "../bevy" }

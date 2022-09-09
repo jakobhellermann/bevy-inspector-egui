@@ -8,6 +8,7 @@ bevy-inspector-egui-derive = { path = "../bevy-inspector-egui-derive" }
 bevy_reflect = { git = "https://github.com/bevyengine/bevy" }
 bevy_ecs = { git = "https://github.com/bevyengine/bevy" }
 bevy_app = { git = "https://github.com/bevyengine/bevy" }
+bevy_asset = { git = "https://github.com/bevyengine/bevy" }
 bevy_hierarchy = { git = "https://github.com/bevyengine/bevy" }
 bevy_core = { git = "https://github.com/bevyengine/bevy" }
 egui = "0.19.0"
