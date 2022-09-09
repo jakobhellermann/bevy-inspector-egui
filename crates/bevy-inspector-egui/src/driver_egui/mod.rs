@@ -398,6 +398,9 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                 self.ui_for_enum_variant_select(id, value, ui, type_info);
             changed |= variant_changed;
 
+            if value.field_len() == 0 {
+                return;
+            }
             egui::Grid::new(id.with("fields")).show(ui, |ui| {
                 for i in 0..value.field_len() {
                     if let Some(name) = value.name_at(i) {
