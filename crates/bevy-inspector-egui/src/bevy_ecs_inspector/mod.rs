@@ -1,15 +1,18 @@
 use std::any::{Any, TypeId};
 
 use bevy_app::prelude::AppTypeRegistry;
-use bevy_asset::{HandleId, HandleUntyped, ReflectAsset};
+use bevy_asset::{HandleUntyped, ReflectAsset};
 use bevy_ecs::{component::ComponentId, prelude::*, world::EntityRef};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
 use egui::FontId;
 
+pub(crate) mod errors;
+
 use crate::{
-    driver_egui::{split_world_permission, Context, InspectorUi},
+    egui_reflect_inspector::{Context, InspectorUi},
     egui_utils::layout_job,
+    split_world_permission::split_world_permission,
 };
 
 pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
@@ -19,7 +22,7 @@ pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
     let type_registry = type_registry.read();
 
     egui::CollapsingHeader::new("Entities").show(ui, |ui| {
-        ui_for_world_entities_with(world, ui, &type_registry);
+        ui_for_world_entities(world, ui, &type_registry);
     });
     egui::CollapsingHeader::new("Resources").show(ui, |ui| {
         let mut resources: Vec<_> = type_registry
@@ -30,7 +33,7 @@ pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
         resources.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
         for (name, type_id) in resources {
             ui.collapsing(&name, |ui| {
-                ui_for_resource_with(world, type_id, ui, &type_registry);
+                ui_for_resource(world, type_id, ui, &type_registry);
             });
         }
     });
@@ -43,20 +46,13 @@ pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
         assets.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
         for (name, type_id) in assets {
             ui.collapsing(&name, |ui| {
-                ui_for_asset_with(world, type_id, ui, &type_registry);
+                ui_for_asset(world, type_id, ui, &type_registry);
             });
         }
     });
 }
 
-pub fn ui_for_resource(world: &mut World, resource_type_id: TypeId, ui: &mut egui::Ui) {
-    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
-    let type_registry = type_registry.read();
-
-    ui_for_resource_with(world, resource_type_id, ui, &type_registry);
-}
-
-pub fn ui_for_resource_with(
+pub fn ui_for_resource(
     world: &mut World,
     resource_type_id: TypeId,
     ui: &mut egui::Ui,
@@ -98,7 +94,7 @@ pub fn ui_for_resource_with(
     let _changed = env.ui_for_reflect(value, ui, egui::Id::new(resource_type_id));
 }
 
-pub fn ui_for_asset_with(
+pub fn ui_for_asset(
     world: &mut World,
     asset_type_id: TypeId,
     ui: &mut egui::Ui,
@@ -140,18 +136,7 @@ pub fn ui_for_asset_with(
     }
 }
 
-pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
-    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
-    let type_registry = type_registry.read();
-
-    ui_for_world_entities_with(world, ui, &type_registry);
-}
-
-pub fn ui_for_world_entities_with(
-    world: &mut World,
-    ui: &mut egui::Ui,
-    type_registry: &TypeRegistry,
-) {
+pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
     crate::setup_default_inspector_config(world);
 
     let mut root_entities = world.query_filtered::<Entity, Without<Parent>>();
@@ -160,18 +145,11 @@ pub fn ui_for_world_entities_with(
 
     let id = egui::Id::new("world ui");
     for entity in entities {
-        ui_for_entity_with(world, entity, ui, id.with(entity), type_registry);
+        ui_for_entity(world, entity, ui, id.with(entity), type_registry);
     }
 }
 
-pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
-    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
-    let type_registry = type_registry.read();
-
-    ui_for_entity_with(world, entity, ui, egui::Id::new(entity), &type_registry);
-}
-
-pub fn ui_for_entity_with(
+pub fn ui_for_entity(
     world: &mut World,
     entity: Entity,
     ui: &mut egui::Ui,
@@ -193,7 +171,7 @@ pub fn ui_for_entity_with(
                     ui.label("Children");
                     for &child in children.iter() {
                         let id = id.with(child);
-                        ui_for_entity_with(world, child, ui, id, type_registry);
+                        ui_for_entity(world, child, ui, id, type_registry);
                     }
                 }
             }
@@ -210,7 +188,7 @@ fn ui_for_entity_components(
     let entity_ref = match world.get_entity(entity) {
         Some(entity) => entity,
         None => {
-            error_message_entity_does_not_exist(ui, entity);
+            errors::error_message_entity_does_not_exist(ui, entity);
             return;
         }
     };
@@ -247,7 +225,7 @@ fn ui_for_entity_components(
                 let reflect_from_ptr = match type_registry.get_type_data::<ReflectFromPtr>(type_id)
                 {
                     Some(type_id) => type_id,
-                    None => return error_message_no_reflect_from_ptr(ui, &name),
+                    None => return errors::error_message_no_reflect_from_ptr(ui, &name),
                 };
                 assert_eq!(reflect_from_ptr.type_id(), type_id);
                 // SAFETY: value is of correct type, as checked above
@@ -287,49 +265,6 @@ fn error_message_no_type_id(ui: &mut egui::Ui, component_name: &str) {
             FontId::default(),
             " is not backed by a rust type, so it cannot be displayed.",
         ),
-    ]);
-
-    ui.label(job);
-}
-
-fn error_message_no_reflect_from_ptr(ui: &mut egui::Ui, type_name: &str) {
-    let job = layout_job(&[
-        (FontId::monospace(14.0), type_name),
-        (FontId::default(), " has no "),
-        (FontId::monospace(14.0), "ReflectFromPtr"),
-        (FontId::default(), " type data, so it cannot be displayed"),
-    ]);
-
-    ui.label(job);
-}
-
-fn error_message_entity_does_not_exist(ui: &mut egui::Ui, entity: Entity) {
-    let job = layout_job(&[
-        (FontId::default(), "Entity "),
-        (FontId::monospace(14.0), &format!("{entity:?}")),
-        (FontId::default(), " does not exist."),
-    ]);
-
-    ui.label(job);
-}
-pub fn error_message_no_world_in_context(ui: &mut egui::Ui, type_name: &str) {
-    let job = layout_job(&[
-        (FontId::monospace(14.0), type_name),
-        (FontId::default(), " needs the bevy world in the "),
-        (FontId::monospace(14.0), "InspectorUi"),
-        (
-            FontId::default(),
-            " context to provide meaningful information.",
-        ),
-    ]);
-
-    ui.label(job);
-}
-fn error_message_dead_asset_handle(ui: &mut egui::Ui, handle: HandleId) {
-    let job = layout_job(&[
-        (FontId::default(), "Handle "),
-        (FontId::monospace(14.0), &format!("{:?}", handle)),
-        (FontId::default(), " points to no asset."),
     ]);
 
     ui.label(job);
@@ -382,7 +317,7 @@ fn short_circuit(
         let world = match &env.context.world {
             Some(world) => world,
             None => {
-                error_message_no_world_in_context(ui, value.type_name());
+                errors::error_message_no_world_in_context(ui, value.type_name());
                 return Some(false);
             }
         };
@@ -395,7 +330,7 @@ fn short_circuit(
         let asset_value = match asset_value {
             Some(value) => value,
             None => {
-                error_message_dead_asset_handle(ui, handle_id);
+                errors::error_message_dead_asset_handle(ui, handle_id);
                 return Some(false);
             }
         };

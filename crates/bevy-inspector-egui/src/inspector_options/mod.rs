@@ -2,6 +2,7 @@ use std::{any::Any, borrow::Cow, collections::HashMap};
 
 use bevy_reflect::{FromType, TypeData};
 
+pub(crate) mod default_options;
 pub mod std_options;
 
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]

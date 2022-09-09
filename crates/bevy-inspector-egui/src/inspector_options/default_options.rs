@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use bevy_reflect::{TypeData, TypeInfo, TypeRegistry};
 
 use crate::{
-    options::{std_options::NumberOptions, Target},
+    inspector_options::{std_options::NumberOptions, Target},
     prelude::ReflectInspectorOptions,
     InspectorOptions,
 };

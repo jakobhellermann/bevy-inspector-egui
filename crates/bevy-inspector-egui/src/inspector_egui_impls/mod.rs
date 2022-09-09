@@ -1,4 +1,4 @@
-use super::InspectorUi;
+use crate::egui_reflect_inspector::InspectorUi;
 use bevy_reflect::TypeRegistry;
 use std::{
     any::{Any, TypeId},
@@ -54,5 +54,5 @@ pub fn register_default_impls(type_registry: &mut TypeRegistry) {
     add::<std::time::Duration>(type_registry, std_impls::duration_ui);
     add::<Instant>(type_registry, std_impls::instant_ui);
 
-    add::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, image::image_ui);
+    add::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, image::image_handle_ui);
 }

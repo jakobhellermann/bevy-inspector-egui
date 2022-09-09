@@ -10,11 +10,14 @@ use bevy_reflect::Reflect;
 use bevy_render::texture::Image;
 use once_cell::sync::Lazy;
 
-use crate::{bevy_ecs_inspector::error_message_no_world_in_context, driver_egui::InspectorUi};
+use crate::{
+    bevy_ecs_inspector::errors::error_message_no_world_in_context,
+    egui_reflect_inspector::InspectorUi,
+};
 
 mod image_texture_conversion;
 
-pub fn image_ui(
+pub fn image_handle_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,

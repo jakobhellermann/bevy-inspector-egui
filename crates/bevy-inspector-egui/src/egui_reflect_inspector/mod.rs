@@ -1,19 +1,16 @@
-use crate::egui_utils::layout_job;
-use crate::options::{InspectorOptions, ReflectInspectorOptions, Target};
-use bevy_ecs::prelude::World;
+use crate::inspector_egui_impls::InspectorEguiImpl;
+use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};
+use crate::split_world_permission::OnlyResourceAccessWorld;
 use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, List, Map, Reflect, Struct, Tuple,
     TupleStruct, TypeInfo, TypeRegistry, VariantInfo,
 };
-use egui::{FontId, Grid};
-use smallvec::SmallVec;
+use egui::Grid;
 use std::any::{Any, TypeId};
 use std::borrow::Cow;
 
-use inspector_egui_impls::InspectorEguiImpl;
-
-pub(crate) mod inspector_egui_impls;
+mod errors;
 
 pub fn ui_for_reflect<'a>(
     type_registry: &'a TypeRegistry,
@@ -29,71 +26,6 @@ pub fn ui_for_reflect<'a>(
         egui::Id::null(),
         options,
     );
-}
-
-pub fn split_world_permission<'a>(
-    world: &'a mut World,
-    except_resource: Option<TypeId>,
-) -> (NoResourceRefsWorld<'a>, OnlyResourceAccessWorld<'a>) {
-    (
-        NoResourceRefsWorld {
-            world,
-            except_resource,
-        },
-        OnlyResourceAccessWorld {
-            world,
-            except_resources: match except_resource {
-                Some(id) => smallvec::smallvec![id],
-                None => SmallVec::new(),
-            },
-        },
-    )
-}
-
-pub struct NoResourceRefsWorld<'a> {
-    world: &'a World,
-    except_resource: Option<TypeId>,
-}
-impl<'a> NoResourceRefsWorld<'a> {
-    /// # Safety
-    /// Any usages of the world must not keep resources alive around calls having access to the [`OnlyResourceAccessWorld`], except for the resource with the type id returned by `except`.
-    pub unsafe fn get(&self) -> &World {
-        self.world
-    }
-
-    pub fn allows_access_to(&self, type_id: TypeId) -> bool {
-        self.except_resource.map_or(false, |allow| allow == type_id)
-    }
-}
-pub struct OnlyResourceAccessWorld<'a> {
-    world: &'a World,
-    except_resources: SmallVec<[TypeId; 2]>,
-}
-impl<'a> OnlyResourceAccessWorld<'a> {
-    /// # Safety
-    /// The returned world must only be used to access resources (possibly mutably), but it may not access the resource with the type id returned by `except`.
-    pub unsafe fn get(&self) -> &World {
-        self.world
-    }
-
-    pub fn forbids_access_to(&self, type_id: TypeId) -> bool {
-        self.except_resources.contains(&type_id)
-    }
-
-    /// # Safety
-    /// While this new more restricted world is used, the only resource that the current world may have access to is
-    /// the newly forbidden one.
-    pub unsafe fn with_more_restriction(
-        &self,
-        forbid_resource: TypeId,
-    ) -> OnlyResourceAccessWorld<'a> {
-        let mut except_resources = self.except_resources.clone();
-        except_resources.push(forbid_resource);
-        OnlyResourceAccessWorld {
-            world: self.world,
-            except_resources,
-        }
-    }
 }
 
 pub struct Context<'a> {
@@ -459,7 +391,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                         false
                     });
                 if !unconstructable_variants.is_empty() {
-                    error_message_unconstructable_variants(
+                    errors::error_message_unconstructable_variants(
                         ui,
                         value.type_name(),
                         &unconstructable_variants,
@@ -483,7 +415,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         _id: egui::Id,
         _options: &dyn Any,
     ) -> bool {
-        error_message_reflect_value_no_impl(ui, value.type_name());
+        errors::error_message_reflect_value_no_impl(ui, value.type_name());
         false
     }
 }
@@ -548,7 +480,7 @@ fn construct_default_variant(
                     match get_default_value_for(type_registry, field.type_id()) {
                         Some(value) => value,
                         None => {
-                            error_message_no_default_value(ui, field.type_name());
+                            errors::error_message_no_default_value(ui, field.type_name());
                             return Err(());
                         }
                     };
@@ -563,7 +495,7 @@ fn construct_default_variant(
                     match get_default_value_for(type_registry, field.type_id()) {
                         Some(value) => value,
                         None => {
-                            error_message_no_default_value(ui, field.type_name());
+                            errors::error_message_no_default_value(ui, field.type_name());
                             return Err(());
                         }
                     };
@@ -575,57 +507,4 @@ fn construct_default_variant(
     };
     let dynamic_enum = DynamicEnum::new(value.type_name(), variant.name(), dynamic_variant);
     Ok(dynamic_enum)
-}
-
-fn error_message_reflect_value_no_impl(ui: &mut egui::Ui, type_name: &str) {
-    let job = layout_job(&[
-        (FontId::monospace(14.0), type_name),
-        (FontId::default(), " is "),
-        (FontId::monospace(14.0), "#[reflect_value]"),
-        (FontId::default(), ", but has no "),
-        (FontId::monospace(14.0), "InspectorEguiImpl"),
-        (FontId::default(), " registered in the "),
-        (FontId::monospace(14.0), "TypeRegistry"),
-        (FontId::default(), " ."),
-    ]);
-
-    ui.label(job);
-}
-fn error_message_no_default_value(ui: &mut egui::Ui, type_name: &str) {
-    let job = layout_job(&[
-        (FontId::monospace(14.0), type_name),
-        (FontId::default(), " has no "),
-        (FontId::monospace(14.0), "ReflectDefault"),
-        (
-            FontId::default(),
-            " type data, so no value of it can be constructed.",
-        ),
-    ]);
-
-    ui.label(job);
-}
-fn error_message_unconstructable_variants(
-    ui: &mut egui::Ui,
-    type_name: &str,
-    unconstructable_variants: &[&str],
-) {
-    let mut vec = Vec::with_capacity(2 + unconstructable_variants.len() * 2 + 3);
-    vec.extend([
-        (FontId::monospace(14.0), type_name),
-        (FontId::default(), " has unconstructable variants: "),
-    ]);
-    vec.extend(unconstructable_variants.iter().flat_map(|variant| {
-        [
-            (FontId::monospace(14.0), *variant),
-            (FontId::default(), ", "),
-        ]
-    }));
-    vec.extend([
-        (FontId::default(), "\nyou should register "),
-        (FontId::monospace(14.0), "ReflectDefault"),
-        (FontId::default(), " for all fields."),
-    ]);
-    let job = layout_job(&vec);
-
-    ui.label(job);
 }

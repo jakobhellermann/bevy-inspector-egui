@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use super::InspectorUi;
-use crate::options::std_options::NumberOptions;
+use crate::inspector_options::std_options::NumberOptions;
 use std::{any::Any, time::Duration};
 
 pub fn number_ui<T: egui::emath::Numeric>(

@@ -36,9 +36,9 @@ fn expand_struct(input: &DeriveInput, data: &DataStruct) -> syn::Result<TokenStr
             });
 
             Some(Ok(quote! {
-                let mut field_options = <#ty as bevy_inspector_egui::options::InspectorOptionsType>::TypedOptions::default();
+                let mut field_options = <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::TypedOptions::default();
                 #(#attrs)*
-                options.insert(bevy_inspector_egui::options::Target::Field(#i), <#ty as bevy_inspector_egui::options::InspectorOptionsType>::Options::from(field_options));
+                options.insert(bevy_inspector_egui::inspector_options::Target::Field(#i), <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::Options::from(field_options));
             }))
         })
         .collect::<syn::Result<Vec<_>>>()?;
@@ -84,9 +84,9 @@ fn expand_enum(input: &DeriveInput, data: &DataEnum) -> syn::Result<TokenStream>
                     });
 
                     Some(Ok(quote! {
-                        let mut field_options = <#ty as bevy_inspector_egui::options::InspectorOptionsType>::TypedOptions::default();
+                        let mut field_options = <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::TypedOptions::default();
                         #(#attrs)*
-                        options.insert(bevy_inspector_egui::options::Target::VariantField(std::borrow::Cow::Borrowed(#variant_name), #i), <#ty as bevy_inspector_egui::options::InspectorOptionsType>::Options::from(field_options));
+                        options.insert(bevy_inspector_egui::inspector_options::Target::VariantField(std::borrow::Cow::Borrowed(#variant_name), #i), <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::Options::from(field_options));
                     }))
                 })
                 .collect::<syn::Result<Vec<_>>>()?;
