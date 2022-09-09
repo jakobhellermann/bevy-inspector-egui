@@ -7,6 +7,7 @@ use bevy_reflect::{
     TupleStruct, TypeInfo, TypeRegistry, VariantInfo,
 };
 use egui::{FontId, Grid};
+use smallvec::SmallVec;
 use std::any::{Any, TypeId};
 use std::borrow::Cow;
 
@@ -38,7 +39,10 @@ pub fn split_world_permission<'a>(
         },
         OnlyResourceAccessWorld {
             world,
-            except_resource,
+            except_resources: match except_resource {
+                Some(id) => smallvec::smallvec![id],
+                None => SmallVec::new(),
+            },
         },
     )
 }
@@ -60,7 +64,7 @@ impl<'a> NoResourceRefsWorld<'a> {
 }
 pub struct OnlyResourceAccessWorld<'a> {
     world: &'a World,
-    except_resource: Option<TypeId>,
+    except_resources: SmallVec<[TypeId; 2]>,
 }
 impl<'a> OnlyResourceAccessWorld<'a> {
     /// # Safety
@@ -70,8 +74,22 @@ impl<'a> OnlyResourceAccessWorld<'a> {
     }
 
     pub fn forbids_access_to(&self, type_id: TypeId) -> bool {
-        self.except_resource
-            .map_or(false, |forbid| forbid == type_id)
+        self.except_resources.contains(&type_id)
+    }
+
+    /// # Safety
+    /// While this new more restricted world is used, the only resource that the current world may have access to is
+    /// the newly forbidden one.
+    pub unsafe fn with_more_restriction(
+        &self,
+        forbid_resource: TypeId,
+    ) -> OnlyResourceAccessWorld<'a> {
+        let mut except_resources = self.except_resources.clone();
+        except_resources.push(forbid_resource);
+        OnlyResourceAccessWorld {
+            world: self.world,
+            except_resources,
+        }
     }
 }
 

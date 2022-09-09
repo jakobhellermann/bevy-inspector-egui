@@ -446,10 +446,19 @@ fn short_circuit(
                 return Some(false);
             }
         };
+
+        let more_restricted_world = env.context.world.as_ref().map(|world| {
+            // SAFETY: while this world is active, the only live reference to a resource through the `world` is
+            // through the `assets_resource_type_id`.
+            unsafe { world.with_more_restriction(reflect_asset.assets_resource_type_id()) }
+        });
+
         let mut restricted_env = InspectorUi {
             type_registry: env.type_registry,
             egui_overrides: env.egui_overrides,
-            context: &mut Context { world: None },
+            context: &mut Context {
+                world: more_restricted_world,
+            },
             short_circuit: env.short_circuit,
         };
         return Some(restricted_env.ui_for_reflect_with_options(
