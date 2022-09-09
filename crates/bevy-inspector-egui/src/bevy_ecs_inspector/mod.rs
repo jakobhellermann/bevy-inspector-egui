@@ -86,7 +86,7 @@ pub fn ui_for_resource_with(
     // `NoResourceRefsWorld` allows mutable access.
     let value = unsafe {
         nrr_world
-            .get_resource_mut_by_id_unchecked(component_id)
+            .get_resource_unchecked_mut_by_id(component_id)
             .unwrap()
     };
     let reflect_from_ptr = type_registry
@@ -213,7 +213,7 @@ fn ui_for_entity_components(
                 let value = unsafe {
                     nrr_world
                         .entity(entity)
-                        .get_mut_by_id_unchecked(component_id)
+                        .get_unchecked_mut_by_id(component_id)
                         .unwrap()
                 };
 
