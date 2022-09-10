@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::prelude::*;
+use bevy_inspector_egui::{prelude::*, DefaultInspectorConfigPlugin};
 
 #[derive(Default, Reflect, InspectorOptions)]
 #[reflect(InspectorOptions)]
@@ -44,6 +44,7 @@ struct UiData {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(DefaultInspectorConfigPlugin)
         .add_plugin(bevy_egui::EguiPlugin)
         .add_startup_system(setup)
         .add_system(ui_example.exclusive_system())

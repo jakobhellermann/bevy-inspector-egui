@@ -16,8 +16,6 @@ use crate::{
 };
 
 pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
-    crate::setup_default_inspector_config(world);
-
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
@@ -58,8 +56,6 @@ pub fn ui_for_resource(
     ui: &mut egui::Ui,
     type_registry: &TypeRegistry,
 ) {
-    crate::setup_default_inspector_config(world);
-
     let (no_resource_refs_world, only_resource_access_world) =
         split_world_permission(world, Some(resource_type_id));
 
@@ -100,8 +96,6 @@ pub fn ui_for_asset(
     ui: &mut egui::Ui,
     type_registry: &TypeRegistry,
 ) {
-    crate::setup_default_inspector_config(world);
-
     let registration = type_registry.get(asset_type_id).unwrap();
     let reflect_asset = registration.data::<ReflectAsset>().unwrap();
 
@@ -137,8 +131,6 @@ pub fn ui_for_asset(
 }
 
 pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
-    crate::setup_default_inspector_config(world);
-
     let mut root_entities = world.query_filtered::<Entity, Without<Parent>>();
     let mut entities = root_entities.iter(world).collect::<Vec<_>>();
     entities.sort();

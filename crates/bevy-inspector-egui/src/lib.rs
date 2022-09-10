@@ -13,15 +13,15 @@ mod egui_utils;
 mod inspector_egui_impls;
 pub(crate) mod split_world_permission;
 
-pub fn setup_default_inspector_config(world: &bevy_ecs::world::World) {
-    static ONCE: std::sync::Once = std::sync::Once::new();
-    ONCE.call_once(|| {
-        let type_registry = world.resource::<bevy_app::AppTypeRegistry>();
+pub struct DefaultInspectorConfigPlugin;
+impl bevy_app::Plugin for DefaultInspectorConfigPlugin {
+    fn build(&self, app: &mut bevy_app::App) {
+        let type_registry = app.world.resource::<bevy_app::AppTypeRegistry>();
         let mut type_registry = type_registry.write();
 
         inspector_options::default_options::register_default_options(&mut type_registry);
         inspector_egui_impls::register_default_impls(&mut type_registry);
-    });
+    }
 }
 
 pub use bevy_inspector_egui_derive::InspectorOptions;

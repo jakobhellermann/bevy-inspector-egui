@@ -1,10 +1,12 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
+use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(DefaultInspectorConfigPlugin)
         .add_plugin(bevy_egui::EguiPlugin)
         .add_system(ui_example.exclusive_system())
         .add_startup_system(setup)

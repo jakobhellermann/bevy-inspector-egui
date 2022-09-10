@@ -3,10 +3,12 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
+use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(DefaultInspectorConfigPlugin)
         .insert_resource(AmbientLight {
             color: Color::WHITE,
             brightness: 1.0,
