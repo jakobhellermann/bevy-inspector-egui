@@ -84,6 +84,20 @@ pub fn bool_ui(
     ui.checkbox(value, "").changed()
 }
 
+pub fn string_ui(
+    value: &mut dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: InspectorUi<'_, '_>,
+) -> bool {
+    let value = value.downcast_mut::<String>().unwrap();
+    if value.contains('\n') {
+        ui.text_edit_multiline(value).changed()
+    } else {
+        ui.text_edit_singleline(value).changed()
+    }
+}
+
 pub fn duration_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,

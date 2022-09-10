@@ -51,6 +51,7 @@ pub fn register_default_impls(type_registry: &mut TypeRegistry) {
     add::<u64>(type_registry, std_impls::number_ui::<u64>);
     add::<usize>(type_registry, std_impls::number_ui::<usize>);
     add::<bool>(type_registry, std_impls::bool_ui);
+    add::<String>(type_registry, std_impls::string_ui);
     add::<std::time::Duration>(type_registry, std_impls::duration_ui);
     add::<Instant>(type_registry, std_impls::instant_ui);
 
