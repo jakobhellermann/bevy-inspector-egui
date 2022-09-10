@@ -128,34 +128,24 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
-        if value.field_len() == 0 {
-            return false;
-        };
-
-        let mut changed = false;
-        ui.vertical_centered(|ui| {
-            let grid = Grid::new(id);
-            grid.show(ui, |ui| {
-                for i in 0..value.field_len() {
-                    match value.name_at(i) {
-                        Some(name) => ui.label(name),
-                        None => ui.label("<missing>"),
-                    };
-                    if let Some(field) = value.field_at_mut(i) {
-                        changed |= self.ui_for_reflect_with_options(
-                            field,
-                            ui,
-                            id.with(i),
-                            inspector_options_struct_field(options, i),
-                        );
-                    } else {
-                        ui.label("<missing>");
+        maybe_grid(value.field_len(), ui, id, |ui, label| {
+            (0..value.field_len())
+                .map(|i| {
+                    if label {
+                        ui.label(value.name_at(i).unwrap());
                     }
+                    let field = value.field_at_mut(i).unwrap();
+                    let changed = self.ui_for_reflect_with_options(
+                        field,
+                        ui,
+                        id.with(i),
+                        inspector_options_struct_field(options, i),
+                    );
                     ui.end_row();
-                }
-            });
-        });
-        changed
+                    changed
+                })
+                .any(std::convert::identity)
+        })
     }
 
     fn ui_for_tuple_struct(
@@ -165,29 +155,24 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
-        if value.field_len() == 0 {
-            return false;
-        };
-
-        let mut changed = false;
-        let grid = Grid::new(id);
-        grid.show(ui, |ui| {
-            for i in 0..value.field_len() {
-                ui.label(i.to_string());
-                if let Some(field) = value.field_mut(i) {
-                    changed |= self.ui_for_reflect_with_options(
+        maybe_grid(value.field_len(), ui, id, |ui, label| {
+            (0..value.field_len())
+                .map(|i| {
+                    if label {
+                        ui.label(i.to_string());
+                    }
+                    let field = value.field_mut(i).unwrap();
+                    let changed = self.ui_for_reflect_with_options(
                         field,
                         ui,
                         id.with(i),
                         inspector_options_struct_field(options, i),
                     );
-                } else {
-                    ui.label("<missing>");
-                }
-                ui.end_row();
-            }
-        });
-        changed
+                    ui.end_row();
+                    changed
+                })
+                .any(std::convert::identity)
+        })
     }
 
     fn ui_for_tuple(
@@ -197,29 +182,24 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
-        if value.field_len() == 0 {
-            return false;
-        };
-
-        let mut changed = false;
-        let grid = Grid::new(id);
-        grid.show(ui, |ui| {
-            for i in 0..value.field_len() {
-                ui.label(i.to_string());
-                if let Some(field) = value.field_mut(i) {
-                    changed |= self.ui_for_reflect_with_options(
+        maybe_grid(value.field_len(), ui, id, |ui, label| {
+            (0..value.field_len())
+                .map(|i| {
+                    if label {
+                        ui.label(i.to_string());
+                    }
+                    let field = value.field_mut(i).unwrap();
+                    let changed = self.ui_for_reflect_with_options(
                         field,
                         ui,
                         id.with(i),
                         inspector_options_struct_field(options, i),
                     );
-                } else {
-                    ui.label("<missing>");
-                }
-                ui.end_row();
-            }
-        });
-        changed
+                    ui.end_row();
+                    changed
+                })
+                .any(std::convert::identity)
+        })
     }
 
     fn ui_for_list(
@@ -319,25 +299,33 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                 self.ui_for_enum_variant_select(id, value, ui, type_info);
             changed |= variant_changed;
 
-            if value.field_len() == 0 {
-                return;
-            }
-            egui::Grid::new(id.with("fields")).show(ui, |ui| {
-                for i in 0..value.field_len() {
-                    if let Some(name) = value.name_at(i) {
-                        ui.label(name);
-                    };
-                    let field_value = value
-                        .field_at_mut(i)
-                        .expect("invalid reflect impl: field len");
-                    changed |= self.ui_for_reflect_with_options(
-                        field_value,
-                        ui,
-                        id.with(i),
-                        inspector_options_enum_variant_field(options, active_variant.clone(), i),
-                    );
-                    ui.end_row();
-                }
+            changed |= maybe_grid(value.field_len(), ui, id, |ui, label| {
+                (0..value.field_len())
+                    .map(|i| {
+                        if label {
+                            if let Some(name) = value.name_at(i) {
+                                ui.label(name);
+                            } else {
+                                ui.label(i.to_string());
+                            }
+                        }
+                        let field_value = value
+                            .field_at_mut(i)
+                            .expect("invalid reflect impl: field len");
+                        let changed = self.ui_for_reflect_with_options(
+                            field_value,
+                            ui,
+                            id.with(i),
+                            inspector_options_enum_variant_field(
+                                options,
+                                active_variant.clone(),
+                                i,
+                            ),
+                        );
+                        ui.end_row();
+                        changed
+                    })
+                    .any(std::convert::identity)
             });
         });
 
@@ -417,6 +405,27 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
     ) -> bool {
         errors::error_message_reflect_value_no_impl(ui, value.type_name());
         false
+    }
+}
+
+#[must_use]
+fn maybe_grid(
+    i: usize,
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    mut f: impl FnMut(&mut egui::Ui, bool) -> bool,
+) -> bool {
+    match i {
+        0 => false,
+        1 => f(ui, false),
+        _ => {
+            Grid::new(id)
+                .show(ui, |ui| {
+                    let changed = f(ui, true);
+                    changed
+                })
+                .inner
+        }
     }
 }
 
