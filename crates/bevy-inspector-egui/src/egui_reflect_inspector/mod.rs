@@ -135,7 +135,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                     ui.end_row();
                     changed
                 })
-                .any(std::convert::identity)
+                .fold(false, or)
         })
     }
 
@@ -162,7 +162,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                     ui.end_row();
                     changed
                 })
-                .any(std::convert::identity)
+                .fold(false, or)
         })
     }
 
@@ -189,7 +189,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                     ui.end_row();
                     changed
                 })
-                .any(std::convert::identity)
+                .fold(false, or)
         })
     }
 
@@ -316,7 +316,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                         ui.end_row();
                         changed
                     })
-                    .any(std::convert::identity)
+                    .fold(false, or)
             });
         });
 
@@ -512,4 +512,8 @@ fn inspector_options_enum_variant_field<'a>(
         .downcast_ref::<InspectorOptions>()
         .and_then(|options| options.get(Target::VariantField(variant, field)))
         .unwrap_or(&())
+}
+
+fn or(a: bool, b: bool) -> bool {
+    a || b
 }
