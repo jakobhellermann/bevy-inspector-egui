@@ -91,16 +91,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             .type_registry
             .get_type_data::<InspectorEguiImpl>(Any::type_id(value))
         {
-            return s.execute(
-                value.as_any_mut(),
-                ui,
-                options,
-                InspectorUi {
-                    type_registry: self.type_registry,
-                    context: self.context,
-                    short_circuit: self.short_circuit,
-                },
-            );
+            return s.execute(value.as_any_mut(), ui, options, self.reborrow());
         }
 
         if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
@@ -364,12 +355,9 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                                     .selectable_label(is_active_variant, variant_name)
                                     .clicked()
                                 {
-                                    if let Ok(dynamic_enum) = construct_default_variant(
-                                        self.type_registry,
-                                        variant,
-                                        ui,
-                                        value,
-                                    ) {
+                                    if let Ok(dynamic_enum) =
+                                        self.construct_default_variant(variant, ui, value)
+                                    {
                                         value.apply(&dynamic_enum);
                                     };
                                 }
@@ -405,6 +393,65 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
     ) -> bool {
         errors::error_message_reflect_value_no_impl(ui, value.type_name());
         false
+    }
+}
+
+impl<'a, 'c> InspectorUi<'a, 'c> {
+    fn reborrow<'s>(&'s mut self) -> InspectorUi<'s, 'c> {
+        InspectorUi {
+            type_registry: self.type_registry,
+            context: self.context,
+            short_circuit: self.short_circuit,
+        }
+    }
+
+    fn get_default_value_for(&mut self, type_id: TypeId) -> Option<Box<dyn Reflect>> {
+        if let Some(reflect_default) = self.type_registry.get_type_data::<ReflectDefault>(type_id) {
+            return Some(reflect_default.default());
+        }
+
+        None
+    }
+
+    fn construct_default_variant(
+        &mut self,
+        variant: &VariantInfo,
+        ui: &mut egui::Ui,
+        value: &dyn Enum,
+    ) -> Result<DynamicEnum, ()> {
+        let dynamic_variant = match variant {
+            VariantInfo::Struct(struct_info) => {
+                let mut dynamic_struct = DynamicStruct::default();
+                for field in struct_info.iter() {
+                    let field_default_value = match self.get_default_value_for(field.type_id()) {
+                        Some(value) => value,
+                        None => {
+                            errors::error_message_no_default_value(ui, field.type_name());
+                            return Err(());
+                        }
+                    };
+                    dynamic_struct.insert_boxed(field.name(), field_default_value);
+                }
+                DynamicVariant::Struct(dynamic_struct)
+            }
+            VariantInfo::Tuple(tuple_info) => {
+                let mut dynamic_tuple = DynamicTuple::default();
+                for field in tuple_info.iter() {
+                    let field_default_value = match self.get_default_value_for(field.type_id()) {
+                        Some(value) => value,
+                        None => {
+                            errors::error_message_no_default_value(ui, field.type_name());
+                            return Err(());
+                        }
+                    };
+                    dynamic_tuple.insert_boxed(field_default_value);
+                }
+                DynamicVariant::Tuple(dynamic_tuple)
+            }
+            VariantInfo::Unit(_) => DynamicVariant::Unit,
+        };
+        let dynamic_enum = DynamicEnum::new(value.type_name(), variant.name(), dynamic_variant);
+        Ok(dynamic_enum)
     }
 }
 
@@ -465,55 +512,4 @@ fn inspector_options_enum_variant_field<'a>(
         .downcast_ref::<InspectorOptions>()
         .and_then(|options| options.get(Target::VariantField(variant, field)))
         .unwrap_or(&())
-}
-
-fn get_default_value_for(
-    type_registry: &TypeRegistry,
-    type_id: TypeId,
-) -> Option<Box<dyn Reflect>> {
-    let reflect_default = type_registry.get_type_data::<ReflectDefault>(type_id)?;
-    Some(reflect_default.default())
-}
-
-fn construct_default_variant(
-    type_registry: &TypeRegistry,
-    variant: &VariantInfo,
-    ui: &mut egui::Ui,
-    value: &dyn Enum,
-) -> Result<DynamicEnum, ()> {
-    let dynamic_variant = match variant {
-        VariantInfo::Struct(struct_info) => {
-            let mut dynamic_struct = DynamicStruct::default();
-            for field in struct_info.iter() {
-                let field_default_value =
-                    match get_default_value_for(type_registry, field.type_id()) {
-                        Some(value) => value,
-                        None => {
-                            errors::error_message_no_default_value(ui, field.type_name());
-                            return Err(());
-                        }
-                    };
-                dynamic_struct.insert_boxed(field.name(), field_default_value);
-            }
-            DynamicVariant::Struct(dynamic_struct)
-        }
-        VariantInfo::Tuple(tuple_info) => {
-            let mut dynamic_tuple = DynamicTuple::default();
-            for field in tuple_info.iter() {
-                let field_default_value =
-                    match get_default_value_for(type_registry, field.type_id()) {
-                        Some(value) => value,
-                        None => {
-                            errors::error_message_no_default_value(ui, field.type_name());
-                            return Err(());
-                        }
-                    };
-                dynamic_tuple.insert_boxed(field_default_value);
-            }
-            DynamicVariant::Tuple(dynamic_tuple)
-        }
-        VariantInfo::Unit(_) => DynamicVariant::Unit,
-    };
-    let dynamic_enum = DynamicEnum::new(value.type_name(), variant.name(), dynamic_variant);
-    Ok(dynamic_enum)
 }
