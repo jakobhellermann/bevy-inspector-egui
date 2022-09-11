@@ -67,9 +67,9 @@ struct UiState {
 impl UiState {
     pub fn new() -> Self {
         let mut tree = Tree::new(vec![Window::GameView]);
-        let [a, b] = tree.split_left(NodeIndex::root(), 0.3, vec![Window::Inspector]);
-        let [_, _] = tree.split_below(a, 0.7, vec![Window::Resources, Window::Assets]);
-        let [_, _] = tree.split_below(b, 0.5, vec![Window::Hierarchy]);
+        let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.8, vec![Window::Inspector]);
+        let [game, _hierarchy] = tree.split_left(game, 0.2, vec![Window::Hierarchy]);
+        let [_game, _bottom] = tree.split_below(game, 0.8, vec![Window::Resources, Window::Assets]);
 
         Self {
             tree,
