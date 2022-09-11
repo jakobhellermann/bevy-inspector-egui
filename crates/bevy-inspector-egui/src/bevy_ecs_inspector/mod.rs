@@ -219,12 +219,14 @@ fn ui_for_entity_components(
             .id_source(id)
             .show(ui, |ui| {
                 // SAFETY: mutable access is allowed through `NoResourceRefsWorld`, just not to resources
-                let value = unsafe {
+                let mut value = unsafe {
                     nrr_world
                         .entity(entity)
                         .get_unchecked_mut_by_id(component_id)
                         .unwrap()
                 };
+                // TODO: only change if actually changed
+                value.set_changed();
 
                 if size == 0 {
                     return;
