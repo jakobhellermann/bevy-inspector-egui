@@ -331,52 +331,50 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         type_info: &bevy_reflect::EnumInfo,
     ) -> (bool, Cow<'static, str>) {
         let mut active_variant = None;
-        let changed = ui
-            .horizontal(|ui| {
-                let mut unconstructable_variants = Vec::new();
-                let response = egui::ComboBox::new(id.with("select"), "")
-                    .selected_text(value.variant_name())
-                    .show_ui(ui, |ui| {
-                        for variant in type_info.iter() {
-                            let variant_name = variant.name().as_ref();
-                            let is_active_variant = variant_name == value.variant_name();
+        let mut changed = false;
+        ui.horizontal(|ui| {
+            let mut unconstructable_variants = Vec::new();
+            egui::ComboBox::new(id.with("select"), "")
+                .selected_text(value.variant_name())
+                .show_ui(ui, |ui| {
+                    for variant in type_info.iter() {
+                        let variant_name = variant.name().as_ref();
+                        let is_active_variant = variant_name == value.variant_name();
 
-                            if is_active_variant {
-                                active_variant = Some(variant.name().clone())
-                            }
-
-                            let variant_is_constructable =
-                                is_variant_constructable(self.type_registry, variant);
-                            if !variant_is_constructable && !is_active_variant {
-                                unconstructable_variants.push(variant_name);
-                            }
-                            ui.add_enabled_ui(variant_is_constructable, |ui| {
-                                if ui
-                                    .selectable_label(is_active_variant, variant_name)
-                                    .clicked()
-                                {
-                                    if let Ok(dynamic_enum) =
-                                        self.construct_default_variant(variant, ui, value)
-                                    {
-                                        value.apply(&dynamic_enum);
-                                    };
-                                }
-                            });
+                        if is_active_variant {
+                            active_variant = Some(variant.name().clone())
                         }
 
-                        false
-                    });
-                if !unconstructable_variants.is_empty() {
-                    errors::error_message_unconstructable_variants(
-                        ui,
-                        value.type_name(),
-                        &unconstructable_variants,
-                    );
-                    return false;
-                }
-                response.inner.unwrap_or(false)
-            })
-            .inner;
+                        let variant_is_constructable =
+                            is_variant_constructable(self.type_registry, variant);
+                        if !variant_is_constructable && !is_active_variant {
+                            unconstructable_variants.push(variant_name);
+                        }
+                        ui.add_enabled_ui(variant_is_constructable, |ui| {
+                            if ui
+                                .selectable_label(is_active_variant, variant_name)
+                                .clicked()
+                            {
+                                changed = true;
+                                if let Ok(dynamic_enum) =
+                                    self.construct_default_variant(variant, ui, value)
+                                {
+                                    value.apply(&dynamic_enum);
+                                };
+                            }
+                        });
+                    }
+
+                    false
+                });
+            if !unconstructable_variants.is_empty() {
+                errors::error_message_unconstructable_variants(
+                    ui,
+                    value.type_name(),
+                    &unconstructable_variants,
+                );
+            }
+        });
 
         (
             changed,
