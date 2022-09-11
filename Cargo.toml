@@ -17,3 +17,6 @@ bevy_asset = { path = "../bevy/crates/bevy_asset" }
 bevy_render = { path = "../bevy/crates/bevy_render" }
 bevy_pbr = { path = "../bevy/crates/bevy_pbr" }
 bevy = { path = "../bevy" }
+
+[patch.crates-io]
+egui_dock = { path = "./patches/egui_dock" }

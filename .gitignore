@@ -1,2 +1,5 @@
 /target
 /Cargo.lock
+
+/patches
+/crates/bevy-inspector-egui/examples/testing.rs

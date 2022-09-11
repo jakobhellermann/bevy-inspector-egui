@@ -23,31 +23,25 @@ pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
         ui_for_world_entities(world, ui, &type_registry);
     });
     egui::CollapsingHeader::new("Resources").show(ui, |ui| {
-        let mut resources: Vec<_> = type_registry
-            .iter()
-            .filter(|registration| registration.data::<ReflectResource>().is_some())
-            .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
-            .collect();
-        resources.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
-        for (name, type_id) in resources {
-            ui.collapsing(&name, |ui| {
-                ui_for_resource(world, type_id, ui, &type_registry);
-            });
-        }
+        ui_for_resources(world, ui, &type_registry);
     });
     egui::CollapsingHeader::new("Assets").show(ui, |ui| {
-        let mut assets: Vec<_> = type_registry
-            .iter()
-            .filter(|registration| registration.data::<ReflectAsset>().is_some())
-            .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
-            .collect();
-        assets.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
-        for (name, type_id) in assets {
-            ui.collapsing(&name, |ui| {
-                ui_for_asset(world, type_id, ui, &type_registry);
-            });
-        }
+        ui_for_assets(world, ui, &type_registry);
     });
+}
+
+pub fn ui_for_resources(world: &mut World, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
+    let mut resources: Vec<_> = type_registry
+        .iter()
+        .filter(|registration| registration.data::<ReflectResource>().is_some())
+        .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
+        .collect();
+    resources.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
+    for (name, type_id) in resources {
+        ui.collapsing(&name, |ui| {
+            ui_for_resource(world, type_id, ui, &type_registry);
+        });
+    }
 }
 
 pub fn ui_for_resource(
@@ -88,6 +82,20 @@ pub fn ui_for_resource(
     // SAFETY: value type is the type of the `ReflectFromPtr`
     let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(mut_untyped.into_inner()) };
     let _changed = env.ui_for_reflect(value, ui, egui::Id::new(resource_type_id));
+}
+
+pub fn ui_for_assets(world: &mut World, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
+    let mut assets: Vec<_> = type_registry
+        .iter()
+        .filter(|registration| registration.data::<ReflectAsset>().is_some())
+        .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
+        .collect();
+    assets.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
+    for (name, type_id) in assets {
+        ui.collapsing(&name, |ui| {
+            ui_for_asset(world, type_id, ui, &type_registry);
+        });
+    }
 }
 
 pub fn ui_for_asset(
