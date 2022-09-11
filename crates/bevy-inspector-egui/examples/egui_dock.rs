@@ -123,7 +123,17 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                 );
             }
             Window::Inspector => {
-                ui.label("TODO");
+                let id = egui::Id::new("inspector");
+                for entity in self.selected_entities.iter() {
+                    bevy_inspector_egui::bevy_ecs_inspector::ui_for_entity(
+                        self.world,
+                        entity,
+                        ui,
+                        id.with(entity),
+                        &type_registry,
+                        self.selected_entities.len() > 1,
+                    );
+                }
             }
             Window::Resources => {
                 bevy_inspector_egui::bevy_ecs_inspector::ui_for_resources(

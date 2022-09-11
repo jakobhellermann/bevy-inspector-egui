@@ -147,7 +147,7 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui, type_registry
 
     let id = egui::Id::new("world ui");
     for entity in entities {
-        ui_for_entity(world, entity, ui, id.with(entity), type_registry);
+        ui_for_entity(world, entity, ui, id.with(entity), type_registry, true);
     }
 }
 
@@ -157,27 +157,37 @@ pub fn ui_for_entity(
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
+    in_header: bool,
 ) {
     let entity_name = guess_entity_name::entity_name(world, entity);
 
-    egui::CollapsingHeader::new(entity_name)
-        .id_source(id)
-        .show(ui, |ui| {
-            ui_for_entity_components(world, entity, ui, id, type_registry);
+    let mut inner = |ui: &mut egui::Ui| {
+        ui_for_entity_components(world, entity, ui, id, type_registry);
 
-            let children = world
-                .get::<Children>(entity)
-                .map(|children| children.iter().copied().collect::<Vec<_>>());
-            if let Some(children) = children {
-                if !children.is_empty() {
-                    ui.label("Children");
-                    for &child in children.iter() {
-                        let id = id.with(child);
-                        ui_for_entity(world, child, ui, id, type_registry);
-                    }
+        let children = world
+            .get::<Children>(entity)
+            .map(|children| children.iter().copied().collect::<Vec<_>>());
+        if let Some(children) = children {
+            if !children.is_empty() {
+                ui.label("Children");
+                for &child in children.iter() {
+                    let id = id.with(child);
+                    ui_for_entity(world, child, ui, id, type_registry, true);
                 }
             }
-        });
+        }
+    };
+
+    if in_header {
+        egui::CollapsingHeader::new(entity_name)
+            .id_source(id)
+            .show(ui, |ui| {
+                inner(ui);
+            });
+    } else {
+        ui.label(entity_name);
+        inner(ui);
+    }
 }
 
 fn ui_for_entity_components(
