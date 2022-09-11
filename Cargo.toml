@@ -15,5 +15,6 @@ bevy_app = { path = "../bevy/crates/bevy_app" }
 bevy_core = { path = "../bevy/crates/bevy_core" }
 bevy_asset = { path = "../bevy/crates/bevy_asset" }
 bevy_render = { path = "../bevy/crates/bevy_render" }
+bevy_math = { path = "../bevy/crates/bevy_math" }
 bevy_pbr = { path = "../bevy/crates/bevy_pbr" }
 bevy = { path = "../bevy" }

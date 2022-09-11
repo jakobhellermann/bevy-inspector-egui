@@ -5,6 +5,7 @@ use std::{
     time::Instant,
 };
 
+mod glam_impls;
 mod image;
 mod std_impls;
 
@@ -56,4 +57,30 @@ pub fn register_default_impls(type_registry: &mut TypeRegistry) {
     add::<Instant>(type_registry, std_impls::instant_ui);
 
     add::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, image::image_handle_ui);
+
+    add::<bevy_math::Vec2>(type_registry, glam_impls::vec2_ui);
+    add::<bevy_math::Vec3>(type_registry, glam_impls::vec3_ui);
+    add::<bevy_math::Vec3A>(type_registry, glam_impls::vec3a_ui);
+    add::<bevy_math::Vec4>(type_registry, glam_impls::vec4_ui);
+    add::<bevy_math::UVec2>(type_registry, glam_impls::uvec2_ui);
+    add::<bevy_math::UVec3>(type_registry, glam_impls::uvec3_ui);
+    add::<bevy_math::UVec4>(type_registry, glam_impls::uvec4_ui);
+    add::<bevy_math::IVec2>(type_registry, glam_impls::ivec2_ui);
+    add::<bevy_math::IVec3>(type_registry, glam_impls::ivec3_ui);
+    add::<bevy_math::IVec4>(type_registry, glam_impls::ivec4_ui);
+    add::<bevy_math::DVec2>(type_registry, glam_impls::dvec2_ui);
+    add::<bevy_math::DVec3>(type_registry, glam_impls::dvec3_ui);
+    add::<bevy_math::DVec4>(type_registry, glam_impls::dvec4_ui);
+    add::<bevy_math::BVec2>(type_registry, glam_impls::bvec2_ui);
+    add::<bevy_math::BVec3>(type_registry, glam_impls::bvec3_ui);
+    add::<bevy_math::BVec4>(type_registry, glam_impls::bvec4_ui);
+    add::<bevy_math::Mat2>(type_registry, glam_impls::mat2_ui);
+    add::<bevy_math::Mat3>(type_registry, glam_impls::mat3_ui);
+    add::<bevy_math::Mat3A>(type_registry, glam_impls::mat3a_ui);
+    add::<bevy_math::Mat4>(type_registry, glam_impls::mat4_ui);
+    add::<bevy_math::DMat2>(type_registry, glam_impls::dmat2_ui);
+    add::<bevy_math::DMat3>(type_registry, glam_impls::dmat3_ui);
+    add::<bevy_math::DMat4>(type_registry, glam_impls::dmat4_ui);
+
+    add::<bevy_math::Quat>(type_registry, glam_impls::quat::quat_ui);
 }

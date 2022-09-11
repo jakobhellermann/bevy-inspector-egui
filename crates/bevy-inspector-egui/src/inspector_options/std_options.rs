@@ -82,3 +82,24 @@ impl<T> InspectorOptionsType for Option<T> {
     type TypedOptions = ();
     type Options = ();
 }
+
+#[derive(Clone)]
+pub struct QuatOptions {
+    pub display: QuatDisplay,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum QuatDisplay {
+    Raw,
+    Euler,
+    YawPitchRoll,
+    AxisAngle,
+}
+
+impl Default for QuatOptions {
+    fn default() -> Self {
+        QuatOptions {
+            display: QuatDisplay::Euler,
+        }
+    }
+}
