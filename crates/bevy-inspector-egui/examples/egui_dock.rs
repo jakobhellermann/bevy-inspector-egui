@@ -118,6 +118,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             Window::Hierarchy => {
                 bevy_inspector_egui::bevy_ecs_inspector::hierarchy::hierarchy_ui(
                     self.world,
+                    &type_registry,
                     ui,
                     &mut self.selected_entities,
                 );

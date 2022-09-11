@@ -2,16 +2,28 @@ use std::collections::HashSet;
 
 use bevy_ecs::prelude::*;
 use bevy_hierarchy::{Children, Parent};
+use bevy_reflect::TypeRegistry;
 use egui::{CollapsingHeader, RichText};
 
 use super::guess_entity_name;
 
-pub fn hierarchy_ui(world: &mut World, ui: &mut egui::Ui, selected: &mut SelectedEntities) {
-    Hierarchy { world, selected }.show(ui);
+pub fn hierarchy_ui(
+    world: &mut World,
+    type_registry: &TypeRegistry,
+    ui: &mut egui::Ui,
+    selected: &mut SelectedEntities,
+) {
+    Hierarchy {
+        world,
+        type_registry,
+        selected,
+    }
+    .show(ui);
 }
 
 struct Hierarchy<'a> {
     world: &'a mut World,
+    type_registry: &'a TypeRegistry,
     selected: &'a mut SelectedEntities,
 }
 
@@ -47,7 +59,7 @@ impl Hierarchy<'_> {
     ) {
         let selected = self.selected.contains(entity);
 
-        let entity_name = guess_entity_name::entity_name(self.world, entity);
+        let entity_name = guess_entity_name::entity_name(self.world, self.type_registry, entity);
         let mut name = RichText::new(entity_name);
         if selected {
             name = name.strong();
