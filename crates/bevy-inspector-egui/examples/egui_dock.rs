@@ -1,5 +1,7 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::DefaultInspectorConfigPlugin;
+use bevy_inspector_egui::{
+    bevy_ecs_inspector::hierarchy::SelectedEntities, DefaultInspectorConfigPlugin,
+};
 use bevy_render::camera::Viewport;
 use egui_dock::{NodeIndex, Tree};
 
@@ -59,6 +61,7 @@ fn set_camera_viewport(
 struct UiState {
     tree: Tree<Window>,
     viewport_rect: egui::Rect,
+    selected_entities: SelectedEntities,
 }
 
 impl UiState {
@@ -70,6 +73,7 @@ impl UiState {
 
         Self {
             tree,
+            selected_entities: SelectedEntities::default(),
             viewport_rect: egui::Rect::NOTHING,
         }
     }
@@ -78,6 +82,7 @@ impl UiState {
         let mut tab_viewer = TabViewer {
             world,
             viewport_rect: &mut self.viewport_rect,
+            selected_entities: &mut self.selected_entities,
         };
         egui_dock::DockArea::new(&mut self.tree).show(ctx, &mut tab_viewer);
     }
@@ -94,6 +99,7 @@ enum Window {
 
 struct TabViewer<'a> {
     world: &'a mut World,
+    selected_entities: &'a mut SelectedEntities,
     viewport_rect: &'a mut egui::Rect,
 }
 
@@ -110,10 +116,10 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                     ui.allocate_exact_size(ui.available_size(), egui::Sense::hover());
             }
             Window::Hierarchy => {
-                bevy_inspector_egui::bevy_ecs_inspector::ui_for_world_entities(
+                bevy_inspector_egui::bevy_ecs_inspector::hierarchy::hierarchy_ui(
                     self.world,
                     ui,
-                    &type_registry,
+                    &mut self.selected_entities,
                 );
             }
             Window::Inspector => {

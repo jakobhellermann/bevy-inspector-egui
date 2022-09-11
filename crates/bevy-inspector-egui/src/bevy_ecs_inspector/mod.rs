@@ -9,6 +9,8 @@ use egui::FontId;
 
 pub(crate) mod errors;
 
+pub mod hierarchy;
+
 use crate::{
     egui_reflect_inspector::{Context, InspectorUi},
     egui_utils::layout_job,
