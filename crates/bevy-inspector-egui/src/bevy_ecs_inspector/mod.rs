@@ -1,7 +1,7 @@
 use std::any::{Any, TypeId};
 
 use bevy_app::prelude::AppTypeRegistry;
-use bevy_asset::{HandleUntyped, ReflectAsset};
+use bevy_asset::{HandleUntyped, ReflectAsset, ReflectHandle};
 use bevy_ecs::{component::ComponentId, prelude::*, world::EntityRef};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
@@ -108,34 +108,27 @@ pub fn ui_for_asset(
 ) {
     let registration = type_registry.get(asset_type_id).unwrap();
     let reflect_asset = registration.data::<ReflectAsset>().unwrap();
+    let reflect_handle = type_registry
+        .get_type_data::<ReflectHandle>(reflect_asset.handle_type_id())
+        .unwrap();
 
     let mut ids: Vec<_> = reflect_asset.ids(world).collect();
     ids.sort();
 
-    let (no_resource_refs_world, only_resource_access_world) =
-        split_world_permission(world, Some(reflect_asset.assets_resource_type_id()));
+    let (_, only_resource_access_world) = split_world_permission(world, None);
     let mut cx = Context {
         world: Some(only_resource_access_world),
     };
 
-    // SAFETY: in the code below, the only reference to a resource is the one specified as `except` in `split_world_permission`
-    let nrr_world = unsafe { no_resource_refs_world.get() };
-
     for handle_id in ids {
         let id = egui::Id::new(handle_id);
+        let mut handle = reflect_handle.typed(HandleUntyped::weak(handle_id));
+
         egui::CollapsingHeader::new(format!("Handle({id:?})"))
             .id_source(id)
             .show(ui, |ui| {
-                // SAFETY: the `NoResourceRefs` allows mutable access, and in particular to the resource assets resource of the asset
-                // since we specified it as the exception
-                let value = unsafe {
-                    reflect_asset
-                        .get_unchecked_mut(nrr_world, HandleUntyped::weak(handle_id))
-                        .unwrap()
-                };
-
                 let mut env = InspectorUi::new(type_registry, &mut cx, Some(short_circuit));
-                env.ui_for_reflect(value, ui, id);
+                env.ui_for_reflect(&mut *handle, ui, id);
             });
     }
 }

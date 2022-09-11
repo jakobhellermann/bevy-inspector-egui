@@ -1,6 +1,6 @@
 use std::{
     any::{Any, TypeId},
-    collections::{hash_map::Entry, HashMap},
+    collections::{hash_map::Entry, HashMap, HashSet},
     sync::Mutex,
 };
 
@@ -90,6 +90,7 @@ fn show_image(
 #[derive(Default)]
 struct ScaledDownTextures {
     textures: HashMap<Handle<Image>, Handle<Image>>,
+    rescaled_textures: HashSet<Handle<Image>>,
 }
 
 const RESCALE_TO_FIT: (u32, u32) = (100, 100);
@@ -106,6 +107,10 @@ fn rescaled_image<'a>(
             (handle.clone(), egui_context.add_image(handle))
         }
         Entry::Vacant(entry) => {
+            if scaled_down_textures.rescaled_textures.contains(handle) {
+                return None;
+            }
+
             let original = textures.get(handle).unwrap();
 
             let (image, is_srgb) = image_texture_conversion::try_into_dynamic(original)?;
@@ -116,10 +121,11 @@ fn rescaled_image<'a>(
             );
             let resized = image_texture_conversion::from_dynamic(resized, is_srgb);
 
-            let handle = textures.add(resized);
-            let weak = handle.clone_weak();
-            let texture_id = egui_context.add_image(handle.clone());
-            entry.insert(handle);
+            let resized_handle = textures.add(resized);
+            let weak = resized_handle.clone_weak();
+            let texture_id = egui_context.add_image(resized_handle.clone());
+            entry.insert(resized_handle);
+            scaled_down_textures.rescaled_textures.insert(weak.clone());
 
             (weak, texture_id)
         }
