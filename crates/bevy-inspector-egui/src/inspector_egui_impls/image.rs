@@ -20,15 +20,24 @@ mod image_texture_conversion;
 pub fn image_handle_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
-    _: &dyn Any,
+    options: &dyn Any,
     env: InspectorUi<'_, '_>,
 ) -> bool {
-    let value = value.downcast_mut::<Handle<Image>>().unwrap();
+    image_handle_ui_readonly(value, ui, options, env);
+    false
+}
+pub fn image_handle_ui_readonly(
+    value: &dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    env: InspectorUi<'_, '_>,
+) {
+    let value = value.downcast_ref::<Handle<Image>>().unwrap();
     let world = match &env.context.world {
         Some(world) => world,
         None => {
             error_message_no_world_in_context(ui, value.type_name());
-            return false;
+            return;
         }
     };
     // SAFETY: todo
@@ -56,14 +65,12 @@ pub fn image_handle_ui(
         Some(it) => it,
         None => {
             ui.label("<texture>");
-            return false;
+            return;
         }
     };
 
     let rescaled_image = images.get(&rescaled_handle).unwrap();
     show_image(rescaled_image, texture_id, ui);
-
-    false
 }
 
 static SCALED_DOWN_TEXTURES: Lazy<Mutex<ScaledDownTextures>> = Lazy::new(Default::default);

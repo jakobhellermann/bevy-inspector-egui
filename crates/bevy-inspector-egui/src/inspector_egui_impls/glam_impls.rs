@@ -5,7 +5,7 @@ use bevy_math::{prelude::*, DMat2, DMat3, DMat4, DVec2, DVec3, DVec4, Mat3A, Vec
 use crate::egui_reflect_inspector::InspectorUi;
 
 macro_rules! vec_ui {
-    ($name:ident $ty:ty: $count:literal $($component:ident)*) => {
+    ($name:ident $name_readonly:ident $ty:ty: $count:literal $($component:ident)*) => {
         pub fn $name(
             value: &mut dyn Any,
             ui: &mut egui::Ui,
@@ -27,11 +27,31 @@ macro_rules! vec_ui {
             });
             changed
         }
+
+        pub fn $name_readonly(
+            value: &dyn Any,
+            ui: &mut egui::Ui,
+            _: &dyn Any,
+            mut env: InspectorUi<'_, '_>,
+        ) {
+            let value = value.downcast_ref::<$ty>().unwrap();
+
+            ui.scope(|ui| {
+                ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
+
+                ui.columns($count, |ui| match ui {
+                    [$($component),*] => {
+                        $(env.ui_for_reflect_ref(&value.$component, $component, egui::Id::null());)*
+                    }
+                    _ => unreachable!(),
+                });
+            });
+        }
     };
 }
 
 macro_rules! mat_ui {
-    ($name:ident $ty:ty: $($component:ident)*) => {
+    ($name:ident $name_readonly:ident $ty:ty: $($component:ident)*) => {
         pub fn $name(
             value: &mut dyn Any,
             ui: &mut egui::Ui,
@@ -47,33 +67,46 @@ macro_rules! mat_ui {
             });
             changed
         }
+
+        pub fn $name_readonly(
+            value: &dyn Any,
+            ui: &mut egui::Ui,
+            _: &dyn Any,
+            mut env: InspectorUi<'_, '_>,
+        ) {
+            let value = value.downcast_ref::<$ty>().unwrap();
+
+            ui.vertical(|ui| {
+                $(env.ui_for_reflect_ref(&value.$component, ui, egui::Id::null());)*
+            });
+        }
     };
 }
 
-vec_ui!(vec2_ui Vec2: 2 x y);
-vec_ui!(vec3_ui Vec3: 3 x y z);
-vec_ui!(vec3a_ui Vec3A: 3 x y z);
-vec_ui!(vec4_ui Vec4: 4 x y z w);
-vec_ui!(uvec2_ui UVec2: 2 x y);
-vec_ui!(uvec3_ui UVec3: 3 x y z);
-vec_ui!(uvec4_ui UVec4: 4 x y z w);
-vec_ui!(ivec2_ui IVec2: 2 x y);
-vec_ui!(ivec3_ui IVec3: 3 x y z);
-vec_ui!(ivec4_ui IVec4: 4 x y z w);
-vec_ui!(dvec2_ui DVec2: 2 x y);
-vec_ui!(dvec3_ui DVec3: 3 x y z);
-vec_ui!(dvec4_ui DVec4: 4 x y z w);
-vec_ui!(bvec2_ui BVec2: 2 x y);
-vec_ui!(bvec3_ui BVec3: 3 x y z);
-vec_ui!(bvec4_ui BVec4: 4 x y z w);
+vec_ui!(vec2_ui vec2_ui_readonly Vec2: 2 x y);
+vec_ui!(vec3_ui vec3_ui_readonly Vec3: 3 x y z);
+vec_ui!(vec3a_ui vec3a_ui_readonly Vec3A: 3 x y z);
+vec_ui!(vec4_ui vec4_ui_readonly Vec4: 4 x y z w);
+vec_ui!(uvec2_ui uvec2_ui_readonly UVec2: 2 x y);
+vec_ui!(uvec3_ui uvec3_ui_readonly UVec3: 3 x y z);
+vec_ui!(uvec4_ui uvec4_ui_readonly UVec4: 4 x y z w);
+vec_ui!(ivec2_ui ivec2_ui_readonly IVec2: 2 x y);
+vec_ui!(ivec3_ui ivec3_ui_readonly IVec3: 3 x y z);
+vec_ui!(ivec4_ui ivec4_ui_readonly IVec4: 4 x y z w);
+vec_ui!(dvec2_ui dvec2_ui_readonly DVec2: 2 x y);
+vec_ui!(dvec3_ui dvec3_ui_readonly DVec3: 3 x y z);
+vec_ui!(dvec4_ui dvec4_ui_readonly DVec4: 4 x y z w);
+vec_ui!(bvec2_ui bvec2_ui_readonly BVec2: 2 x y);
+vec_ui!(bvec3_ui bvec3_ui_readonly BVec3: 3 x y z);
+vec_ui!(bvec4_ui bvec4_ui_readonly BVec4: 4 x y z w);
 
-mat_ui!(mat2_ui Mat2: x_axis y_axis);
-mat_ui!(mat3_ui Mat3: x_axis y_axis z_axis);
-mat_ui!(mat3a_ui Mat3A: x_axis y_axis z_axis);
-mat_ui!(mat4_ui Mat4: x_axis y_axis z_axis w_axis);
-mat_ui!(dmat2_ui DMat2: x_axis y_axis);
-mat_ui!(dmat3_ui DMat3: x_axis y_axis z_axis);
-mat_ui!(dmat4_ui DMat4: x_axis y_axis z_axis w_axis);
+mat_ui!(mat2_ui mat2_ui_readonly Mat2: x_axis y_axis);
+mat_ui!(mat3_ui mat3_ui_readonly Mat3: x_axis y_axis z_axis);
+mat_ui!(mat3a_ui mat3a_ui_readonly Mat3A: x_axis y_axis z_axis);
+mat_ui!(mat4_ui mat4_ui_readonly Mat4: x_axis y_axis z_axis w_axis);
+mat_ui!(dmat2_ui dmat2_ui_readonly DMat2: x_axis y_axis);
+mat_ui!(dmat3_ui dmat3_ui_readonly DMat3: x_axis y_axis z_axis);
+mat_ui!(dmat4_ui dmat4_ui_readonly DMat4: x_axis y_axis z_axis w_axis);
 
 pub mod quat {
     use std::any::Any;
@@ -235,5 +268,16 @@ pub mod quat {
             changed
         })
         .inner
+    }
+
+    pub fn quat_ui_readonly(
+        value: &dyn Any,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        env: InspectorUi<'_, '_>,
+    ) {
+        // TODO: do this properly
+        let mut value = value.downcast_ref::<Quat>().unwrap().clone();
+        ui.add_enabled_ui(false, |ui| quat_ui(&mut value, ui, options, env));
     }
 }

@@ -58,7 +58,12 @@ pub fn ui_for_resource(
     let mut cx = Context {
         world: Some(only_resource_access_world),
     };
-    let mut env = InspectorUi::new(type_registry, &mut cx, Some(short_circuit));
+    let mut env = InspectorUi::new(
+        type_registry,
+        &mut cx,
+        Some(short_circuit),
+        Some(short_circuit_readonly),
+    );
 
     // SAFETY: in the code below, the only reference to a resource is the one specified as `except` in `split_world_permission`;
     debug_assert!(no_resource_refs_world.allows_access_to(resource_type_id));
@@ -127,7 +132,12 @@ pub fn ui_for_asset(
         egui::CollapsingHeader::new(format!("Handle({id:?})"))
             .id_source(id)
             .show(ui, |ui| {
-                let mut env = InspectorUi::new(type_registry, &mut cx, Some(short_circuit));
+                let mut env = InspectorUi::new(
+                    type_registry,
+                    &mut cx,
+                    Some(short_circuit),
+                    Some(short_circuit_readonly),
+                );
                 env.ui_for_reflect(&mut *handle, ui, id);
             });
     }
@@ -238,11 +248,13 @@ fn ui_for_entity_components(
                 // SAFETY: value is of correct type, as checked above
                 let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(value.into_inner()) };
 
-                InspectorUi::new(type_registry, &mut cx, Some(short_circuit)).ui_for_reflect(
-                    value,
-                    ui,
-                    id.with(component_id),
-                );
+                InspectorUi::new(
+                    type_registry,
+                    &mut cx,
+                    Some(short_circuit),
+                    Some(short_circuit_readonly),
+                )
+                .ui_for_reflect(value, ui, id.with(component_id));
             });
     }
 }
@@ -386,6 +398,7 @@ fn short_circuit(
                 world: more_restricted_world,
             },
             short_circuit: env.short_circuit,
+            short_circuit_readonly: env.short_circuit_readonly,
         };
         return Some(restricted_env.ui_for_reflect_with_options(
             asset_value,
@@ -393,6 +406,66 @@ fn short_circuit(
             id.with("asset"),
             options,
         ));
+    }
+
+    None
+}
+
+fn short_circuit_readonly(
+    env: &mut InspectorUi,
+    value: &dyn Reflect,
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    options: &dyn Any,
+) -> Option<()> {
+    if let Some(reflect_handle) = env
+        .type_registry
+        .get_type_data::<bevy_asset::ReflectHandle>(Any::type_id(value))
+    {
+        let handle = reflect_handle
+            .downcast_handle_untyped(value.as_any())
+            .unwrap();
+        let handle_id = handle.id;
+        let reflect_asset = env
+            .type_registry
+            .get_type_data::<bevy_asset::ReflectAsset>(reflect_handle.asset_type_id())
+            .unwrap();
+
+        let world = match &env.context.world {
+            Some(world) => world,
+            None => {
+                errors::error_message_no_world_in_context(ui, value.type_name());
+                return Some(());
+            }
+        };
+        assert!(!world.forbids_access_to(reflect_asset.assets_resource_type_id()));
+        // SAFETY: the following code only accesses resources through the world (namely `Assets<T>`)
+        let ora_world = unsafe { world.get() };
+        let asset_value = reflect_asset.get(ora_world, handle);
+        let asset_value = match asset_value {
+            Some(value) => value,
+            None => {
+                errors::error_message_dead_asset_handle(ui, handle_id);
+                return Some(());
+            }
+        };
+
+        let more_restricted_world = env.context.world.as_ref().map(|world| {
+            // SAFETY: while this world is active, the only live reference to a resource through the `world` is
+            // through the `assets_resource_type_id`.
+            unsafe { world.with_more_restriction(reflect_asset.assets_resource_type_id()) }
+        });
+
+        let mut restricted_env = InspectorUi {
+            type_registry: env.type_registry,
+            context: &mut Context {
+                world: more_restricted_world,
+            },
+            short_circuit: env.short_circuit,
+            short_circuit_readonly: env.short_circuit_readonly,
+        };
+        restricted_env.ui_for_reflect_ref_with_options(asset_value, ui, id.with("asset"), options);
+        return Some(());
     }
 
     None

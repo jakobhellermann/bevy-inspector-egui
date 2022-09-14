@@ -16,16 +16,18 @@ pub fn ui_for_reflect<'a>(
     type_registry: &'a TypeRegistry,
     context: &'a mut Context<'a>,
     short_circuit: Option<ShortCircuitFn>,
+    short_circuit_readonly: Option<ShortCircuitFnReadonly>,
     value: &mut dyn Reflect,
     ui: &mut egui::Ui,
     options: &dyn Any,
 ) {
-    InspectorUi::new(type_registry, context, short_circuit).ui_for_reflect_with_options(
-        value,
-        ui,
-        egui::Id::null(),
-        options,
-    );
+    InspectorUi::new(
+        type_registry,
+        context,
+        short_circuit,
+        short_circuit_readonly,
+    )
+    .ui_for_reflect_with_options(value, ui, egui::Id::null(), options);
 }
 
 pub struct Context<'a> {
@@ -39,12 +41,20 @@ type ShortCircuitFn = fn(
     id: egui::Id,
     options: &dyn Any,
 ) -> Option<bool>;
+type ShortCircuitFnReadonly = fn(
+    &mut InspectorUi<'_, '_>,
+    value: &dyn Reflect,
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    options: &dyn Any,
+) -> Option<()>;
 
 pub struct InspectorUi<'a, 'c> {
     pub type_registry: &'a TypeRegistry,
     pub context: &'a mut Context<'c>,
 
     pub short_circuit: ShortCircuitFn,
+    pub short_circuit_readonly: ShortCircuitFnReadonly,
 }
 
 impl<'a, 'c> InspectorUi<'a, 'c> {
@@ -52,11 +62,13 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         type_registry: &'a TypeRegistry,
         context: &'a mut Context<'c>,
         short_circuit: Option<ShortCircuitFn>,
+        short_circuit_readonly: Option<ShortCircuitFnReadonly>,
     ) -> Self {
         Self {
             type_registry,
             context,
             short_circuit: short_circuit.unwrap_or(|_, _, _, _, _| None),
+            short_circuit_readonly: short_circuit_readonly.unwrap_or(|_, _, _, _, _| None),
         }
     }
 
@@ -68,6 +80,10 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         id: egui::Id,
     ) -> bool {
         self.ui_for_reflect_with_options(value, ui, id, &())
+    }
+
+    pub fn ui_for_reflect_ref(&mut self, value: &dyn Reflect, ui: &mut egui::Ui, id: egui::Id) {
+        self.ui_for_reflect_ref_with_options(value, ui, id, &());
     }
 
     pub fn ui_for_reflect_with_options(
@@ -112,6 +128,53 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         }
     }
 
+    pub fn ui_for_reflect_ref_with_options(
+        &mut self,
+        value: &dyn Reflect,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+    ) {
+        let mut options = options;
+        if options.is::<()>() {
+            if let Some(data) = self
+                .type_registry
+                .get_type_data::<ReflectInspectorOptions>(Any::type_id(value))
+            {
+                options = &data.0;
+            }
+        }
+
+        if let Some(s) = self
+            .type_registry
+            .get_type_data::<InspectorEguiImpl>(Any::type_id(value))
+        {
+            s.execute_readonly(value.as_any(), ui, options, self.reborrow());
+            return;
+        }
+
+        if let Some(()) = (self.short_circuit_readonly)(self, value, ui, id, options) {
+            return;
+        }
+
+        match value.reflect_ref() {
+            bevy_reflect::ReflectRef::Struct(value) => {
+                self.ui_for_struct_ref(value, ui, id, options)
+            }
+            bevy_reflect::ReflectRef::TupleStruct(value) => {
+                self.ui_for_tuple_struct_ref(value, ui, id, options)
+            }
+            bevy_reflect::ReflectRef::Tuple(value) => self.ui_for_tuple_ref(value, ui, id, options),
+            bevy_reflect::ReflectRef::List(value) => self.ui_for_list_ref(value, ui, id, options),
+            bevy_reflect::ReflectRef::Array(value) => self.ui_for_array_ref(value, ui, id, options),
+            bevy_reflect::ReflectRef::Map(value) => {
+                self.ui_for_reflect_map_ref(value, ui, id, options)
+            }
+            bevy_reflect::ReflectRef::Enum(value) => self.ui_for_enum_ref(value, ui, id, options),
+            bevy_reflect::ReflectRef::Value(value) => self.ui_for_value_ref(value, ui, id, options),
+        }
+    }
+
     fn ui_for_struct(
         &mut self,
         value: &mut dyn Struct,
@@ -136,6 +199,30 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                     changed
                 })
                 .fold(false, or)
+        })
+    }
+
+    fn ui_for_struct_ref(
+        &mut self,
+        value: &dyn Struct,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+    ) {
+        maybe_grid_ref(value.field_len(), ui, id, |ui, label| {
+            for i in 0..value.field_len() {
+                if label {
+                    ui.label(value.name_at(i).unwrap());
+                }
+                let field = value.field_at(i).unwrap();
+                self.ui_for_reflect_ref_with_options(
+                    field,
+                    ui,
+                    id.with(i),
+                    inspector_options_struct_field(options, i),
+                );
+                ui.end_row();
+            }
         })
     }
 
@@ -166,6 +253,30 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         })
     }
 
+    fn ui_for_tuple_struct_ref(
+        &mut self,
+        value: &dyn TupleStruct,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+    ) {
+        maybe_grid_ref(value.field_len(), ui, id, |ui, label| {
+            for i in 0..value.field_len() {
+                if label {
+                    ui.label(i.to_string());
+                }
+                let field = value.field(i).unwrap();
+                self.ui_for_reflect_ref_with_options(
+                    field,
+                    ui,
+                    id.with(i),
+                    inspector_options_struct_field(options, i),
+                );
+                ui.end_row();
+            }
+        })
+    }
+
     fn ui_for_tuple(
         &mut self,
         value: &mut dyn Tuple,
@@ -191,6 +302,30 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                 })
                 .fold(false, or)
         })
+    }
+
+    fn ui_for_tuple_ref(
+        &mut self,
+        value: &dyn Tuple,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+    ) {
+        maybe_grid_ref(value.field_len(), ui, id, |ui, label| {
+            for i in 0..value.field_len() {
+                if label {
+                    ui.label(i.to_string());
+                }
+                let field = value.field(i).unwrap();
+                self.ui_for_reflect_ref_with_options(
+                    field,
+                    ui,
+                    id.with(i),
+                    inspector_options_struct_field(options, i),
+                );
+                ui.end_row();
+            }
+        });
     }
 
     fn ui_for_list(
@@ -239,6 +374,28 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         changed
     }
 
+    fn ui_for_list_ref(
+        &mut self,
+        list: &dyn List,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+    ) {
+        ui.vertical(|ui| {
+            let len = list.len();
+            for i in 0..len {
+                let val = list.get(i).unwrap();
+                ui.horizontal(|ui| {
+                    self.ui_for_reflect_ref_with_options(val, ui, id.with(i), options)
+                });
+
+                if i != len - 1 {
+                    ui.separator();
+                }
+            }
+        });
+    }
+
     fn ui_for_reflect_map(
         &mut self,
         map: &mut dyn Map,
@@ -248,15 +405,30 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
     ) -> bool {
         let mut changed = false;
         egui::Grid::new(id).show(ui, |ui| {
-            for (i, (_key, value)) in map.iter_mut().enumerate() {
-                // TODO: display key immutably
-                ui.label("<key>");
+            for (i, (key, value)) in map.iter_mut().enumerate() {
+                self.ui_for_reflect_ref(key, ui, id.with(i));
                 changed |= self.ui_for_reflect(value, ui, id.with(i));
                 ui.end_row();
             }
         });
 
         changed
+    }
+
+    fn ui_for_reflect_map_ref(
+        &mut self,
+        map: &dyn Map,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        _options: &dyn Any,
+    ) {
+        egui::Grid::new(id).show(ui, |ui| {
+            for (i, (key, value)) in map.iter().enumerate() {
+                self.ui_for_reflect_ref(key, ui, id.with(i));
+                self.ui_for_reflect_ref(value, ui, id.with(i));
+                ui.end_row();
+            }
+        });
     }
 
     fn ui_for_array(
@@ -268,6 +440,16 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
     ) -> bool {
         ui.label("Array not yet implemented");
         false
+    }
+
+    fn ui_for_array_ref(
+        &mut self,
+        _value: &dyn Array,
+        ui: &mut egui::Ui,
+        _id: egui::Id,
+        _options: &dyn Any,
+    ) {
+        ui.label("Array not yet implemented");
     }
 
     fn ui_for_enum(
@@ -382,6 +564,47 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         )
     }
 
+    fn ui_for_enum_ref(
+        &mut self,
+        value: &dyn Enum,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+    ) {
+        ui.vertical(|ui| {
+            let active_variant = value.variant_name();
+            ui.add_enabled_ui(false, |ui| {
+                egui::ComboBox::new(id, "")
+                    .selected_text(active_variant)
+                    .show_ui(ui, |_| {})
+            });
+
+            maybe_grid_ref(value.field_len(), ui, id, |ui, label| {
+                for i in 0..value.field_len() {
+                    if label {
+                        if let Some(name) = value.name_at(i) {
+                            ui.label(name);
+                        } else {
+                            ui.label(i.to_string());
+                        }
+                    }
+                    let field_value = value.field_at(i).expect("invalid reflect impl: field len");
+                    self.ui_for_reflect_ref_with_options(
+                        field_value,
+                        ui,
+                        id.with(i),
+                        inspector_options_enum_variant_field(
+                            options,
+                            active_variant.to_owned().into(),
+                            i,
+                        ),
+                    );
+                    ui.end_row();
+                }
+            });
+        });
+    }
+
     fn ui_for_value(
         &mut self,
         value: &mut dyn Reflect,
@@ -392,6 +615,16 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         errors::error_message_reflect_value_no_impl(ui, value.type_name());
         false
     }
+
+    fn ui_for_value_ref(
+        &mut self,
+        value: &dyn Reflect,
+        ui: &mut egui::Ui,
+        _id: egui::Id,
+        _options: &dyn Any,
+    ) {
+        errors::error_message_reflect_value_no_impl(ui, value.type_name());
+    }
 }
 
 impl<'a, 'c> InspectorUi<'a, 'c> {
@@ -400,6 +633,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             type_registry: self.type_registry,
             context: self.context,
             short_circuit: self.short_circuit,
+            short_circuit_readonly: self.short_circuit_readonly,
         }
     }
 
@@ -470,6 +704,24 @@ fn maybe_grid(
                     changed
                 })
                 .inner
+        }
+    }
+}
+
+fn maybe_grid_ref(
+    i: usize,
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    mut f: impl FnMut(&mut egui::Ui, bool),
+) {
+    match i {
+        0 => {}
+        1 => f(ui, false),
+        _ => {
+            Grid::new(id).show(ui, |ui| {
+                let changed = f(ui, true);
+                changed
+            });
         }
     }
 }
