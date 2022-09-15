@@ -31,7 +31,7 @@ bevy_ui = ["bevy/bevy_ui"]
 
 [dependencies]
 bevy = { version = "0.8", default-features = false, features = ["bevy_render", "bevy_core_pipeline"] }
-bevy_egui = { version = "0.15", default-features = false, features = ["open_url", "default_fonts"] }
+bevy_egui = { version = "0.16", default-features = false, features = ["open_url", "default_fonts"] }
 pretty-type-name = "1.0"
 image = { version = "0.23", default-features = false }
 nalgebra031 = { package = "nalgebra", version = "0.31", optional = true }
