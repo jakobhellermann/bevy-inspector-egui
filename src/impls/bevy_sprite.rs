@@ -79,7 +79,7 @@ impl Inspectable for Mesh2dHandle {
                                     let color = colors[*index as usize];
                                     (
                                         // Convert the bevy position to an egui position, discarding the Z value
-                                        egui::plot::Value::new(pos[0], pos[1]),
+                                        egui::plot::PlotPoint::new(pos[0], pos[1]),
                                         // Convert the bevy color to an egui color
                                         egui::Color32::from_rgba_unmultiplied(
                                             (color[0] * 255.0) as u8,
@@ -104,10 +104,11 @@ impl Inspectable for Mesh2dHandle {
                                     vertices_and_colors.chunks_exact(3).for_each(|triangle| {
                                         plot_ui.polygon(
                                             egui::plot::Polygon::new(
-                                                egui::plot::Values::from_values_iter(
+                                                egui::plot::PlotPoints::Owned(
                                                     triangle
                                                         .iter()
-                                                        .map(|vertex_and_color| vertex_and_color.0),
+                                                        .map(|vertex_and_color| vertex_and_color.0)
+                                                        .collect(),
                                                 ),
                                             )
                                             // Add thicker strokes and reduce the fill
