@@ -1,6 +1,6 @@
 [package]
 name = "bevy-inspector-egui"
-version = "0.12.1"
+version = "0.13.0"
 authors = [
     "Jakob Hellermann <jakob.hellermann@protonmail.com>",
     "Will Crichton <wcrichto@cs.stanford.edu>",
@@ -36,7 +36,7 @@ pretty-type-name = "1.0"
 image = { version = "0.23", default-features = false }
 nalgebra031 = { package = "nalgebra", version = "0.31", optional = true }
 
-bevy-inspector-egui-derive = { version = "0.12.0", path = "bevy-inspector-egui-derive" }
+bevy-inspector-egui-derive = { version = "0.13.0", path = "bevy-inspector-egui-derive" }
 
 [dev-dependencies]
 bevy = { version = "0.8", default-features = false, features = ["x11", "bevy_winit"] }

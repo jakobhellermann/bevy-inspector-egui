@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.13
+
+- update to `bevy_egui` 0.16
+- allow negative scale on transform (thanks to @asherkin)
+- implement inspectable for gamepad types (thanks to @johanhelsing)
+- fix egui ID reuse
+- fix compilation without `bevy_ui` feature
+
 ## Version 0.11
 - update to `bevy_egui` 0.14
 - update nalgebra feature to `nalgebra` `0.31`
