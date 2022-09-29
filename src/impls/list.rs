@@ -120,6 +120,27 @@ impl<T: Inspectable, const N: usize> Inspectable for [T; N] {
     }
 }
 
+impl<T: Inspectable> Inspectable for [T] {
+    type Attributes = <T as Inspectable>::Attributes;
+
+    fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
+        let mut changed = false;
+        ui.vertical(|ui| {
+            for (i, val) in self.iter_mut().enumerate() {
+                ui.horizontal(|ui| {
+                    ui.label(i.to_string());
+                    changed |= val.ui(ui, options.clone(), &mut context.with_id(i as u64));
+                });
+            }
+        });
+        changed
+    }
+
+    fn setup(app: &mut App) {
+        T::setup(app);
+    }
+}
+
 macro_rules! impl_for_tuple {
     ( $($ty:ident : $i:tt),* ) => {
         #[allow(unused_variables, non_snake_case)]
