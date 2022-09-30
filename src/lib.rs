@@ -364,14 +364,28 @@ pub trait RegisterInspectable {
     /// Register type `T` so that it can be displayed by the [`WorldInspectorPlugin`](crate::WorldInspectorPlugin).
     /// Forwards to [`InspectableRegistry::register`].
     fn register_inspectable<T: Inspectable + 'static>(&mut self) -> &mut Self;
+    /// Register type `T` that might not implement `Inspectable` so that it can be displayed by the [`WorldInspectorPlugin`](crate::WorldInspectorPlugin).
+    /// Forwards to [`InspectableRegistry::register_raw`].
+    fn register_inspectable_raw<T: 'static, F>(&mut self, f: F) -> &mut Self
+    where
+        F: Fn(&mut T, &mut egui::Ui, &mut Context<'_>) -> bool + Send + Sync + 'static;
 }
 
 impl RegisterInspectable for App {
     fn register_inspectable<T: Inspectable + 'static>(&mut self) -> &mut Self {
         self.world
-            .get_resource_mut::<InspectableRegistry>()
-            .unwrap()
+            .get_resource_or_insert_with(InspectableRegistry::default)
             .register::<T>();
+        self
+    }
+
+    fn register_inspectable_raw<T: 'static, F>(&mut self, f: F) -> &mut Self
+    where
+        F: Fn(&mut T, &mut egui::Ui, &mut Context<'_>) -> bool + Send + Sync + 'static,
+    {
+        self.world
+            .get_resource_or_insert_with(InspectableRegistry::default)
+            .register_raw::<T, F>(f);
         self
     }
 }
