@@ -18,6 +18,36 @@ macro_rules! impl_for_simple_enum {
                 changed
             }
         }
+    };
+    ($name:ty: $($variant:ident),* : $($variant1:ident $val:pat => $default:expr),*) => {
+        impl $crate::Inspectable for $name {
+            type Attributes = ();
+
+            fn ui(&mut self, ui: &mut $crate::egui::Ui, _: Self::Attributes, context: &mut $crate::Context) -> bool {
+                let mut changed = false;
+                crate::egui::ComboBox::from_id_source(context.id())
+                    .selected_text(format!("{:?}", self))
+                    .show_ui(ui, |ui| {
+                    $(
+                        if ui.selectable_label(matches!(self, <$name>::$variant), format!("{:?}", <$name>::$variant)).clicked() {
+                            *self = <$name>::$variant;
+                            changed = true;
+                        }
+                    )*
+                    $(
+                        if ui.selectable_label(matches!(self, $val), format!("{:?}", stringify!(&variant1))).clicked() {
+                            if let $val = self {
+                                
+                            } else {
+                                *self = <$name>::$variant1($default);
+                                changed = true;
+                            }
+                        }
+                    )*
+                });
+                changed
+            }
+        }
     }
 }
 
