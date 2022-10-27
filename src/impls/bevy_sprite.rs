@@ -1,5 +1,6 @@
 use bevy::{
     prelude::*,
+    sprite::Anchor,
     render::mesh::{Indices, VertexAttributeValues},
     sprite::Mesh2dHandle,
 };
@@ -14,7 +15,21 @@ impl_for_struct_delegate_fields!(Sprite:
     color,
     flip_x,
     flip_y,
-    custom_size with OptionAttributes { replacement: Some(|| Vec2::splat(50.0)), deletable: true, inner: Vec2dAttributes::positive() }
+    custom_size with OptionAttributes { replacement: Some(|| Vec2::splat(50.0)), deletable: true, inner: Vec2dAttributes::positive() },
+    anchor
+);
+
+impl_for_simple_enum!(Anchor:
+    Center,
+    BottomLeft,
+    BottomCenter,
+    BottomRight,
+    CenterLeft,
+    CenterRight,
+    TopLeft,
+    TopCenter,
+    TopRight:
+    Custom Anchor::Custom(_) => Vec2::default()
 );
 
 impl_for_struct_delegate_fields!(bevy::sprite::Rect:

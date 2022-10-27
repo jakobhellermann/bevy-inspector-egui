@@ -35,7 +35,7 @@ macro_rules! impl_for_simple_enum {
                         }
                     )*
                     $(
-                        if ui.selectable_label(matches!(self, $val), format!("{:?}", stringify!(&variant1))).clicked() {
+                        if ui.selectable_label(matches!(self, $val), format!("{:?}", $default)).clicked() {
                             if let $val = self {
                                 
                             } else {
