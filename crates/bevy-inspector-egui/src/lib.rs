@@ -16,6 +16,10 @@ pub(crate) mod split_world_permission;
 pub struct DefaultInspectorConfigPlugin;
 impl bevy_app::Plugin for DefaultInspectorConfigPlugin {
     fn build(&self, app: &mut bevy_app::App) {
+        if app.is_plugin_added::<Self>() {
+            return;
+        }
+
         let type_registry = app.world.resource::<bevy_app::AppTypeRegistry>();
         let mut type_registry = type_registry.write();
 
