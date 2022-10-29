@@ -15,10 +15,7 @@ fn main() {
         })
         .add_plugin(bevy_egui::EguiPlugin)
         .insert_resource(UiState::new())
-        .add_system_to_stage(
-            CoreStage::PreUpdate,
-            show_ui_system.exclusive_system().at_end(),
-        )
+        .add_system_to_stage(CoreStage::PreUpdate, show_ui_system.at_end())
         .add_startup_system(setup)
         .add_system(set_camera_viewport)
         .run();
@@ -174,7 +171,7 @@ fn setup(
     // left - red
     let mut transform = Transform::from_xyz(-box_offset, box_offset, 0.0);
     transform.rotate(Quat::from_rotation_z(std::f32::consts::FRAC_PI_2));
-    commands.spawn_bundle(PbrBundle {
+    commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Box::new(
             box_size,
             box_thickness,
@@ -190,7 +187,7 @@ fn setup(
     // right - green
     let mut transform = Transform::from_xyz(box_offset, box_offset, 0.0);
     transform.rotate(Quat::from_rotation_z(std::f32::consts::FRAC_PI_2));
-    commands.spawn_bundle(PbrBundle {
+    commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Box::new(
             box_size,
             box_thickness,
@@ -204,7 +201,7 @@ fn setup(
         ..Default::default()
     });
     // bottom - white
-    commands.spawn_bundle(PbrBundle {
+    commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Box::new(
             box_size + 2.0 * box_thickness,
             box_thickness,
@@ -218,7 +215,7 @@ fn setup(
     });
     // top - white
     let transform = Transform::from_xyz(0.0, 2.0 * box_offset, 0.0);
-    commands.spawn_bundle(PbrBundle {
+    commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Box::new(
             box_size + 2.0 * box_thickness,
             box_thickness,
@@ -234,7 +231,7 @@ fn setup(
     // back - white
     let mut transform = Transform::from_xyz(0.0, box_offset, -box_offset);
     transform.rotate(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2));
-    commands.spawn_bundle(PbrBundle {
+    commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Box::new(
             box_size + 2.0 * box_thickness,
             box_thickness,
@@ -255,7 +252,7 @@ fn setup(
     });
     // top light
     commands
-        .spawn_bundle(PbrBundle {
+        .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Plane { size: 0.4 })),
             transform: Transform::from_matrix(Mat4::from_scale_rotation_translation(
                 Vec3::ONE,
@@ -270,7 +267,7 @@ fn setup(
             ..Default::default()
         })
         .with_children(|builder| {
-            builder.spawn_bundle(PointLightBundle {
+            builder.spawn(PointLightBundle {
                 point_light: PointLight {
                     color: Color::WHITE,
                     intensity: 25.0,
@@ -282,7 +279,7 @@ fn setup(
         });
     // directional light
     const HALF_SIZE: f32 = 10.0;
-    commands.spawn_bundle(DirectionalLightBundle {
+    commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             illuminance: 10000.0,
             shadow_projection: OrthographicProjection {
@@ -302,7 +299,7 @@ fn setup(
 
     // camera
     commands
-        .spawn_bundle(Camera3dBundle {
+        .spawn(Camera3dBundle {
             transform: Transform::from_xyz(0.0, box_offset, 4.0)
                 .looking_at(Vec3::new(0.0, box_offset, 0.0), Vec3::Y),
             ..Default::default()
