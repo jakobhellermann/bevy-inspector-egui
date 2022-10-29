@@ -25,9 +25,11 @@ pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
-    egui::CollapsingHeader::new("Entities").show(ui, |ui| {
-        ui_for_world_entities(world, ui, &type_registry);
-    });
+    egui::CollapsingHeader::new("Entities")
+        .default_open(true)
+        .show(ui, |ui| {
+            ui_for_world_entities(world, ui, &type_registry);
+        });
     egui::CollapsingHeader::new("Resources").show(ui, |ui| {
         ui_for_resources(world, ui, &type_registry);
     });
