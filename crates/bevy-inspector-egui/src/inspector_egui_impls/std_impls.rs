@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use egui::RichText;
+use egui::{DragValue, RichText};
 
 use super::InspectorUi;
 use crate::inspector_options::std_options::NumberOptions;
@@ -200,5 +200,9 @@ pub fn instant_ui_readonly(
     _: InspectorUi<'_, '_>,
 ) {
     let value = value.downcast_ref::<Instant>().unwrap();
-    ui.label(format!("{} seconds ago", value.elapsed().as_secs_f32()));
+    let mut secs = value.elapsed().as_secs_f32();
+    ui.horizontal(|ui| {
+        ui.add_enabled(false, DragValue::new(&mut secs));
+        ui.label("seconds ago");
+    });
 }
