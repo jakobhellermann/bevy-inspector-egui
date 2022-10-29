@@ -525,7 +525,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                         let is_active_variant = variant_name == value.variant_name();
 
                         if is_active_variant {
-                            active_variant = Some(variant.name().clone())
+                            active_variant = Some(variant.name().into())
                         }
 
                         let variant_is_constructable =
