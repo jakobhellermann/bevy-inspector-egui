@@ -1,3 +1,5 @@
+//! Methods for displaying `bevy` resources, assets and entities
+
 use std::any::{Any, TypeId};
 
 use bevy_app::prelude::AppTypeRegistry;
@@ -9,6 +11,7 @@ use egui::FontId;
 
 pub(crate) mod errors;
 
+/// UI for displaying the entity hierarchy
 pub mod hierarchy;
 
 use crate::{
@@ -17,6 +20,7 @@ use crate::{
     split_world_permission::split_world_permission,
 };
 
+/// Display `Entities`, `Resources` and `Assets` using their respective functions inside headers
 pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
@@ -32,6 +36,7 @@ pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
     });
 }
 
+/// Display all reflectable resources in the world
 pub fn ui_for_resources(world: &mut World, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
     let mut resources: Vec<_> = type_registry
         .iter()
@@ -46,6 +51,7 @@ pub fn ui_for_resources(world: &mut World, ui: &mut egui::Ui, type_registry: &Ty
     }
 }
 
+/// Display the resource with the given [`TypeId`]
 pub fn ui_for_resource(
     world: &mut World,
     resource_type_id: TypeId,
@@ -86,6 +92,7 @@ pub fn ui_for_resource(
     let _changed = env.ui_for_reflect(value, ui, egui::Id::new(resource_type_id));
 }
 
+/// Display all reflectable assets
 pub fn ui_for_assets(world: &mut World, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
     let mut assets: Vec<_> = type_registry
         .iter()
@@ -100,6 +107,7 @@ pub fn ui_for_assets(world: &mut World, ui: &mut egui::Ui, type_registry: &TypeR
     }
 }
 
+/// Display all assets of the given asset [`TypeId`]
 pub fn ui_for_asset(
     world: &mut World,
     asset_type_id: TypeId,
@@ -133,6 +141,7 @@ pub fn ui_for_asset(
     }
 }
 
+/// Display all entities and their components
 pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
     let mut root_entities = world.query_filtered::<Entity, Without<Parent>>();
     let mut entities = root_entities.iter(world).collect::<Vec<_>>();
@@ -144,6 +153,7 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui, type_registry
     }
 }
 
+/// Display the given entity with all its components and its children
 pub fn ui_for_entity(
     world: &mut World,
     entity: Entity,
@@ -183,6 +193,7 @@ pub fn ui_for_entity(
     }
 }
 
+/// Display the components of the given entity
 fn ui_for_entity_components(
     world: &mut World,
     entity: Entity,
@@ -333,6 +344,7 @@ mod guess_entity_name {
 }
 
 impl<'a, 'c> InspectorUi<'a, 'c> {
+    /// [`InspectorUi`] with short circuiting methods able to display `bevy_asset` [`Handle`](bevy_asset::Handle)s
     pub fn for_bevy(
         type_registry: &'a TypeRegistry,
         context: &'a mut Context<'c>,

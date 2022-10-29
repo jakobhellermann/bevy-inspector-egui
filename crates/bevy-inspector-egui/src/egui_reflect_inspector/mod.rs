@@ -1,3 +1,5 @@
+//! General-purpose machinery for displaying [`Reflect`](bevy_reflect::Reflect) types using [`egui`]
+
 use crate::inspector_egui_impls::InspectorEguiImpl;
 use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};
 use crate::split_world_permission::OnlyResourceAccessWorld;

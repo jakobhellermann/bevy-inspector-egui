@@ -2,6 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{DataEnum, DataStruct, DataUnion, DeriveInput};
 
+/// Derive macro used to derive `InspectorOptions`
 #[proc_macro_derive(InspectorOptions, attributes(inspector))]
 pub fn inspectable(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);

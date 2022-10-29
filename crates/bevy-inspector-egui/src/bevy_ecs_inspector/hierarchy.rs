@@ -7,6 +7,7 @@ use egui::{CollapsingHeader, RichText};
 
 use super::guess_entity_name;
 
+/// Display UI of the entity hierarchy
 pub fn hierarchy_ui(
     world: &mut World,
     type_registry: &TypeRegistry,
@@ -149,16 +150,21 @@ fn paint_default_icon(ui: &mut egui::Ui, openness: f32, response: &egui::Respons
     ui.painter().add(egui::Shape::closed_line(points, stroke));
 }
 
+/// Collection of currently selected entities
 #[derive(Default)]
 pub struct SelectedEntities {
     entities: Vec<Entity>,
     last_action: Option<(SelectionMode, Entity)>,
 }
 
+/// Kind of selection modifier
 #[derive(Clone, Copy)]
 pub enum SelectionMode {
+    /// No modifiers
     Replace,
+    /// `Ctrl`
     Add,
+    /// `Shift`
     Extend,
 }
 

@@ -1,3 +1,5 @@
+//! UI implementations for leaf types
+
 use crate::egui_reflect_inspector::InspectorUi;
 use bevy_reflect::TypeRegistry;
 use std::{
@@ -12,6 +14,10 @@ mod std_impls;
 type InspectorEguiImplFn = fn(&mut dyn Any, &mut egui::Ui, &dyn Any, InspectorUi<'_, '_>) -> bool;
 type InspectorEguiImplFnReadonly = fn(&dyn Any, &mut egui::Ui, &dyn Any, InspectorUi<'_, '_>);
 
+/// Function pointers for displaying a concrete type, to be registered in the [`TypeRegistry`].
+///
+/// This can used for leaf types like `u8` or `String`, as well as people who want to completely customize the way
+/// to display a certain type.
 #[derive(Clone)]
 pub struct InspectorEguiImpl {
     fn_mut: InspectorEguiImplFn,
@@ -19,6 +25,7 @@ pub struct InspectorEguiImpl {
 }
 
 impl InspectorEguiImpl {
+    /// Create a new [`InspectorEguiImpl`] from functions displaying a type
     pub fn new(fn_mut: InspectorEguiImplFn, fn_readonly: InspectorEguiImplFnReadonly) -> Self {
         InspectorEguiImpl {
             fn_mut,
@@ -26,7 +33,7 @@ impl InspectorEguiImpl {
         }
     }
 
-    pub(crate) fn execute<'a, 'c: 'a>(
+    pub fn execute<'a, 'c: 'a>(
         &'a self,
         value: &mut dyn Any,
         ui: &mut egui::Ui,
@@ -35,7 +42,7 @@ impl InspectorEguiImpl {
     ) -> bool {
         (self.fn_mut)(value, ui, options, env)
     }
-    pub(crate) fn execute_readonly<'a, 'c: 'a>(
+    pub fn execute_readonly<'a, 'c: 'a>(
         &'a self,
         value: &dyn Any,
         ui: &mut egui::Ui,
@@ -46,18 +53,20 @@ impl InspectorEguiImpl {
     }
 }
 
+fn add<T: 'static>(
+    type_registry: &mut TypeRegistry,
+    fn_mut: InspectorEguiImplFn,
+    fn_readonly: InspectorEguiImplFnReadonly,
+) {
+    type_registry
+        .get_mut(TypeId::of::<T>())
+        .unwrap()
+        .insert(InspectorEguiImpl::new(fn_mut, fn_readonly));
+}
+
+/// Register [`InspectorEguiImpl`]s for primitive rust types as well as standard library types
 #[rustfmt::skip]
-pub fn register_default_impls(type_registry: &mut TypeRegistry) {
-    fn add<T: 'static>(
-        type_registry: &mut TypeRegistry,
-        fn_mut: InspectorEguiImplFn,
-        fn_readonly: InspectorEguiImplFnReadonly,
-    ) {
-        type_registry
-            .get_mut(TypeId::of::<T>())
-            .unwrap()
-            .insert(InspectorEguiImpl::new(fn_mut, fn_readonly));
-    }
+pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     add::<f32>(type_registry, std_impls::number_ui_subint::<f32>, std_impls::number_ui_readonly::<f32>);
     add::<f64>(type_registry, std_impls::number_ui_subint::<f64>, std_impls::number_ui_readonly::<f64>);
     add::<i8>(type_registry, std_impls::number_ui::<i8>, std_impls::number_ui_readonly::<i8>);
@@ -74,9 +83,11 @@ pub fn register_default_impls(type_registry: &mut TypeRegistry) {
     add::<String>(type_registry, std_impls::string_ui, std_impls::string_ui_readonly);
     add::<std::time::Duration>(type_registry, std_impls::duration_ui, std_impls::duration_ui_readonly);
     add::<Instant>(type_registry, std_impls::instant_ui, std_impls::instant_ui_readonly);
+}
 
-    add::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, image::image_handle_ui, image::image_handle_ui_readonly);
-
+/// Register [`InspectorEguiImpl`]s for [`bevy_math`](bevy_math)/`glam` types
+#[rustfmt::skip]
+pub fn register_glam_impls(type_registry: &mut TypeRegistry) {
     add::<bevy_math::Vec2>(type_registry, glam_impls::vec2_ui, glam_impls::vec2_ui_readonly);
     add::<bevy_math::Vec3>(type_registry, glam_impls::vec3_ui, glam_impls::vec3_ui_readonly);
     add::<bevy_math::Vec3A>(type_registry, glam_impls::vec3a_ui, glam_impls::vec3a_ui_readonly);
@@ -101,5 +112,11 @@ pub fn register_default_impls(type_registry: &mut TypeRegistry) {
     add::<bevy_math::DMat3>(type_registry, glam_impls::dmat3_ui, glam_impls::dmat3_ui_readonly);
     add::<bevy_math::DMat4>(type_registry, glam_impls::dmat4_ui, glam_impls::dmat4_ui_readonly);
 
-     add::<bevy_math::Quat>(type_registry, glam_impls::quat::quat_ui, glam_impls::quat::quat_ui_readonly);
+    add::<bevy_math::Quat>(type_registry, glam_impls::quat::quat_ui, glam_impls::quat::quat_ui_readonly);
+}
+
+/// Register [`InspectorEguiImpl`]s for `bevy` types
+#[rustfmt::skip]
+pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
+    add::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, image::image_handle_ui, image::image_handle_ui_readonly);
 }
