@@ -12,24 +12,7 @@ use std::borrow::Cow;
 
 mod errors;
 
-pub fn ui_for_reflect<'a>(
-    type_registry: &'a TypeRegistry,
-    context: &'a mut Context<'a>,
-    short_circuit: Option<ShortCircuitFn>,
-    short_circuit_readonly: Option<ShortCircuitFnReadonly>,
-    value: &mut dyn Reflect,
-    ui: &mut egui::Ui,
-    options: &dyn Any,
-) {
-    InspectorUi::new(
-        type_registry,
-        context,
-        short_circuit,
-        short_circuit_readonly,
-    )
-    .ui_for_reflect_with_options(value, ui, egui::Id::null(), options);
-}
-
+#[non_exhaustive]
 pub struct Context<'a> {
     pub world: Option<OnlyResourceAccessWorld<'a>>,
 }
@@ -70,6 +53,13 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             short_circuit: short_circuit.unwrap_or(|_, _, _, _, _| None),
             short_circuit_readonly: short_circuit_readonly.unwrap_or(|_, _, _, _, _| None),
         }
+    }
+
+    pub fn new_no_short_curcuit(
+        type_registry: &'a TypeRegistry,
+        context: &'a mut Context<'c>,
+    ) -> Self {
+        InspectorUi::new(type_registry, context, None, None)
     }
 
     /// Draws the inspector UI for the given value.

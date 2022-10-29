@@ -58,12 +58,7 @@ pub fn ui_for_resource(
     let mut cx = Context {
         world: Some(only_resource_access_world),
     };
-    let mut env = InspectorUi::new(
-        type_registry,
-        &mut cx,
-        Some(short_circuit),
-        Some(short_circuit_readonly),
-    );
+    let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
 
     // SAFETY: in the code below, the only reference to a resource is the one specified as `except` in `split_world_permission`;
     debug_assert!(no_resource_refs_world.allows_access_to(resource_type_id));
@@ -132,12 +127,7 @@ pub fn ui_for_asset(
         egui::CollapsingHeader::new(format!("Handle({id:?})"))
             .id_source(id)
             .show(ui, |ui| {
-                let mut env = InspectorUi::new(
-                    type_registry,
-                    &mut cx,
-                    Some(short_circuit),
-                    Some(short_circuit_readonly),
-                );
+                let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
                 env.ui_for_reflect(&mut *handle, ui, id);
             });
     }
@@ -248,13 +238,11 @@ fn ui_for_entity_components(
                 // SAFETY: value is of correct type, as checked above
                 let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(value.into_inner()) };
 
-                InspectorUi::new(
-                    type_registry,
-                    &mut cx,
-                    Some(short_circuit),
-                    Some(short_circuit_readonly),
-                )
-                .ui_for_reflect(value, ui, id.with(component_id));
+                InspectorUi::for_bevy(type_registry, &mut cx).ui_for_reflect(
+                    value,
+                    ui,
+                    id.with(component_id),
+                );
             });
     }
 }
@@ -341,6 +329,20 @@ mod guess_entity_name {
         }
 
         format!("Entity ({:?})", id)
+    }
+}
+
+impl<'a, 'c> InspectorUi<'a, 'c> {
+    pub fn for_bevy(
+        type_registry: &'a TypeRegistry,
+        context: &'a mut Context<'c>,
+    ) -> InspectorUi<'a, 'c> {
+        InspectorUi::new(
+            type_registry,
+            context,
+            Some(short_circuit),
+            Some(short_circuit_readonly),
+        )
     }
 }
 

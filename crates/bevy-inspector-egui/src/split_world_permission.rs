@@ -27,7 +27,7 @@ pub struct NoResourceRefsWorld<'a> {
 }
 impl<'a> NoResourceRefsWorld<'a> {
     /// # Safety
-    /// Any usages of the world must not keep resources alive around calls having access to the [`OnlyResourceAccessWorld`], except for the resource with the type id returned by `except`.
+    /// Any usages of the world must not keep resources alive around calls having access to the [`OnlyResourceAccessWorld`], except for the resource with the type id returned by [`NoResourceRefsWorld::allows_access_to`].
     pub unsafe fn get(&self) -> &World {
         self.world
     }
