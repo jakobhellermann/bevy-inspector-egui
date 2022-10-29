@@ -24,4 +24,4 @@ once_cell = "1.14.0"
 [dev-dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy", default-features = false, features = ["render", "x11", "bevy_winit", "animation", "png"] }
 bevy_egui = { git = "https://github.com/jakobhellermann/bevy_egui", branch = "bevy-main" }
-egui_dock = { git = "https://github.com/Adanos020/egui_dock", rev = "0d52ab4426e6be4bb79aacc16143be1409ec0ca4" }
+egui_dock = { git = "https://github.com/Adanos020/egui_dock", rev = "10ade79285eb3e5303c61bdf100e8425e3fd7a1f" }
