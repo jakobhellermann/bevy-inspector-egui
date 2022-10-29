@@ -9,6 +9,7 @@ pub mod bevy_ecs_inspector;
 pub mod egui_reflect_inspector;
 pub mod inspector_egui_impls;
 pub mod inspector_options;
+pub mod quick;
 
 mod egui_utils;
 pub(crate) mod split_world_permission;
