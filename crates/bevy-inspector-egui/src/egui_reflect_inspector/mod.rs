@@ -403,11 +403,12 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         id: egui::Id,
         _options: &dyn Any,
     ) -> bool {
-        let mut changed = false;
+        let changed = false;
         egui::Grid::new(id).show(ui, |ui| {
-            for (i, (key, value)) in map.iter_mut().enumerate() {
+            for (i, (key, value)) in map.iter().enumerate() {
                 self.ui_for_reflect_ref(key, ui, id.with(i));
-                changed |= self.ui_for_reflect(value, ui, id.with(i));
+                // TODO: iter mut
+                self.ui_for_reflect_ref(value, ui, id.with(i));
                 ui.end_row();
             }
         });
