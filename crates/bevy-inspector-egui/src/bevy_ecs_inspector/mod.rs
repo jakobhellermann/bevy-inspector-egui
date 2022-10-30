@@ -4,6 +4,8 @@ use std::any::{Any, TypeId};
 
 use bevy_app::prelude::AppTypeRegistry;
 use bevy_asset::{HandleUntyped, ReflectAsset, ReflectHandle};
+use bevy_ecs::change_detection::MutUntyped;
+use bevy_ecs::ptr::PtrMut;
 use bevy_ecs::{component::ComponentId, prelude::*, world::EntityRef};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
@@ -79,11 +81,10 @@ pub fn ui_for_resource(
     };
     // SAFETY: component_id refers to the component use as the exception in `split_world_permission`,
     // `NoResourceRefsWorld` allows mutable access.
-    let Some(mut mut_untyped) = (unsafe { nrr_world.get_resource_unchecked_mut_by_id(component_id) }) else {
+    let Some(mut_untyped) = (unsafe { nrr_world.get_resource_unchecked_mut_by_id(component_id) }) else {
         return errors::resource_does_not_exist(ui, &name_of_type(resource_type_id, type_registry));
     };
-    // TODO: only do this if changed
-    mut_untyped.set_changed();
+    let (ptr, set_changed) = mut_untyped_split(mut_untyped);
 
     let Some(registration) = type_registry.get(resource_type_id) else {
         return errors::not_in_type_registry(ui, &name_of_type(resource_type_id, type_registry));
@@ -93,8 +94,12 @@ pub fn ui_for_resource(
     };
     assert_eq!(reflect_from_ptr.type_id(), resource_type_id);
     // SAFETY: value type is the type of the `ReflectFromPtr`
-    let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(mut_untyped.into_inner()) };
-    let _changed = env.ui_for_reflect(value, ui, egui::Id::new(resource_type_id));
+    let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(ptr) };
+    let changed = env.ui_for_reflect(value, ui, egui::Id::new(resource_type_id));
+
+    if changed {
+        set_changed();
+    }
 }
 
 /// Display all reflectable assets
@@ -232,14 +237,13 @@ fn ui_for_entity_components(
             .id_source(id)
             .show(ui, |ui| {
                 // SAFETY: mutable access is allowed through `NoResourceRefsWorld`, just not to resources
-                let mut value = unsafe {
+                let value = unsafe {
                     nrr_world
                         .entity(entity)
                         .get_unchecked_mut_by_id(component_id)
                         .unwrap()
                 };
-                // TODO: only change if actually changed
-                value.set_changed();
+                let (ptr, set_changed) = mut_untyped_split(value);
 
                 if size == 0 {
                     return;
@@ -254,13 +258,17 @@ fn ui_for_entity_components(
                 };
                 assert_eq!(reflect_from_ptr.type_id(), type_id);
                 // SAFETY: value is of correct type, as checked above
-                let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(value.into_inner()) };
+                let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(ptr) };
 
-                InspectorUi::for_bevy(type_registry, &mut cx).ui_for_reflect(
+                let changed = InspectorUi::for_bevy(type_registry, &mut cx).ui_for_reflect(
                     value,
                     ui,
                     id.with(component_id),
                 );
+
+                if changed {
+                    set_changed();
+                }
             });
     }
 }
@@ -487,4 +495,13 @@ fn short_circuit_readonly(
     }
 
     None
+}
+
+fn mut_untyped_split<'a>(mut mut_untyped: MutUntyped<'a>) -> (PtrMut<'a>, impl FnOnce() + 'a) {
+    // bypass_change_detection returns a `&mut PtrMut` which is basically useless, because all its methods take `self`
+    let ptr = mut_untyped.bypass_change_detection();
+    // SAFETY: this is exactly the same PtrMut, just not in a `&mut`. The old one is no longer accessible
+    let ptr = unsafe { PtrMut::new(std::ptr::NonNull::new_unchecked(ptr.as_ptr())) };
+
+    (ptr, move || mut_untyped.set_changed())
 }
