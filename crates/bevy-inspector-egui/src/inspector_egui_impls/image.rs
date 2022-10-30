@@ -37,18 +37,22 @@ pub fn image_handle_ui_readonly(
             return;
         }
     };
-    // SAFETY: todo
-    assert!(!world.forbids_access_to(TypeId::of::<bevy_egui::EguiContext>()));
-    assert!(!world.forbids_access_to(TypeId::of::<ScaledDownTextures>()));
-    let world = unsafe { world.get() };
+    let (mut images, mut egui_context) = {
+        assert!(!world.forbids_access_to(TypeId::of::<bevy_egui::EguiContext>()));
+        assert!(!world.forbids_access_to(TypeId::of::<ScaledDownTextures>()));
+        // SAFETY: we only access two resources that are not forbidden
+        let world = unsafe { world.get() };
 
-    // SAFETY: `OnlyResourceAccessWorld` allows mutable access to resources, other than the exceptions which are checked above
-    let mut egui_context = unsafe {
-        world
-            .get_resource_unchecked_mut::<bevy_egui::EguiContext>()
-            .unwrap()
+        // SAFETY: `OnlyResourceAccessWorld` allows mutable access to resources, other than the exceptions which are checked above
+        let egui_context = unsafe {
+            world
+                .get_resource_unchecked_mut::<bevy_egui::EguiContext>()
+                .unwrap()
+        };
+        let images = unsafe { world.get_resource_unchecked_mut::<Assets<Image>>().unwrap() };
+        (images, egui_context)
     };
-    let mut images = unsafe { world.get_resource_unchecked_mut::<Assets<Image>>().unwrap() };
+
     let mut scaled_down_textures = SCALED_DOWN_TEXTURES.lock().unwrap();
 
     // todo: read asset events to re-rescale images of they changed

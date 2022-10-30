@@ -399,7 +399,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         egui::Grid::new(id).show(ui, |ui| {
             for (i, (key, value)) in map.iter().enumerate() {
                 self.ui_for_reflect_ref(key, ui, id.with(i));
-                // TODO: iter mut
+                // TODO: iterate over values mutably
                 self.ui_for_reflect_ref(value, ui, id.with(i));
                 ui.end_row();
             }

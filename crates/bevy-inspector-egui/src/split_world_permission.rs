@@ -42,7 +42,7 @@ pub struct OnlyResourceAccessWorld<'a> {
 }
 impl<'a> OnlyResourceAccessWorld<'a> {
     /// # Safety
-    /// The returned world must only be used to access resources (possibly mutably), but it may not access the resource with the type id returned by `except`.
+    /// The returned world must only be used to access resources (possibly mutably), but it may not access a resource for which `forbids_access_to` returns true
     pub unsafe fn get(&self) -> &World {
         self.world
     }

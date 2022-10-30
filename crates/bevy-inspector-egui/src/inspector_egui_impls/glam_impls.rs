@@ -276,7 +276,6 @@ pub mod quat {
         options: &dyn Any,
         env: InspectorUi<'_, '_>,
     ) {
-        // TODO: do this properly
         let mut value = value.downcast_ref::<Quat>().unwrap().clone();
         ui.add_enabled_ui(false, |ui| quat_ui(&mut value, ui, options, env));
     }
