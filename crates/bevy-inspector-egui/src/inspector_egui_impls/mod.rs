@@ -7,6 +7,7 @@ use std::{
     time::Instant,
 };
 
+mod color;
 mod glam_impls;
 mod image;
 mod std_impls;
@@ -119,4 +120,5 @@ pub fn register_glam_impls(type_registry: &mut TypeRegistry) {
 #[rustfmt::skip]
 pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
     add::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, image::image_handle_ui, image::image_handle_ui_readonly);
+    add::<bevy_render::color::Color>(type_registry, color::color_ui, color::color_ui_readonly);
 }
