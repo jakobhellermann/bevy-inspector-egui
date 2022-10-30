@@ -1,7 +1,7 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::{
-    bevy_ecs_inspector::hierarchy::SelectedEntities, DefaultInspectorConfigPlugin,
-};
+use bevy_inspector_egui::bevy_ecs_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
+use bevy_inspector_egui::bevy_ecs_inspector::{ui_for_assets, ui_for_entity, ui_for_resources};
+use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_render::camera::Viewport;
 use egui_dock::{NodeIndex, Tree};
 
@@ -33,6 +33,7 @@ fn show_ui_system(world: &mut World) {
     world.resource_scope::<UiState, _>(|world, mut ui_state| ui_state.ui(world, &mut egui_context));
 }
 
+// make camera only render to view not obstructed by UI
 fn set_camera_viewport(
     ui_state: Res<UiState>,
     windows: Res<Windows>,
@@ -113,17 +114,12 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                     ui.allocate_exact_size(ui.available_size(), egui::Sense::hover());
             }
             Window::Hierarchy => {
-                bevy_inspector_egui::bevy_ecs_inspector::hierarchy::hierarchy_ui(
-                    self.world,
-                    &type_registry,
-                    ui,
-                    &mut self.selected_entities,
-                );
+                hierarchy_ui(self.world, &type_registry, ui, &mut self.selected_entities);
             }
             Window::Inspector => {
                 let id = egui::Id::new("inspector");
                 for entity in self.selected_entities.iter() {
-                    bevy_inspector_egui::bevy_ecs_inspector::ui_for_entity(
+                    ui_for_entity(
                         self.world,
                         entity,
                         ui,
@@ -134,18 +130,10 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                 }
             }
             Window::Resources => {
-                bevy_inspector_egui::bevy_ecs_inspector::ui_for_resources(
-                    self.world,
-                    ui,
-                    &type_registry,
-                );
+                ui_for_resources(self.world, ui, &type_registry);
             }
             Window::Assets => {
-                bevy_inspector_egui::bevy_ecs_inspector::ui_for_assets(
-                    self.world,
-                    ui,
-                    &type_registry,
-                );
+                ui_for_assets(self.world, ui, &type_registry);
             }
         }
     }
