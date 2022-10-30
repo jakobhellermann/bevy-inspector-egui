@@ -20,6 +20,8 @@ use crate::{
     split_world_permission::split_world_permission,
 };
 
+use self::errors::name_of_type;
+
 /// Display `Entities`, `Resources` and `Assets` using their respective functions inside headers
 pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
@@ -71,23 +73,24 @@ pub fn ui_for_resource(
     // SAFETY: in the code below, the only reference to a resource is the one specified as `except` in `split_world_permission`;
     debug_assert!(no_resource_refs_world.allows_access_to(resource_type_id));
     let nrr_world = unsafe { no_resource_refs_world.get() };
-    let component_id = nrr_world
-        .components()
-        .get_resource_id(resource_type_id)
-        .unwrap();
+    let Some(component_id) = nrr_world.components().get_resource_id(resource_type_id) else {
+        return errors::resource_does_not_exist(ui, &name_of_type(resource_type_id, type_registry),
+        );
+    };
     // SAFETY: component_id refers to the component use as the exception in `split_world_permission`,
     // `NoResourceRefsWorld` allows mutable access.
-    let mut mut_untyped = unsafe {
-        nrr_world
-            .get_resource_unchecked_mut_by_id(component_id)
-            .unwrap()
+    let Some(mut mut_untyped) = (unsafe { nrr_world.get_resource_unchecked_mut_by_id(component_id) }) else {
+        return errors::resource_does_not_exist(ui, &name_of_type(resource_type_id, type_registry));
     };
     // TODO: only do this if changed
     mut_untyped.set_changed();
 
-    let reflect_from_ptr = type_registry
-        .get_type_data::<ReflectFromPtr>(resource_type_id)
-        .unwrap();
+    let Some(registration) = type_registry.get(resource_type_id) else {
+        return errors::not_in_type_registry(ui, &name_of_type(resource_type_id, type_registry));
+    };
+    let Some(reflect_from_ptr) = registration.data::<ReflectFromPtr>() else {
+        return errors::no_type_data(ui, &name_of_type(resource_type_id, type_registry), "ReflectFromPtr");
+    };
     assert_eq!(reflect_from_ptr.type_id(), resource_type_id);
     // SAFETY: value type is the type of the `ReflectFromPtr`
     let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(mut_untyped.into_inner()) };
@@ -116,11 +119,15 @@ pub fn ui_for_asset(
     ui: &mut egui::Ui,
     type_registry: &TypeRegistry,
 ) {
-    let registration = type_registry.get(asset_type_id).unwrap();
-    let reflect_asset = registration.data::<ReflectAsset>().unwrap();
-    let reflect_handle = type_registry
-        .get_type_data::<ReflectHandle>(reflect_asset.handle_type_id())
-        .unwrap();
+    let Some(registration) = type_registry.get(asset_type_id) else {
+        return errors::not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
+    };
+    let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
+        return errors::no_type_data(ui, &name_of_type(asset_type_id, type_registry), "ReflectAsset");
+    };
+    let Some(reflect_handle) = type_registry.get_type_data::<ReflectHandle>(reflect_asset.handle_type_id()) else {
+        return errors::no_type_data(ui, &name_of_type(reflect_asset.handle_type_id(), type_registry), "ReflectHandle");
+    };
 
     let mut ids: Vec<_> = reflect_asset.ids(world).collect();
     ids.sort();
@@ -206,7 +213,7 @@ fn ui_for_entity_components(
     let entity_ref = match world.get_entity(entity) {
         Some(entity) => entity,
         None => {
-            errors::error_message_entity_does_not_exist(ui, entity);
+            errors::entity_does_not_exist(ui, entity);
             return;
         }
     };
@@ -242,10 +249,8 @@ fn ui_for_entity_components(
                     Some(type_id) => type_id,
                     None => return error_message_no_type_id(ui, &name),
                 };
-                let reflect_from_ptr = match type_registry.get_type_data::<ReflectFromPtr>(type_id)
-                {
-                    Some(type_id) => type_id,
-                    None => return errors::error_message_no_reflect_from_ptr(ui, &name),
+                let Some(reflect_from_ptr) = type_registry.get_type_data::<ReflectFromPtr>(type_id) else {
+                    return errors::no_type_data(ui, &name, "ReflectFromPtr");
                 };
                 assert_eq!(reflect_from_ptr.type_id(), type_id);
                 // SAFETY: value is of correct type, as checked above
@@ -376,17 +381,17 @@ fn short_circuit(
             .downcast_handle_untyped(value.as_any())
             .unwrap();
         let handle_id = handle.id;
-        let reflect_asset = env
+        let Some(reflect_asset) = env
             .type_registry
-            .get_type_data::<bevy_asset::ReflectAsset>(reflect_handle.asset_type_id())
-            .unwrap();
+            .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
+        else {
+            errors::no_type_data(ui, &name_of_type(reflect_handle.asset_type_id(), env.type_registry), "ReflectAsset");
+            return Some(false);
+        };
 
-        let world = match &env.context.world {
-            Some(world) => world,
-            None => {
-                errors::error_message_no_world_in_context(ui, value.type_name());
-                return Some(false);
-            }
+        let Some(world) = &env.context.world else {
+            errors::no_world_in_context(ui, value.type_name());
+            return Some(false);
         };
         assert!(!world.forbids_access_to(reflect_asset.assets_resource_type_id()));
         // SAFETY: the following code only accesses resources through the world (namely `Assets<T>`)
@@ -394,12 +399,9 @@ fn short_circuit(
         // SAFETY: the `OnlyResourceAccessWorld` allows mutable access (except for the `except_resource`),
         // and we create only one reference to an asset at the same time.
         let asset_value = unsafe { reflect_asset.get_unchecked_mut(ora_world, handle) };
-        let asset_value = match asset_value {
-            Some(value) => value,
-            None => {
-                errors::error_message_dead_asset_handle(ui, handle_id);
-                return Some(false);
-            }
+        let Some(asset_value) = asset_value else {
+            errors::dead_asset_handle(ui, handle_id);
+            return Some(false);
         };
 
         let more_restricted_world = env.context.world.as_ref().map(|world| {
@@ -442,17 +444,17 @@ fn short_circuit_readonly(
             .downcast_handle_untyped(value.as_any())
             .unwrap();
         let handle_id = handle.id;
-        let reflect_asset = env
+        let Some(reflect_asset) = env
             .type_registry
-            .get_type_data::<bevy_asset::ReflectAsset>(reflect_handle.asset_type_id())
-            .unwrap();
+            .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
+        else {
+            errors::no_type_data(ui, &name_of_type(reflect_handle.asset_type_id(), env.type_registry), "ReflectAsset");
+            return Some(());
+        };
 
-        let world = match &env.context.world {
-            Some(world) => world,
-            None => {
-                errors::error_message_no_world_in_context(ui, value.type_name());
-                return Some(());
-            }
+        let Some(world) = &env.context.world else {
+            errors::no_world_in_context(ui, value.type_name());
+            return Some(());
         };
         assert!(!world.forbids_access_to(reflect_asset.assets_resource_type_id()));
         // SAFETY: the following code only accesses resources through the world (namely `Assets<T>`)
@@ -461,7 +463,7 @@ fn short_circuit_readonly(
         let asset_value = match asset_value {
             Some(value) => value,
             None => {
-                errors::error_message_dead_asset_handle(ui, handle_id);
+                errors::dead_asset_handle(ui, handle_id);
                 return Some(());
             }
         };

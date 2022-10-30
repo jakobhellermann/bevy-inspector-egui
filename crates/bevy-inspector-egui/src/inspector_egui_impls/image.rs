@@ -10,10 +10,7 @@ use bevy_reflect::Reflect;
 use bevy_render::texture::Image;
 use once_cell::sync::Lazy;
 
-use crate::{
-    bevy_ecs_inspector::errors::error_message_no_world_in_context,
-    egui_reflect_inspector::InspectorUi,
-};
+use crate::{bevy_ecs_inspector::errors::no_world_in_context, egui_reflect_inspector::InspectorUi};
 
 mod image_texture_conversion;
 
@@ -36,7 +33,7 @@ pub fn image_handle_ui_readonly(
     let world = match &env.context.world {
         Some(world) => world,
         None => {
-            error_message_no_world_in_context(ui, value.type_name());
+            no_world_in_context(ui, value.type_name());
             return;
         }
     };
