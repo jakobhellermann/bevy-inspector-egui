@@ -110,8 +110,13 @@ impl InspectorUi<'_, '_> {
     }
 
     /// Draws the inspector UI for the given value in a read-only way.
-    pub fn ui_for_reflect_ref(&mut self, value: &dyn Reflect, ui: &mut egui::Ui, id: egui::Id) {
-        self.ui_for_reflect_ref_with_options(value, ui, id, &());
+    pub fn ui_for_reflect_readonly(
+        &mut self,
+        value: &dyn Reflect,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+    ) {
+        self.ui_for_reflect_readonly_with_options(value, ui, id, &());
     }
 
     /// Draws the inspector UI for the given value with some options.
@@ -166,7 +171,7 @@ impl InspectorUi<'_, '_> {
     /// The options can be [`struct@InspectorOptions`] for structs or enums with nested options for their fields,
     /// or other structs like [`NumberOptions`](crate::inspector_options::std_options::NumberOptions) which are interpreted
     /// by leaf types like `f32` or `Vec3`,
-    pub fn ui_for_reflect_ref_with_options(
+    pub fn ui_for_reflect_readonly_with_options(
         &mut self,
         value: &dyn Reflect,
         ui: &mut egui::Ui,
@@ -197,19 +202,29 @@ impl InspectorUi<'_, '_> {
 
         match value.reflect_ref() {
             bevy_reflect::ReflectRef::Struct(value) => {
-                self.ui_for_struct_ref(value, ui, id, options)
+                self.ui_for_struct_readonly(value, ui, id, options)
             }
             bevy_reflect::ReflectRef::TupleStruct(value) => {
-                self.ui_for_tuple_struct_ref(value, ui, id, options)
+                self.ui_for_tuple_struct_readonly(value, ui, id, options)
             }
-            bevy_reflect::ReflectRef::Tuple(value) => self.ui_for_tuple_ref(value, ui, id, options),
-            bevy_reflect::ReflectRef::List(value) => self.ui_for_list_ref(value, ui, id, options),
-            bevy_reflect::ReflectRef::Array(value) => self.ui_for_array_ref(value, ui, id, options),
+            bevy_reflect::ReflectRef::Tuple(value) => {
+                self.ui_for_tuple_readonly(value, ui, id, options)
+            }
+            bevy_reflect::ReflectRef::List(value) => {
+                self.ui_for_list_readonly(value, ui, id, options)
+            }
+            bevy_reflect::ReflectRef::Array(value) => {
+                self.ui_for_array_readonly(value, ui, id, options)
+            }
             bevy_reflect::ReflectRef::Map(value) => {
-                self.ui_for_reflect_map_ref(value, ui, id, options)
+                self.ui_for_reflect_map_readonly(value, ui, id, options)
             }
-            bevy_reflect::ReflectRef::Enum(value) => self.ui_for_enum_ref(value, ui, id, options),
-            bevy_reflect::ReflectRef::Value(value) => self.ui_for_value_ref(value, ui, id, options),
+            bevy_reflect::ReflectRef::Enum(value) => {
+                self.ui_for_enum_readonly(value, ui, id, options)
+            }
+            bevy_reflect::ReflectRef::Value(value) => {
+                self.ui_for_value_readonly(value, ui, id, options)
+            }
         }
     }
 }
@@ -242,20 +257,20 @@ impl InspectorUi<'_, '_> {
         })
     }
 
-    fn ui_for_struct_ref(
+    fn ui_for_struct_readonly(
         &mut self,
         value: &dyn Struct,
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
     ) {
-        maybe_grid_ref(value.field_len(), ui, id, |ui, label| {
+        maybe_grid_readonly(value.field_len(), ui, id, |ui, label| {
             for i in 0..value.field_len() {
                 if label {
                     ui.label(value.name_at(i).unwrap());
                 }
                 let field = value.field_at(i).unwrap();
-                self.ui_for_reflect_ref_with_options(
+                self.ui_for_reflect_readonly_with_options(
                     field,
                     ui,
                     id.with(i),
@@ -293,20 +308,20 @@ impl InspectorUi<'_, '_> {
         })
     }
 
-    fn ui_for_tuple_struct_ref(
+    fn ui_for_tuple_struct_readonly(
         &mut self,
         value: &dyn TupleStruct,
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
     ) {
-        maybe_grid_ref(value.field_len(), ui, id, |ui, label| {
+        maybe_grid_readonly(value.field_len(), ui, id, |ui, label| {
             for i in 0..value.field_len() {
                 if label {
                     ui.label(i.to_string());
                 }
                 let field = value.field(i).unwrap();
-                self.ui_for_reflect_ref_with_options(
+                self.ui_for_reflect_readonly_with_options(
                     field,
                     ui,
                     id.with(i),
@@ -344,20 +359,20 @@ impl InspectorUi<'_, '_> {
         })
     }
 
-    fn ui_for_tuple_ref(
+    fn ui_for_tuple_readonly(
         &mut self,
         value: &dyn Tuple,
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
     ) {
-        maybe_grid_ref(value.field_len(), ui, id, |ui, label| {
+        maybe_grid_readonly(value.field_len(), ui, id, |ui, label| {
             for i in 0..value.field_len() {
                 if label {
                     ui.label(i.to_string());
                 }
                 let field = value.field(i).unwrap();
-                self.ui_for_reflect_ref_with_options(
+                self.ui_for_reflect_readonly_with_options(
                     field,
                     ui,
                     id.with(i),
@@ -414,7 +429,7 @@ impl InspectorUi<'_, '_> {
         changed
     }
 
-    fn ui_for_list_ref(
+    fn ui_for_list_readonly(
         &mut self,
         list: &dyn List,
         ui: &mut egui::Ui,
@@ -426,7 +441,7 @@ impl InspectorUi<'_, '_> {
             for i in 0..len {
                 let val = list.get(i).unwrap();
                 ui.horizontal(|ui| {
-                    self.ui_for_reflect_ref_with_options(val, ui, id.with(i), options)
+                    self.ui_for_reflect_readonly_with_options(val, ui, id.with(i), options)
                 });
 
                 if i != len - 1 {
@@ -446,9 +461,9 @@ impl InspectorUi<'_, '_> {
         let changed = false;
         egui::Grid::new(id).show(ui, |ui| {
             for (i, (key, value)) in map.iter().enumerate() {
-                self.ui_for_reflect_ref(key, ui, id.with(i));
+                self.ui_for_reflect_readonly(key, ui, id.with(i));
                 // TODO: iterate over values mutably
-                self.ui_for_reflect_ref(value, ui, id.with(i));
+                self.ui_for_reflect_readonly(value, ui, id.with(i));
                 ui.end_row();
             }
         });
@@ -456,7 +471,7 @@ impl InspectorUi<'_, '_> {
         changed
     }
 
-    fn ui_for_reflect_map_ref(
+    fn ui_for_reflect_map_readonly(
         &mut self,
         map: &dyn Map,
         ui: &mut egui::Ui,
@@ -465,8 +480,8 @@ impl InspectorUi<'_, '_> {
     ) {
         egui::Grid::new(id).show(ui, |ui| {
             for (i, (key, value)) in map.iter().enumerate() {
-                self.ui_for_reflect_ref(key, ui, id.with(i));
-                self.ui_for_reflect_ref(value, ui, id.with(i));
+                self.ui_for_reflect_readonly(key, ui, id.with(i));
+                self.ui_for_reflect_readonly(value, ui, id.with(i));
                 ui.end_row();
             }
         });
@@ -483,7 +498,7 @@ impl InspectorUi<'_, '_> {
         false
     }
 
-    fn ui_for_array_ref(
+    fn ui_for_array_readonly(
         &mut self,
         _value: &dyn Array,
         ui: &mut egui::Ui,
@@ -605,7 +620,7 @@ impl InspectorUi<'_, '_> {
         )
     }
 
-    fn ui_for_enum_ref(
+    fn ui_for_enum_readonly(
         &mut self,
         value: &dyn Enum,
         ui: &mut egui::Ui,
@@ -620,7 +635,7 @@ impl InspectorUi<'_, '_> {
                     .show_ui(ui, |_| {})
             });
 
-            maybe_grid_ref(value.field_len(), ui, id, |ui, label| {
+            maybe_grid_readonly(value.field_len(), ui, id, |ui, label| {
                 for i in 0..value.field_len() {
                     if label {
                         if let Some(name) = value.name_at(i) {
@@ -630,7 +645,7 @@ impl InspectorUi<'_, '_> {
                         }
                     }
                     let field_value = value.field_at(i).expect("invalid reflect impl: field len");
-                    self.ui_for_reflect_ref_with_options(
+                    self.ui_for_reflect_readonly_with_options(
                         field_value,
                         ui,
                         id.with(i),
@@ -657,7 +672,7 @@ impl InspectorUi<'_, '_> {
         false
     }
 
-    fn ui_for_value_ref(
+    fn ui_for_value_readonly(
         &mut self,
         value: &dyn Reflect,
         ui: &mut egui::Ui,
@@ -749,7 +764,7 @@ fn maybe_grid(
     }
 }
 
-fn maybe_grid_ref(
+fn maybe_grid_readonly(
     i: usize,
     ui: &mut egui::Ui,
     id: egui::Id,

@@ -180,7 +180,7 @@ pub fn duration_ui_readonly(
         suffix: "s".to_string(),
         ..Default::default()
     };
-    env.ui_for_reflect_ref_with_options(&seconds, ui, egui::Id::new(0), &options);
+    env.ui_for_reflect_readonly_with_options(&seconds, ui, egui::Id::new(0), &options);
 }
 
 pub fn instant_ui(

@@ -41,7 +41,7 @@ macro_rules! vec_ui {
 
                 ui.columns($count, |ui| match ui {
                     [$($component),*] => {
-                        $(env.ui_for_reflect_ref(&value.$component, $component, egui::Id::null());)*
+                        $(env.ui_for_reflect_readonly(&value.$component, $component, egui::Id::null());)*
                     }
                     _ => unreachable!(),
                 });
@@ -77,7 +77,7 @@ macro_rules! mat_ui {
             let value = value.downcast_ref::<$ty>().unwrap();
 
             ui.vertical(|ui| {
-                $(env.ui_for_reflect_ref(&value.$component, ui, egui::Id::null());)*
+                $(env.ui_for_reflect_readonly(&value.$component, ui, egui::Id::null());)*
             });
         }
     };

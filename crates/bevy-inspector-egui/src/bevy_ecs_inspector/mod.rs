@@ -490,7 +490,12 @@ fn short_circuit_readonly(
             short_circuit: env.short_circuit,
             short_circuit_readonly: env.short_circuit_readonly,
         };
-        restricted_env.ui_for_reflect_ref_with_options(asset_value, ui, id.with("asset"), options);
+        restricted_env.ui_for_reflect_readonly_with_options(
+            asset_value,
+            ui,
+            id.with("asset"),
+            options,
+        );
         return Some(());
     }
 
