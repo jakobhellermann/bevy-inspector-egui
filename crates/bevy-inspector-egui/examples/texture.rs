@@ -1,28 +1,14 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
-use bevy_inspector_egui::DefaultInspectorConfigPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(DefaultInspectorConfigPlugin)
-        .add_plugin(bevy_egui::EguiPlugin)
-        .add_system(ui_example)
+        .add_plugin(WorldInspectorPlugin)
         .add_startup_system(setup)
         .run();
-}
-
-fn ui_example(world: &mut World) {
-    let egui_context = world
-        .resource_mut::<bevy_egui::EguiContext>()
-        .ctx_mut()
-        .clone();
-    egui::Window::new("Hello").show(&egui_context, |ui| {
-        egui::ScrollArea::vertical().show(ui, |ui| {
-            bevy_inspector_egui::bevy_ecs_inspector::ui_for_world(world, ui);
-        });
-    });
 }
 
 /// sets up a scene with textured entities
