@@ -22,6 +22,9 @@ pub use bevy_inspector_egui_derive::InspectorOptions;
 ///
 /// Comes with a [derive macro](derive@InspectorOptions), which generates a `FromType<T> for InspectorOptions` impl:
 /// ```rust
+/// use bevy_inspector_egui::prelude::*;
+/// use bevy_reflect::Reflect;
+///
 /// #[derive(Reflect, Default, InspectorOptions)]
 /// #[reflect(InspectorOptions)]
 /// struct Config {
@@ -34,7 +37,7 @@ pub use bevy_inspector_egui_derive::InspectorOptions;
 /// ```rust
 /// # use bevy_inspector_egui::inspector_options::{InspectorOptions, Target, std_options::NumberOptions};
 /// let mut options = InspectorOptions::default();
-/// let mut field_options = NumberOptions { min: 10.0.into(), max: 70.0.into() };
+/// let mut field_options = NumberOptions { min: 10.0.into(), max: 70.0.into(), ..Default::default() };
 /// options.insert(Target::Field(0usize), field_options);
 /// ```
 #[derive(Default)]
