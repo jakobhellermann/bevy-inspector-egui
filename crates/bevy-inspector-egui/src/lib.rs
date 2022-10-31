@@ -17,6 +17,8 @@
 //! ## WorldInspectorPlugin
 //! Displays the world's entities, resources and assets.
 //!
+//! ![image of the world inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/rework/docs/world_inspector.png)
+//!
 //! ```no_run
 //! use bevy::prelude::*;
 //! use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -33,6 +35,8 @@
 //! ```
 //! ## ResourceInspectorPlugin
 //! Display a single resource in a window.
+//!
+//! ![image of the resource inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/rework/docs/resource_inspector.png)
 //!
 //! ```no_run
 //! use bevy::prelude::*;
