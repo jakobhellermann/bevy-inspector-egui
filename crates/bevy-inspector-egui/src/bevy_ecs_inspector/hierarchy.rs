@@ -5,7 +5,7 @@ use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::TypeRegistry;
 use egui::{CollapsingHeader, RichText};
 
-use super::guess_entity_name;
+use crate::utils::guess_entity_name;
 
 /// Display UI of the entity hierarchy
 pub fn hierarchy_ui(

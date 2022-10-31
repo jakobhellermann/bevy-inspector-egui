@@ -4,11 +4,9 @@ use std::any::{Any, TypeId};
 
 use bevy_app::prelude::AppTypeRegistry;
 use bevy_asset::{HandleUntyped, ReflectAsset, ReflectHandle};
-use bevy_ecs::change_detection::MutUntyped;
-use bevy_ecs::ptr::PtrMut;
 use bevy_ecs::{component::ComponentId, prelude::*, world::EntityRef};
 use bevy_hierarchy::{Children, Parent};
-use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
+use bevy_reflect::{Reflect, TypeRegistry};
 use egui::FontId;
 
 pub(crate) mod errors;
@@ -16,10 +14,12 @@ pub(crate) mod errors;
 /// UI for displaying the entity hierarchy
 pub mod hierarchy;
 
+use crate::split_world_permission;
 use crate::{
     egui_reflect_inspector::{Context, InspectorUi},
     egui_utils::layout_job,
     split_world_permission::split_world_permission,
+    utils::guess_entity_name,
 };
 
 use self::errors::name_of_type;
@@ -57,6 +57,24 @@ pub fn ui_for_resources(world: &mut World, ui: &mut egui::Ui, type_registry: &Ty
     }
 }
 
+fn show_error(
+    error: split_world_permission::Error,
+    ui: &mut egui::Ui,
+    type_registry: &TypeRegistry,
+) {
+    match error {
+        split_world_permission::Error::ResourceDoesNotExist(type_id) => {
+            errors::resource_does_not_exist(ui, &name_of_type(type_id, type_registry));
+        }
+        split_world_permission::Error::NoTypeRegistration(type_id) => {
+            errors::not_in_type_registry(ui, &name_of_type(type_id, type_registry));
+        }
+        split_world_permission::Error::NoTypeData(type_id, data) => {
+            errors::no_type_data(ui, &name_of_type(type_id, type_registry), data);
+        }
+    }
+}
+
 /// Display the resource with the given [`TypeId`]
 pub fn ui_for_resource(
     world: &mut World,
@@ -64,38 +82,23 @@ pub fn ui_for_resource(
     ui: &mut egui::Ui,
     type_registry: &TypeRegistry,
 ) {
-    let (no_resource_refs_world, only_resource_access_world) =
+    // no_resource_refs_world can only access `resource_type_id`, only_resource_access_world can access everything else
+    let (mut no_resource_refs_world, only_resource_access_world) =
         split_world_permission(world, Some(resource_type_id));
+
+    let (resource, set_changed) = match no_resource_refs_world
+        .get_resource_reflect_mut_by_id(resource_type_id, type_registry)
+    {
+        Ok(resource) => resource,
+        Err(err) => return show_error(err, ui, type_registry),
+    };
 
     let mut cx = Context {
         world: Some(only_resource_access_world),
     };
     let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
 
-    // SAFETY: in the code below, the only reference to a resource is the one specified as `except` in `split_world_permission`;
-    debug_assert!(no_resource_refs_world.allows_access_to(resource_type_id));
-    let nrr_world = unsafe { no_resource_refs_world.get() };
-    let Some(component_id) = nrr_world.components().get_resource_id(resource_type_id) else {
-        return errors::resource_does_not_exist(ui, &name_of_type(resource_type_id, type_registry),
-        );
-    };
-    // SAFETY: component_id refers to the component use as the exception in `split_world_permission`,
-    // `NoResourceRefsWorld` allows mutable access.
-    let Some(mut_untyped) = (unsafe { nrr_world.get_resource_unchecked_mut_by_id(component_id) }) else {
-        return errors::resource_does_not_exist(ui, &name_of_type(resource_type_id, type_registry));
-    };
-    let (ptr, set_changed) = mut_untyped_split(mut_untyped);
-
-    let Some(registration) = type_registry.get(resource_type_id) else {
-        return errors::not_in_type_registry(ui, &name_of_type(resource_type_id, type_registry));
-    };
-    let Some(reflect_from_ptr) = registration.data::<ReflectFromPtr>() else {
-        return errors::no_type_data(ui, &name_of_type(resource_type_id, type_registry), "ReflectFromPtr");
-    };
-    assert_eq!(reflect_from_ptr.type_id(), resource_type_id);
-    // SAFETY: value type is the type of the `ReflectFromPtr`
-    let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(ptr) };
-    let changed = env.ui_for_reflect(value, ui, egui::Id::new(resource_type_id));
+    let changed = env.ui_for_reflect(resource, ui, egui::Id::new(resource_type_id));
 
     if changed {
         set_changed();
@@ -224,41 +227,30 @@ fn ui_for_entity_components(
     };
     let components = components_of_entity(entity_ref, world);
 
-    let (no_resource_refs_world, only_resource_access_world) = split_world_permission(world, None);
+    let (mut no_resource_refs_world, only_resource_access_world) =
+        split_world_permission(world, None);
     let mut cx = Context {
         world: Some(only_resource_access_world),
     };
-    // SAFETY: in the code below, no references to resources are held
-    let nrr_world = unsafe { no_resource_refs_world.get() };
 
     for (name, component_id, type_id, size) in components {
         let id = id.with(component_id);
         egui::CollapsingHeader::new(&name)
             .id_source(id)
             .show(ui, |ui| {
-                // SAFETY: mutable access is allowed through `NoResourceRefsWorld`, just not to resources
-                let value = unsafe {
-                    nrr_world
-                        .entity(entity)
-                        .get_unchecked_mut_by_id(component_id)
-                        .unwrap()
-                };
-                let (ptr, set_changed) = mut_untyped_split(value);
-
                 if size == 0 {
                     return;
                 }
+                let Some(type_id) = type_id else {
+                    return error_message_no_type_id(ui, &name);
+                };
 
-                let type_id = match type_id {
-                    Some(type_id) => type_id,
-                    None => return error_message_no_type_id(ui, &name),
+                let (value, set_changed) = match no_resource_refs_world
+                    .get_entity_component_reflect(entity, type_id, type_registry)
+                {
+                    Ok(value) => value,
+                    Err(e) => return show_error(e, ui, type_registry),
                 };
-                let Some(reflect_from_ptr) = type_registry.get_type_data::<ReflectFromPtr>(type_id) else {
-                    return errors::no_type_data(ui, &name, "ReflectFromPtr");
-                };
-                assert_eq!(reflect_from_ptr.type_id(), type_id);
-                // SAFETY: value is of correct type, as checked above
-                let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(ptr) };
 
                 let changed = InspectorUi::for_bevy(type_registry, &mut cx).ui_for_reflect(
                     value,
@@ -301,61 +293,6 @@ fn error_message_no_type_id(ui: &mut egui::Ui, component_name: &str) {
     ]);
 
     ui.label(job);
-}
-
-mod guess_entity_name {
-    use bevy_core::Name;
-    use bevy_ecs::{prelude::*, world::EntityRef};
-    use bevy_reflect::TypeRegistry;
-
-    /// Guesses an appropriate entity name like `Light (6)` or falls back to `Entity (8)`
-    pub fn entity_name(world: &World, type_registry: &TypeRegistry, entity: Entity) -> String {
-        match world.get_entity(entity) {
-            Some(entity) => guess_entity_name_inner(world, entity, type_registry),
-            None => format!("Entity {} (inexistent)", entity.id()),
-        }
-    }
-
-    fn guess_entity_name_inner(
-        world: &World,
-        entity: EntityRef,
-        type_registry: &TypeRegistry,
-    ) -> String {
-        let id = entity.id().id();
-
-        if let Some(name) = entity.get::<Name>() {
-            return name.as_str().to_string();
-        }
-
-        #[rustfmt::skip]
-        let associations = &[
-            ("bevy_core_pipeline::core_3d::camera_3d::Camera3d", "Camera3d"),
-            ("bevy_core_pipeline::core_2d::camera_2d::Camera2d", "Camera2d"),
-            ("bevy_pbr::light::PointLight", "PointLight"),
-            ("bevy_pbr::light::DirectionalLight", "DirectionalLight"),
-            ("bevy_text::text::Text", "Text"),
-            ("bevy_ui::ui_node::Node", "Node"),
-            ("bevy_asset::handle::Handle<bevy_pbr::pbr_material::StandardMaterial>", "Pbr Mesh")
-
-        ];
-
-        let type_names = entity.archetype().components().filter_map(|id| {
-            let type_id = world.components().get_info(id)?.type_id()?;
-            let registration = type_registry.get(type_id)?;
-            Some(registration.type_name())
-        });
-
-        for component_type in type_names {
-            if let Some(name) = associations
-                .iter()
-                .find_map(|&(name, matches)| (component_type == name).then_some(matches))
-            {
-                return format!("{} ({:?})", name, id);
-            }
-        }
-
-        format!("Entity ({:?})", id)
-    }
 }
 
 impl<'a, 'c> InspectorUi<'a, 'c> {
@@ -500,13 +437,4 @@ fn short_circuit_readonly(
     }
 
     None
-}
-
-fn mut_untyped_split<'a>(mut mut_untyped: MutUntyped<'a>) -> (PtrMut<'a>, impl FnOnce() + 'a) {
-    // bypass_change_detection returns a `&mut PtrMut` which is basically useless, because all its methods take `self`
-    let ptr = mut_untyped.bypass_change_detection();
-    // SAFETY: this is exactly the same PtrMut, just not in a `&mut`. The old one is no longer accessible
-    let ptr = unsafe { PtrMut::new(std::ptr::NonNull::new_unchecked(ptr.as_ptr())) };
-
-    (ptr, move || mut_untyped.set_changed())
 }

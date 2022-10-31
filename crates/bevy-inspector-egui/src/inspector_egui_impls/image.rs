@@ -1,5 +1,5 @@
 use std::{
-    any::{Any, TypeId},
+    any::Any,
     collections::{hash_map::Entry, HashMap, HashSet},
     sync::Mutex,
 };
@@ -30,28 +30,14 @@ pub fn image_handle_ui_readonly(
     env: InspectorUi<'_, '_>,
 ) {
     let value = value.downcast_ref::<Handle<Image>>().unwrap();
-    let world = match &env.context.world {
-        Some(world) => world,
-        None => {
-            no_world_in_context(ui, value.type_name());
-            return;
-        }
+    let Some(world) = &mut env.context.world else {
+        no_world_in_context(ui, value.type_name());
+        return;
     };
-    let (mut images, mut egui_context) = {
-        assert!(!world.forbids_access_to(TypeId::of::<bevy_egui::EguiContext>()));
-        assert!(!world.forbids_access_to(TypeId::of::<ScaledDownTextures>()));
-        // SAFETY: we only access two resources that are not forbidden
-        let world = unsafe { world.get() };
-
-        // SAFETY: `OnlyResourceAccessWorld` allows mutable access to resources, other than the exceptions which are checked above
-        let egui_context = unsafe {
-            world
-                .get_resource_unchecked_mut::<bevy_egui::EguiContext>()
-                .unwrap()
-        };
-        let images = unsafe { world.get_resource_unchecked_mut::<Assets<Image>>().unwrap() };
-        (images, egui_context)
-    };
+    let (egui_context, images) =
+        world.get_two_resources_mut::<bevy_egui::EguiContext, Assets<Image>>();
+    let mut egui_context = egui_context.unwrap();
+    let mut images = images.unwrap();
 
     let mut scaled_down_textures = SCALED_DOWN_TEXTURES.lock().unwrap();
 

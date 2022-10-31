@@ -113,7 +113,8 @@ pub mod inspector_options;
 pub mod quick;
 
 mod egui_utils;
-pub(crate) mod split_world_permission;
+pub mod split_world_permission;
+mod utils;
 
 /// [`bevy_app::Plugin`] used to register default [`struct@InspectorOptions`] and [`InspectorEguiImpl`](crate::inspector_egui_impls::InspectorEguiImpl)s
 pub struct DefaultInspectorConfigPlugin;
