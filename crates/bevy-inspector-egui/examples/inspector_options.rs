@@ -54,9 +54,6 @@ fn main() {
         .register_type::<Config>()
         .register_type::<Shape>()
         .register_type::<UiData>()
-        // primitives don't register ReflectDefault yet: https://github.com/bevyengine/bevy/pull/6429
-        .register_type_data::<f32, ReflectDefault>()
-        .register_type_data::<usize, ReflectDefault>()
         .add_system(ui_example)
         .run();
 }
