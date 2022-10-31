@@ -111,6 +111,7 @@ pub mod egui_reflect_inspector;
 pub mod inspector_egui_impls;
 pub mod inspector_options;
 pub mod quick;
+pub mod restricted_world_view;
 
 mod egui_utils;
 pub mod split_world_permission;
