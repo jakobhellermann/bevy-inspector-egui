@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::{borrow::Cow, time::Instant};
 
 use egui::{DragValue, RichText};
 
@@ -144,6 +144,41 @@ pub fn string_ui_readonly(value: &dyn Any, ui: &mut egui::Ui, _: &dyn Any, _: In
         ui.text_edit_multiline(&mut value.as_str());
     } else {
         ui.text_edit_singleline(&mut value.as_str());
+    }
+}
+
+pub fn cow_str_ui(
+    value: &mut dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: InspectorUi<'_, '_>,
+) -> bool {
+    let value = value.downcast_mut::<Cow<str>>().unwrap();
+    let mut clone = value.to_string();
+    let changed = if value.contains('\n') {
+        ui.text_edit_multiline(&mut clone).changed()
+    } else {
+        ui.text_edit_singleline(&mut clone).changed()
+    };
+
+    if changed {
+        *value = Cow::Owned(clone);
+    }
+
+    changed
+}
+
+pub fn cow_str_ui_readonly(
+    value: &dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: InspectorUi<'_, '_>,
+) {
+    let value = value.downcast_ref::<Cow<str>>().unwrap();
+    if value.contains('\n') {
+        ui.text_edit_multiline(&mut value.as_ref());
+    } else {
+        ui.text_edit_singleline(&mut value.as_ref());
     }
 }
 

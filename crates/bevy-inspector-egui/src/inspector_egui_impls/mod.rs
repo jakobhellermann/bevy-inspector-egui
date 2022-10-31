@@ -4,6 +4,7 @@ use crate::egui_reflect_inspector::InspectorUi;
 use bevy_reflect::TypeRegistry;
 use std::{
     any::{Any, TypeId},
+    borrow::Cow,
     time::Instant,
 };
 
@@ -82,6 +83,7 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     add::<usize>(type_registry, std_impls::number_ui::<usize>, std_impls::number_ui_readonly::<usize>);
     add::<bool>(type_registry, std_impls::bool_ui, std_impls::bool_ui_readonly);
     add::<String>(type_registry, std_impls::string_ui, std_impls::string_ui_readonly);
+    add::<Cow<str>>(type_registry, std_impls::cow_str_ui, std_impls::cow_str_ui_readonly);
     add::<std::time::Duration>(type_registry, std_impls::duration_ui, std_impls::duration_ui_readonly);
     add::<Instant>(type_registry, std_impls::instant_ui, std_impls::instant_ui_readonly);
 }
