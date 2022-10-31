@@ -14,12 +14,40 @@ use std::borrow::Cow;
 
 mod errors;
 
+/// Display the value without any [`Context`] or short circuiting behaviour.
+/// This means that for example bevy's `Handle<StandardMaterial>` values cannot be displayed,
+/// as they would need to have access to the `World`.
+///
+/// Use [`InspectorUi::new`] instead to provide context or use one of the methods in [`bevy_ecs_inspector`](crate::bevy_ecs_inspector).
+pub fn ui_for_value(
+    value: &mut dyn Reflect,
+    ui: &mut egui::Ui,
+    type_registry: &TypeRegistry,
+) -> bool {
+    InspectorUi::new_no_short_circuit(type_registry, &mut Context::default()).ui_for_reflect(
+        value,
+        ui,
+        egui::Id::null(),
+    )
+}
+
 #[non_exhaustive]
 pub struct Context<'a> {
     pub world: Option<OnlyResourceAccessWorld<'a>>,
 }
 
-type ShortCircuitFn = fn(
+impl<'a> Default for Context<'a> {
+    fn default() -> Self {
+        Self { world: None }
+    }
+}
+
+/// Function which will be executed for every field recursively, which can be used to skip regular traversal.
+/// This can be used to recognize `Handle<T>` types and display them as their actual value instead.
+///
+/// Returning `None` means that no short circuiting is required, and `Some(changed)` means that the value was short-circuited
+/// and changed if the boolean is true.
+pub type ShortCircuitFn = fn(
     &mut InspectorUi<'_, '_>,
     value: &mut dyn Reflect,
     ui: &mut egui::Ui,
@@ -35,10 +63,15 @@ type ShortCircuitFnReadonly = fn(
 ) -> Option<()>;
 
 pub struct InspectorUi<'a, 'c> {
+    /// Reference to the [`TypeRegistry`]
     pub type_registry: &'a TypeRegistry,
+    /// [`Context`] with additional data that can be used to display values
     pub context: &'a mut Context<'c>,
 
+    /// Function which will be executed for every field recursively, which can be used to skip regular traversal.
+    /// This can be used to recognize `Handle<T>` types and display them as their actual value instead.
     pub short_circuit: ShortCircuitFn,
+    /// Same as [`short_circuit`](InspectorUi::short_circuit), but for read only usage.
     pub short_circuit_readonly: ShortCircuitFnReadonly,
 }
 
@@ -57,13 +90,15 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         }
     }
 
-    pub fn new_no_short_curcuit(
+    pub fn new_no_short_circuit(
         type_registry: &'a TypeRegistry,
         context: &'a mut Context<'c>,
     ) -> Self {
         InspectorUi::new(type_registry, context, None, None)
     }
+}
 
+impl InspectorUi<'_, '_> {
     /// Draws the inspector UI for the given value.
     pub fn ui_for_reflect(
         &mut self,
@@ -74,10 +109,16 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         self.ui_for_reflect_with_options(value, ui, id, &())
     }
 
+    /// Draws the inspector UI for the given value in a read-only way.
     pub fn ui_for_reflect_ref(&mut self, value: &dyn Reflect, ui: &mut egui::Ui, id: egui::Id) {
         self.ui_for_reflect_ref_with_options(value, ui, id, &());
     }
 
+    /// Draws the inspector UI for the given value with some options.
+    ///
+    /// The options can be [`struct@InspectorOptions`] for structs or enums with nested options for their fields,
+    /// or other structs like [`NumberOptions`](crate::inspector_options::std_options::NumberOptions) which are interpreted
+    /// by leaf types like `f32` or `Vec3`,
     pub fn ui_for_reflect_with_options(
         &mut self,
         value: &mut dyn Reflect,
@@ -120,6 +161,11 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         }
     }
 
+    /// Draws the inspector UI for the given value with some options in a read-only way.
+    ///
+    /// The options can be [`struct@InspectorOptions`] for structs or enums with nested options for their fields,
+    /// or other structs like [`NumberOptions`](crate::inspector_options::std_options::NumberOptions) which are interpreted
+    /// by leaf types like `f32` or `Vec3`,
     pub fn ui_for_reflect_ref_with_options(
         &mut self,
         value: &dyn Reflect,
@@ -166,7 +212,9 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             bevy_reflect::ReflectRef::Value(value) => self.ui_for_value_ref(value, ui, id, options),
         }
     }
+}
 
+impl InspectorUi<'_, '_> {
     fn ui_for_struct(
         &mut self,
         value: &mut dyn Struct,
