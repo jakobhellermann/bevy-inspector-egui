@@ -1,23 +1,22 @@
-use std::time::Duration;
-
 use bevy::prelude::*;
+use bevy_inspector_egui::prelude::*;
 use bevy_inspector_egui::quick::{ResourceInspectorPlugin, WorldInspectorPlugin};
 
-#[derive(Reflect, Resource, Default)]
-#[reflect(Resource)]
-struct TestStruct {
-    a: String,
-    b: f32,
-    c: Duration,
+#[derive(Reflect, Resource, Default, InspectorOptions)]
+#[reflect(Resource, InspectorOptions)]
+struct Configuration {
+    name: String,
+    #[inspector(min = 0.0, max = 1.0)]
+    option: f32,
 }
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin)
-        .init_resource::<TestStruct>()
-        .register_type::<TestStruct>()
-        .add_plugin(ResourceInspectorPlugin::<TestStruct>::default())
+        .init_resource::<Configuration>()
+        .register_type::<Configuration>()
+        .add_plugin(ResourceInspectorPlugin::<Configuration>::default())
         .add_startup_system(setup)
         .run();
 }
