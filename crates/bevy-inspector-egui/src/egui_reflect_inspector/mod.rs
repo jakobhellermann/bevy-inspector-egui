@@ -2,7 +2,7 @@
 
 use crate::inspector_egui_impls::InspectorEguiImpl;
 use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};
-use crate::split_world_permission::OnlyResourceAccessWorld;
+use crate::restricted_world_view::RestrictedWorldView;
 use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, List, Map, Reflect, Struct, Tuple,
@@ -33,7 +33,7 @@ pub fn ui_for_value(
 
 #[non_exhaustive]
 pub struct Context<'a> {
-    pub world: Option<OnlyResourceAccessWorld<'a>>,
+    pub world: Option<RestrictedWorldView<'a>>,
 }
 
 impl<'a> Default for Context<'a> {

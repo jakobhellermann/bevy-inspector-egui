@@ -34,10 +34,12 @@ pub fn image_handle_ui_readonly(
         no_world_in_context(ui, value.type_name());
         return;
     };
-    let (egui_context, images) =
-        world.get_two_resources_mut::<bevy_egui::EguiContext, Assets<Image>>();
-    let mut egui_context = egui_context.unwrap();
-    let mut images = images.unwrap();
+    let (mut egui_context, mut images) = match world
+        .get_two_resources_mut::<bevy_egui::EguiContext, Assets<Image>>()
+    {
+        Ok(resources) => resources,
+        Err(e) => return crate::bevy_ecs_inspector::errors::show_error(e, ui, env.type_registry),
+    };
 
     let mut scaled_down_textures = SCALED_DOWN_TEXTURES.lock().unwrap();
 

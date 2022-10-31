@@ -14,15 +14,14 @@ pub(crate) mod errors;
 /// UI for displaying the entity hierarchy
 pub mod hierarchy;
 
-use crate::split_world_permission;
+use crate::restricted_world_view::RestrictedWorldView;
 use crate::{
     egui_reflect_inspector::{Context, InspectorUi},
     egui_utils::layout_job,
-    split_world_permission::split_world_permission,
     utils::guess_entity_name,
 };
 
-use self::errors::name_of_type;
+use self::errors::{name_of_type, show_error};
 
 /// Display `Entities`, `Resources` and `Assets` using their respective functions inside headers
 pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
@@ -57,24 +56,6 @@ pub fn ui_for_resources(world: &mut World, ui: &mut egui::Ui, type_registry: &Ty
     }
 }
 
-fn show_error(
-    error: split_world_permission::Error,
-    ui: &mut egui::Ui,
-    type_registry: &TypeRegistry,
-) {
-    match error {
-        split_world_permission::Error::ResourceDoesNotExist(type_id) => {
-            errors::resource_does_not_exist(ui, &name_of_type(type_id, type_registry));
-        }
-        split_world_permission::Error::NoTypeRegistration(type_id) => {
-            errors::not_in_type_registry(ui, &name_of_type(type_id, type_registry));
-        }
-        split_world_permission::Error::NoTypeData(type_id, data) => {
-            errors::no_type_data(ui, &name_of_type(type_id, type_registry), data);
-        }
-    }
-}
-
 /// Display the resource with the given [`TypeId`]
 pub fn ui_for_resource(
     world: &mut World,
@@ -83,19 +64,16 @@ pub fn ui_for_resource(
     type_registry: &TypeRegistry,
 ) {
     // no_resource_refs_world can only access `resource_type_id`, only_resource_access_world can access everything else
-    let (mut no_resource_refs_world, only_resource_access_world) =
-        split_world_permission(world, Some(resource_type_id));
+    let mut world = RestrictedWorldView::new(world);
+    let (mut resource_view, world) = world.split_off_resource(resource_type_id);
 
-    let (resource, set_changed) = match no_resource_refs_world
-        .get_resource_reflect_mut_by_id(resource_type_id, type_registry)
-    {
-        Ok(resource) => resource,
-        Err(err) => return show_error(err, ui, type_registry),
-    };
+    let (resource, set_changed) =
+        match resource_view.get_resource_reflect_mut_by_id(resource_type_id, type_registry) {
+            Ok(resource) => resource,
+            Err(err) => return show_error(err, ui, type_registry),
+        };
 
-    let mut cx = Context {
-        world: Some(only_resource_access_world),
-    };
+    let mut cx = Context { world: Some(world) };
     let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
 
     let changed = env.ui_for_reflect(resource, ui, egui::Id::new(resource_type_id));
@@ -140,10 +118,8 @@ pub fn ui_for_asset(
     let mut ids: Vec<_> = reflect_asset.ids(world).collect();
     ids.sort();
 
-    let (_, only_resource_access_world) = split_world_permission(world, None);
-    let mut cx = Context {
-        world: Some(only_resource_access_world),
-    };
+    let world = RestrictedWorldView::new(world);
+    let mut cx = Context { world: Some(world) };
 
     for handle_id in ids {
         let id = egui::Id::new(handle_id);
@@ -227,13 +203,7 @@ fn ui_for_entity_components(
     };
     let components = components_of_entity(entity_ref, world);
 
-    let (mut no_resource_refs_world, only_resource_access_world) =
-        split_world_permission(world, None);
-    let mut cx = Context {
-        world: Some(only_resource_access_world),
-    };
-
-    for (name, component_id, type_id, size) in components {
+    for (name, component_id, component_type_id, size) in components {
         let id = id.with(component_id);
         egui::CollapsingHeader::new(&name)
             .id_source(id)
@@ -241,13 +211,20 @@ fn ui_for_entity_components(
                 if size == 0 {
                     return;
                 }
-                let Some(type_id) = type_id else {
+                let Some(component_type_id) = component_type_id else {
                     return error_message_no_type_id(ui, &name);
                 };
 
-                let (value, set_changed) = match no_resource_refs_world
-                    .get_entity_component_reflect(entity, type_id, type_registry)
-                {
+                let mut world = RestrictedWorldView::new(world);
+                let (mut component_view, world) =
+                    world.split_off_component((entity, component_type_id));
+                let mut cx = Context { world: Some(world) };
+
+                let (value, set_changed) = match component_view.get_entity_component_reflect(
+                    entity,
+                    component_type_id,
+                    type_registry,
+                ) {
                     Ok(value) => value,
                     Err(e) => return show_error(e, ui, type_registry),
                 };
@@ -334,32 +311,33 @@ fn short_circuit(
             return Some(false);
         };
 
-        let Some(world) = &env.context.world else {
+        let Some(world) = &mut env.context.world else {
             errors::no_world_in_context(ui, value.type_name());
             return Some(false);
         };
-        assert!(!world.forbids_access_to(reflect_asset.assets_resource_type_id()));
-        // SAFETY: the following code only accesses resources through the world (namely `Assets<T>`)
-        let ora_world = unsafe { world.get() };
-        // SAFETY: the `OnlyResourceAccessWorld` allows mutable access (except for the `except_resource`),
-        // and we create only one reference to an asset at the same time.
-        let asset_value = unsafe { reflect_asset.get_unchecked_mut(ora_world, handle) };
-        let Some(asset_value) = asset_value else {
-            errors::dead_asset_handle(ui, handle_id);
-            return Some(false);
-        };
 
-        let more_restricted_world = env.context.world.as_ref().map(|world| {
-            // SAFETY: while this world is active, the only live reference to a resource through the `world` is
-            // through the `assets_resource_type_id`.
-            unsafe { world.with_more_restriction(reflect_asset.assets_resource_type_id()) }
-        });
+        let (assets_view, world) =
+            world.split_off_resource(reflect_asset.assets_resource_type_id());
+
+        let asset_value = {
+            // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
+            let interior_mutable_world = unsafe { assets_view.get() };
+            assert!(world.allows_access_to_resource(reflect_asset.assets_resource_type_id()));
+            // SAFETY: the world allows mutable access to `Assets<T>`
+            let asset_value =
+                unsafe { reflect_asset.get_unchecked_mut(interior_mutable_world, handle) };
+            match asset_value {
+                Some(value) => value,
+                None => {
+                    errors::dead_asset_handle(ui, handle_id);
+                    return Some(false);
+                }
+            }
+        };
 
         let mut restricted_env = InspectorUi {
             type_registry: env.type_registry,
-            context: &mut Context {
-                world: more_restricted_world,
-            },
+            context: &mut Context { world: Some(world) },
             short_circuit: env.short_circuit,
             short_circuit_readonly: env.short_circuit_readonly,
         };
@@ -397,33 +375,31 @@ fn short_circuit_readonly(
             return Some(());
         };
 
-        let Some(world) = &env.context.world else {
+        let Some(world) = &mut env.context.world else {
             errors::no_world_in_context(ui, value.type_name());
             return Some(());
         };
-        assert!(!world.forbids_access_to(reflect_asset.assets_resource_type_id()));
-        // SAFETY: the following code only accesses resources through the world (namely `Assets<T>`)
-        let ora_world = unsafe { world.get() };
-        let asset_value = reflect_asset.get(ora_world, handle);
-        let asset_value = match asset_value {
-            Some(value) => value,
-            None => {
-                errors::dead_asset_handle(ui, handle_id);
-                return Some(());
+
+        let (assets_view, world) =
+            world.split_off_resource(reflect_asset.assets_resource_type_id());
+
+        let asset_value = {
+            // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
+            let interior_mutable_world = unsafe { assets_view.get() };
+            assert!(world.allows_access_to_resource(reflect_asset.assets_resource_type_id()));
+            let asset_value = reflect_asset.get(interior_mutable_world, handle);
+            match asset_value {
+                Some(value) => value,
+                None => {
+                    errors::dead_asset_handle(ui, handle_id);
+                    return Some(());
+                }
             }
         };
 
-        let more_restricted_world = env.context.world.as_ref().map(|world| {
-            // SAFETY: while this world is active, the only live reference to a resource through the `world` is
-            // through the `assets_resource_type_id`.
-            unsafe { world.with_more_restriction(reflect_asset.assets_resource_type_id()) }
-        });
-
         let mut restricted_env = InspectorUi {
             type_registry: env.type_registry,
-            context: &mut Context {
-                world: more_restricted_world,
-            },
+            context: &mut Context { world: Some(world) },
             short_circuit: env.short_circuit,
             short_circuit_readonly: env.short_circuit_readonly,
         };
