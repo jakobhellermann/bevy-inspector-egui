@@ -2,7 +2,6 @@
 resolver = "2"
 members = ["crates/*"]
 
-
 [patch."https://github.com/bevyengine/bevy"]
 bevy_ecs = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }
 bevy_hierarchy = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }
