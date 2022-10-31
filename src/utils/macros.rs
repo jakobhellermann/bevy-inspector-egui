@@ -35,15 +35,52 @@ macro_rules! impl_for_simple_enum {
                         }
                     )*
                     $(
-                        if ui.selectable_label(matches!(self, $val), format!("{:?}", $default)).clicked() {
+                        if ui.selectable_label(matches!(self, $val), stringify!($variant1)).clicked() {
                             if let $val = self {
-                                
+
                             } else {
                                 *self = <$name>::$variant1($default);
                                 changed = true;
                             }
                         }
                     )*
+                });
+                changed
+            }
+        }
+    };
+    ($name:ty: $($variant:ident),* : $($variant1:ident $val:pat => $default:expr),*; $(if let $pat1:pat => $ui:expr),*) => {
+        impl $crate::Inspectable for $name {
+            type Attributes = ();
+
+            fn ui(&mut self, ui: &mut $crate::egui::Ui, _: Self::Attributes, context: &mut $crate::Context) -> bool {
+                let mut changed = false;
+                ui.horizontal(|ui| {
+                crate::egui::ComboBox::from_id_source(context.id())
+                    .selected_text(format!("{:?}", self))
+                    .show_ui(ui, |ui| {
+                    $(
+                        if ui.selectable_label(matches!(self, <$name>::$variant), format!("{:?}", <$name>::$variant)).clicked() {
+                            *self = <$name>::$variant;
+                            changed = true;
+                        }
+                    )*
+                    $(
+                        if ui.selectable_label(matches!(self, $val), stringify!($variant1)).clicked() {
+                            if let $val = self {
+
+                            } else {
+                                *self = <$name>::$variant1($default);
+                                changed = true;
+                            }
+                        }
+                    )*
+                });
+                $(
+                    if let $pat1 = self {
+                        $ui(ui, context);
+                    }
+                )*
                 });
                 changed
             }

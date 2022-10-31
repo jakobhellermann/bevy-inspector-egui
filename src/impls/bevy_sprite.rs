@@ -29,7 +29,21 @@ impl_for_simple_enum!(Anchor:
     TopLeft,
     TopCenter,
     TopRight:
-    Custom Anchor::Custom(_) => Vec2::default()
+    Custom Anchor::Custom(_) => Vec2::default();
+    if let Anchor::Custom(val) => |ui: &mut egui::Ui, context: &mut Context| {
+        let mut changed = false;
+        ui.horizontal(|ui| {
+            ui.label("x:");
+            let x_attrs = crate::options::NumberAttributes::default();
+            changed |= val.x.ui(ui, x_attrs, context);
+        });
+        ui.horizontal(|ui| {
+            ui.label("y:");
+            let y_attrs = crate::options::NumberAttributes::default();
+            changed |= val.y.ui(ui, y_attrs, context);
+        });
+        changed
+    }
 );
 
 impl_for_struct_delegate_fields!(bevy::sprite::Rect:
@@ -49,7 +63,6 @@ impl Inspectable for TextureAtlas {
                 .texture
                 .ui(ui, Default::default(), &mut context.with_id(0));
             ui.end_row();
-
             ui.label("size");
             changed |= self.size.ui(ui, Vec2dAttributes::integer(), context);
             ui.end_row();
