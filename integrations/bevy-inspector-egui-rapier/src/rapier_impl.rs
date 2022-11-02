@@ -18,7 +18,6 @@ inspectable!(enum coefficient_combine_rule CoefficientCombineRule: Average|Min|M
 inspectable!(enum rigid_body RigidBody: Dynamic|Fixed|KinematicPositionBased|KinematicVelocityBased);
 inspectable!(enum_one collider_scale ColliderScale: Relative {VectAttributes::min(Vect::splat(0.01))} | Absolute {VectAttributes::min(Vect::splat(0.01))});
 inspectable!(flags locked_axes LockedAxes: TRANSLATION_LOCKED_X|TRANSLATION_LOCKED_Y|TRANSLATION_LOCKED_Z|ROTATION_LOCKED_X|ROTATION_LOCKED_Y|ROTATION_LOCKED_Z);
-inspectable!(grid collision_groups CollisionGroups: memberships, filters);
 inspectable!(grid damping Damping: linear_damping, angular_damping);
 inspectable!(grid dominance Dominance: groups);
 inspectable!(grid external_force ExternalForce: force, torque);
@@ -26,9 +25,11 @@ inspectable!(grid external_impulse ExternalImpulse: impulse, torque_impulse);
 inspectable!(grid friction Friction: coefficient with NumberAttributes::positive().with_speed(0.01), combine_rule by coefficient_combine_rule);
 inspectable!(grid restitution Restitution: coefficient with NumberAttributes::positive().with_speed(0.01), combine_rule by coefficient_combine_rule);
 inspectable!(grid sleeping Sleeping: linear_threshold, angular_threshold, sleeping);
-inspectable!(grid solver_groups SolverGroups: memberships, filters);
 inspectable!(grid transform_interpolation TransformInterpolation: start, end);
 inspectable!(grid velocity Velocity: linvel, angvel);
+
+inspectable!(grid collision_groups CollisionGroups: memberships by group, filters by group);
+inspectable!(grid solver_groups SolverGroups: memberships by group, filters by group);
 
 fn additional_mass_properties(
     val: &mut AdditionalMassProperties,
@@ -68,6 +69,10 @@ fn additional_mass_properties(
         Mass(mass) => mass.ui(ui, NumberAttributes::positive(), context),
         Properties(props) => mass_properties(props, ui, context),
     }
+}
+
+fn group(val: &mut Group, ui: &mut egui::Ui, context: &mut Context<'_>) -> bool {
+    val.bits().ui(ui, NumberAttributes::min(0), context)
 }
 
 fn collider_mass_properties(
