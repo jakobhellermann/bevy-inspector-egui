@@ -56,6 +56,8 @@ fn setup(
             cube_size / 2.0,
         ))
         .insert(RigidBody::Dynamic)
+        .insert(CollisionGroups::default())
+        .insert(SolverGroups::default())
         .insert(Transform::from_xyz(0.0, 2.0, 0.0));
 
     commands.spawn_bundle(PointLightBundle {
