@@ -3,7 +3,10 @@
     clippy::missing_safety_doc,
     unsafe_op_in_unsafe_fn
 )]
-#![allow(clippy::needless_lifetimes)]
+#![allow(
+    clippy::needless_lifetimes, // can be good for clarity
+    clippy::needless_doctest_main, // sometimes a full copy-pasteable standalone example is better
+)]
 
 //! This crate contains
 //! - general purpose machinery for displaying [`Reflect`](bevy_reflect::Reflect) values in [`egui_reflect_inspector`],

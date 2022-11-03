@@ -13,7 +13,7 @@ fn insert_options_struct<T: 'static>(
     fields: &[(&'static str, &dyn TypeData)],
 ) {
     let registration = type_registry.get_mut(std::any::TypeId::of::<T>()).unwrap();
-    if !registration.data::<ReflectInspectorOptions>().is_some() {
+    if registration.data::<ReflectInspectorOptions>().is_none() {
         let mut options = InspectorOptions::new();
         for (field, data) in fields {
             let info = match registration.type_info() {
@@ -32,7 +32,7 @@ fn insert_options_enum<T: 'static>(
     fields: &[(&'static str, &'static str, &dyn TypeData)],
 ) {
     let registration = type_registry.get_mut(std::any::TypeId::of::<T>()).unwrap();
-    if !registration.data::<ReflectInspectorOptions>().is_some() {
+    if registration.data::<ReflectInspectorOptions>().is_none() {
         let mut options = InspectorOptions::new();
         for (variant, field, data) in fields {
             let info = match registration.type_info() {

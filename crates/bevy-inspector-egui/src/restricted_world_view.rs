@@ -117,7 +117,7 @@ impl<'w> RestrictedWorldView<'w> {
         let type_id = TypeId::of::<R>();
         assert!(self.allows_access_to_resource(type_id));
 
-        // INVARIANTS: `self` had `R` access, so we have unique access if we remove it from `self`
+        // SAFETY: `self` had `R` access, so we have unique access if we remove it from `self`
         let resource = unsafe { self.world.get_resource_unchecked_mut::<R>()? };
 
         let rest = RestrictedWorldView {
@@ -198,7 +198,7 @@ impl<'w> RestrictedWorldView<'w> {
         let value = unsafe {
             self.world
                 .get_resource_unchecked_mut::<R>()
-                .ok_or_else(|| Error::ResourceDoesNotExist(type_id))?
+                .ok_or(Error::ResourceDoesNotExist(type_id))?
         };
 
         Ok(value)
@@ -228,7 +228,7 @@ impl<'w> RestrictedWorldView<'w> {
         let value = unsafe {
             self.world
                 .get_resource_unchecked_mut_by_id(component_id)
-                .ok_or_else(|| Error::ResourceDoesNotExist(type_id))?
+                .ok_or(Error::ResourceDoesNotExist(type_id))?
         };
 
         // SAFETY: value is of type type_id
@@ -256,14 +256,14 @@ impl<'w> RestrictedWorldView<'w> {
             .world
             .components()
             .get_id(component)
-            .ok_or_else(|| Error::NoComponentId(component))?;
+            .ok_or(Error::NoComponentId(component))?;
 
         // SAFETY: we have access to (entity, component) and borrow `&mut self`
         let value = unsafe {
             self.world
                 .entity(entity)
                 .get_unchecked_mut_by_id(component_id)
-                .ok_or_else(|| Error::ComponentDoesNotExist((entity, component)))?
+                .ok_or(Error::ComponentDoesNotExist((entity, component)))?
         };
 
         // SAFETY: value is of type component
@@ -286,6 +286,7 @@ unsafe fn mut_untyped_to_reflect<'a>(
 
     let (ptr, set_changed) = crate::utils::mut_untyped_split(value);
     assert_eq!(reflect_from_ptr.type_id(), type_id);
+    // SAFETY: ptr is of type type_id as required in safety contract, type_id was checked above
     let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(ptr) };
 
     Ok((value, set_changed))

@@ -29,15 +29,12 @@ pub fn ui_for_value(
 }
 
 #[non_exhaustive]
+#[derive(Default)]
 pub struct Context<'a> {
     pub world: Option<RestrictedWorldView<'a>>,
 }
 
-impl<'a> Default for Context<'a> {
-    fn default() -> Self {
-        Self { world: None }
-    }
-}
+
 
 pub fn ui_for_reflect_no_context(
     value: &mut dyn Reflect,
@@ -581,7 +578,7 @@ impl InspectorUi<'_, '_> {
                 .selected_text(value.variant_name())
                 .show_ui(ui, |ui| {
                     for variant in type_info.iter() {
-                        let variant_name = variant.name().as_ref();
+                        let variant_name = variant.name();
                         let is_active_variant = variant_name == value.variant_name();
 
                         if is_active_variant {
@@ -761,8 +758,8 @@ fn maybe_grid(
         _ => {
             Grid::new(id)
                 .show(ui, |ui| {
-                    let changed = f(ui, true);
-                    changed
+                    
+                    f(ui, true)
                 })
                 .inner
         }
@@ -779,10 +776,7 @@ fn maybe_grid_readonly(
         0 => {}
         1 => f(ui, false),
         _ => {
-            Grid::new(id).show(ui, |ui| {
-                let changed = f(ui, true);
-                changed
-            });
+            Grid::new(id).show(ui, |ui| f(ui, true));
         }
     }
 }

@@ -110,7 +110,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                 (*self.viewport_rect, _) =
                     ui.allocate_exact_size(ui.available_size(), egui::Sense::hover());
             }
-            Window::Hierarchy => hierarchy_ui(self.world, ui, &mut self.selected_entities),
+            Window::Hierarchy => hierarchy_ui(self.world, ui, self.selected_entities),
             Window::Resources => ui_for_resources(self.world, ui),
             Window::Assets => ui_for_all_assets(self.world, ui),
             Window::Inspector => {

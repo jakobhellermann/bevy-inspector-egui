@@ -20,7 +20,7 @@ pub fn color_ui_readonly(value: &dyn Any, ui: &mut egui::Ui, _: &dyn Any, _: Ins
     let value = value.downcast_ref::<Color>().unwrap();
 
     ui.add_enabled_ui(false, |ui| {
-        let mut color = value.clone();
+        let mut color = *value;
         color_ui_inner(&mut color, ui);
     });
 }

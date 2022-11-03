@@ -43,7 +43,7 @@ fn inspector_ui(
                 bevy_inspector_egui::bevy_ecs_inspector::hierarchy::hierarchy_ui(
                     world,
                     ui,
-                    &mut *selected_entities,
+                    &mut selected_entities,
                 );
 
                 ui.label("Press escape to toggle UI");

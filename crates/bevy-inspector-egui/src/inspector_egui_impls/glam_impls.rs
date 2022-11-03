@@ -251,7 +251,9 @@ pub mod quat {
             .unwrap_or_default();
 
         ui.vertical(|ui| {
-            let changed = match options.display {
+            
+
+            match options.display {
                 QuatDisplay::Raw => {
                     let mut vec4 = Vec4::from(*value);
                     let changed = env.ui_for_reflect(&mut vec4, ui);
@@ -263,9 +265,7 @@ pub mod quat {
                 QuatDisplay::Euler => quat_ui_kind::<Euler>(value, ui, env),
                 QuatDisplay::YawPitchRoll => quat_ui_kind::<YawPitchRoll>(value, ui, env),
                 QuatDisplay::AxisAngle => quat_ui_kind::<AxisAngle>(value, ui, env),
-            };
-
-            changed
+            }
         })
         .inner
     }
@@ -276,7 +276,7 @@ pub mod quat {
         options: &dyn Any,
         env: InspectorUi<'_, '_>,
     ) {
-        let mut value = value.downcast_ref::<Quat>().unwrap().clone();
+        let mut value = *value.downcast_ref::<Quat>().unwrap();
         ui.add_enabled_ui(false, |ui| quat_ui(&mut value, ui, options, env));
     }
 }

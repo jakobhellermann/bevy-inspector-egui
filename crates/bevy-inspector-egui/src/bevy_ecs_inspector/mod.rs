@@ -427,8 +427,8 @@ fn short_circuit(
             // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
             let interior_mutable_world = unsafe { assets_view.get() };
             assert!(world.allows_access_to_resource(reflect_asset.assets_resource_type_id()));
-            // SAFETY: the world allows mutable access to `Assets<T>`
             let asset_value =
+                // SAFETY: the world allows mutable access to `Assets<T>`
                 unsafe { reflect_asset.get_unchecked_mut(interior_mutable_world, handle) };
             match asset_value {
                 Some(value) => value,
