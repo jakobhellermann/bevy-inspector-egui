@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use bevy_app::AppTypeRegistry;
 use bevy_ecs::prelude::*;
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::TypeRegistry;
@@ -8,15 +9,13 @@ use egui::{CollapsingHeader, RichText};
 use crate::utils::guess_entity_name;
 
 /// Display UI of the entity hierarchy
-pub fn hierarchy_ui(
-    world: &mut World,
-    type_registry: &TypeRegistry,
-    ui: &mut egui::Ui,
-    selected: &mut SelectedEntities,
-) {
+pub fn hierarchy_ui(world: &mut World, ui: &mut egui::Ui, selected: &mut SelectedEntities) {
+    let type_registry = world.resource::<AppTypeRegistry>().clone();
+    let type_registry = type_registry.read();
+
     Hierarchy {
         world,
-        type_registry,
+        type_registry: &type_registry,
         selected,
     }
     .show(ui);

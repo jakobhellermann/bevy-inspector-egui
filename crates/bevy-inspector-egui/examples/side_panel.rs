@@ -34,9 +34,6 @@ fn inspector_ui(
         .ctx_mut()
         .clone();
 
-    let type_registry = world.resource::<AppTypeRegistry>().clone();
-    let type_registry = type_registry.read();
-
     egui::SidePanel::left("hierarchy")
         .default_width(200.0)
         .show(&egui_context, |ui| {
@@ -45,7 +42,6 @@ fn inspector_ui(
 
                 bevy_inspector_egui::bevy_ecs_inspector::hierarchy::hierarchy_ui(
                     world,
-                    &type_registry,
                     ui,
                     &mut *selected_entities,
                 );
@@ -64,12 +60,7 @@ fn inspector_ui(
                 let in_header = selected_entities.len() > 1;
                 for entity in selected_entities.iter() {
                     bevy_inspector_egui::bevy_ecs_inspector::ui_for_entity(
-                        world,
-                        entity,
-                        ui,
-                        egui::Id::new(entity),
-                        &type_registry,
-                        in_header,
+                        world, entity, ui, in_header,
                     );
                 }
 

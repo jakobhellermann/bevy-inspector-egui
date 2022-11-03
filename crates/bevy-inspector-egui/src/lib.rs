@@ -110,8 +110,6 @@
 //!
 //! fn inspector_ui(world: &mut World) {
 //!     let egui_context = world.resource_mut::<bevy_egui::EguiContext>().ctx_mut().clone();
-//!     let type_registry = world.resource::<AppTypeRegistry>().clone();
-//!     let type_registry = type_registry.read();
 //!
 //!     egui::Window::new("UI").show(&egui_context, |ui| {
 //!         egui::ScrollArea::vertical().show(ui, |ui| {
@@ -119,11 +117,11 @@
 //!             // bevy_inspector_egui::bevy_ecs_inspector::ui_for_world(world, ui);
 //!
 //!             egui::CollapsingHeader::new("Materials").show(ui, |ui| {
-//!                 bevy_inspector_egui::bevy_ecs_inspector::ui_for_asset(world, TypeId::of::<StandardMaterial>(), ui, &type_registry);
+//!                 bevy_inspector_egui::bevy_ecs_inspector::ui_for_assets::<StandardMaterial>(world, ui);
 //!             });
 //!
 //!             ui.heading("Entities");
-//!             bevy_inspector_egui::bevy_ecs_inspector::ui_for_world_entities(world, ui, &type_registry);
+//!             bevy_inspector_egui::bevy_ecs_inspector::ui_for_world_entities(world, ui);
 //!         });
 //!     });
 //! }

@@ -33,15 +33,12 @@ fn ui(world: &mut World) {
         .ctx_mut()
         .clone();
 
-    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
-    let type_registry = type_registry.read();
-
     egui::Window::new("UI")
         .title_bar(false)
         .resizable(false)
         .show(&egui_context, |ui| {
             ui.heading("AppState");
-            ui_for_state::<AppState>(world, ui, &type_registry);
+            ui_for_state::<AppState>(world, ui);
         });
 }
 

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::bevy_ecs_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
-use bevy_inspector_egui::bevy_ecs_inspector::{ui_for_assets, ui_for_entity, ui_for_resources};
+use bevy_inspector_egui::bevy_ecs_inspector::{ui_for_all_assets, ui_for_entity, ui_for_resources};
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_render::camera::Viewport;
 use egui_dock::{NodeIndex, Tree};
@@ -90,9 +90,9 @@ impl UiState {
 enum Window {
     GameView,
     Hierarchy,
-    Inspector,
     Resources,
     Assets,
+    Inspector,
 }
 
 struct TabViewer<'a> {
@@ -105,35 +105,18 @@ impl egui_dock::TabViewer for TabViewer<'_> {
     type Tab = Window;
 
     fn ui(&mut self, ui: &mut egui::Ui, window: &mut Self::Tab) {
-        let type_registry = self.world.resource::<AppTypeRegistry>().0.clone();
-        let type_registry = type_registry.read();
-
         match window {
             Window::GameView => {
                 (*self.viewport_rect, _) =
                     ui.allocate_exact_size(ui.available_size(), egui::Sense::hover());
             }
-            Window::Hierarchy => {
-                hierarchy_ui(self.world, &type_registry, ui, &mut self.selected_entities);
-            }
+            Window::Hierarchy => hierarchy_ui(self.world, ui, &mut self.selected_entities),
+            Window::Resources => ui_for_resources(self.world, ui),
+            Window::Assets => ui_for_all_assets(self.world, ui),
             Window::Inspector => {
-                let id = egui::Id::new("inspector");
                 for entity in self.selected_entities.iter() {
-                    ui_for_entity(
-                        self.world,
-                        entity,
-                        ui,
-                        id.with(entity),
-                        &type_registry,
-                        self.selected_entities.len() > 1,
-                    );
+                    ui_for_entity(self.world, entity, ui, self.selected_entities.len() > 1);
                 }
-            }
-            Window::Resources => {
-                ui_for_resources(self.world, ui, &type_registry);
-            }
-            Window::Assets => {
-                ui_for_assets(self.world, ui, &type_registry);
             }
         }
     }

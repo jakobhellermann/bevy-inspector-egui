@@ -8,7 +8,7 @@
 
 use std::marker::PhantomData;
 
-use bevy_app::{AppTypeRegistry, Plugin};
+use bevy_app::Plugin;
 use bevy_ecs::{prelude::*, schedule::StateData};
 use bevy_egui::EguiPlugin;
 use bevy_reflect::Reflect;
@@ -64,7 +64,7 @@ impl<T> ResourceInspectorPlugin<T> {
     }
 }
 
-impl<T: Reflect> Plugin for ResourceInspectorPlugin<T> {
+impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
     fn build(&self, app: &mut bevy_app::App) {
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugin(DefaultInspectorConfigPlugin);
@@ -77,7 +77,7 @@ impl<T: Reflect> Plugin for ResourceInspectorPlugin<T> {
     }
 }
 
-fn inspector_ui<T: Reflect>(world: &mut World) {
+fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
     let egui_context = world
         .resource_mut::<bevy_egui::EguiContext>()
         .ctx_mut()
@@ -86,14 +86,7 @@ fn inspector_ui<T: Reflect>(world: &mut World) {
         .default_size((0., 0.))
         .show(&egui_context, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
-                let type_registry = world.resource::<AppTypeRegistry>().clone();
-                let type_registry = type_registry.read();
-                bevy_ecs_inspector::ui_for_resource(
-                    world,
-                    std::any::TypeId::of::<T>(),
-                    ui,
-                    &type_registry,
-                );
+                bevy_ecs_inspector::ui_for_resource::<T>(world, ui);
 
                 ui.allocate_space(ui.available_size());
             });
@@ -139,9 +132,7 @@ fn state_ui<T: StateData + Reflect>(world: &mut World) {
         .show(&egui_context, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.heading(pretty_type_name::<T>());
-                let type_registry = world.resource::<AppTypeRegistry>().clone();
-                let type_registry = type_registry.read();
-                bevy_ecs_inspector::ui_for_state::<T>(world, ui, &type_registry);
+                bevy_ecs_inspector::ui_for_state::<T>(world, ui);
             });
         });
 }

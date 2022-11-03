@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::{prelude::*, DefaultInspectorConfigPlugin};
-use std::any::TypeId;
 
 #[derive(Reflect, Default, InspectorOptions)]
 #[reflect(InspectorOptions)]
@@ -63,17 +62,10 @@ fn ui_example(world: &mut World) {
         .resource_mut::<bevy_egui::EguiContext>()
         .ctx_mut()
         .clone();
-    let type_registry = world.resource::<AppTypeRegistry>().clone();
-    let type_registry = type_registry.read();
 
     egui::Window::new("UI").show(&egui_context, |ui| {
         egui::ScrollArea::vertical().show(ui, |ui| {
-            bevy_inspector_egui::bevy_ecs_inspector::ui_for_resource(
-                world,
-                TypeId::of::<UiData>(),
-                ui,
-                &type_registry,
-            );
+            bevy_inspector_egui::bevy_ecs_inspector::ui_for_resource::<UiData>(world, ui);
         });
     });
 }
