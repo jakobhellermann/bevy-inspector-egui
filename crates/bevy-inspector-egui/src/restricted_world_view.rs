@@ -51,6 +51,7 @@ pub struct RestrictedWorldView<'w> {
     unmentioned_allowed: bool,
 }
 
+/// Fundamental methods for working with a [`RestrictedWorldView`]
 impl<'w> RestrictedWorldView<'w> {
     /// Create a new [`RestrictedWorldView`] with permission to access everything.
     pub fn new(world: &'w mut World) -> RestrictedWorldView<'w> {
@@ -63,15 +64,20 @@ impl<'w> RestrictedWorldView<'w> {
         }
     }
 
-    // SAFETY: The returned world reference may only be used to access (mutably or immutably) resources and components
-    // that [`RestrictedWorldView::allows_access_to_resources`] and [`RestrictedWorldView::allows_access_to_component`] return `true` for.
+    /// Get a reference to the inner [`World`].
+    ///
+    /// # Safety
+    /// The returned world reference may only be used to access (mutably or immutably) resources and components
+    /// that [`RestrictedWorldView::allows_access_to_resource`] and [`RestrictedWorldView::allows_access_to_component`] return `true` for.
     pub unsafe fn get(&self) -> &'_ World {
         self.world
     }
 
+    /// Whether the resource with the given [`TypeId`] may be accessed from this world view
     pub fn allows_access_to_resource(&self, type_id: TypeId) -> bool {
         self.allowed_resources.contains(&type_id) || self.unmentioned_allowed
     }
+    /// Whether the given component at the entity may be accessed from this world view
     pub fn allows_access_to_component(&self, component: EntityComponent) -> bool {
         self.allowed_components.contains(&component) || self.unmentioned_allowed
     }
@@ -133,12 +139,16 @@ impl<'w> RestrictedWorldView<'w> {
     }
 }
 
+/// Some safe methods for getting values out of the [`RestrictedWorldView`].
+/// Also has some methods for getting values in their [`Reflect`] form.
 impl<'w> RestrictedWorldView<'w> {
+    /// Gets a mutable reference to the resource of the given type
     pub fn get_resource_mut<R: Resource>(&mut self) -> Result<Mut<'_, R>, Error> {
         // SAFETY: &mut self
         unsafe { self.get_resource_unchecked_mut() }
     }
 
+    /// Gets mutable reference to two resources. Panics if `R1 = R2`.
     pub fn get_two_resources_mut<R1: Resource, R2: Resource>(
         &mut self,
     ) -> Result<(Mut<'_, R1>, Mut<'_, R2>), Error> {
@@ -151,8 +161,9 @@ impl<'w> RestrictedWorldView<'w> {
         Ok((r1, r2))
     }
 
-    // SAFETY: This method does validate that we have access to `R`, but takes `&self`
-    // and as such doesn't check unique access.
+    /// # Safety
+    /// This method does validate that we have access to `R`, but takes `&self`
+    /// and as such doesn't check unique access.
     unsafe fn get_resource_unchecked_mut<R: Resource>(&self) -> Result<Mut<'_, R>, Error> {
         let type_id = TypeId::of::<R>();
         if !self.allows_access_to_resource(type_id) {
@@ -169,6 +180,11 @@ impl<'w> RestrictedWorldView<'w> {
         Ok(value)
     }
 
+    /// Gets a mutable reference in form of a [`&mut dyn Reflect`](bevy_reflect::Reflect) to the resource given by `type_id`.
+    ///
+    /// Returns an error if the type does not register [`Reflect`] or [`ReflectResource`].
+    ///
+    /// Also returns a `impl FnOnce()` to mark the value as changed.
     pub fn get_resource_reflect_mut_by_id(
         &mut self,
         type_id: TypeId,
@@ -197,6 +213,11 @@ impl<'w> RestrictedWorldView<'w> {
         Ok(value)
     }
 
+    /// Gets a mutable reference in form of a [`&mut dyn Reflect`](bevy_reflect::Reflect) to a component at an entity.
+    ///
+    /// Returns an error if the type does not register [`Reflect`] or [`ReflectResource`].
+    ///
+    /// Also returns a `impl FnOnce()` to mark the value as changed.
     pub fn get_entity_component_reflect(
         &mut self,
         entity: Entity,
