@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::prelude::*;
-use bevy_inspector_egui::quick::{ResourceInspectorPlugin, WorldInspectorPlugin};
+use bevy_inspector_egui::quick::{
+    ResourceInspectorPlugin, StateInspectorPlugin, WorldInspectorPlugin,
+};
 
 #[derive(Reflect, Resource, Default, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]
@@ -14,11 +16,21 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin)
+        .add_plugin(ResourceInspectorPlugin::<Configuration>::default())
+        .add_plugin(StateInspectorPlugin::<AppState>::default())
+        .add_state(AppState::A)
         .init_resource::<Configuration>()
         .register_type::<Configuration>()
-        .add_plugin(ResourceInspectorPlugin::<Configuration>::default())
+        .register_type::<AppState>()
         .add_startup_system(setup)
         .run();
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Reflect)]
+enum AppState {
+    A,
+    B,
+    C,
 }
 
 /// set up a simple 3D scene

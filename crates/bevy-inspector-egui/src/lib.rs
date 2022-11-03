@@ -64,6 +64,32 @@
 //! }
 //! ```
 //!
+//! ## StateInspectorPlugin
+//! Display the app state in a window, changing states on edit.
+//!
+//! ![image of the state inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/rework/docs/state_inspector.png)
+//!
+//! ```no_run
+//! use bevy::prelude::*;
+//! use bevy_inspector_egui::quick::StateInspectorPlugin;
+//!
+//! fn main() {
+//!     App::new()
+//!         .add_plugins(DefaultPlugins)
+//!         .add_plugin(StateInspectorPlugin::<AppState>::default())
+//!         .add_state(AppState::A)
+//!         .register_type::<AppState>()
+//!         .run();
+//! }
+//!
+//! #[derive(Debug, Clone, Eq, PartialEq, Hash, Reflect)]
+//! enum AppState {
+//!     A,
+//!     B,
+//!     C,
+//! }
+//! ```
+//!
 //! # Use case 2: Manual UI
 //! The [`quick`] plugins don't allow customization of the egui window or its content, but you can easily build your own UI:
 //!

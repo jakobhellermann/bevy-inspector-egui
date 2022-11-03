@@ -9,7 +9,7 @@
 use std::marker::PhantomData;
 
 use bevy_app::{AppTypeRegistry, Plugin};
-use bevy_ecs::prelude::*;
+use bevy_ecs::{prelude::*, schedule::StateData};
 use bevy_egui::EguiPlugin;
 use bevy_reflect::Reflect;
 use pretty_type_name::pretty_type_name;
@@ -49,7 +49,7 @@ fn world_inspector_ui(world: &mut World) {
         });
 }
 
-/// Plugin displaying a egui window for a single resource.
+/// Plugin displaying an egui window for a single resource.
 /// Remember to call insert the resource and call [`App::register_type`](bevy_app::App::register_type).
 pub struct ResourceInspectorPlugin<T>(PhantomData<fn() -> T>);
 
@@ -96,6 +96,52 @@ fn inspector_ui<T: Reflect>(world: &mut World) {
                 );
 
                 ui.allocate_space(ui.available_size());
+            });
+        });
+}
+
+/// Plugin displaying an egui window for an app state.
+/// Remember to call [`App::add_state`](bevy_app::App::add_state) .
+pub struct StateInspectorPlugin<T>(PhantomData<fn() -> T>);
+
+impl<T> Default for StateInspectorPlugin<T> {
+    fn default() -> Self {
+        Self(PhantomData)
+    }
+}
+impl<T> StateInspectorPlugin<T> {
+    pub fn new() -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl<T: StateData + Reflect> Plugin for StateInspectorPlugin<T> {
+    fn build(&self, app: &mut bevy_app::App) {
+        if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
+            app.add_plugin(DefaultInspectorConfigPlugin);
+        }
+        if !app.is_plugin_added::<EguiPlugin>() {
+            app.add_plugin(EguiPlugin);
+        }
+
+        app.add_system(state_ui::<T>);
+    }
+}
+
+fn state_ui<T: StateData + Reflect>(world: &mut World) {
+    let egui_context = world
+        .resource_mut::<bevy_egui::EguiContext>()
+        .ctx_mut()
+        .clone();
+    egui::Window::new(std::any::type_name::<T>())
+        .resizable(false)
+        .title_bar(false)
+        .show(&egui_context, |ui| {
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                ui.heading(pretty_type_name::<T>());
+                let type_registry = world.resource::<AppTypeRegistry>().clone();
+                let type_registry = type_registry.read();
+                bevy_ecs_inspector::ui_for_state::<T>(world, ui, &type_registry);
             });
         });
 }
