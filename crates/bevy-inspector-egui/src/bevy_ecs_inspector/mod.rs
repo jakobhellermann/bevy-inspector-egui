@@ -23,6 +23,24 @@ use crate::{
 
 use self::errors::{name_of_type, show_error};
 
+/// Display a single [`&mut dyn Reflect`](bevy_reflect::Reflect).
+///
+/// If you are wondering why this function takes in a [`&mut World`], it's so that if the value contains e.g. a
+/// `Handle<StandardMaterial>` it can look up the corresponding asset resource and display the asset value inline.
+///
+/// If all you're displaying is a simple value without any references into the bevy world, consider just using
+/// [`egui_reflect_inspector::ui_for_value`](crate::egui_reflect_inspector::ui_for_value).
+pub fn ui_for_value(value: &mut dyn Reflect, world: &mut World, ui: &mut egui::Ui) -> bool {
+    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
+    let type_registry = type_registry.read();
+
+    let mut cx = Context {
+        world: Some(RestrictedWorldView::new(world)),
+    };
+    let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
+    env.ui_for_reflect(value, ui, egui::Id::null())
+}
+
 /// Display `Entities`, `Resources` and `Assets` using their respective functions inside headers
 pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
