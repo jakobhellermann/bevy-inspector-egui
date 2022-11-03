@@ -4,10 +4,12 @@ use std::any::{Any, TypeId};
 
 use bevy_app::prelude::AppTypeRegistry;
 use bevy_asset::{HandleUntyped, ReflectAsset, ReflectHandle};
+use bevy_ecs::schedule::StateData;
 use bevy_ecs::{component::ComponentId, prelude::*, world::EntityRef};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::{Reflect, TypeRegistry};
 use egui::FontId;
+use pretty_type_name::pretty_type_name;
 
 pub(crate) mod errors;
 
@@ -131,6 +133,32 @@ pub fn ui_for_asset(
                 let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
                 env.ui_for_reflect(&mut *handle, ui, id);
             });
+    }
+}
+
+/// Display state `T` and change state on edit
+pub fn ui_for_state<T: StateData + Reflect>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    type_registry: &TypeRegistry,
+) {
+    let mut world = RestrictedWorldView::new(world);
+    let (mut resource_view, world) = world.split_off_resource(TypeId::of::<State<T>>());
+    let Ok(mut state) = resource_view.get_resource_mut::<State<T>>() else {
+        errors::state_does_not_exist(ui, &pretty_type_name::<T>());
+        return;
+    };
+
+    let mut current = state.current().clone();
+
+    let mut cx = Context { world: Some(world) };
+    let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+
+    let changed = env.ui_for_reflect(&mut current, ui, egui::Id::new(TypeId::of::<State<T>>()));
+    if changed {
+        if let Err(e) = state.set(current) {
+            ui.label(format!("{e:?}"));
+        }
     }
 }
 

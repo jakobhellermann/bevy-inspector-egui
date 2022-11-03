@@ -140,6 +140,24 @@ pub fn not_in_type_registry(ui: &mut egui::Ui, type_name: &str) {
     ui.label(job);
 }
 
+pub fn state_does_not_exist(ui: &mut egui::Ui, name: &str) {
+    let job = layout_job(&[
+        (FontId::default(), "State "),
+        (FontId::monospace(14.0), name),
+        (
+            FontId::default(),
+            " does not exist. Did you forget to call ",
+        ),
+        (
+            FontId::monospace(14.0),
+            &format!(".add_state::<{name}>(..)"),
+        ),
+        (FontId::default(), "?"),
+    ]);
+
+    ui.label(job);
+}
+
 pub fn name_of_type(type_id: TypeId, type_registry: &TypeRegistry) -> Cow<str> {
     type_registry
         .get(type_id)
