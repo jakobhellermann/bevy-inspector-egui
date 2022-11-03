@@ -38,7 +38,7 @@ pub fn ui_for_value(value: &mut dyn Reflect, world: &mut World, ui: &mut egui::U
         world: Some(RestrictedWorldView::new(world)),
     };
     let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
-    env.ui_for_reflect(value, ui, egui::Id::null())
+    env.ui_for_reflect(value, ui)
 }
 
 /// Display `Entities`, `Resources` and `Assets` using their respective functions inside headers
@@ -94,8 +94,7 @@ pub fn ui_for_resource(
     let mut cx = Context { world: Some(world) };
     let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
 
-    let changed = env.ui_for_reflect(resource, ui, egui::Id::new(resource_type_id));
-
+    let changed = env.ui_for_reflect(resource, ui);
     if changed {
         set_changed();
     }
@@ -147,7 +146,7 @@ pub fn ui_for_asset(
             .id_source(id)
             .show(ui, |ui| {
                 let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
-                env.ui_for_reflect(&mut *handle, ui, id);
+                env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
             });
     }
 }
@@ -170,7 +169,7 @@ pub fn ui_for_state<T: StateData + Reflect>(
     let mut cx = Context { world: Some(world) };
     let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
 
-    let changed = env.ui_for_reflect(&mut current, ui, egui::Id::new(TypeId::of::<State<T>>()));
+    let changed = env.ui_for_reflect(&mut current, ui);
     if changed {
         if let Err(e) = state.set(current) {
             ui.label(format!("{e:?}"));
@@ -273,11 +272,8 @@ fn ui_for_entity_components(
                     Err(e) => return show_error(e, ui, type_registry),
                 };
 
-                let changed = InspectorUi::for_bevy(type_registry, &mut cx).ui_for_reflect(
-                    value,
-                    ui,
-                    id.with(component_id),
-                );
+                let changed = InspectorUi::for_bevy(type_registry, &mut cx)
+                    .ui_for_reflect_with_options(value, ui, id.with(component_id), &());
 
                 if changed {
                     set_changed();

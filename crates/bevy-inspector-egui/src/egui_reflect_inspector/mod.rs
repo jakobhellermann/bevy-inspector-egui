@@ -24,11 +24,8 @@ pub fn ui_for_value(
     ui: &mut egui::Ui,
     type_registry: &TypeRegistry,
 ) -> bool {
-    InspectorUi::new_no_short_circuit(type_registry, &mut Context::default()).ui_for_reflect(
-        value,
-        ui,
-        egui::Id::null(),
-    )
+    InspectorUi::new_no_short_circuit(type_registry, &mut Context::default())
+        .ui_for_reflect(value, ui)
 }
 
 #[non_exhaustive]
@@ -48,11 +45,7 @@ pub fn ui_for_reflect_no_context(
     type_registry: &TypeRegistry,
 ) -> bool {
     let mut context = Context::default();
-    InspectorUi::new_no_short_circuit(type_registry, &mut context).ui_for_reflect(
-        value,
-        ui,
-        egui::Id::null(),
-    )
+    InspectorUi::new_no_short_circuit(type_registry, &mut context).ui_for_reflect(value, ui)
 }
 pub fn ui_for_reflect_readonly_no_context(
     value: &mut dyn Reflect,
@@ -60,11 +53,8 @@ pub fn ui_for_reflect_readonly_no_context(
     type_registry: &TypeRegistry,
 ) {
     let mut context = Context::default();
-    InspectorUi::new_no_short_circuit(type_registry, &mut context).ui_for_reflect_readonly(
-        value,
-        ui,
-        egui::Id::null(),
-    );
+    InspectorUi::new_no_short_circuit(type_registry, &mut context)
+        .ui_for_reflect_readonly(value, ui);
 }
 
 /// Function which will be executed for every field recursively, which can be used to skip regular traversal.
@@ -125,23 +115,13 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
 
 impl InspectorUi<'_, '_> {
     /// Draws the inspector UI for the given value.
-    pub fn ui_for_reflect(
-        &mut self,
-        value: &mut dyn Reflect,
-        ui: &mut egui::Ui,
-        id: egui::Id,
-    ) -> bool {
-        self.ui_for_reflect_with_options(value, ui, id, &())
+    pub fn ui_for_reflect(&mut self, value: &mut dyn Reflect, ui: &mut egui::Ui) -> bool {
+        self.ui_for_reflect_with_options(value, ui, egui::Id::null(), &())
     }
 
     /// Draws the inspector UI for the given value in a read-only way.
-    pub fn ui_for_reflect_readonly(
-        &mut self,
-        value: &dyn Reflect,
-        ui: &mut egui::Ui,
-        id: egui::Id,
-    ) {
-        self.ui_for_reflect_readonly_with_options(value, ui, id, &());
+    pub fn ui_for_reflect_readonly(&mut self, value: &dyn Reflect, ui: &mut egui::Ui) {
+        self.ui_for_reflect_readonly_with_options(value, ui, egui::Id::null(), &());
     }
 
     /// Draws the inspector UI for the given value with some options.
@@ -486,9 +466,9 @@ impl InspectorUi<'_, '_> {
         let changed = false;
         egui::Grid::new(id).show(ui, |ui| {
             for (i, (key, value)) in map.iter().enumerate() {
-                self.ui_for_reflect_readonly(key, ui, id.with(i));
+                self.ui_for_reflect_readonly_with_options(key, ui, id.with(i), &());
                 // TODO: iterate over values mutably
-                self.ui_for_reflect_readonly(value, ui, id.with(i));
+                self.ui_for_reflect_readonly_with_options(value, ui, id.with(i), &());
                 ui.end_row();
             }
         });
@@ -505,8 +485,8 @@ impl InspectorUi<'_, '_> {
     ) {
         egui::Grid::new(id).show(ui, |ui| {
             for (i, (key, value)) in map.iter().enumerate() {
-                self.ui_for_reflect_readonly(key, ui, id.with(i));
-                self.ui_for_reflect_readonly(value, ui, id.with(i));
+                self.ui_for_reflect_readonly_with_options(key, ui, id.with(i), &());
+                self.ui_for_reflect_readonly_with_options(value, ui, id.with(i), &());
                 ui.end_row();
             }
         });
