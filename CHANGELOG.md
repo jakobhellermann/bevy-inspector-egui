@@ -8,6 +8,15 @@
 - fix egui ID reuse
 - fix compilation without `bevy_ui` feature
 
+## Version 0.12
+- fix compilation without the `bevy_ui` feature
+
+## Version 0.12
+- register `Vec3A`
+- don't clamp `Val::Px` and `Val::Percent`
+- display `Duration` with more precision and only update if changed
+- update to bevy `0.8`
+
 ## Version 0.11
 - update to `bevy_egui` 0.14
 - update nalgebra feature to `nalgebra` `0.31`
