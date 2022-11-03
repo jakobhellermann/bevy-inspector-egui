@@ -2,7 +2,7 @@
 edition = "2021"
 name = "bevy-inspector-egui-rapier"
 repository = "https://github.com/jakobhellermann/bevy-inspector-egui/"
-version = "0.6.0"
+version = "0.7.0"
 
 categories = ["game-development", "gui", "visualization"]
 description = "bevy-inspector-egui integration for rapier"
