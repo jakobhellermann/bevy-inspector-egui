@@ -42,6 +42,31 @@ impl<'a> Default for Context<'a> {
     }
 }
 
+pub fn ui_for_reflect_no_context(
+    value: &mut dyn Reflect,
+    ui: &mut egui::Ui,
+    type_registry: &TypeRegistry,
+) -> bool {
+    let mut context = Context::default();
+    InspectorUi::new_no_short_circuit(type_registry, &mut context).ui_for_reflect(
+        value,
+        ui,
+        egui::Id::null(),
+    )
+}
+pub fn ui_for_reflect_readonly_no_context(
+    value: &mut dyn Reflect,
+    ui: &mut egui::Ui,
+    type_registry: &TypeRegistry,
+) {
+    let mut context = Context::default();
+    InspectorUi::new_no_short_circuit(type_registry, &mut context).ui_for_reflect_readonly(
+        value,
+        ui,
+        egui::Id::null(),
+    );
+}
+
 /// Function which will be executed for every field recursively, which can be used to skip regular traversal.
 /// This can be used to recognize `Handle<T>` types and display them as their actual value instead.
 ///
