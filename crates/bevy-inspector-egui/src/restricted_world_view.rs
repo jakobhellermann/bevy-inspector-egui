@@ -110,6 +110,30 @@ impl<'w> RestrictedWorldView<'w> {
         (split, rest)
     }
 
+    /// Like [`RestrictedWorldView::split_off_resource`], but takes `self` and returns `'w` lifetimes.
+    pub fn split_off_resource_typed<R: Resource>(
+        self,
+    ) -> Option<(Mut<'w, R>, RestrictedWorldView<'w>)> {
+        let type_id = TypeId::of::<R>();
+        assert!(self.allows_access_to_resource(type_id));
+
+        // INVARIANTS: `self` had `R` access, so we have unique access if we remove it from `self`
+        let resource = unsafe { self.world.get_resource_unchecked_mut::<R>()? };
+
+        let rest = RestrictedWorldView {
+            world: self.world,
+            allowed_resources: {
+                let mut allowed_resources = self.allowed_resources.clone();
+                allowed_resources.retain(|e| *e != type_id);
+                allowed_resources
+            },
+            allowed_components: self.allowed_components.clone(),
+            unmentioned_allowed: self.unmentioned_allowed,
+        };
+
+        Some((resource, rest))
+    }
+
     /// Splits this view into one view that only has access the the component `component.1` at the entity `component.0` (`.0`), and the rest (`.1`).
     pub fn split_off_component(
         &mut self,

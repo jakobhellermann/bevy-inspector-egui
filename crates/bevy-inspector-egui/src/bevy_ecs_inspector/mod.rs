@@ -159,17 +159,14 @@ pub fn ui_for_state<T: StateData + Reflect>(
     type_registry: &TypeRegistry,
 ) {
     // create a context with access to the world except for the `State<T>` resource
-    let mut world = RestrictedWorldView::new(world);
-    let (mut resource_view, world) = world.split_off_resource(TypeId::of::<State<T>>());
-    let Ok(mut state) = resource_view.get_resource_mut::<State<T>>() else {
+    let Some((mut state, world)) = RestrictedWorldView::new(world).split_off_resource_typed::<State<T>>() else {
         errors::state_does_not_exist(ui, &pretty_type_name::<T>());
         return;
     };
-
-    let mut current = state.current().clone();
-
     let mut cx = Context { world: Some(world) };
     let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+
+    let mut current = state.current().clone();
 
     let changed = env.ui_for_reflect(&mut current, ui);
     if changed {
