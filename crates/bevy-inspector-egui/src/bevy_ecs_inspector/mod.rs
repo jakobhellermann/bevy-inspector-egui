@@ -81,18 +81,17 @@ pub fn ui_for_resource(
     ui: &mut egui::Ui,
     type_registry: &TypeRegistry,
 ) {
-    // no_resource_refs_world can only access `resource_type_id`, only_resource_access_world can access everything else
+    // create a context with access to the world except for the current resource
     let mut world = RestrictedWorldView::new(world);
     let (mut resource_view, world) = world.split_off_resource(resource_type_id);
+    let mut cx = Context { world: Some(world) };
+    let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
 
     let (resource, set_changed) =
         match resource_view.get_resource_reflect_mut_by_id(resource_type_id, type_registry) {
             Ok(resource) => resource,
             Err(err) => return show_error(err, ui, type_registry),
         };
-
-    let mut cx = Context { world: Some(world) };
-    let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
 
     let changed = env.ui_for_reflect(resource, ui);
     if changed {
@@ -135,6 +134,8 @@ pub fn ui_for_asset(
     let mut ids: Vec<_> = reflect_asset.ids(world).collect();
     ids.sort();
 
+    // Create a context with access to the entire world. Displaying the `Handle<T>` will short circuit into
+    // displaying the T with a world view excluding Assets<T>.
     let world = RestrictedWorldView::new(world);
     let mut cx = Context { world: Some(world) };
 
@@ -157,6 +158,7 @@ pub fn ui_for_state<T: StateData + Reflect>(
     ui: &mut egui::Ui,
     type_registry: &TypeRegistry,
 ) {
+    // create a context with access to the world except for the `State<T>` resource
     let mut world = RestrictedWorldView::new(world);
     let (mut resource_view, world) = world.split_off_resource(TypeId::of::<State<T>>());
     let Ok(mut state) = resource_view.get_resource_mut::<State<T>>() else {
@@ -258,6 +260,7 @@ fn ui_for_entity_components(
                     return errors::error_message_no_type_id(ui, &name);
                 };
 
+                // create a context with access to the world except for the currently viewed component
                 let mut world = RestrictedWorldView::new(world);
                 let (mut component_view, world) =
                     world.split_off_component((entity, component_type_id));
