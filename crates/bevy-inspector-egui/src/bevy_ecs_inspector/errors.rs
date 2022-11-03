@@ -158,6 +158,18 @@ pub fn state_does_not_exist(ui: &mut egui::Ui, name: &str) {
     ui.label(job);
 }
 
+pub fn error_message_no_type_id(ui: &mut egui::Ui, component_name: &str) {
+    let job = layout_job(&[
+        (FontId::monospace(14.0), component_name),
+        (
+            FontId::default(),
+            " is not backed by a rust type, so it cannot be displayed.",
+        ),
+    ]);
+
+    ui.label(job);
+}
+
 pub fn name_of_type(type_id: TypeId, type_registry: &TypeRegistry) -> Cow<str> {
     type_registry
         .get(type_id)

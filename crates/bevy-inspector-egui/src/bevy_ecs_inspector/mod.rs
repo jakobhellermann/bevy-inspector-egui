@@ -8,7 +8,6 @@ use bevy_ecs::schedule::StateData;
 use bevy_ecs::{component::ComponentId, prelude::*, world::EntityRef};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::{Reflect, TypeRegistry};
-use egui::FontId;
 use pretty_type_name::pretty_type_name;
 
 pub(crate) mod errors;
@@ -19,7 +18,6 @@ pub mod hierarchy;
 use crate::restricted_world_view::RestrictedWorldView;
 use crate::{
     egui_reflect_inspector::{Context, InspectorUi},
-    egui_utils::layout_job,
     utils::guess_entity_name,
 };
 
@@ -240,7 +238,7 @@ fn ui_for_entity_components(
                     return;
                 }
                 let Some(component_type_id) = component_type_id else {
-                    return error_message_no_type_id(ui, &name);
+                    return errors::error_message_no_type_id(ui, &name);
                 };
 
                 let mut world = RestrictedWorldView::new(world);
@@ -286,18 +284,6 @@ fn components_of_entity(
         .collect();
     components.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
     components
-}
-
-fn error_message_no_type_id(ui: &mut egui::Ui, component_name: &str) {
-    let job = layout_job(&[
-        (FontId::monospace(14.0), component_name),
-        (
-            FontId::default(),
-            " is not backed by a rust type, so it cannot be displayed.",
-        ),
-    ]);
-
-    ui.label(job);
 }
 
 impl<'a, 'c> InspectorUi<'a, 'c> {
