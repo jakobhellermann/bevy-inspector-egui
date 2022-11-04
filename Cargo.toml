@@ -12,4 +12,5 @@ bevy_asset = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-
 bevy_render = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }
 bevy_math = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }
 bevy_pbr = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }
+bevy_utils = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }
 bevy = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }

@@ -2,10 +2,10 @@
 
 use crate::egui_reflect_inspector::InspectorUi;
 use bevy_reflect::TypeRegistry;
+use bevy_utils::Instant;
 use std::{
     any::{Any, TypeId},
     borrow::Cow,
-    time::Instant,
 };
 
 mod color;
@@ -62,7 +62,7 @@ fn add<T: 'static>(
 ) {
     type_registry
         .get_mut(TypeId::of::<T>())
-        .unwrap()
+        .unwrap_or_else(|| panic!("{} not registered", std::any::type_name::<T>()))
         .insert(InspectorEguiImpl::new(fn_mut, fn_readonly));
 }
 
