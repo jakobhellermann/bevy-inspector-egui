@@ -41,7 +41,7 @@ fn insert_options_enum<T: 'static>(
             };
             let field_index = match info.variant(variant).unwrap() {
                 bevy_reflect::VariantInfo::Struct(strukt) => strukt.index_of(field).unwrap(),
-                bevy_reflect::VariantInfo::Tuple(_) => todo!(),
+                bevy_reflect::VariantInfo::Tuple(_) => field.parse().unwrap(),
                 bevy_reflect::VariantInfo::Unit(_) => todo!(),
             };
             options.insert_boxed(
@@ -101,4 +101,9 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
             ),
         ],
     );*/
+
+    insert_options_enum::<bevy_core_pipeline::core_3d::Camera3dDepthLoadOp>(
+        type_registry,
+        &[("Clear", "0", &NumberOptions::<f32>::normalized())],
+    );
 }

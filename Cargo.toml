@@ -13,6 +13,7 @@ bevy_render = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id
 bevy_math = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }
 bevy_pbr = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }
 bevy_utils = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }
+bevy_core_pipeline = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }
 bevy = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchecked" }
 
 # bevy_ecs = { path = "../../bevy/crates/bevy_ecs" }
@@ -25,4 +26,5 @@ bevy = { git = "https://github.com/jakobhellermann/bevy", branch = "by-id-unchec
 # bevy_math = { path = "../../bevy/crates/bevy_math" }
 # bevy_pbr = { path = "../../bevy/crates/bevy_pbr" }
 # bevy_utils = { path = "../../bevy/crates/bevy_utils" }
+# bevy_core_pipeline = { path = "../../bevy/crates/bevy_core_pipeline" }
 # bevy = { path = "../../bevy" }
