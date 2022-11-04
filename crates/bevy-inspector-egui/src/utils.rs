@@ -20,7 +20,7 @@ pub mod guess_entity_name {
     pub fn entity_name(world: &World, type_registry: &TypeRegistry, entity: Entity) -> String {
         match world.get_entity(entity) {
             Some(entity) => guess_entity_name_inner(world, entity, type_registry),
-            None => format!("Entity {} (inexistent)", entity.id()),
+            None => format!("Entity {} (inexistent)", entity.index()),
         }
     }
 
@@ -29,7 +29,7 @@ pub mod guess_entity_name {
         entity: EntityRef,
         type_registry: &TypeRegistry,
     ) -> String {
-        let id = entity.id().id();
+        let id = entity.id().index();
 
         if let Some(name) = entity.get::<Name>() {
             return name.as_str().to_string();
