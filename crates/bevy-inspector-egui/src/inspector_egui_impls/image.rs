@@ -9,8 +9,12 @@ use bevy_egui::EguiContext;
 use bevy_reflect::Reflect;
 use bevy_render::texture::Image;
 use once_cell::sync::Lazy;
+use pretty_type_name::pretty_type_name;
 
-use crate::{bevy_ecs_inspector::errors::no_world_in_context, egui_reflect_inspector::InspectorUi};
+use crate::{
+    bevy_ecs_inspector::errors::{no_world_in_context, show_error},
+    egui_reflect_inspector::InspectorUi,
+};
 
 mod image_texture_conversion;
 
@@ -34,12 +38,19 @@ pub fn image_handle_ui_readonly(
         no_world_in_context(ui, value.type_name());
         return;
     };
-    let (mut egui_context, mut images) = match world
-        .get_two_resources_mut::<bevy_egui::EguiContext, Assets<Image>>()
-    {
-        Ok(resources) => resources,
-        Err(e) => return crate::bevy_ecs_inspector::errors::show_error(e, ui, env.type_registry),
-    };
+    let (mut egui_context, mut images) =
+        match world.get_two_resources_mut::<bevy_egui::EguiContext, Assets<Image>>() {
+            (Ok(a), Ok(b)) => (a, b),
+            (a, b) => {
+                if let Err(e) = a {
+                    show_error(e, ui, &pretty_type_name::<bevy_egui::EguiContext>());
+                }
+                if let Err(e) = b {
+                    show_error(e, ui, &pretty_type_name::<Assets<Image>>());
+                }
+                return;
+            }
+        };
 
     let mut scaled_down_textures = SCALED_DOWN_TEXTURES.lock().unwrap();
 

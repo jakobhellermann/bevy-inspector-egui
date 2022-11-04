@@ -175,14 +175,14 @@ impl<'w> RestrictedWorldView<'w> {
     /// Gets mutable reference to two resources. Panics if `R1 = R2`.
     pub fn get_two_resources_mut<R1: Resource, R2: Resource>(
         &mut self,
-    ) -> Result<(Mut<'_, R1>, Mut<'_, R2>), Error> {
+    ) -> (Result<Mut<'_, R1>, Error>, Result<Mut<'_, R2>, Error>) {
         assert_ne!(TypeId::of::<R1>(), TypeId::of::<R2>());
         // SAFETY: &mut self, R1!=R2
-        let r1 = unsafe { self.get_resource_unchecked_mut::<R1>()? };
+        let r1 = unsafe { self.get_resource_unchecked_mut::<R1>() };
         // SAFETY: &mut self, R1!=R2
-        let r2 = unsafe { self.get_resource_unchecked_mut::<R2>()? };
+        let r2 = unsafe { self.get_resource_unchecked_mut::<R2>() };
 
-        Ok((r1, r2))
+        (r1, r2)
     }
 
     /// # Safety

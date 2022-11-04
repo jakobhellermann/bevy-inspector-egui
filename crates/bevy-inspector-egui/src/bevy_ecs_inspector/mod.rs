@@ -69,7 +69,7 @@ pub fn ui_for_resources(world: &mut World, ui: &mut egui::Ui) {
     resources.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
     for (name, type_id) in resources {
         ui.collapsing(&name, |ui| {
-            by_type_id::ui_for_resource(world, type_id, ui, &type_registry);
+            by_type_id::ui_for_resource(world, type_id, ui, &name, &type_registry);
         });
     }
 }
@@ -267,7 +267,7 @@ fn ui_for_entity_components(
                     type_registry,
                 ) {
                     Ok(value) => value,
-                    Err(e) => return show_error(e, ui, type_registry),
+                    Err(e) => return show_error(e, ui, &name),
                 };
 
                 let changed = InspectorUi::for_bevy(type_registry, &mut cx)
@@ -317,6 +317,7 @@ pub mod by_type_id {
         world: &mut World,
         resource_type_id: TypeId,
         ui: &mut egui::Ui,
+        name_of_type: &str,
         type_registry: &TypeRegistry,
     ) {
         // create a context with access to the world except for the current resource
@@ -328,7 +329,7 @@ pub mod by_type_id {
         let (resource, set_changed) =
             match resource_view.get_resource_reflect_mut_by_id(resource_type_id, type_registry) {
                 Ok(resource) => resource,
-                Err(err) => return errors::show_error(err, ui, type_registry),
+                Err(err) => return errors::show_error(err, ui, name_of_type),
             };
 
         let changed = env.ui_for_reflect(resource, ui);

@@ -7,27 +7,17 @@ use egui::FontId;
 
 use crate::{egui_utils::layout_job, restricted_world_view::Error};
 
-pub fn show_error(error: Error, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
+pub fn show_error(error: Error, ui: &mut egui::Ui, name_of_type: &str) {
     match error {
-        Error::NoAccessToResource(type_id) => {
-            no_access_resource(ui, &name_of_type(type_id, type_registry))
+        Error::NoAccessToResource(_) => no_access_resource(ui, name_of_type),
+        Error::NoAccessToComponent((entity, _)) => no_access_component(ui, entity, name_of_type),
+        Error::ComponentDoesNotExist((entity, _)) => {
+            component_does_not_exist(ui, entity, name_of_type)
         }
-        Error::NoAccessToComponent((entity, component)) => {
-            no_access_component(ui, entity, &name_of_type(component, type_registry))
-        }
-        Error::ComponentDoesNotExist((entity, component)) => {
-            component_does_not_exist(ui, entity, &name_of_type(component, type_registry))
-        }
-        Error::ResourceDoesNotExist(type_id) => {
-            resource_does_not_exist(ui, &name_of_type(type_id, type_registry))
-        }
-        Error::NoComponentId(type_id) => no_component_id(ui, &name_of_type(type_id, type_registry)),
-        Error::NoTypeRegistration(type_id) => {
-            not_in_type_registry(ui, &name_of_type(type_id, type_registry))
-        }
-        Error::NoTypeData(type_id, data) => {
-            no_type_data(ui, &name_of_type(type_id, type_registry), data)
-        }
+        Error::ResourceDoesNotExist(_) => resource_does_not_exist(ui, name_of_type),
+        Error::NoComponentId(_) => no_component_id(ui, name_of_type),
+        Error::NoTypeRegistration(_) => not_in_type_registry(ui, name_of_type),
+        Error::NoTypeData(_, data) => no_type_data(ui, name_of_type, data),
     }
 }
 
