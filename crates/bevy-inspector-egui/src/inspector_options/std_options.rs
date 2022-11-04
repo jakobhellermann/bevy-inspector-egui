@@ -40,6 +40,15 @@ impl<T> NumberOptions<T> {
             suffix: String::new(),
         }
     }
+    pub fn at_least(min: T) -> NumberOptions<T> {
+        NumberOptions {
+            min: Some(min),
+            max: None,
+            speed: 0.0,
+            prefix: String::new(),
+            suffix: String::new(),
+        }
+    }
 }
 impl<T: egui::emath::Numeric> NumberOptions<T> {
     pub fn positive() -> NumberOptions<T> {

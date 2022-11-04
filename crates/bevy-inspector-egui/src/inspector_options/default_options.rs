@@ -88,4 +88,17 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
             ("depth_bias", &NumberOptions::<f32>::positive()),
         ],
     );
+
+    // TODO: register in bevy
+    /*insert_options_enum::<bevy_pbr::ClusterConfig>(
+        type_registry,
+        &[
+            ("FixedZ", "z_slices", &NumberOptions::<u32>::at_least(1)),
+            (
+                "XYZ",
+                "dimensions",
+                &NumberOptions::<UVec3>::at_least(UVec3::ONE),
+            ),
+        ],
+    );*/
 }
