@@ -132,6 +132,16 @@
 //!
 //! Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_dock/) and you have your own editor in less than 100 lines: [`examples/egui_dock.rs`](https://github.com/jakobhellermann/bevy-inspector-egui/blob/rework/crates/bevy-inspector-egui/examples/egui_dock.rs).
 //! ![image of the egui_dock example](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/rework/docs/egui_dock.png)
+//!
+//! # FAQ
+//!
+//! **Q: How do I change the names of the entities in the world inspector?**
+//!
+//! **A:** You can insert the [`Name`](bevy_core::Name) component.
+//!
+//! **Q: What if I just want to display a single value without passing in the whole `&mut World`?**
+//!
+//! **A:** You can use [`ui_for_value`](crate::egui_reflect_inspector::ui_for_value). Note that displaying things like `Handle<StandardMaterial>` won't be able to display the asset's value.
 
 pub mod bevy_ecs_inspector;
 pub mod egui_reflect_inspector;
