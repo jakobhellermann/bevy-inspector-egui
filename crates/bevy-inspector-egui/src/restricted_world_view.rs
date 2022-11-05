@@ -6,6 +6,7 @@ use bevy_ecs::{change_detection::MutUntyped, prelude::*};
 use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
 use smallvec::{smallvec, SmallVec};
 
+#[derive(Debug)]
 pub enum Error {
     NoAccessToResource(TypeId),
     NoAccessToComponent(EntityComponent),
@@ -314,4 +315,92 @@ unsafe fn mut_untyped_to_reflect<'a>(
     let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(ptr) };
 
     Ok((value, set_changed))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::any::TypeId;
+
+    use bevy_ecs::prelude::*;
+    use bevy_reflect::{Reflect, TypeRegistry};
+
+    use super::RestrictedWorldView;
+
+    #[derive(Resource)]
+    struct A(String);
+
+    #[derive(Resource)]
+    struct B(String);
+
+    #[test]
+    fn disjoint_resource_access() {
+        let mut world = World::new();
+        world.insert_resource(A("a".to_string()));
+        world.insert_resource(B("b".to_string()));
+
+        let mut world = RestrictedWorldView::new(&mut world);
+
+        let (mut a_view, mut world) = world.split_off_resource(TypeId::of::<A>());
+        let mut a = a_view.get_resource_mut::<A>().unwrap();
+        let mut b = world.get_resource_mut::<B>().unwrap();
+
+        a.0.clear();
+        b.0.clear();
+    }
+
+    #[test]
+    fn get_two_resources_mut() {
+        let mut world = World::new();
+        world.insert_resource(A("a".to_string()));
+        world.insert_resource(B("b".to_string()));
+
+        let mut world = RestrictedWorldView::new(&mut world);
+        let (a, b) = world.get_two_resources_mut::<A, B>();
+        a.unwrap().0.clear();
+        b.unwrap().0.clear();
+    }
+
+    #[test]
+    fn invalid_resource_access() {
+        let mut world = World::new();
+        let mut world = RestrictedWorldView::new(&mut world);
+
+        let (a_view, mut a_remaining) = world.split_off_resource(TypeId::of::<A>());
+
+        assert!(a_view.allows_access_to_resource(TypeId::of::<A>()));
+        assert!(!a_remaining.allows_access_to_resource(TypeId::of::<A>()));
+        assert!(!a_view.allows_access_to_resource(TypeId::of::<B>()));
+        assert!(a_remaining.allows_access_to_resource(TypeId::of::<B>()));
+
+        let (b_view, b_remaining) = a_remaining.split_off_resource(TypeId::of::<B>());
+
+        assert!(b_view.allows_access_to_resource(TypeId::of::<B>()));
+        assert!(!b_remaining.allows_access_to_resource(TypeId::of::<B>()));
+    }
+
+    #[derive(Component, Reflect)]
+    struct ComponentA(String);
+
+    #[test]
+    fn disjoint_component_access() {
+        let mut type_registry = TypeRegistry::empty();
+        type_registry.register::<ComponentA>();
+        type_registry.register::<String>();
+
+        let mut world = World::new();
+        world.insert_resource(A("a".to_string()));
+        let entity = world.spawn(ComponentA("a".to_string())).id();
+
+        let mut world = RestrictedWorldView::new(&mut world);
+
+        let (mut component_view, mut world) =
+            world.split_off_component((entity, TypeId::of::<ComponentA>()));
+        let component = component_view
+            .get_entity_component_reflect(entity, TypeId::of::<ComponentA>(), &type_registry)
+            .unwrap();
+        let mut resource = world.get_resource_mut::<A>().unwrap();
+
+        component.0.downcast_mut::<ComponentA>().unwrap().0.clear();
+        resource.0.clear();
+    }
 }
