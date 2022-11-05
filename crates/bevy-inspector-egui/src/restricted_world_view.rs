@@ -44,11 +44,53 @@ type EntityComponent = (Entity, TypeId);
 pub struct RestrictedWorldView<'w> {
     world: &'w World,
 
-    // INVARIANT: if `allowed_resources` contains `T` || `unmentioned_allowed`, `world` may be used to access `T` mutably
-    allowed_resources: SmallVec<[TypeId; 2]>,
-    // INVARIANT: if `allowed_components` contains `(e, c)` || `unmentioned_allowed`, `world` may be used to access component `c` on entity `e` mutably
-    allowed_components: SmallVec<[EntityComponent; 1]>,
-    unmentioned_allowed: bool,
+    resources: Allowed<TypeId>,
+    components: Allowed<EntityComponent>,
+}
+
+#[derive(Clone)]
+enum Allowed<T> {
+    // Allowed if included
+    AllowList(SmallVec<[T; 2]>),
+    // Allowed if not included
+    ForbidList(SmallVec<[T; 2]>),
+}
+impl<T: Clone + PartialEq> Allowed<T> {
+    fn allow_just(value: T) -> Allowed<T> {
+        Allowed::AllowList(smallvec![value])
+    }
+    fn everything() -> Allowed<T> {
+        Allowed::ForbidList(SmallVec::new())
+    }
+    fn nothing() -> Allowed<T> {
+        Allowed::AllowList(SmallVec::new())
+    }
+
+    fn allows_access_to(&self, value: T) -> bool {
+        match self {
+            Allowed::AllowList(list) => list.contains(&value),
+            Allowed::ForbidList(list) => !list.contains(&value),
+        }
+    }
+
+    fn without(&self, value: T) -> Allowed<T> {
+        match self {
+            Allowed::AllowList(list) => {
+                let position = list
+                    .iter()
+                    .position(|item| *item == value)
+                    .expect("called `without` without access");
+                let mut new = list.clone();
+                new.swap_remove(position);
+                Allowed::AllowList(new)
+            }
+            Allowed::ForbidList(list) => {
+                let mut new = list.clone();
+                new.push(value);
+                Allowed::ForbidList(new)
+            }
+        }
+    }
 }
 
 /// Fundamental methods for working with a [`RestrictedWorldView`]
@@ -58,9 +100,8 @@ impl<'w> RestrictedWorldView<'w> {
         // INVARIANTS: `world` is `&mut` so we have access to everything
         RestrictedWorldView {
             world,
-            allowed_resources: SmallVec::new(),
-            allowed_components: SmallVec::new(),
-            unmentioned_allowed: true,
+            resources: Allowed::everything(),
+            components: Allowed::everything(),
         }
     }
 
@@ -75,11 +116,11 @@ impl<'w> RestrictedWorldView<'w> {
 
     /// Whether the resource with the given [`TypeId`] may be accessed from this world view
     pub fn allows_access_to_resource(&self, type_id: TypeId) -> bool {
-        self.allowed_resources.contains(&type_id) || self.unmentioned_allowed
+        self.resources.allows_access_to(type_id)
     }
     /// Whether the given component at the entity may be accessed from this world view
     pub fn allows_access_to_component(&self, component: EntityComponent) -> bool {
-        self.allowed_components.contains(&component) || self.unmentioned_allowed
+        self.components.allows_access_to(component)
     }
 
     /// Splits this view into one view that only has access the the resource `resource` (`.0`), and the rest (`.1`).
@@ -92,19 +133,13 @@ impl<'w> RestrictedWorldView<'w> {
         // INVARIANTS: `self` had `resource` access, so `split` has access if we remove it from `self`
         let split = RestrictedWorldView {
             world: self.world,
-            allowed_resources: smallvec![resource],
-            allowed_components: SmallVec::new(),
-            unmentioned_allowed: false,
+            resources: Allowed::allow_just(resource),
+            components: Allowed::nothing(),
         };
         let rest = RestrictedWorldView {
             world: self.world,
-            allowed_resources: {
-                let mut allowed_resources = self.allowed_resources.clone();
-                allowed_resources.retain(|e| *e != resource);
-                allowed_resources
-            },
-            allowed_components: self.allowed_components.clone(),
-            unmentioned_allowed: self.unmentioned_allowed,
+            resources: self.resources.without(resource),
+            components: self.components.clone(),
         };
 
         (split, rest)
@@ -122,13 +157,8 @@ impl<'w> RestrictedWorldView<'w> {
 
         let rest = RestrictedWorldView {
             world: self.world,
-            allowed_resources: {
-                let mut allowed_resources = self.allowed_resources.clone();
-                allowed_resources.retain(|e| *e != type_id);
-                allowed_resources
-            },
-            allowed_components: self.allowed_components.clone(),
-            unmentioned_allowed: self.unmentioned_allowed,
+            resources: self.resources.without(type_id),
+            components: self.components,
         };
 
         Some((resource, rest))
@@ -144,19 +174,13 @@ impl<'w> RestrictedWorldView<'w> {
         // INVARIANTS: `self` had `component` access, so `split` has access if we remove it from `self`
         let split = RestrictedWorldView {
             world: self.world,
-            allowed_resources: SmallVec::new(),
-            allowed_components: smallvec![component],
-            unmentioned_allowed: false,
+            resources: Allowed::nothing(),
+            components: Allowed::allow_just(component),
         };
         let rest = RestrictedWorldView {
             world: self.world,
-            allowed_resources: self.allowed_resources.clone(),
-            allowed_components: {
-                let mut allowed_components = self.allowed_components.clone();
-                allowed_components.retain(|e| *e != component);
-                allowed_components
-            },
-            unmentioned_allowed: self.unmentioned_allowed,
+            resources: self.resources.clone(),
+            components: self.components.without(component),
         };
 
         (split, rest)
