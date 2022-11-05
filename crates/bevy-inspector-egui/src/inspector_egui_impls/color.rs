@@ -33,7 +33,7 @@ fn color_ui_inner(value: &mut Color, ui: &mut egui::Ui) -> bool {
             blue,
             alpha,
         } => {
-            let mut color = Color32::from_rgba_unmultiplied(
+            let mut color = Color32::from_rgba_premultiplied(
                 (*red * 255.) as u8,
                 (*green * 255.) as u8,
                 (*blue * 255.) as u8,
@@ -55,7 +55,10 @@ fn color_ui_inner(value: &mut Color, ui: &mut egui::Ui) -> bool {
             alpha,
         } => {
             let mut color = [*red, *green, *blue, *alpha];
-            if ui.color_edit_button_rgba_unmultiplied(&mut color).changed() {
+            if ui
+                .color_edit_button_rgba_premultiplied(&mut color)
+                .changed()
+            {
                 *red = color[0];
                 *green = color[1];
                 *blue = color[2];
