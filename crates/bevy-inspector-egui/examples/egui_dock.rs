@@ -2,8 +2,9 @@ use bevy::prelude::*;
 use bevy_inspector_egui::bevy_ecs_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
 use bevy_inspector_egui::bevy_ecs_inspector::{ui_for_all_assets, ui_for_entity, ui_for_resources};
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
-use bevy_render::camera::Viewport;
+use bevy_render::camera::{CameraProjection, Viewport};
 use egui_dock::{NodeIndex, Tree};
+use egui_gizmo::GizmoMode;
 
 fn main() {
     App::new()
@@ -14,6 +15,7 @@ fn main() {
         .add_system_to_stage(CoreStage::PreUpdate, show_ui_system.at_end())
         .add_startup_system(setup)
         .add_system(set_camera_viewport)
+        .add_system(set_gizmo_mode)
         .run();
 }
 
@@ -51,11 +53,24 @@ fn set_camera_viewport(
     });
 }
 
+fn set_gizmo_mode(input: Res<Input<KeyCode>>, mut ui_state: ResMut<UiState>) {
+    for (key, mode) in [
+        (KeyCode::R, GizmoMode::Rotate),
+        (KeyCode::T, GizmoMode::Translate),
+        (KeyCode::S, GizmoMode::Scale),
+    ] {
+        if input.just_pressed(key) {
+            ui_state.gizmo_mode = mode;
+        }
+    }
+}
+
 #[derive(Resource)]
 struct UiState {
     tree: Tree<Window>,
     viewport_rect: egui::Rect,
     selected_entities: SelectedEntities,
+    gizmo_mode: GizmoMode,
 }
 
 impl UiState {
@@ -69,6 +84,7 @@ impl UiState {
             tree,
             selected_entities: SelectedEntities::default(),
             viewport_rect: egui::Rect::NOTHING,
+            gizmo_mode: GizmoMode::Translate,
         }
     }
 
@@ -77,6 +93,7 @@ impl UiState {
             world,
             viewport_rect: &mut self.viewport_rect,
             selected_entities: &mut self.selected_entities,
+            gizmo_mode: self.gizmo_mode,
         };
         egui_dock::DockArea::new(&mut self.tree).show(ctx, &mut tab_viewer);
     }
@@ -95,6 +112,7 @@ struct TabViewer<'a> {
     world: &'a mut World,
     selected_entities: &'a mut SelectedEntities,
     viewport_rect: &'a mut egui::Rect,
+    gizmo_mode: GizmoMode,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -105,6 +123,31 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             Window::GameView => {
                 (*self.viewport_rect, _) =
                     ui.allocate_exact_size(ui.available_size(), egui::Sense::hover());
+
+                let (cam_transform, projection) = self
+                    .world
+                    .query_filtered::<(&GlobalTransform, &Projection), With<MainCamera>>()
+                    .single(self.world);
+                let view_matrix = Mat4::from(cam_transform.affine().inverse());
+                let projection_matrix = projection.get_projection_matrix();
+
+                for selected in self.selected_entities.iter() {
+                    let transform = self.world.get::<Transform>(selected).unwrap();
+                    let model_matrix = transform.compute_matrix();
+
+                    let Some(result) = egui_gizmo::Gizmo::new(selected)
+                        .model_matrix(model_matrix.to_cols_array_2d())
+                        .view_matrix(view_matrix.to_cols_array_2d())
+                        .projection_matrix(projection_matrix.to_cols_array_2d())
+                        .orientation(egui_gizmo::GizmoOrientation::Local)
+                        .mode(self.gizmo_mode)
+                        .interact(ui)
+                    else { continue };
+
+                    let mut transform = self.world.get_mut::<Transform>(selected).unwrap();
+                    *transform =
+                        Transform::from_matrix(Mat4::from_cols_array_2d(&result.transform));
+                }
             }
             Window::Hierarchy => hierarchy_ui(self.world, ui, self.selected_entities),
             Window::Resources => ui_for_resources(self.world, ui),

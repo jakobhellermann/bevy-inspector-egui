@@ -33,3 +33,4 @@ once_cell = "1.14.0"
 bevy = { git = "https://github.com/bevyengine/bevy", default-features = false, features = ["render", "x11", "bevy_winit", "animation", "png"] }
 bevy_egui = { git = "https://github.com/jakobhellermann/bevy_egui", branch = "bevy-main" }
 egui_dock = { git = "https://github.com/Adanos020/egui_dock", rev = "645c621ec0199be09833048024eef1c81176eeef" }
+egui-gizmo = "0.8"
