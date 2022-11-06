@@ -9,10 +9,6 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(DefaultInspectorConfigPlugin)
-        .insert_resource(AmbientLight {
-            color: Color::WHITE,
-            brightness: 1.0,
-        })
         .add_plugin(bevy_egui::EguiPlugin)
         .insert_resource(UiState::new())
         .add_system_to_stage(CoreStage::PreUpdate, show_ui_system.at_end())
