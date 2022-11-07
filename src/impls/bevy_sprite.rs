@@ -1,7 +1,7 @@
 use bevy::{
     prelude::*,
-    sprite::Anchor,
     render::mesh::{Indices, VertexAttributeValues},
+    sprite::Anchor,
     sprite::Mesh2dHandle,
 };
 
