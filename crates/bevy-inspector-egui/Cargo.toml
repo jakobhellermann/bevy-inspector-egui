@@ -11,26 +11,27 @@ categories = ["game-development", "gui", "visualization", "development-tools::pr
 
 [dependencies]
 bevy-inspector-egui-derive = { path = "../bevy-inspector-egui-derive" }
-bevy_reflect = { git = "https://github.com/bevyengine/bevy" }
-bevy_ecs = { git = "https://github.com/bevyengine/bevy" }
-bevy_app = { git = "https://github.com/bevyengine/bevy" }
-bevy_asset = { git = "https://github.com/bevyengine/bevy" }
-bevy_hierarchy = { git = "https://github.com/bevyengine/bevy" }
-bevy_core = { git = "https://github.com/bevyengine/bevy" }
-bevy_render = { git = "https://github.com/bevyengine/bevy" }
-bevy_pbr = { git = "https://github.com/bevyengine/bevy" }
-bevy_math = { git = "https://github.com/bevyengine/bevy" }
-bevy_core_pipeline = { git = "https://github.com/bevyengine/bevy" }
-bevy_utils = { git = "https://github.com/bevyengine/bevy" }
+bevy_reflect = { version = "0.9" }
+bevy_ecs = { version = "0.9" }
+bevy_app = { version = "0.9" }
+bevy_asset = { version = "0.9" }
+bevy_hierarchy = { version = "0.9" }
+bevy_core = { version = "0.9" }
+bevy_render = { version = "0.9" }
+bevy_pbr = { version = "0.9" }
+bevy_math = { version = "0.9" }
+bevy_core_pipeline = { version = "0.9" }
+bevy_utils = { version = "0.9" }
+
 egui = "0.19.0"
-pretty-type-name = "1.0.0"
-smallvec = "1.9.0"
-bevy_egui = { git = "https://github.com/jakobhellermann/bevy_egui", branch = "bevy-main" }
+bevy_egui = "0.17"
+
 image = { version = "0.24.3", default-features = false }
 once_cell = "1.14.0"
+pretty-type-name = "1.0.0"
+smallvec = "1.9.0"
 
 [dev-dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", default-features = false, features = ["render", "x11", "bevy_winit", "animation", "png"] }
-bevy_egui = { git = "https://github.com/jakobhellermann/bevy_egui", branch = "bevy-main" }
-egui_dock = { git = "https://github.com/Adanos020/egui_dock", rev = "645c621ec0199be09833048024eef1c81176eeef" }
+bevy = { version = "0.9", default-features = false, features = ["render", "x11", "bevy_winit", "animation", "png"] }
+egui_dock = { git = "https://github.com/Adanos020/egui_dock", rev = "041e5f362c281c286a63edeef2f7d02dbd5d62f4" }
 egui-gizmo = "0.8"
