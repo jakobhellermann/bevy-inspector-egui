@@ -74,19 +74,19 @@ impl Inspectable for UiRect {
         ui.vertical_centered(|ui| {
             crate::egui::Grid::new(context.id()).show(ui, |ui| {
                 ui.label("left");
-                changed |= self.left.ui(ui, options.clone(), &mut context.with_id(0));
+                changed |= self.left.ui(ui, options, &mut context.with_id(0));
                 ui.end_row();
 
                 ui.label("right");
-                changed |= self.right.ui(ui, options.clone(), &mut context.with_id(1));
+                changed |= self.right.ui(ui, options, &mut context.with_id(1));
                 ui.end_row();
 
                 ui.label("top");
-                changed |= self.top.ui(ui, options.clone(), &mut context.with_id(2));
+                changed |= self.top.ui(ui, options, &mut context.with_id(2));
                 ui.end_row();
 
                 ui.label("bottom");
-                changed |= self.bottom.ui(ui, options.clone(), &mut context.with_id(3));
+                changed |= self.bottom.ui(ui, options, &mut context.with_id(3));
                 ui.end_row();
             });
             ui.separator();
@@ -198,7 +198,7 @@ impl Inspectable for Size {
         ui.vertical_centered(|ui| {
             crate::egui::Grid::new(context.id()).show(ui, |ui| {
                 ui.label("width");
-                changed |= self.width.ui(ui, options.clone(), &mut context.with_id(0));
+                changed |= self.width.ui(ui, options, &mut context.with_id(0));
                 ui.end_row();
 
                 ui.label("height");

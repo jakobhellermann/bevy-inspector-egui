@@ -405,7 +405,7 @@ impl<'a> WorldUIContext<'a> {
                                 component_ptr,
                                 is_zst,
                                 type_id,
-                                &*inspectable_registry,
+                                &inspectable_registry,
                                 type_registry,
                                 ui,
                                 self.ui_ctx,

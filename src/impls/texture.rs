@@ -98,7 +98,7 @@ impl Inspectable for Handle<Image> {
         if !textures.contains(&*self) {
             let response = utils::ui::drag_and_drop_target(ui);
             if response.hovered() {
-                return utils::ui::replace_handle_if_dropped(self, &*file_events, &*asset_server);
+                return utils::ui::replace_handle_if_dropped(self, &file_events, &asset_server);
             }
             return false;
         }
@@ -118,7 +118,7 @@ impl Inspectable for Handle<Image> {
             let response = show_texture(texture, texture_id, ui, id);
 
             if response.map_or(false, |res| res.hovered()) {
-                utils::ui::replace_handle_if_dropped(self, &*file_events, &*asset_server)
+                utils::ui::replace_handle_if_dropped(self, &file_events, &asset_server)
             } else {
                 false
             }
