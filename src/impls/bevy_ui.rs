@@ -61,8 +61,8 @@ impl_for_struct_delegate_fields!(
     aspect_ratio with OptionAttributes { deletable: true, replacement: Some(|| 1.), inner: NumberAttributes::positive() },
 );
 
-impl<T: Inspectable + Reflect + PartialEq> Inspectable for UiRect<T> {
-    type Attributes = T::Attributes;
+impl Inspectable for UiRect {
+    type Attributes = <Val as Inspectable>::Attributes;
 
     fn ui(
         &mut self,
@@ -185,8 +185,8 @@ impl Inspectable for Val {
     }
 }
 
-impl<T: Inspectable + Reflect + PartialEq> Inspectable for Size<T> {
-    type Attributes = T::Attributes;
+impl Inspectable for Size {
+    type Attributes = <Val as Inspectable>::Attributes;
 
     fn ui(
         &mut self,

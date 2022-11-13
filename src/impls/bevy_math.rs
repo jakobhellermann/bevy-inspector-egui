@@ -236,3 +236,5 @@ impl_for_vec!(IVec4: 4 x y z w);
 impl_for_vec!(DVec2: 2 x y);
 impl_for_vec!(DVec3: 3 x y z);
 impl_for_vec!(DVec4: 4 x y z w);
+
+impl_for_struct_delegate_fields!(bevy::math::Rect: min, max);

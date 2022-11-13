@@ -33,7 +33,7 @@ fn setup(
     };
 
     commands
-        // .spawn_bundle(floor)
+        // .spawn(floor)
         .spawn()
         .insert(Name::new("Floor"))
         .insert(RigidBody::Fixed)
@@ -46,7 +46,7 @@ fn setup(
     };
 
     commands
-        // .spawn_bundle(cube)
+        // .spawn(cube)
         .spawn()
         .insert(Cube)
         .insert(Name::new("Cube"))

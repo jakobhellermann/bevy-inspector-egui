@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use bevy::{ecs::query::WorldQuery, prelude::*};
+use bevy::{ecs::query::ReadOnlyWorldQuery, prelude::*};
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
 use super::{WorldInspectorParams, WorldUIContext};
@@ -86,7 +86,7 @@ impl WorldInspectorPlugin {
 
 impl<F> Plugin for WorldInspectorPlugin<F>
 where
-    F: WorldQuery + 'static,
+    F: ReadOnlyWorldQuery + 'static,
 {
     fn build(&self, app: &mut App) {
         if !app.world.contains_resource::<EguiContext>() {
@@ -97,13 +97,13 @@ where
         world.get_resource_or_insert_with(WorldInspectorParams::default);
         world.get_resource_or_insert_with(InspectableRegistry::default);
 
-        app.add_system(world_inspector_ui::<F>.exclusive_system());
+        app.add_system(world_inspector_ui::<F>);
     }
 }
 
 fn world_inspector_ui<F>(world: &mut World)
 where
-    F: WorldQuery,
+    F: ReadOnlyWorldQuery,
 {
     let world_ptr = world as *mut _;
 

@@ -22,7 +22,7 @@ impl Inspectable for ExampleWidget {
     }
 }
 
-#[derive(Inspectable, Default)]
+#[derive(Resource, Inspectable, Default)]
 struct Data {
     _widget: ExampleWidget,
 }

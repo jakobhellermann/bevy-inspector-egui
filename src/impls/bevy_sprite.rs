@@ -17,10 +17,6 @@ impl_for_struct_delegate_fields!(Sprite:
     custom_size with OptionAttributes { replacement: Some(|| Vec2::splat(50.0)), deletable: true, inner: Vec2dAttributes::positive() }
 );
 
-impl_for_struct_delegate_fields!(bevy::sprite::Rect:
-    min with Vec2dAttributes::integer(),
-    max with Vec2dAttributes::integer(),
-);
 impl_for_struct_delegate_fields!(TextureAtlasSprite: color, index, flip_x, flip_y);
 
 impl Inspectable for TextureAtlas {

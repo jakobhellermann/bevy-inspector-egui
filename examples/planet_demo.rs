@@ -6,7 +6,7 @@ use noise::NoiseFn;
 #[derive(Default)]
 struct GenerateEvent;
 
-#[derive(Inspectable)]
+#[derive(Resource, Inspectable)]
 struct Data {
     #[inspectable(min = 0.2, max = 2.0)]
     radius: f32,
@@ -104,18 +104,18 @@ fn setup(
 ) {
     let mesh = data.as_mesh();
     commands
-        .spawn_bundle(PbrBundle {
+        .spawn(PbrBundle {
             mesh: meshes.add(mesh),
             material: materials.add(data.color.into()),
             transform: Transform::from_xyz(0.0, 0.5, 0.0),
             ..Default::default()
         })
         .insert(Planet);
-    commands.spawn_bundle(PointLightBundle {
+    commands.spawn(PointLightBundle {
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
         ..Default::default()
     });
-    commands.spawn_bundle(Camera3dBundle {
+    commands.spawn(Camera3dBundle {
         transform: Transform::from_xyz(-3.0, 5.0, 10.0).looking_at(Vec3::default(), Vec3::Y),
         ..Default::default()
     });

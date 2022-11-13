@@ -72,7 +72,7 @@ where
     }
 }
 
-#[derive(Inspectable)]
+#[derive(Resource, Inspectable)]
 struct Data {
     pub vec_of_ints: VecAsDropdown<u32>,
     pub vec_of_strings: VecAsDropdown<String>,
@@ -103,8 +103,8 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn_bundle(Camera2dBundle::default());
-    commands.spawn_bundle(SpriteBundle {
+    commands.spawn(Camera2dBundle::default());
+    commands.spawn(SpriteBundle {
         sprite: Sprite {
             custom_size: Some(Vec2::new(40.0, 40.0)),
             color: Color::BLUE,

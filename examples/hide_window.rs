@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_inspector_egui::plugin::InspectorWindows;
 use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 
-#[derive(Default, Inspectable)]
+#[derive(Resource, Default, Inspectable)]
 struct Data {
     field: f32,
 }

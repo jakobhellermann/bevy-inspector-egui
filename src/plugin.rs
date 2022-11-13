@@ -70,8 +70,8 @@ pub struct InspectorWindowData {
     /// Whether the ui is currently shown
     pub visible: bool,
 }
-#[derive(Default)]
 /// Can be used to control whether inspector windows are shown
+#[derive(Resource, Default)]
 pub struct InspectorWindows(bevy::utils::HashMap<TypeId, InspectorWindowData>);
 impl InspectorWindows {
     fn insert<T: 'static>(&mut self, name: String, window_id: WindowId) {
@@ -118,7 +118,7 @@ impl InspectorWindows {
 
 impl<T> Plugin for InspectorPlugin<T>
 where
-    T: Inspectable + Send + Sync + 'static,
+    T: Resource + Inspectable + Send + Sync + 'static,
 {
     fn build(&self, app: &mut App) {
         if let Some(get_value) = &self.initial_value {
@@ -131,9 +131,9 @@ where
 
         // init inspector ui and data resource
         if self.exclusive_access {
-            app.add_system(exclusive_access_ui::<T>.exclusive_system());
+            app.add_system(exclusive_access_ui::<T>);
         } else {
-            app.add_system(shared_access_ui::<T>.exclusive_system());
+            app.add_system(shared_access_ui::<T>);
         }
 
         // init egui
@@ -170,7 +170,7 @@ where
     }
 }
 
-fn shared_access_ui<T>(
+fn shared_access_ui<T: Resource>(
     data: Option<ResMut<T>>,
     mut egui_context: ResMut<EguiContext>,
     inspector_windows: Res<InspectorWindows>,
@@ -218,10 +218,7 @@ where
 
             let mut context = Context::new_world_access(Some(&ctx), world);
 
-            // This manually circumcents bevy's change detection and probably isn't sound.
-            // Todo: add bevy API to allow this safely
-            #[allow(clippy::cast_ref_to_mut)]
-            let value = unsafe { &mut *(data.as_ref() as *const T as *mut T) };
+            let value = data.bypass_change_detection();
 
             let mut changed = false;
             egui::Window::new(&window_data.name)
@@ -235,7 +232,7 @@ where
 
             if changed {
                 // trigger change detection
-                data.as_mut();
+                data.set_changed()
             }
         });
     });

@@ -33,7 +33,7 @@ The `InspectorPlugin<T>` will insert a resource of type `T` and display UI for e
 use bevy::prelude::*;
 use bevy_inspector_egui::{InspectorPlugin, Inspectable};
 
-#[derive(Inspectable, Default)]
+#[derive(Resource, Inspectable, Default)]
 struct Data {
     should_render: bool,
     text: String,

@@ -123,6 +123,10 @@ pub fn ui_for_reflect_with_registry(
             ui.label("Reflect array inspection is not yet implemented");
             false
         }
+        bevy::reflect::ReflectMut::Enum(_) => {
+            ui.label("Reflect enum inspection is not yet implemented");
+            false
+        }
     }
 }
 

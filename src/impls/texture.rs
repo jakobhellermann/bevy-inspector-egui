@@ -39,7 +39,7 @@ impl<T: Asset + Inspectable> Inspectable for Handle<T> {
     type Attributes = T::Attributes;
 
     fn ui(&mut self, ui: &mut egui::Ui, options: Self::Attributes, context: &mut Context) -> bool {
-        if self.id == HandleId::default::<T>() {
+        if self.id() == HandleId::default::<T>() {
             ui.label("<default handle>");
             return false;
         }
@@ -55,7 +55,7 @@ impl<T: Asset + Inspectable> Inspectable for Handle<T> {
     }
 }
 
-#[derive(Default)]
+#[derive(Resource, Default)]
 struct ScaledDownTextures {
     textures: HashMap<Handle<Image>, Handle<Image>>,
 }

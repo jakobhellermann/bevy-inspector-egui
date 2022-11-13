@@ -10,7 +10,7 @@ enum TextColor {
     Blue,
 }
 
-#[derive(Inspectable)]
+#[derive(Resource, Inspectable)]
 struct Data {
     #[inspectable(min = 10.0, max = 70.0)]
     font_size: f32,
@@ -84,8 +84,8 @@ fn shape_update_system(data: Res<Data>, mut query: Query<(&mut Sprite, &mut Tran
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let font_handle = asset_server.load("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
 
-    commands.spawn_bundle(Camera2dBundle::default());
-    commands.spawn_bundle(TextBundle {
+    commands.spawn(Camera2dBundle::default());
+    commands.spawn(TextBundle {
         style: Style {
             align_self: AlignSelf::FlexEnd,
             ..Default::default()
@@ -100,7 +100,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ),
         ..Default::default()
     });
-    commands.spawn_bundle(SpriteBundle {
+    commands.spawn(SpriteBundle {
         sprite: Sprite {
             custom_size: Some(Vec2::new(40.0, 40.0)),
             color: Color::BLUE,

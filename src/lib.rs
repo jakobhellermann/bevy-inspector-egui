@@ -15,9 +15,10 @@
 //!
 //! ## Example
 //! ```rust,no_run
+//! # use bevy::prelude::*;
 //! use bevy_inspector_egui::Inspectable;
 //!
-//! #[derive(Inspectable, Default)]
+//! #[derive(Resource, Inspectable, Default)]
 //! struct Data {
 //!     should_render: bool,
 //!     text: String,
@@ -30,7 +31,7 @@
 //! use bevy_inspector_egui::InspectorPlugin;
 //! # use bevy::prelude::*;
 //!
-//! # #[derive(bevy_inspector_egui::Inspectable, Default)] struct Data {}
+//! # #[derive(bevy_inspector_egui::Inspectable, Resource, Default)] struct Data {}
 //! fn main() {
 //!     App::new()
 //!         .add_plugins(DefaultPlugins)

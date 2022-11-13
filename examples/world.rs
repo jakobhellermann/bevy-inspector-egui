@@ -20,7 +20,7 @@ fn main() {
         .run();
 }
 
-#[derive(Inspectable, Default)]
+#[derive(Resource, Inspectable, Default)]
 struct Resources {
     ambient_light: ResourceInspector<AmbientLight>,
     clear_color: ResourceInspector<ClearColor>,
@@ -45,7 +45,7 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn_bundle((
+    commands.spawn((
         MyInspectableComponent::default(),
         MyReflectedComponent {
             str: "str".to_string(),
@@ -54,20 +54,20 @@ fn setup(
         Name::new("Custom components"),
     ));
     commands
-        .spawn_bundle(Camera3dBundle {
+        .spawn(Camera3dBundle {
             transform: Transform::from_xyz(-3.0, 5.0, 8.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..Default::default()
         })
         .insert(Name::new("Camera"));
     commands
-        .spawn_bundle(PbrBundle {
+        .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Plane { size: 10.0 })),
             material: materials.add(Color::rgb_u8(80, 233, 54).into()),
             ..Default::default()
         })
         .insert(Name::new("Floor"));
     commands
-        .spawn_bundle(PbrBundle {
+        .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
             transform: Transform::from_xyz(0.0, 1.0, 0.0),
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
@@ -76,7 +76,7 @@ fn setup(
         .insert(Name::new("Cube"))
         .with_children(|commands| {
             commands
-                .spawn_bundle(PbrBundle {
+                .spawn(PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
                     transform: Transform::from_xyz(0.0, 0.8, 0.0),
                     material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
@@ -86,7 +86,7 @@ fn setup(
                 .insert(Name::new("Child"))
                 .with_children(|commands| {
                     commands
-                        .spawn_bundle(PbrBundle {
+                        .spawn(PbrBundle {
                             mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
                             transform: Transform::from_xyz(0.0, 0.4, 0.0),
                             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
@@ -96,7 +96,7 @@ fn setup(
                 });
         });
     commands
-        .spawn_bundle(PbrBundle {
+        .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Icosphere {
                 subdivisions: 20,
                 radius: 0.5,
@@ -108,7 +108,7 @@ fn setup(
         .insert(RotateTarget)
         .insert(Name::new("Sphere"));
     commands
-        .spawn_bundle(PointLightBundle {
+        .spawn(PointLightBundle {
             transform: Transform::from_xyz(10.3, 8.0, -2.3),
             point_light: PointLight {
                 range: 20.0,
@@ -119,7 +119,7 @@ fn setup(
         })
         .insert(Name::new("Light"));
     commands
-        .spawn_bundle(PointLightBundle {
+        .spawn(PointLightBundle {
             transform: Transform::from_xyz(-6.2, 8.0, 4.3),
             point_light: PointLight {
                 range: 20.0,
@@ -144,7 +144,7 @@ struct TeleportState {
 impl Default for TeleportState {
     fn default() -> Self {
         Self {
-            timer: Timer::from_seconds(1.0, true),
+            timer: Timer::from_seconds(1.0, TimerMode::Repeating),
             count: 0,
         }
     }

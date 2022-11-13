@@ -5,7 +5,7 @@ use bevy_inspector_egui::{widgets::InspectableButton, Inspectable, InspectorPlug
 #[derive(Component, Default)]
 struct Print;
 
-#[derive(Inspectable, Default)]
+#[derive(Resource, Inspectable, Default)]
 struct Inspector {
     shape: Shape,
     #[inspectable(label = "", text = "Print")]

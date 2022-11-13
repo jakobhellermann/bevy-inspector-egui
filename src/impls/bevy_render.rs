@@ -3,7 +3,7 @@ use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
 use bevy::render::render_resource::ShaderImport;
 use bevy::render::view::RenderLayers;
 use bevy::render::{
-    camera::{DepthCalculation, ScalingMode, WindowOrigin},
+    camera::{ScalingMode, WindowOrigin},
     mesh::{Indices, PrimitiveTopology},
     view::VisibleEntities,
 };
@@ -24,7 +24,6 @@ impl_for_struct_delegate_fields!(
     window_origin,
     scaling_mode,
     scale with NumberAttributes::positive(),
-    depth_calculation
 );
 
 impl_for_simple_enum!(
@@ -101,7 +100,6 @@ impl Inspectable for ScalingMode {
         changed
     }
 }
-impl_for_simple_enum!(DepthCalculation: Distance, ZDifference);
 
 //////// SHAPES ////////
 

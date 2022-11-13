@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::{egui, Inspectable, InspectorPlugin};
 
-#[derive(Inspectable, Default)]
+#[derive(Resource, Inspectable, Default)]
 struct Data {
     #[inspectable(min = 10.0, max = 70.0, suffix = "pt")]
     font_size: f32,
@@ -72,5 +72,5 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn_bundle(Camera3dBundle::default());
+    commands.spawn(Camera3dBundle::default());
 }

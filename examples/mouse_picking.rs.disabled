@@ -56,7 +56,7 @@ fn setup(
     // add entities to the world
     // camera
     commands
-        .spawn_bundle(Camera3dBundle {
+        .spawn(Camera3dBundle {
             transform: Transform::from_matrix(Mat4::face_toward(
                 Vec3::new(-3.0, 5.0, 8.0),
                 Vec3::new(0.0, 0.0, 0.0),
@@ -67,7 +67,7 @@ fn setup(
         .insert_bundle(PickingCameraBundle::default());
     // plane
     commands
-        .spawn_bundle(PbrBundle {
+        .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Plane { size: 6.0 })),
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
             ..Default::default()
@@ -75,7 +75,7 @@ fn setup(
         .insert_bundle(PickableBundle::default());
     // cube
     commands
-        .spawn_bundle(PbrBundle {
+        .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
             transform: Transform::from_xyz(-1.0, 1.0, 0.0),
             material: materials.add(Color::VIOLET.into()),
@@ -84,7 +84,7 @@ fn setup(
         .insert_bundle(PickableBundle::default());
     // sphere
     commands
-        .spawn_bundle(PbrBundle {
+        .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Icosphere {
                 subdivisions: 20,
                 radius: 0.5,
@@ -95,7 +95,7 @@ fn setup(
         })
         .insert_bundle(PickableBundle::default());
     // light
-    commands.spawn_bundle(PointLightBundle {
+    commands.spawn(PointLightBundle {
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
         ..Default::default()
     });

@@ -2,7 +2,7 @@ use crate::{Context, Inspectable};
 use bevy::asset::HandleId;
 use bevy::math::{DVec2, DVec3, DVec4, Vec3A};
 use bevy::prelude::*;
-use bevy::render::camera::{DepthCalculation, ScalingMode, WindowOrigin};
+use bevy::render::camera::{ScalingMode, WindowOrigin};
 use bevy::render::primitives::{CubemapFrusta, Frustum, Plane};
 use bevy::render::render_resource::PrimitiveTopology;
 use bevy::render::view::VisibleEntities;
@@ -38,6 +38,7 @@ macro_rules! register {
 ///     registry.register::<CustomType>();
 /// }
 /// ```
+#[derive(Resource)]
 pub struct InspectableRegistry {
     pub(crate) impls: HashMap<TypeId, InspectCallback>,
 }
@@ -142,7 +143,6 @@ impl Default for InspectableRegistry {
         {
             this.register::<TextureAtlasSprite>();
             this.register::<TextureAtlas>();
-            this.register::<bevy::sprite::Rect>();
             this.register::<Sprite>();
             this.register::<Handle<TextureAtlas>>();
             this.register::<ColorMaterial>();
@@ -151,7 +151,7 @@ impl Default for InspectableRegistry {
 
         #[cfg(feature = "bevy_ui")]
         {
-            register!(this Display, Style, Size<f32>, Size<Val>, Val, bevy::ui::FocusPolicy);
+            register!(this Display, Style, Size, Val, bevy::ui::FocusPolicy);
             register!(this PositionType, Direction, FlexDirection, FlexWrap, AlignItems, AlignSelf, JustifyContent);
         }
 
@@ -160,7 +160,6 @@ impl Default for InspectableRegistry {
 
         this.register::<WindowOrigin>();
         this.register::<ScalingMode>();
-        this.register::<DepthCalculation>();
         this.register::<VisibleEntities>();
         this.register::<CubemapFrusta>();
         this.register::<Frustum>();

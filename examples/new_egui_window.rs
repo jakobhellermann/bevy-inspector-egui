@@ -7,7 +7,7 @@ struct SomeComplexType {
     very_long_field_name: Color,
 }
 
-#[derive(Inspectable, Default)]
+#[derive(Resource, Inspectable, Default)]
 struct Inspector {
     a: f32,
     #[inspectable(title = "Complex Type", resizable)]

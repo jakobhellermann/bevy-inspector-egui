@@ -4,11 +4,11 @@ use bevy::window::{CreateWindow, WindowId};
 use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 use once_cell::sync::Lazy;
 
-#[derive(Inspectable, Default)]
+#[derive(Resource, Inspectable, Default)]
 struct Primary {
     x: f32,
 }
-#[derive(Inspectable, Default)]
+#[derive(Resource, Inspectable, Default)]
 struct Secondary {
     y: f32,
 }

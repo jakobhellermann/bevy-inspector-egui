@@ -1,7 +1,7 @@
 use super::{WorldInspectorParams, WorldUIContext};
 use crate::Inspectable;
 use bevy::{
-    ecs::query::{Fetch, WorldQuery, WorldQueryGats},
+    ecs::query::{ReadOnlyWorldQuery, WorldQuery},
     prelude::*,
 };
 use bevy_egui::egui::CollapsingHeader;
@@ -78,7 +78,7 @@ impl Inspectable for Entity {
 /// #[derive(Component)]
 /// struct Collider;
 ///
-/// #[derive(Inspectable, Default)]
+/// #[derive(Resource, Inspectable, Default)]
 /// struct Queries {
 ///   colliders: InspectorQuery<Entity, With<Collider>>,
 ///   root_entities: InspectorQuery<Entity, Without<Parent>>,
@@ -92,6 +92,7 @@ impl Inspectable for Entity {
 ///         .run();
 /// }
 /// ```
+#[derive(Resource)]
 pub struct InspectorQuery<Q, F = ()>(PhantomData<(Q, F)>);
 
 impl<Q, F> Default for InspectorQuery<Q, F> {
@@ -100,14 +101,12 @@ impl<Q, F> Default for InspectorQuery<Q, F> {
     }
 }
 
-type WorldQueryItem<'w, 's, Q> = <<Q as WorldQueryGats<'w>>::Fetch as Fetch<'w>>::Item;
-
-unsafe fn extend_lifetime<'w, 's, Q>(
-    item: &<WorldQueryItem<'static, 'static, Q> as Inspectable>::Attributes,
-) -> <WorldQueryItem<'w, 's, Q> as Inspectable>::Attributes
+unsafe fn extend_lifetime<'w, Q>(
+    item: &<Q::Item<'static> as Inspectable>::Attributes,
+) -> <Q::Item<'w> as Inspectable>::Attributes
 where
     Q: WorldQuery,
-    for<'world, 'state> WorldQueryItem<'world, 'state, Q>: Inspectable,
+    for<'a> Q::Item<'a>: Inspectable,
 {
     std::mem::transmute_copy(item)
 }
@@ -115,10 +114,10 @@ where
 impl<Q: 'static, F: 'static> Inspectable for InspectorQuery<Q, F>
 where
     Q: WorldQuery,
-    F: WorldQuery,
-    for<'w, 's> WorldQueryItem<'w, 's, Q>: Inspectable,
+    F: ReadOnlyWorldQuery,
+    for<'a> Q::Item<'a>: Inspectable,
 {
-    type Attributes = <WorldQueryItem<'static, 'static, Q> as Inspectable>::Attributes;
+    type Attributes = <Q::Item<'static> as Inspectable>::Attributes;
 
     fn ui(
         &mut self,
@@ -163,7 +162,7 @@ where
 /// #[derive(Component)]
 /// struct Player;
 ///
-/// #[derive(Inspectable, Default)]
+/// #[derive(Resource, Inspectable, Default)]
 /// struct Queries {
 ///   player: InspectorQuerySingle<Entity, With<Player>>
 /// }
@@ -175,6 +174,7 @@ where
 ///         .run();
 /// }
 /// ```
+#[derive(Resource)]
 pub struct InspectorQuerySingle<Q, F = ()>(PhantomData<(Q, F)>);
 
 impl<Q, F> Default for InspectorQuerySingle<Q, F> {
@@ -186,10 +186,10 @@ impl<Q, F> Default for InspectorQuerySingle<Q, F> {
 impl<Q, F> Inspectable for InspectorQuerySingle<Q, F>
 where
     Q: WorldQuery + 'static,
-    F: WorldQuery + 'static,
-    for<'w, 's> WorldQueryItem<'w, 's, Q>: Inspectable,
+    F: ReadOnlyWorldQuery,
+    for<'a> Q::Item<'a>: Inspectable,
 {
-    type Attributes = <WorldQueryItem<'static, 'static, Q> as Inspectable>::Attributes;
+    type Attributes = <Q::Item<'static> as Inspectable>::Attributes;
 
     fn ui(
         &mut self,

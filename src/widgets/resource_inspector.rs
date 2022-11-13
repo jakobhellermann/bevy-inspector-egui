@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use bevy::prelude::Mut;
+use bevy::prelude::{Mut, Resource};
 
 use crate::Inspectable;
 
@@ -12,7 +12,7 @@ use crate::Inspectable;
 /// use bevy::{prelude::*, pbr::AmbientLight};
 /// use bevy_inspector_egui::{Inspectable, InspectorPlugin, widgets::ResourceInspector};
 ///
-/// #[derive(Inspectable, Default)]
+/// #[derive(Resource, Inspectable, Default)]
 /// struct Data {
 ///     clear_color: ResourceInspector<ClearColor>,
 ///     ambient_light: ResourceInspector<AmbientLight>,
@@ -26,7 +26,7 @@ use crate::Inspectable;
 /// }
 /// ```
 pub struct ResourceInspector<T>(PhantomData<fn() -> T>);
-impl<T: Inspectable + Send + Sync + 'static> Inspectable for ResourceInspector<T> {
+impl<T: Resource + Inspectable + Send + Sync + 'static> Inspectable for ResourceInspector<T> {
     type Attributes = T::Attributes;
 
     fn ui(

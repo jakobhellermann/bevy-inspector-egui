@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::{Inspectable, InspectorPlugin};
 
-#[derive(Inspectable, Default)]
+#[derive(Resource, Inspectable, Default)]
 struct UiData {
     font_size: f32,
     color: Color,
 }
-#[derive(Inspectable, Default)]
+#[derive(Resource, Inspectable, Default)]
 struct TransformData {
     transform: Transform,
     font_size: f32,
