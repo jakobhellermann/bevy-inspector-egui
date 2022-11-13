@@ -6,13 +6,8 @@ edition = "2018"
 resolver = "2"
 
 [dependencies]
-bevy-inspector-egui = "0.7"
-bevy = { version = "0.6", default-features = false, features = ["render"] }
-wasm-bindgen = { version = "0.2", default-features = false }
-web-sys = { version = "0.3", default-features = false }
-winit = { version = "0.26", default-features = false }
-tracing = { version = "0.1", features = ["release_max_level_info", "max_level_info"] }
-crossbeam-channel = "0.5"
+bevy-inspector-egui = "0.14"
+bevy = { version = "0.9", default-features = false, features = ["bevy_winit", "render"] }
 
 [profile.release]
 lto = "thin"

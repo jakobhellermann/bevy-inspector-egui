@@ -1,12 +1,17 @@
-mod web;
-
 use bevy::prelude::*;
+use bevy_inspector_egui::RegisterInspectable;
 use bevy_inspector_egui::{widgets::ResourceInspector, Inspectable, InspectorPlugin};
 use bevy_inspector_egui::{WorldInspectorParams, WorldInspectorPlugin};
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            window: WindowDescriptor {
+                fit_canvas_to_parent: true,
+                ..default()
+            },
+            ..default()
+        }))
         .insert_resource(WorldInspectorParams {
             despawnable_entities: true,
             highlight_changes: true,
@@ -14,16 +19,30 @@ fn main() {
         })
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(InspectorPlugin::<Resources>::new())
+        .register_type::<MyReflectedComponent>()
+        .register_inspectable::<MyInspectableComponent>()
         .add_startup_system(setup)
         .add_system(movement)
-        .add_system(web::web_resize_system)
         .run();
 }
 
-#[derive(Inspectable, Default)]
+#[derive(Resource, Inspectable, Default)]
 struct Resources {
     ambient_light: ResourceInspector<AmbientLight>,
     clear_color: ResourceInspector<ClearColor>,
+}
+
+#[derive(Component, Inspectable, Default)]
+pub struct MyInspectableComponent {
+    foo: f32,
+    bar: usize,
+}
+
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+pub struct MyReflectedComponent {
+    str: String,
+    list: Vec<f32>,
 }
 
 /// set up a simple 3D scene
@@ -32,25 +51,29 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    commands.spawn((
+        MyInspectableComponent::default(),
+        MyReflectedComponent {
+            str: "str".to_string(),
+            list: vec![2.0],
+        },
+        Name::new("Custom components"),
+    ));
     commands
-        .spawn_bundle(PerspectiveCameraBundle {
-            transform: Transform::from_matrix(Mat4::face_toward(
-                Vec3::new(-3.0, 5.0, 8.0),
-                Vec3::new(0.0, 0.0, 0.0),
-                Vec3::new(0.0, 1.0, 0.0),
-            )),
+        .spawn(Camera3dBundle {
+            transform: Transform::from_xyz(-3.0, 5.0, 8.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..Default::default()
         })
         .insert(Name::new("Camera"));
     commands
-        .spawn_bundle(PbrBundle {
+        .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Plane { size: 10.0 })),
             material: materials.add(Color::rgb_u8(80, 233, 54).into()),
             ..Default::default()
         })
         .insert(Name::new("Floor"));
     commands
-        .spawn_bundle(PbrBundle {
+        .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
             transform: Transform::from_xyz(0.0, 1.0, 0.0),
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
@@ -59,7 +82,7 @@ fn setup(
         .insert(Name::new("Cube"))
         .with_children(|commands| {
             commands
-                .spawn_bundle(PbrBundle {
+                .spawn(PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
                     transform: Transform::from_xyz(0.0, 0.8, 0.0),
                     material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
@@ -69,7 +92,7 @@ fn setup(
                 .insert(Name::new("Child"))
                 .with_children(|commands| {
                     commands
-                        .spawn_bundle(PbrBundle {
+                        .spawn(PbrBundle {
                             mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
                             transform: Transform::from_xyz(0.0, 0.4, 0.0),
                             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
@@ -79,7 +102,7 @@ fn setup(
                 });
         });
     commands
-        .spawn_bundle(PbrBundle {
+        .spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Icosphere {
                 subdivisions: 20,
                 radius: 0.5,
@@ -91,7 +114,7 @@ fn setup(
         .insert(RotateTarget)
         .insert(Name::new("Sphere"));
     commands
-        .spawn_bundle(PointLightBundle {
+        .spawn(PointLightBundle {
             transform: Transform::from_xyz(10.3, 8.0, -2.3),
             point_light: PointLight {
                 range: 20.0,
@@ -102,7 +125,7 @@ fn setup(
         })
         .insert(Name::new("Light"));
     commands
-        .spawn_bundle(PointLightBundle {
+        .spawn(PointLightBundle {
             transform: Transform::from_xyz(-6.2, 8.0, 4.3),
             point_light: PointLight {
                 range: 20.0,
@@ -127,7 +150,7 @@ struct TeleportState {
 impl Default for TeleportState {
     fn default() -> Self {
         Self {
-            timer: Timer::from_seconds(1.0, true),
+            timer: Timer::from_seconds(1.0, TimerMode::Repeating),
             count: 0,
         }
     }
@@ -138,18 +161,18 @@ impl Default for TeleportState {
 fn movement(
     time: Res<Time>,
     mut state: Local<TeleportState>,
-    mut qs: QuerySet<(
-        QueryState<&mut Transform, With<RotateTarget>>,
-        QueryState<&mut Transform, With<TeleportTarget>>,
+    mut qs: ParamSet<(
+        Query<&mut Transform, With<RotateTarget>>,
+        Query<&mut Transform, With<TeleportTarget>>,
     )>,
 ) {
-    for mut transform in qs.q0().iter_mut() {
+    for mut transform in qs.p0().iter_mut() {
         // rotate around vertical axis through origin
         transform.translation =
             Quat::from_axis_angle(Vec3::Y, time.delta_seconds()) * transform.translation;
     }
     if state.timer.tick(time.delta()).just_finished() {
-        for mut transform in qs.q1().iter_mut() {
+        for mut transform in qs.p1().iter_mut() {
             // jump to new position to the left or right
             transform.translation += match state.count % 4 {
                 0 | 3 => -Vec3::X,
