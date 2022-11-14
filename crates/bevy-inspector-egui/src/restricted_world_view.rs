@@ -102,6 +102,12 @@ impl<T: Clone + PartialEq> Allowed<T> {
     }
 }
 
+impl<'a> From<&'a mut World> for RestrictedWorldView<'a> {
+    fn from(value: &'a mut World) -> Self {
+        RestrictedWorldView::new(value)
+    }
+}
+
 /// Fundamental methods for working with a [`RestrictedWorldView`]
 impl<'w> RestrictedWorldView<'w> {
     /// Create a new [`RestrictedWorldView`] with permission to access everything.
