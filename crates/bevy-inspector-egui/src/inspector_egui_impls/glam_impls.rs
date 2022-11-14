@@ -250,22 +250,18 @@ pub mod quat {
             .cloned()
             .unwrap_or_default();
 
-        ui.vertical(|ui| {
-            
-
-            match options.display {
-                QuatDisplay::Raw => {
-                    let mut vec4 = Vec4::from(*value);
-                    let changed = env.ui_for_reflect(&mut vec4, ui);
-                    if changed {
-                        *value = Quat::from_vec4(vec4).normalize();
-                    }
-                    changed
+        ui.vertical(|ui| match options.display {
+            QuatDisplay::Raw => {
+                let mut vec4 = Vec4::from(*value);
+                let changed = env.ui_for_reflect(&mut vec4, ui);
+                if changed {
+                    *value = Quat::from_vec4(vec4).normalize();
                 }
-                QuatDisplay::Euler => quat_ui_kind::<Euler>(value, ui, env),
-                QuatDisplay::YawPitchRoll => quat_ui_kind::<YawPitchRoll>(value, ui, env),
-                QuatDisplay::AxisAngle => quat_ui_kind::<AxisAngle>(value, ui, env),
+                changed
             }
+            QuatDisplay::Euler => quat_ui_kind::<Euler>(value, ui, env),
+            QuatDisplay::YawPitchRoll => quat_ui_kind::<YawPitchRoll>(value, ui, env),
+            QuatDisplay::AxisAngle => quat_ui_kind::<AxisAngle>(value, ui, env),
         })
         .inner
     }

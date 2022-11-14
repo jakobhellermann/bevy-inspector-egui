@@ -752,14 +752,7 @@ fn maybe_grid(
     match i {
         0 => false,
         1 => f(ui, false),
-        _ => {
-            Grid::new(id)
-                .show(ui, |ui| {
-                    
-                    f(ui, true)
-                })
-                .inner
-        }
+        _ => Grid::new(id).show(ui, |ui| f(ui, true)).inner,
     }
 }
 
