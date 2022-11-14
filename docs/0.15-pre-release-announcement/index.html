@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>
+        bevy-inspector-egui v0.15.0-alpha Announcement and Migration Guide - HackMD
+    </title>
+    <link rel="icon" type="image/png" href="https://hackmd.io/favicon.png">
+    <link rel="apple-touch-icon" href="https://hackmd.io/apple-touch-icon.png">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css" integrity="sha256-3iu9jgsy9TpTwXKb7bNQzqWekRX7pPK+2OLj3R922fo=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/3.5.0/octicons.min.css" integrity="sha256-QiWfLIsCT02Sdwkogf6YMiQlj4NE84MKkzEMkZnMGdg=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/themes/prism.min.css" integrity="sha256-vtR0hSWRc3Tb26iuN2oZHt3KRUomwTufNIf5/4oeCyg=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@hackmd/emojify.js@2.1.0/dist/css/basic/emojify.min.css" integrity="sha256-UOrvMOsSDSrW6szVLe8ZDZezBxh5IoIfgTwdNDgTjiU=" crossorigin="anonymous" />
+    <style>
+        @import url(https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,500i|Source+Code+Pro:300,400,500|Source+Sans+Pro:300,300i,400,400i,600,600i|Source+Serif+Pro&subset=latin-ext);.hljs{background:#fff;color:#333;display:block;overflow-x:auto;padding:.5em}.hljs-comment,.hljs-meta{color:#969896}.hljs-emphasis,.hljs-quote,.hljs-string,.hljs-strong,.hljs-template-variable,.hljs-variable{color:#df5000}.hljs-keyword,.hljs-selector-tag,.hljs-type{color:#a71d5d}.hljs-attribute,.hljs-bullet,.hljs-literal,.hljs-number,.hljs-symbol{color:#0086b3}.hljs-built_in,.hljs-builtin-name{color:#005cc5}.hljs-name,.hljs-section{color:#63a35c}.hljs-tag{color:#333}.hljs-attr,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id,.hljs-selector-pseudo,.hljs-title{color:#795da3}.hljs-addition{background-color:#eaffea;color:#55a532}.hljs-deletion{background-color:#ffecec;color:#bd2c00}.hljs-link{text-decoration:underline}.markdown-body{word-wrap:break-word;font-size:16px;line-height:1.5}.markdown-body:after,.markdown-body:before{content:"";display:table}.markdown-body:after{clear:both}.markdown-body>:first-child{margin-top:0!important}.markdown-body>:last-child{margin-bottom:0!important}.markdown-body a:not([href]){color:inherit;text-decoration:none}.markdown-body .absent{color:#c00}.markdown-body .anchor{float:left;line-height:1;margin-left:-20px;padding-right:4px}.markdown-body .anchor:focus{outline:none}.markdown-body blockquote,.markdown-body dl,.markdown-body ol,.markdown-body p,.markdown-body pre,.markdown-body table,.markdown-body ul{margin-bottom:16px;margin-top:0}.markdown-body hr{background-color:#e7e7e7;border:0;height:.25em;margin:24px 0;padding:0}.markdown-body blockquote{border-left:.25em solid #ddd;color:#777;font-size:16px;padding:0 1em}.markdown-body blockquote>:first-child{margin-top:0}.markdown-body blockquote>:last-child{margin-bottom:0}.markdown-body kbd,.popover kbd{background-color:#fcfcfc;border:1px solid;border-color:#ccc #ccc #bbb;border-radius:3px;box-shadow:inset 0 -1px 0 #bbb;color:#555;display:inline-block;font-size:11px;line-height:10px;padding:3px 5px;vertical-align:middle}.markdown-body .loweralpha{list-style-type:lower-alpha}.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4,.markdown-body h5,.markdown-body h6{font-weight:600;line-height:1.25;margin-bottom:16px;margin-top:24px}.markdown-body h1 .octicon-link,.markdown-body h2 .octicon-link,.markdown-body h3 .octicon-link,.markdown-body h4 .octicon-link,.markdown-body h5 .octicon-link,.markdown-body h6 .octicon-link{color:#000;vertical-align:middle;visibility:hidden}.markdown-body h1:hover .anchor,.markdown-body h2:hover .anchor,.markdown-body h3:hover .anchor,.markdown-body h4:hover .anchor,.markdown-body h5:hover .anchor,.markdown-body h6:hover .anchor{text-decoration:none}.markdown-body h1:hover .anchor .octicon-link,.markdown-body h2:hover .anchor .octicon-link,.markdown-body h3:hover .anchor .octicon-link,.markdown-body h4:hover .anchor .octicon-link,.markdown-body h5:hover .anchor .octicon-link,.markdown-body h6:hover .anchor .octicon-link{visibility:visible}.markdown-body h1 code,.markdown-body h1 tt,.markdown-body h2 code,.markdown-body h2 tt,.markdown-body h3 code,.markdown-body h3 tt,.markdown-body h4 code,.markdown-body h4 tt,.markdown-body h5 code,.markdown-body h5 tt,.markdown-body h6 code,.markdown-body h6 tt{font-size:inherit}.markdown-body h1{font-size:2em}.markdown-body h1,.markdown-body h2{border-bottom:1px solid #eee;padding-bottom:.3em}.markdown-body h2{font-size:1.5em}.markdown-body h3{font-size:1.25em}.markdown-body h4{font-size:1em}.markdown-body h5{font-size:.875em}.markdown-body h6{color:#777;font-size:.85em}.markdown-body ol,.markdown-body ul{padding-left:2em}.markdown-body ol.no-list,.markdown-body ul.no-list{list-style-type:none;padding:0}.markdown-body ol ol,.markdown-body ol ul,.markdown-body ul ol,.markdown-body ul ul{margin-bottom:0;margin-top:0}.markdown-body li>p{margin-top:16px}.markdown-body li+li{padding-top:.25em}.markdown-body dl{padding:0}.markdown-body dl dt{font-size:1em;font-style:italic;font-weight:700;margin-top:16px;padding:0}.markdown-body dl dd{margin-bottom:16px;padding:0 16px}.markdown-body table{display:block;overflow:auto;width:100%;word-break:normal;word-break:keep-all}.markdown-body table th{font-weight:700}.markdown-body table td,.markdown-body table th{border:1px solid #ddd;padding:6px 13px}.markdown-body table tr{background-color:#fff;border-top:1px solid #ccc}.markdown-body table tr:nth-child(2n){background-color:#f8f8f8}.markdown-body img{background-color:#fff;box-sizing:initial;max-width:100%}.markdown-body img[align=right]{padding-left:20px}.markdown-body img[align=left]{padding-right:20px}.markdown-body .emoji{background-color:initial;max-width:none;vertical-align:text-top}.markdown-body span.frame{display:block;overflow:hidden}.markdown-body span.frame>span{border:1px solid #ddd;display:block;float:left;margin:13px 0 0;overflow:hidden;padding:7px;width:auto}.markdown-body span.frame span img{display:block;float:left}.markdown-body span.frame span span{clear:both;color:#333;display:block;padding:5px 0 0}.markdown-body span.align-center{clear:both;display:block;overflow:hidden}.markdown-body span.align-center>span{display:block;margin:13px auto 0;overflow:hidden;text-align:center}.markdown-body span.align-center span img{margin:0 auto;text-align:center}.markdown-body span.align-right{clear:both;display:block;overflow:hidden}.markdown-body span.align-right>span{display:block;margin:13px 0 0;overflow:hidden;text-align:right}.markdown-body span.align-right span img{margin:0;text-align:right}.markdown-body span.float-left{display:block;float:left;margin-right:13px;overflow:hidden}.markdown-body span.float-left span{margin:13px 0 0}.markdown-body span.float-right{display:block;float:right;margin-left:13px;overflow:hidden}.markdown-body span.float-right>span{display:block;margin:13px auto 0;overflow:hidden;text-align:right}.markdown-body code,.markdown-body tt{background-color:#0000000a;border-radius:3px;font-size:85%;margin:0;padding:.2em 0}.markdown-body code:after,.markdown-body code:before,.markdown-body tt:after,.markdown-body tt:before{content:"\00a0";letter-spacing:-.2em}.markdown-body code br,.markdown-body tt br{display:none}.markdown-body del code{text-decoration:inherit}.markdown-body pre{word-wrap:normal}.markdown-body pre>code{background:#0000;border:0;font-size:100%;margin:0;padding:0;white-space:pre;word-break:normal}.markdown-body .highlight{margin-bottom:16px}.markdown-body .highlight pre{margin-bottom:0;word-break:normal}.markdown-body .highlight pre,.markdown-body pre{background-color:#f7f7f7;border-radius:3px;font-size:85%;line-height:1.45;overflow:auto;padding:16px}.markdown-body pre code,.markdown-body pre tt{word-wrap:normal;background-color:initial;border:0;display:inline;line-height:inherit;margin:0;max-width:auto;overflow:visible;padding:0}.markdown-body pre code:after,.markdown-body pre code:before,.markdown-body pre tt:after,.markdown-body pre tt:before{content:normal}.markdown-body .csv-data td,.markdown-body .csv-data th{font-size:12px;line-height:1;overflow:hidden;padding:5px;text-align:left;white-space:nowrap}.markdown-body .csv-data .blob-line-num{background:#fff;border:0;padding:10px 8px 9px;text-align:right}.markdown-body .csv-data tr{border-top:0}.markdown-body .csv-data th{background:#f8f8f8;border-top:0;font-weight:700}.news .alert .markdown-body blockquote{border:0;padding:0 0 0 40px}.activity-tab .news .alert .commits,.activity-tab .news .markdown-body blockquote{padding-left:0}.task-list-item{list-style-type:none}.task-list-item label{font-weight:400}.task-list-item.enabled label{cursor:pointer}.task-list-item+.task-list-item{margin-top:3px}.task-list-item-checkbox{cursor:default!important;float:left;margin:.31em 0 .2em -1.3em!important;vertical-align:middle}.markdown-body{max-width:758px;overflow:visible!important;padding-bottom:40px;padding-top:40px;position:relative}.markdown-body .emoji{vertical-align:top}.markdown-body pre{border:inherit!important}.markdown-body code{color:inherit!important}.markdown-body pre code .wrapper{display:-moz-inline-flex;display:-ms-inline-flex;display:-o-inline-flex;display:inline-flex}.markdown-body pre code .gutter{float:left;overflow:hidden;-webkit-user-select:none;user-select:none}.markdown-body pre code .gutter.linenumber{border-right:3px solid #6ce26c!important;box-sizing:initial;color:#afafaf!important;cursor:default;display:inline-block;min-width:20px;padding:0 8px 0 0;position:relative;text-align:right;z-index:4}.markdown-body pre code .gutter.linenumber>span:before{content:attr(data-linenumber)}.markdown-body pre code .code{float:left;margin:0 0 0 16px}.markdown-body .gist .line-numbers{border-bottom:none;border-left:none;border-top:none}.markdown-body .gist .line-data{border:none}.markdown-body .gist table{border-collapse:inherit!important;border-spacing:0}.markdown-body code[data-gist-id]{background:none;padding:0}.markdown-body code[data-gist-id]:after,.markdown-body code[data-gist-id]:before{content:""}.markdown-body code[data-gist-id] .blob-num{border:unset}.markdown-body code[data-gist-id] table{margin-bottom:unset;overflow:unset}.markdown-body code[data-gist-id] table tr{background:unset}.markdown-body[dir=rtl] pre{direction:ltr}.markdown-body[dir=rtl] code{direction:ltr;unicode-bidi:embed}.markdown-body .alert>p:last-child{margin-bottom:0}.markdown-body pre.abc,.markdown-body pre.flow-chart,.markdown-body pre.graphviz,.markdown-body pre.mermaid,.markdown-body pre.sequence-diagram,.markdown-body pre.vega{background-color:inherit;border-radius:0;overflow:visible;text-align:center;white-space:inherit}.markdown-body pre.abc>code,.markdown-body pre.flow-chart>code,.markdown-body pre.graphviz>code,.markdown-body pre.mermaid>code,.markdown-body pre.sequence-diagram>code,.markdown-body pre.vega>code{text-align:left}.markdown-body pre.abc>svg,.markdown-body pre.flow-chart>svg,.markdown-body pre.graphviz>svg,.markdown-body pre.mermaid>svg,.markdown-body pre.sequence-diagram>svg,.markdown-body pre.vega>svg{height:100%;max-width:100%}.markdown-body pre>code.wrap{word-wrap:break-word;white-space:pre-wrap;white-space:-moz-pre-wrap;white-space:-pre-wrap;white-space:-o-pre-wrap}.markdown-body .alert>p:last-child,.markdown-body .alert>ul:last-child{margin-bottom:0}.markdown-body summary{display:list-item}.markdown-body summary:focus{outline:none}.markdown-body details summary{cursor:pointer}.markdown-body details:not([open])>:not(summary){display:none}.markdown-body figure{margin:1em 40px}.markdown-body .mark,.markdown-body mark{background-color:#fff1a7}.vimeo,.youtube{background-color:#000;background-position:50%;background-repeat:no-repeat;background-size:contain;cursor:pointer;display:table;overflow:hidden;text-align:center}.vimeo,.youtube{position:relative;width:100%}.youtube{padding-bottom:56.25%}.vimeo img{object-fit:contain;width:100%;z-index:0}.youtube img{object-fit:cover;z-index:0}.vimeo iframe,.youtube iframe,.youtube img{height:100%;left:0;position:absolute;top:0;width:100%}.vimeo iframe,.youtube iframe{vertical-align:middle;z-index:1}.vimeo .icon,.youtube .icon{color:#fff;height:auto;left:50%;opacity:.3;position:absolute;top:50%;transform:translate(-50%,-50%);transition:opacity .2s;width:auto;z-index:0}.vimeo:hover .icon,.youtube:hover .icon{opacity:.6;transition:opacity .2s}.slideshare .inner,.speakerdeck .inner{position:relative;width:100%}.slideshare .inner iframe,.speakerdeck .inner iframe{bottom:0;height:100%;left:0;position:absolute;right:0;top:0;width:100%}.figma{display:table;padding-bottom:56.25%;position:relative;width:100%}.figma iframe{border:1px solid #eee;bottom:0;height:100%;left:0;position:absolute;right:0;top:0;width:100%}.markmap-container{height:300px}.markmap-container>svg{height:100%;width:100%}.MJX_Assistive_MathML{display:none}#MathJax_Message{z-index:1000!important}.ui-infobar{color:#777;margin:25px auto -25px;max-width:760px;position:relative;z-index:2}.toc .invisable-node{list-style-type:none}.ui-toc{bottom:20px;position:fixed;z-index:998}.ui-toc.both-mode{margin-left:8px}.ui-toc.both-mode .ui-toc-label{border-bottom-left-radius:0;border-top-left-radius:0;height:40px;padding:10px 4px}.ui-toc-label{background-color:#e6e6e6;border:none;color:#868686;transition:opacity .2s}.ui-toc .open .ui-toc-label{color:#fff;opacity:1;transition:opacity .2s}.ui-toc-label:focus{background-color:#ccc;color:#000;opacity:.3}.ui-toc-label:hover{background-color:#ccc;opacity:1;transition:opacity .2s}.ui-toc-dropdown{margin-bottom:20px;margin-top:20px;max-height:70vh;max-width:45vw;overflow:auto;padding-left:10px;padding-right:10px;text-align:inherit;width:25vw}.ui-toc-dropdown>.toc{max-height:calc(70vh - 100px);overflow:auto}.ui-toc-dropdown[dir=rtl] .nav{letter-spacing:.0029em;padding-right:0}.ui-toc-dropdown a{overflow:hidden;text-overflow:ellipsis;white-space:pre}.ui-toc-dropdown .nav>li>a{color:#767676;display:block;font-size:13px;font-weight:500;padding:4px 20px}.ui-toc-dropdown .nav>li:first-child:last-child>ul,.ui-toc-dropdown .toc.expand ul{display:block}.ui-toc-dropdown .nav>li>a:focus,.ui-toc-dropdown .nav>li>a:hover{background-color:initial;border-left:1px solid #000;color:#000;padding-left:19px;text-decoration:none}.ui-toc-dropdown[dir=rtl] .nav>li>a:focus,.ui-toc-dropdown[dir=rtl] .nav>li>a:hover{border-left:none;border-right:1px solid #000;padding-right:19px}.ui-toc-dropdown .nav>.active:focus>a,.ui-toc-dropdown .nav>.active:hover>a,.ui-toc-dropdown .nav>.active>a{background-color:initial;border-left:2px solid #000;color:#000;font-weight:700;padding-left:18px}.ui-toc-dropdown[dir=rtl] .nav>.active:focus>a,.ui-toc-dropdown[dir=rtl] .nav>.active:hover>a,.ui-toc-dropdown[dir=rtl] .nav>.active>a{border-left:none;border-right:2px solid #000;padding-right:18px}.ui-toc-dropdown .nav .nav{display:none;padding-bottom:10px}.ui-toc-dropdown .nav>.active>ul{display:block}.ui-toc-dropdown .nav .nav>li>a{font-size:12px;font-weight:400;padding-bottom:1px;padding-left:30px;padding-top:1px}.ui-toc-dropdown[dir=rtl] .nav .nav>li>a{padding-right:30px}.ui-toc-dropdown .nav .nav>li>ul>li>a{font-size:12px;font-weight:400;padding-bottom:1px;padding-left:40px;padding-top:1px}.ui-toc-dropdown[dir=rtl] .nav .nav>li>ul>li>a{padding-right:40px}.ui-toc-dropdown .nav .nav>li>a:focus,.ui-toc-dropdown .nav .nav>li>a:hover{padding-left:29px}.ui-toc-dropdown[dir=rtl] .nav .nav>li>a:focus,.ui-toc-dropdown[dir=rtl] .nav .nav>li>a:hover{padding-right:29px}.ui-toc-dropdown .nav .nav>li>ul>li>a:focus,.ui-toc-dropdown .nav .nav>li>ul>li>a:hover{padding-left:39px}.ui-toc-dropdown[dir=rtl] .nav .nav>li>ul>li>a:focus,.ui-toc-dropdown[dir=rtl] .nav .nav>li>ul>li>a:hover{padding-right:39px}.ui-toc-dropdown .nav .nav>.active:focus>a,.ui-toc-dropdown .nav .nav>.active:hover>a,.ui-toc-dropdown .nav .nav>.active>a{font-weight:500;padding-left:28px}.ui-toc-dropdown[dir=rtl] .nav .nav>.active:focus>a,.ui-toc-dropdown[dir=rtl] .nav .nav>.active:hover>a,.ui-toc-dropdown[dir=rtl] .nav .nav>.active>a{padding-right:28px}.ui-toc-dropdown .nav .nav>.active>.nav>.active:focus>a,.ui-toc-dropdown .nav .nav>.active>.nav>.active:hover>a,.ui-toc-dropdown .nav .nav>.active>.nav>.active>a{font-weight:500;padding-left:38px}.ui-toc-dropdown[dir=rtl] .nav .nav>.active>.nav>.active:focus>a,.ui-toc-dropdown[dir=rtl] .nav .nav>.active>.nav>.active:hover>a,.ui-toc-dropdown[dir=rtl] .nav .nav>.active>.nav>.active>a{padding-right:38px}.markdown-body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Helvetica,Roboto,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol}html[lang^=ja] .markdown-body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Helvetica,Roboto,Arial,Hiragino Kaku Gothic Pro,ヒラギノ角ゴ Pro W3,Osaka,Meiryo,メイリオ,MS Gothic,ＭＳ ゴシック,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol}html[lang=zh-tw] .markdown-body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Helvetica,Roboto,Arial,PingFang TC,Microsoft JhengHei,微軟正黑,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol}html[lang=zh-cn] .markdown-body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Helvetica,Roboto,Arial,PingFang SC,Microsoft YaHei,微软雅黑,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol}html .markdown-body[lang^=ja]{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Helvetica,Roboto,Arial,Hiragino Kaku Gothic Pro,ヒラギノ角ゴ Pro W3,Osaka,Meiryo,メイリオ,MS Gothic,ＭＳ ゴシック,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol}html .markdown-body[lang=zh-tw]{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Helvetica,Roboto,Arial,PingFang TC,Microsoft JhengHei,微軟正黑,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol}html .markdown-body[lang=zh-cn]{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Helvetica,Roboto,Arial,PingFang SC,Microsoft YaHei,微软雅黑,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol}html[lang^=ja] .ui-toc-dropdown{font-family:Source Sans Pro,Helvetica,Arial,Meiryo UI,MS PGothic,ＭＳ Ｐゴシック,sans-serif}html[lang=zh-tw] .ui-toc-dropdown{font-family:Source Sans Pro,Helvetica,Arial,Microsoft JhengHei UI,微軟正黑UI,sans-serif}html[lang=zh-cn] .ui-toc-dropdown{font-family:Source Sans Pro,Helvetica,Arial,Microsoft YaHei UI,微软雅黑UI,sans-serif}html .ui-toc-dropdown[lang^=ja]{font-family:Source Sans Pro,Helvetica,Arial,Meiryo UI,MS PGothic,ＭＳ Ｐゴシック,sans-serif}html .ui-toc-dropdown[lang=zh-tw]{font-family:Source Sans Pro,Helvetica,Arial,Microsoft JhengHei UI,微軟正黑UI,sans-serif}html .ui-toc-dropdown[lang=zh-cn]{font-family:Source Sans Pro,Helvetica,Arial,Microsoft YaHei UI,微软雅黑UI,sans-serif}.ui-affix-toc{max-height:70vh;max-width:15vw;overflow:auto;position:fixed;top:0}.back-to-top,.expand-toggle,.go-to-bottom{color:#999;display:block;font-size:12px;font-weight:500;margin-left:10px;margin-top:10px;padding:4px 10px}.back-to-top:focus,.back-to-top:hover,.expand-toggle:focus,.expand-toggle:hover,.go-to-bottom:focus,.go-to-bottom:hover{color:#563d7c;text-decoration:none}.back-to-top,.go-to-bottom{margin-top:0}.ui-user-icon{background-position:50%;background-repeat:no-repeat;background-size:cover;border-radius:50%;display:block;height:20px;margin-bottom:2px;margin-right:5px;margin-top:2px;width:20px}.ui-user-icon.small{display:inline-block;height:18px;margin:0 0 .2em;vertical-align:middle;width:18px}.ui-infobar>small>span{line-height:22px}.ui-infobar>small .dropdown{display:inline-block}.ui-infobar>small .dropdown a:focus,.ui-infobar>small .dropdown a:hover{text-decoration:none}.ui-more-info{color:#888;cursor:pointer;vertical-align:middle}.ui-more-info .fa{font-size:16px}.ui-connectedGithub,.ui-published-note{color:#888}.ui-connectedGithub{line-height:23px;white-space:nowrap}.ui-connectedGithub a.file-path{color:#888;padding-left:22px;text-decoration:none}.ui-connectedGithub a.file-path:active,.ui-connectedGithub a.file-path:hover{color:#888;text-decoration:underline}.ui-connectedGithub .fa{font-size:20px}.ui-published-note .fa{font-size:20px;vertical-align:top}.unselectable{-webkit-user-select:none;-o-user-select:none;user-select:none}.selectable{-webkit-user-select:text;-o-user-select:text;user-select:text}.inline-spoiler-section{cursor:pointer}.inline-spoiler-section .spoiler-text{background-color:#333;border-radius:2px}.inline-spoiler-section .spoiler-text>*{opacity:0}.inline-spoiler-section .spoiler-img{filter:blur(10px)}.inline-spoiler-section.raw{background-color:#333;border-radius:2px}.inline-spoiler-section.raw>*{opacity:0}.inline-spoiler-section.unveil{cursor:auto}.inline-spoiler-section.unveil .spoiler-text{background-color:#3333331a}.inline-spoiler-section.unveil .spoiler-text>*{opacity:1}.inline-spoiler-section.unveil .spoiler-img{filter:none}@media print{blockquote,div,img,pre,table{page-break-inside:avoid!important}a[href]:after{font-size:12px!important}}.markdown-body.slides{color:#222;position:relative;z-index:1}.markdown-body.slides:before{background-color:currentColor;bottom:0;box-shadow:0 0 0 50vw;content:"";display:block;left:0;position:absolute;right:0;top:0;z-index:-1}.markdown-body.slides section[data-markdown]{background-color:#fff;margin-bottom:1.5em;position:relative;text-align:center}.markdown-body.slides section[data-markdown] code{text-align:left}.markdown-body.slides section[data-markdown]:before{content:"";display:block;padding-bottom:56.23%}.markdown-body.slides section[data-markdown]>div:first-child{left:1em;max-height:100%;overflow:hidden;position:absolute;right:1em;top:50%;transform:translateY(-50%)}.markdown-body.slides section[data-markdown]>ul{display:inline-block}.markdown-body.slides>section>section+section:after{border:3px solid #777;content:"";height:1.5em;position:absolute;right:1em;top:-1.5em}.site-ui-font{font-family:Source Sans Pro,Helvetica,Arial,sans-serif}html[lang^=ja] .site-ui-font{font-family:Source Sans Pro,Helvetica,Arial,Hiragino Kaku Gothic Pro,ヒラギノ角ゴ Pro W3,Osaka,Meiryo,メイリオ,MS Gothic,ＭＳ ゴシック,sans-serif}html[lang=zh-tw] .site-ui-font{font-family:Source Sans Pro,Helvetica,Arial,PingFang TC,Microsoft JhengHei,微軟正黑,sans-serif}html[lang=zh-cn] .site-ui-font{font-family:Source Sans Pro,Helvetica,Arial,PingFang SC,Microsoft YaHei,微软雅黑,sans-serif}body{font-smoothing:subpixel-antialiased!important;-webkit-font-smoothing:subpixel-antialiased!important;-moz-osx-font-smoothing:auto!important;-webkit-overflow-scrolling:touch;font-family:Source Sans Pro,Helvetica,Arial,sans-serif;letter-spacing:.025em}html[lang^=ja] body{font-family:Source Sans Pro,Helvetica,Arial,Hiragino Kaku Gothic Pro,ヒラギノ角ゴ Pro W3,Osaka,Meiryo,メイリオ,MS Gothic,ＭＳ ゴシック,sans-serif}html[lang=zh-tw] body{font-family:Source Sans Pro,Helvetica,Arial,PingFang TC,Microsoft JhengHei,微軟正黑,sans-serif}html[lang=zh-cn] body{font-family:Source Sans Pro,Helvetica,Arial,PingFang SC,Microsoft YaHei,微软雅黑,sans-serif}abbr[title]{border-bottom:none;text-decoration:underline;-webkit-text-decoration:underline dotted;text-decoration:underline dotted}abbr[data-original-title],abbr[title]{cursor:help}body.modal-open{overflow-y:auto;padding-right:0!important}svg{text-shadow:none}
+    </style>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js" integrity="sha256-3Jy/GbSLrg0o9y5Z5n1uw0qxZECH7C6OQpVBgNFYa0g=" crossorigin="anonymous"></script>
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js" integrity="sha256-g6iAfvZp+nDQ2TdTR/VVKJf3bGro4ub5fvWSWVRi2NE=" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.9/es5-shim.min.js" integrity="sha256-8E4Is26QH0bD52WoQpcB+R/tcWQtpzlCojrybUd7Mxo=" crossorigin="anonymous"></script>
+    <![endif]-->
+</head>
+
+<body>
+    <div id="doc" class="markdown-body container-fluid comment-enabled" data-hard-breaks="true"><h1 id="bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide" data-id="bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide"><a class="anchor hidden-xs" href="#bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide" title="bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide"><span class="octicon octicon-link"></span></a><span>bevy-inspector-egui </span><code>v0.15.0-alpha</code><span> Announcement and Migration Guide</span></h1><h2 id="What’s-new-in-the-update" data-id="What’s-new-in-the-update"><a class="anchor hidden-xs" href="#What’s-new-in-the-update" title="What’s-new-in-the-update"><span class="octicon octicon-link"></span></a><span>What’s new in the update?</span></h2><p><span>This release features the removal of the </span><code>Inspectable</code><span> trait in favor of reusing the existing </span><code>Reflect</code><span> trait. This leads to less derive boilerplate and more reusability, paving the way for non-egui Inspector implementations (in the general sense, could also be autocomplete in a console) and usage outside of bevy.</span></p><h3 id="New-APIs" data-id="New-APIs"><a class="anchor hidden-xs" href="#New-APIs" title="New-APIs"><span class="octicon octicon-link"></span></a><span>New APIs</span></h3><p><span>The release is a rewrite from scratch so here’s the new layout of the crate. For more detail, you can browse the </span><a href="" target="_blank" rel="noopener"><span>docs</span></a><span>.</span></p><p><span>The main modules are:</span><br>
+<code>egui_reflect_inspector</code><span> - General-purpose machinery for displaying Reflect types using egui</span><br>
+<code>bevy_ecs_inspector</code><span> - Methods for displaying bevy resources, assets and entities</span><br>
+<code>inspector_options</code><span> - Way of associating options to fields using InspectorOptions</span><br>
+<code>quick</code><span> - Easy plugins for showing UI panels.</span></p><h4 id="egui_reflect_inspector" data-id="egui_reflect_inspector"><a class="anchor hidden-xs" href="#egui_reflect_inspector" title="egui_reflect_inspector"><span class="octicon octicon-link"></span></a><code>egui_reflect_inspector</code></h4><p><span>This module has no knowledge of bevy and provides general purpose methods for displaying arbitrary </span><code>&amp;mut dyn Reflect</code><span> or </span><code>&amp;dyn Reflect</code><span> (that’s right, we support readonly UI now).</span></p><p data-original-title="" title=""><span>Most of the time however you can just use either the</span></p><ul>
+<li><code>quick</code><span> module for an simple </span><code>WorldInspectorPlugin</code><span>/</span><code>ResourceInspectorPlugin</code><span>/</span><code>StateInspectorPlugin</code><span> plugins, or the</span></li>
+<li><code>bevy_ecs_inspector</code><span> module for functions like </span><code>ui_for_resource</code><span>, </span><code>ui_for_entity</code><span>, etc.</span></li>
+</ul><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token keyword">use</span> <span class="token namespace">bevy_reflect<span class="token punctuation">::</span></span><span class="token punctuation">{</span><span class="token class-name">Reflect</span><span class="token punctuation">,</span> <span class="token class-name">TypeRegistry</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword">use</span> <span class="token namespace">bevy_inspector_egui<span class="token punctuation">::</span>egui_reflect_inspector<span class="token punctuation">::</span></span><span class="token punctuation">{</span><span class="token class-name">InspectorUi</span><span class="token punctuation">,</span> <span class="token class-name">Context</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token attribute attr-name">#[derive(Reflect)]</span>
+<span class="token keyword">struct</span> <span class="token type-definition class-name">Data</span> <span class="token punctuation">{</span>
+    value<span class="token punctuation">:</span> <span class="token keyword">f32</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">fn</span> <span class="token function-definition function">ui</span><span class="token punctuation">(</span>data<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">mut</span> <span class="token class-name">Data</span><span class="token punctuation">,</span> ui<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">mut</span> <span class="token namespace">egui<span class="token punctuation">::</span></span><span class="token class-name">Ui</span><span class="token punctuation">,</span> type_registry<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token class-name">TypeRegistry</span><span class="token punctuation">)</span> <span class="token punctuation">-&gt;</span> <span class="token keyword">bool</span> <span class="token punctuation">{</span>
+    <span class="token comment">// empty context, with no access to the bevy world</span>
+    <span class="token keyword">let</span> <span class="token keyword">mut</span> cx <span class="token operator">=</span> <span class="token class-name">Context</span><span class="token punctuation">::</span><span class="token function">default</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// no short circuiting, couldn't display `Handle&lt;StandardMaterial&gt;`</span>
+    <span class="token keyword">let</span> <span class="token keyword">mut</span> env <span class="token operator">=</span> <span class="token class-name">InspectorUi</span><span class="token punctuation">::</span><span class="token function">new_no_short_circuit</span><span class="token punctuation">(</span>type_registry<span class="token punctuation">,</span> <span class="token operator">&amp;</span><span class="token keyword">mut</span> cx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    env<span class="token punctuation">.</span><span class="token function">ui_for_reflect</span><span class="token punctuation">(</span>data<span class="token punctuation">,</span> ui<span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+<span class="token comment">// alternatively, just call</span>
+<span class="token comment">// `egui_reflect_inspector::ui_for_value(&amp;mut data, ui, type_registry)`</span>
+<span class="token comment">// which does the same.</span>
+</div></div></code></pre><p><span>This is the minimum needed to display a value: the value, the </span><code>Ui</code><span> and the type registry. This is enough for basic usage, but consider a struct like this</span></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token keyword">pub</span> <span class="token keyword">struct</span> <span class="token type-definition class-name">StandardMaterial</span> <span class="token punctuation">{</span>
+    base_color<span class="token punctuation">:</span> <span class="token class-name">Color</span>
+    base_color_texture<span class="token punctuation">:</span> <span class="token class-name">Option</span><span class="token operator">&lt;</span><span class="token class-name">Handle</span><span class="token operator">&lt;</span><span class="token class-name">Image</span><span class="token operator">&gt;&gt;</span>
+    <span class="token punctuation">..</span>
+<span class="token punctuation">}</span>
+</div></div></code></pre><p><code>base_color</code><span> can be reflected and displayed, but what about the </span><code>Handle&lt;Image&gt;</code><span>? To really display its value, you would need to access the </span><code>Assets&lt;Image&gt;</code><span> resource and look the handle up.</span><br>
+<span>This is what the </span><code>Context</code><span> struct and the </span><code>short_circuit</code><span>ing is about.</span><br>
+<span>You can put a </span><code>&amp;mut World</code><span> into the Context and </span><code>InspectorUi::new(type_registry, cx, short_circuit, short_circuit_readonly)</code><span> accepts to short circuiting methods, which will be asked at every step in the recursive reflect walking if you know a better way to display the struct.</span></p><p><span>We provide short circuiting methods capable of displaying </span><code>Handle</code><span>s which look something like this:</span></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token keyword">fn</span> <span class="token function-definition function">short_circuit_handle</span><span class="token punctuation">(</span><span class="token punctuation">..</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> value is <span class="token class-name">Handle</span><span class="token operator">&lt;</span><span class="token operator">?</span><span class="token operator">&gt;</span> <span class="token punctuation">{</span>
+        <span class="token keyword">let</span> assets <span class="token operator">=</span> context<span class="token punctuation">.</span>world<span class="token punctuation">.</span><span class="token namespace">resource<span class="token punctuation">::</span></span><span class="token class-name">Assets</span><span class="token operator">&lt;</span><span class="token operator">?</span>asset_type<span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> value <span class="token operator">=</span> assets<span class="token punctuation">.</span><span class="token function">get_mut</span><span class="token punctuation">(</span>handle<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token function">ui_for_reflect</span><span class="token punctuation">(</span>value<span class="token punctuation">,</span> <span class="token punctuation">..</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    
+    <span class="token keyword">return</span> <span class="token class-name">None</span><span class="token punctuation">;</span> <span class="token comment">// no short circuiting, continue normally</span>
+<span class="token punctuation">}</span>
+</div></div></code></pre><p><span>As a user, you don’t have to worry about this, if you just use the </span><code>InspectorUi::for_bevy</code><span> constructor:</span></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token keyword">let</span> world<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">mut</span> <span class="token class-name">World</span> <span class="token operator">=</span> <span class="token punctuation">..</span><span class="token punctuation">;</span>
+<span class="token keyword">let</span> standard_material<span class="token punctuation">:</span> <span class="token class-name">Handle</span><span class="token operator">&lt;</span><span class="token class-name">StandardMaterial</span><span class="token operator">&gt;</span> <span class="token operator">=</span> <span class="token punctuation">..</span><span class="token punctuation">;</span>
+
+<span class="token keyword">let</span> <span class="token keyword">mut</span> cx <span class="token operator">=</span> <span class="token class-name">Context</span> <span class="token punctuation">{</span>
+    world<span class="token punctuation">:</span> <span class="token class-name">Some</span><span class="token punctuation">(</span>world<span class="token punctuation">.</span><span class="token function">into</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword">let</span> <span class="token keyword">mut</span> env <span class="token operator">=</span> <span class="token class-name">InspectorUi</span><span class="token punctuation">::</span><span class="token function">for_bevy</span><span class="token punctuation">(</span>type_registry<span class="token punctuation">,</span> <span class="token operator">&amp;</span><span class="token keyword">mut</span> cx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+env<span class="token punctuation">.</span><span class="token function">ui_for_reflect</span><span class="token punctuation">(</span>value<span class="token punctuation">,</span> ui<span class="token punctuation">)</span>
+</div></div></code></pre><p><span>This will just work and display the value of the </span><code>StandardMaterial</code><span>.</span></p><details>
+<summary>Side node about change detection</summary>
+<p><span>If you have a </span><code>Mut</code><span> value and directly write </span><code>env.ui_for_reflect(&amp;mut *value, ui)</code><span> you will always trigger change detection.</span><br>
+<span>The proper way to write this is</span></p>
+<pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token keyword">let</span> changed <span class="token operator">=</span> env<span class="token punctuation">.</span><span class="token function">ui_for_reflect</span><span class="token punctuation">(</span>value<span class="token punctuation">.</span><span class="token function">bypass_change_detection</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> ui<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">if</span> changed <span class="token punctuation">{</span>
+    value<span class="token punctuation">.</span><span class="token function">set_changed</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</div></div></code></pre>
+</details><h4 id="bevy_inspector" data-id="bevy_inspector"><a class="anchor hidden-xs" href="#bevy_inspector" title="bevy_inspector"><span class="octicon octicon-link"></span></a><code>bevy_inspector</code></h4><p><span>This module contains functions for quickly building UI for bevy apps.</span><br>
+<span>The following example speaks for itself, for more info just look at the </span><a href="" target="_blank" rel="noopener"><span>module docs</span></a><span>.</span></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token keyword">use</span> <span class="token namespace">bevy_inspector_egui<span class="token punctuation">::</span></span>bevy_inspector<span class="token punctuation">;</span>
+
+<span class="token attribute attr-name">#[derive(Debug, Clone, Eq, PartialEq, Hash, Reflect)]</span>
+<span class="token keyword">enum</span> <span class="token type-definition class-name">AppState</span> <span class="token punctuation">{</span> <span class="token class-name">A</span><span class="token punctuation">,</span> <span class="token class-name">B</span><span class="token punctuation">,</span> <span class="token class-name">C</span> <span class="token punctuation">}</span>
+
+<span class="token keyword">fn</span> <span class="token function-definition function">show_ui</span><span class="token punctuation">(</span>world<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">mut</span> <span class="token class-name">World</span><span class="token punctuation">,</span> ui<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">mut</span> <span class="token namespace">egui<span class="token punctuation">::</span></span><span class="token class-name">Ui</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    ui<span class="token punctuation">.</span><span class="token function">heading</span><span class="token punctuation">(</span><span class="token string">"Msaa resource"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token namespace">bevy_inspector<span class="token punctuation">::</span></span><span class="token function">ui_for_resource</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">Msaa</span><span class="token operator">&gt;</span><span class="token punctuation">(</span>world<span class="token punctuation">,</span> ui<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    ui<span class="token punctuation">.</span><span class="token function">heading</span><span class="token punctuation">(</span><span class="token string">"App State"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token namespace">bevy_inspector<span class="token punctuation">::</span></span><span class="token function">ui_for_state</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">AppState</span><span class="token operator">&gt;</span><span class="token punctuation">(</span>world<span class="token punctuation">,</span> ui<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token namespace">egui<span class="token punctuation">::</span></span><span class="token class-name">CollapsingHeader</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token string">"Entities"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">default_open</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">show</span><span class="token punctuation">(</span>ui<span class="token punctuation">,</span> <span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>ui<span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">{</span>
+            <span class="token namespace">bevy_inspector<span class="token punctuation">::</span></span><span class="token function">ui_for_world_entities</span><span class="token punctuation">(</span>world<span class="token punctuation">,</span> ui<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token namespace">egui<span class="token punctuation">::</span></span><span class="token class-name">CollapsingHeader</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token string">"Resources"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">show</span><span class="token punctuation">(</span>ui<span class="token punctuation">,</span> <span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>ui<span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">{</span>
+        <span class="token namespace">bevy_inspector<span class="token punctuation">::</span></span><span class="token function">ui_for_resources</span><span class="token punctuation">(</span>world<span class="token punctuation">,</span> ui<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token namespace">egui<span class="token punctuation">::</span></span><span class="token class-name">CollapsingHeader</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token string">"Assets"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">show</span><span class="token punctuation">(</span>ui<span class="token punctuation">,</span> <span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>ui<span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">{</span>
+        <span class="token namespace">bevy_inspector<span class="token punctuation">::</span></span><span class="token function">ui_for_all_assets</span><span class="token punctuation">(</span>world<span class="token punctuation">,</span> ui<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</div></div></code></pre><h4 id="quick" data-id="quick"><a class="anchor hidden-xs" href="#quick" title="quick"><span class="octicon octicon-link"></span></a><code>quick</code></h4><p><span>Plugins you can easily add to your app.</span></p><p><span>Pro: less typing</span><br>
+<span>Con: less flexibility</span></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token attribute attr-name">#[derive(Reflect, Resource, Default, InspectorOptions)]</span>
+<span class="token attribute attr-name">#[reflect(Resource, InspectorOptions)]</span>
+<span class="token keyword">struct</span> <span class="token type-definition class-name">Configuration</span> <span class="token punctuation">{</span>
+    <span class="token attribute attr-name">#[inspector(min = 0.0)]</span>
+    value<span class="token punctuation">:</span> <span class="token keyword">f32</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+
+<span class="token attribute attr-name">#[derive(Reflect, Debug, Clone, Eq, PartialEq, Hash)]</span>
+<span class="token keyword">enum</span> <span class="token type-definition class-name">AppState</span> <span class="token punctuation">{</span> <span class="token class-name">A</span><span class="token punctuation">,</span> <span class="token class-name">B</span><span class="token punctuation">,</span> <span class="token class-name">C</span> <span class="token punctuation">}</span>
+
+<span class="token keyword">fn</span> <span class="token function-definition function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token class-name">App</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugins</span><span class="token punctuation">(</span><span class="token class-name">DefaultPlugins</span><span class="token punctuation">)</span>
+        <span class="token comment">// window with UI for the entire world, with a tab for entities, resources and assets</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugin</span><span class="token punctuation">(</span><span class="token class-name">WorldInspectorPlugin</span><span class="token punctuation">)</span>
+        <span class="token comment">// window with UI for a single resource</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugin</span><span class="token punctuation">(</span><span class="token class-name">ResourceInspectorPlugin</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">Configuration</span><span class="token operator">&gt;</span><span class="token punctuation">::</span><span class="token function">default</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token comment">// window with UI for your app state</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugin</span><span class="token punctuation">(</span><span class="token class-name">StateInspectorPlugin</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">AppState</span><span class="token operator">&gt;</span><span class="token punctuation">::</span><span class="token function">default</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_state</span><span class="token punctuation">(</span><span class="token class-name">AppState</span><span class="token punctuation">::</span><span class="token class-name">A</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">init_resource</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">Configuration</span><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">register_type</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">Configuration</span><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">register_type</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">AppState</span><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_startup_system</span><span class="token punctuation">(</span>setup<span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</div></div></code></pre><p><span>If you want more control over the presentation (egui window vs side panel vs </span><code>egui_dock</code><span>), or over the content, you can just add an exclusive system like this:</span></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token keyword">fn</span> <span class="token function-definition function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token class-name">App</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugins</span><span class="token punctuation">(</span><span class="token class-name">DefaultPlugins</span><span class="token punctuation">)</span>
+        <span class="token comment">// if you don't use a `quick` plugin, you'll have to add the `DefaultInspectorConfigPlugin` yourself.</span>
+        <span class="token comment">// it registers UI functions for all primitive types and</span>
+        <span class="token comment">// adds default inspector options (e.g. value ranges for the `StandardMaterial`)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugin</span><span class="token punctuation">(</span><span class="token class-name">DefaultInspectorConfigPlugin</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugin</span><span class="token punctuation">(</span><span class="token class-name">EguiPlugin</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_system</span><span class="token punctuation">(</span>ui<span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">fn</span> <span class="token function-definition function">ui</span><span class="token punctuation">(</span>world<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">mut</span> <span class="token class-name">World</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> egui_context <span class="token operator">=</span> world
+    <span class="token punctuation">.</span><span class="token function">resource_mut</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token namespace">bevy_egui<span class="token punctuation">::</span></span><span class="token class-name">EguiContext</span><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">ctx_mut</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">clone</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token namespace">egui<span class="token punctuation">::</span></span><span class="token class-name">Window</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token string">"UI"</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">show</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>egui_context<span class="token punctuation">,</span> <span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>ui<span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">{</span>
+        <span class="token namespace">egui<span class="token punctuation">::</span></span><span class="token class-name">ScrollArea</span><span class="token punctuation">::</span><span class="token function">vertical</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">show</span><span class="token punctuation">(</span>ui<span class="token punctuation">,</span> <span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>ui<span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">{</span>
+            <span class="token namespace">bevy_inspector_egui<span class="token punctuation">::</span>bevy_inspector<span class="token punctuation">::</span></span><span class="token function">ui_for_world</span><span class="token punctuation">(</span>world<span class="token punctuation">,</span> ui<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">// allow resizing beyond the actual UI</span>
+            ui<span class="token punctuation">.</span><span class="token function">allocate_space</span><span class="token punctuation">(</span>ui<span class="token punctuation">.</span><span class="token function">available_size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</div></div></code></pre><h2 id="Migration-Guide" data-id="Migration-Guide"><a class="anchor hidden-xs" href="#Migration-Guide" title="Migration-Guide"><span class="octicon octicon-link"></span></a><span>Migration Guide</span></h2><h3 id="WorldInspectorPlugin" data-id="WorldInspectorPlugin"><a class="anchor hidden-xs" href="#WorldInspectorPlugin" title="WorldInspectorPlugin"><span class="octicon octicon-link"></span></a><code>WorldInspectorPlugin</code></h3><p><strong><span>Before</span></strong></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token keyword">use</span> <span class="token namespace">bevy_inspector_egui<span class="token punctuation">::</span></span><span class="token class-name">WorldInspectorPlugin</span><span class="token punctuation">;</span>
+
+<span class="token keyword">fn</span> <span class="token function-definition function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token class-name">App</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugins</span><span class="token punctuation">(</span><span class="token class-name">DefaultPlugins</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugin</span><span class="token punctuation">(</span><span class="token class-name">WorldInspectorPlugin</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</div></div></code></pre><p><strong><span>After</span></strong></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token keyword">use</span> <span class="token namespace">bevy_inspector_egui<span class="token punctuation">::</span>quick<span class="token punctuation">::</span></span><span class="token class-name">WorldInspectorPlugin</span><span class="token punctuation">;</span>
+
+<span class="token keyword">fn</span> <span class="token function-definition function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token class-name">App</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugins</span><span class="token punctuation">(</span><span class="token class-name">DefaultPlugins</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugin</span><span class="token punctuation">(</span><span class="token class-name">WorldInspectorPlugin</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</div></div></code></pre><p><span>Basic usage of the world inspector doesn’t actually change. The only difference is that registration works differently now and </span><code>WorldInspectorParams</code><span> is gone. If you want to have more customization, copy the implementation, it’s ~10 lines.</span></p><h3 id="InspectorPlugin" data-id="InspectorPlugin"><a class="anchor hidden-xs" href="#InspectorPlugin" title="InspectorPlugin"><span class="octicon octicon-link"></span></a><code>InspectorPlugin</code></h3><p><span>To display a single resource, the </span><code>InspectorPlugin</code><span> has been replaced with the </span><code>ResourceInspectorPlugin</code><span>:</span></p><p><strong><span>Before</span></strong></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token attribute attr-name">#[derive(Resource, Inspectable, Default)]</span>
+<span class="token keyword">struct</span> <span class="token type-definition class-name">Data</span> <span class="token punctuation">{</span>
+    the<span class="token punctuation">:</span> <span class="token keyword">f32</span><span class="token punctuation">,</span>
+    values<span class="token punctuation">:</span> <span class="token class-name">String</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">fn</span> <span class="token function-definition function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token class-name">App</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugins</span><span class="token punctuation">(</span><span class="token class-name">DefaultPlugins</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugin</span><span class="token punctuation">(</span><span class="token class-name">InspectorPlugin</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">Data</span><span class="token operator">&gt;</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</div></div></code></pre><p><strong><span>After</span></strong></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token comment">// replace `Inspectable` with `Reflect`</span>
+<span class="token attribute attr-name">#[derive(Reflect, Resource, Default)]</span>
+<span class="token attribute attr-name">#[reflect(Resource)]</span>
+<span class="token keyword">struct</span> <span class="token type-definition class-name">Data</span> <span class="token punctuation">{</span>
+    the<span class="token punctuation">:</span> <span class="token keyword">f32</span><span class="token punctuation">,</span>
+    values<span class="token punctuation">:</span> <span class="token class-name">String</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">fn</span> <span class="token function-definition function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token class-name">App</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugins</span><span class="token punctuation">(</span><span class="token class-name">DefaultPlugins</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">add_plugin</span><span class="token punctuation">(</span><span class="token class-name">ResourceInspectorPlugin</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">Data</span><span class="token operator">&gt;</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">init_type</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">Default</span><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// the `ResourceInspectorPlugin` doesn't insert the resource</span>
+        <span class="token punctuation">.</span><span class="token function">register_type</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">Data</span><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</div></div></code></pre><h3 id="inspectable-Attributes" data-id="inspectable-Attributes"><a class="anchor hidden-xs" href="#inspectable-Attributes" title="inspectable-Attributes"><span class="octicon octicon-link"></span></a><code>#[inspectable]</code><span> Attributes</span></h3><p><strong><span>Before</span></strong></p><p><span>The </span><code>Reflect</code><span> trait is not capable of reading and storing arbitrary attributes. Instead, you can add the </span><code>InspectorOptions</code><span> derive which will parse and typecheck the attributes, and insert a type-erased options struct into the type registry.</span></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token attribute attr-name">#[derive(Resource, Inspectable)]</span>
+<span class="token keyword">struct</span> <span class="token type-definition class-name">Data</span> <span class="token punctuation">{</span>
+    <span class="token attribute attr-name">#[inspectable(min = 10.0, max = 70.0)]</span>
+    font_size<span class="token punctuation">:</span> <span class="token keyword">f32</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</div></div></code></pre><p><strong><span>After</span></strong></p><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span></div><div class="code"><span class="token attribute attr-name">#[derive(Reflect, Resource, InspectorOptions)]</span>
+<span class="token attribute attr-name">#[reflect(Resource, InspectorOptions)]</span> <span class="token comment">// don't forget include the `InspectorOptions` here</span>
+<span class="token keyword">struct</span> <span class="token type-definition class-name">Data</span> <span class="token punctuation">{</span>
+    <span class="token attribute attr-name">#[inspector(min = 10.0, max = 70.0)]</span>
+    font_size<span class="token punctuation">:</span> <span class="token keyword">f32</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+
+<span class="token punctuation">...</span>
+app<span class="token punctuation">.</span><span class="token function">register_type</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">Data</span><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// will register `ReflectInspectorOptions` in the type registry</span>
+</div></div></code></pre></div>
+    <div class="ui-toc dropup unselectable hidden-print" style="display:none;">
+        <div class="pull-right dropdown">
+            <a id="tocLabel" class="ui-toc-label btn btn-default" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" title="Table of content">
+                <i class="fa fa-bars"></i>
+            </a>
+            <ul id="ui-toc" class="ui-toc-dropdown dropdown-menu" aria-labelledby="tocLabel">
+                <div class="toc"><ul class="nav">
+<li><a href="#bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide" title="bevy-inspector-egui v0.15.0-alpha Announcement and Migration Guide">bevy-inspector-egui v0.15.0-alpha Announcement and Migration Guide</a><ul class="nav">
+<li><a href="#What’s-new-in-the-update" title="What’s new in the update?">What’s new in the update?</a><ul class="nav">
+<li><a href="#New-APIs" title="New APIs">New APIs</a></li>
+</ul>
+</li>
+<li><a href="#Migration-Guide" title="Migration Guide">Migration Guide</a><ul class="nav">
+<li><a href="#WorldInspectorPlugin" title="WorldInspectorPlugin">WorldInspectorPlugin</a></li>
+<li><a href="#InspectorPlugin" title="InspectorPlugin">InspectorPlugin</a></li>
+<li><a href="#inspectable-Attributes" title="#[inspectable] Attributes">#[inspectable] Attributes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div><div class="toc-menu"><a class="expand-toggle" href="#">Expand all</a><a class="back-to-top" href="#">Back to top</a><a class="go-to-bottom" href="#">Go to bottom</a></div>
+            </ul>
+        </div>
+    </div>
+    <div id="ui-toc-affix" class="ui-affix-toc ui-toc-dropdown unselectable hidden-print" data-spy="affix" style="top:17px;display:none;" null null>
+        <div class="toc"><ul class="nav">
+<li><a href="#bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide" title="bevy-inspector-egui v0.15.0-alpha Announcement and Migration Guide">bevy-inspector-egui v0.15.0-alpha Announcement and Migration Guide</a><ul class="nav">
+<li><a href="#What’s-new-in-the-update" title="What’s new in the update?">What’s new in the update?</a><ul class="nav">
+<li><a href="#New-APIs" title="New APIs">New APIs</a></li>
+</ul>
+</li>
+<li><a href="#Migration-Guide" title="Migration Guide">Migration Guide</a><ul class="nav">
+<li><a href="#WorldInspectorPlugin" title="WorldInspectorPlugin">WorldInspectorPlugin</a></li>
+<li><a href="#InspectorPlugin" title="InspectorPlugin">InspectorPlugin</a></li>
+<li><a href="#inspectable-Attributes" title="#[inspectable] Attributes">#[inspectable] Attributes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div><div class="toc-menu"><a class="expand-toggle" href="#">Expand all</a><a class="back-to-top" href="#">Back to top</a><a class="go-to-bottom" href="#">Go to bottom</a></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gist-embed/2.6.0/gist-embed.min.js" integrity="sha256-KyF2D6xPIJUW5sUDSs93vWyZm+1RzIpKCexxElmxl8g=" crossorigin="anonymous" defer></script>
+    <script>
+        var markdown = $(".markdown-body");
+        //smooth all hash trigger scrolling
+        function smoothHashScroll() {
+            var hashElements = $("a[href^='#']").toArray();
+            for (var i = 0; i < hashElements.length; i++) {
+                var element = hashElements[i];
+                var $element = $(element);
+                var hash = element.hash;
+                if (hash) {
+                    $element.on('click', function (e) {
+                        // store hash
+                        var hash = this.hash;
+                        if ($(hash).length <= 0) return;
+                        // prevent default anchor click behavior
+                        e.preventDefault();
+                        // animate
+                        $('body, html').stop(true, true).animate({
+                            scrollTop: $(hash).offset().top
+                        }, 100, "linear", function () {
+                            // when done, add hash to url
+                            // (default click behaviour)
+                            window.location.hash = hash;
+                        });
+                    });
+                }
+            }
+        }
+
+        smoothHashScroll();
+        var toc = $('.ui-toc');
+        var tocAffix = $('.ui-affix-toc');
+        var tocDropdown = $('.ui-toc-dropdown');
+        //toc
+        tocDropdown.click(function (e) {
+            e.stopPropagation();
+        });
+
+        var enoughForAffixToc = true;
+
+        function generateScrollspy() {
+            $(document.body).scrollspy({
+                target: ''
+            });
+            $(document.body).scrollspy('refresh');
+            if (enoughForAffixToc) {
+                toc.hide();
+                tocAffix.show();
+            } else {
+                tocAffix.hide();
+                toc.show();
+            }
+            $(document.body).scroll();
+        }
+
+        function windowResize() {
+            //toc right
+            var paddingRight = parseFloat(markdown.css('padding-right'));
+            var right = ($(window).width() - (markdown.offset().left + markdown.outerWidth() - paddingRight));
+            toc.css('right', right + 'px');
+            //affix toc left
+            var newbool;
+            var rightMargin = (markdown.parent().outerWidth() - markdown.outerWidth()) / 2;
+            //for ipad or wider device
+            if (rightMargin >= 133) {
+                newbool = true;
+                var affixLeftMargin = (tocAffix.outerWidth() - tocAffix.width()) / 2;
+                var left = markdown.offset().left + markdown.outerWidth() - affixLeftMargin;
+                tocAffix.css('left', left + 'px');
+            } else {
+                newbool = false;
+            }
+            if (newbool != enoughForAffixToc) {
+                enoughForAffixToc = newbool;
+                generateScrollspy();
+            }
+        }
+        $(window).resize(function () {
+            windowResize();
+        });
+        $(document).ready(function () {
+            windowResize();
+            generateScrollspy();
+        });
+
+        //remove hash
+        function removeHash() {
+            window.location.hash = '';
+        }
+
+        var backtotop = $('.back-to-top');
+        var gotobottom = $('.go-to-bottom');
+
+        backtotop.click(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (scrollToTop)
+                scrollToTop();
+            removeHash();
+        });
+        gotobottom.click(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (scrollToBottom)
+                scrollToBottom();
+            removeHash();
+        });
+
+        var toggle = $('.expand-toggle');
+        var tocExpand = false;
+
+        checkExpandToggle();
+        toggle.click(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            tocExpand = !tocExpand;
+            checkExpandToggle();
+        })
+
+        function checkExpandToggle () {
+            var toc = $('.ui-toc-dropdown .toc');
+            var toggle = $('.expand-toggle');
+            if (!tocExpand) {
+                toc.removeClass('expand');
+                toggle.text('Expand all');
+            } else {
+                toc.addClass('expand');
+                toggle.text('Collapse all');
+            }
+        }
+
+        function scrollToTop() {
+            $('body, html').stop(true, true).animate({
+                scrollTop: 0
+            }, 100, "linear");
+        }
+
+        function scrollToBottom() {
+            $('body, html').stop(true, true).animate({
+                scrollTop: $(document.body)[0].scrollHeight
+            }, 100, "linear");
+        }
+    </script>
+</body>
+
+</html>
