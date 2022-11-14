@@ -139,7 +139,7 @@ Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_
 **A:** You can use `egui_reflect_inspector::ui_for_value`. Note that displaying things like `Handle<StandardMaterial>` won't be able to display the asset's value.
 
 
-[egui_reflect_inspector]: https://docs.rs/bevy-inspector-egui/latest/bevy_inspector_egui/egui_reflect_inspector
-[inspector_options]: https://docs.rs/bevy-inspector-egui/latest/bevy_inspector_egui/inspector_options
-[quick]: https://docs.rs/bevy-inspector-egui/latest/bevy_inspector_egui/quick
-[bevy_inspector]: https://docs.rs/bevy-inspector-egui/latest/bevy_inspector_egui/bevy_inspector
+[egui_reflect_inspector]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/egui_reflect_inspector
+[inspector_options]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/inspector_options
+[quick]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/quick
+[bevy_inspector]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/bevy_inspector
