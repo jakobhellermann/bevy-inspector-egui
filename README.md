@@ -1,5 +1,7 @@
 # bevy-inspector-egui
 
+Examples can be found at [`./crates/bevy-inspector-egui/examples`](./crates/bevy-inspector-egui/examples/).
+
 This crate contains
 - general purpose machinery for displaying [`Reflect`](bevy_reflect::Reflect) values in [`egui_reflect_inspector`],
 - a way of associating arbitrary options with fields and enum variants in [`inspector_options`]
