@@ -11,7 +11,7 @@
 //! This crate contains
 //! - general purpose machinery for displaying [`Reflect`](bevy_reflect::Reflect) values in [`egui_reflect_inspector`],
 //! - a way of associating arbitrary options with fields and enum variants in [`inspector_options`]
-//! - utility functions for displaying bevy resource, entities and assets in [`bevy_ecs_inspector`]
+//! - utility functions for displaying bevy resource, entities and assets in [`bevy_inspector`]
 //! - some drop-in plugins in [`quick`] to get you started without any code necessary.
 //!
 //! # Use case 1: Quick plugins
@@ -117,14 +117,14 @@
 //!     egui::Window::new("UI").show(&egui_context, |ui| {
 //!         egui::ScrollArea::vertical().show(ui, |ui| {
 //!             // equivalent to `WorldInspectorPlugin`
-//!             // bevy_inspector_egui::bevy_ecs_inspector::ui_for_world(world, ui);
+//!             // bevy_inspector_egui::bevy_inspector::ui_for_world(world, ui);
 //!
 //!             egui::CollapsingHeader::new("Materials").show(ui, |ui| {
-//!                 bevy_inspector_egui::bevy_ecs_inspector::ui_for_assets::<StandardMaterial>(world, ui);
+//!                 bevy_inspector_egui::bevy_inspector::ui_for_assets::<StandardMaterial>(world, ui);
 //!             });
 //!
 //!             ui.heading("Entities");
-//!             bevy_inspector_egui::bevy_ecs_inspector::ui_for_world_entities(world, ui);
+//!             bevy_inspector_egui::bevy_inspector::ui_for_world_entities(world, ui);
 //!         });
 //!     });
 //! }
@@ -143,7 +143,7 @@
 //!
 //! **A:** You can use [`ui_for_value`](crate::egui_reflect_inspector::ui_for_value). Note that displaying things like `Handle<StandardMaterial>` won't be able to display the asset's value.
 
-pub mod bevy_ecs_inspector;
+pub mod bevy_inspector;
 pub mod egui_reflect_inspector;
 pub mod inspector_egui_impls;
 pub mod inspector_options;

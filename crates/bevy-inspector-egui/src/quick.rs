@@ -14,7 +14,7 @@ use bevy_egui::EguiPlugin;
 use bevy_reflect::Reflect;
 use pretty_type_name::pretty_type_name;
 
-use crate::{bevy_ecs_inspector, DefaultInspectorConfigPlugin};
+use crate::{bevy_inspector, DefaultInspectorConfigPlugin};
 
 const DEFAULT_SIZE: (f32, f32) = (320., 160.);
 
@@ -43,7 +43,7 @@ fn world_inspector_ui(world: &mut World) {
         .default_size(DEFAULT_SIZE)
         .show(&egui_context, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
-                bevy_ecs_inspector::ui_for_world(world, ui);
+                bevy_inspector::ui_for_world(world, ui);
                 ui.allocate_space(ui.available_size());
             });
         });
@@ -86,7 +86,7 @@ fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
         .default_size((0., 0.))
         .show(&egui_context, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
-                bevy_ecs_inspector::ui_for_resource::<T>(world, ui);
+                bevy_inspector::ui_for_resource::<T>(world, ui);
 
                 ui.allocate_space(ui.available_size());
             });
@@ -132,7 +132,7 @@ fn state_ui<T: StateData + Reflect>(world: &mut World) {
         .show(&egui_context, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.heading(pretty_type_name::<T>());
-                bevy_ecs_inspector::ui_for_state::<T>(world, ui);
+                bevy_inspector::ui_for_state::<T>(world, ui);
             });
         });
 }

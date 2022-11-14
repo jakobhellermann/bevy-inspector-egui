@@ -65,7 +65,7 @@ fn ui_example(world: &mut World) {
 
     egui::Window::new("UI").show(&egui_context, |ui| {
         egui::ScrollArea::vertical().show(ui, |ui| {
-            bevy_inspector_egui::bevy_ecs_inspector::ui_for_resource::<UiData>(world, ui);
+            bevy_inspector_egui::bevy_inspector::ui_for_resource::<UiData>(world, ui);
         });
     });
 }

@@ -3,7 +3,7 @@
 //! # Example
 //!
 //! ```rust
-//! use bevy_inspector_egui::bevy_ecs_inspector;
+//! use bevy_inspector_egui::bevy_inspector;
 //! # use bevy_ecs::prelude::*;
 //! # use bevy_reflect::Reflect;
 //! # use bevy_render::prelude::Msaa;
@@ -13,21 +13,21 @@
 //!
 //! fn show_ui(world: &mut World, ui: &mut egui::Ui) {
 //!     ui.heading("Msaa resource");
-//!     bevy_ecs_inspector::ui_for_resource::<Msaa>(world, ui);
+//!     bevy_inspector::ui_for_resource::<Msaa>(world, ui);
 //!
 //!     ui.heading("App State");
-//!     bevy_ecs_inspector::ui_for_state::<AppState>(world, ui);
+//!     bevy_inspector::ui_for_state::<AppState>(world, ui);
 //!
 //!     egui::CollapsingHeader::new("Entities")
 //!         .default_open(true)
 //!         .show(ui, |ui| {
-//!             bevy_ecs_inspector::ui_for_world_entities(world, ui);
+//!             bevy_inspector::ui_for_world_entities(world, ui);
 //!         });
 //!     egui::CollapsingHeader::new("Resources").show(ui, |ui| {
-//!         bevy_ecs_inspector::ui_for_resources(world, ui);
+//!         bevy_inspector::ui_for_resources(world, ui);
 //!     });
 //!     egui::CollapsingHeader::new("Assets").show(ui, |ui| {
-//!         bevy_ecs_inspector::ui_for_all_assets(world, ui);
+//!         bevy_inspector::ui_for_all_assets(world, ui);
 //!     });
 //! }
 //! ```

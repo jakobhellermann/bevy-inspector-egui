@@ -12,7 +12,7 @@ use once_cell::sync::Lazy;
 use pretty_type_name::pretty_type_name;
 
 use crate::{
-    bevy_ecs_inspector::errors::{no_world_in_context, show_error},
+    bevy_inspector::errors::{no_world_in_context, show_error},
     egui_reflect_inspector::InspectorUi,
 };
 

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
-use bevy_inspector_egui::{bevy_ecs_inspector::ui_for_state, DefaultInspectorConfigPlugin};
+use bevy_inspector_egui::{bevy_inspector::ui_for_state, DefaultInspectorConfigPlugin};
 
 fn main() {
     App::new()

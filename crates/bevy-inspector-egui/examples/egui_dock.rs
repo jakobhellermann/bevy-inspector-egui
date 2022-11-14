@@ -1,6 +1,6 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::bevy_ecs_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
-use bevy_inspector_egui::bevy_ecs_inspector::{ui_for_all_assets, ui_for_entity, ui_for_resources};
+use bevy_inspector_egui::bevy_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
+use bevy_inspector_egui::bevy_inspector::{ui_for_all_assets, ui_for_entity, ui_for_resources};
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_render::camera::{CameraProjection, Viewport};
 use egui_dock::{NodeIndex, Tree};

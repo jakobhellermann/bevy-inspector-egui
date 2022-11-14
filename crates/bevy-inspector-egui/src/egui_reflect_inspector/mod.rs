@@ -41,7 +41,7 @@
 //!     let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
 //!
 //!     // alternatively
-//!     // use crate::bevy_ecs_inspector::short_circuit;
+//!     // use crate::bevy_inspector::short_circuit;
 //!     // let mut env = InspectorUi::new(type_registry, &mut cx, Some(short_circuit::short_circuit), Some(short_circuit::short_circuit_readonly));
 //!
 //!     let changed = env.ui_for_reflect(data.bypass_change_detection(), ui);
@@ -69,7 +69,7 @@ mod errors;
 /// This means that for example bevy's `Handle<StandardMaterial>` values cannot be displayed,
 /// as they would need to have access to the `World`.
 ///
-/// Use [`InspectorUi::new`] instead to provide context or use one of the methods in [`bevy_ecs_inspector`](crate::bevy_ecs_inspector).
+/// Use [`InspectorUi::new`] instead to provide context or use one of the methods in [`bevy_inspector`](crate::bevy_inspector).
 pub fn ui_for_value(
     value: &mut dyn Reflect,
     ui: &mut egui::Ui,

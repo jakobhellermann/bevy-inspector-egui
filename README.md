@@ -3,7 +3,7 @@
 This crate contains
 - general purpose machinery for displaying [`Reflect`](bevy_reflect::Reflect) values in [`egui_reflect_inspector`],
 - a way of associating arbitrary options with fields and enum variants in [`inspector_options`]
-- utility functions for displaying bevy resource, entities and assets in [`bevy_ecs_inspector`]
+- utility functions for displaying bevy resource, entities and assets in [`bevy_inspector`]
 - some drop-in plugins in [`quick`] to get you started without any code necessary.
 
 # Use case 1: Quick plugins
@@ -109,14 +109,14 @@ fn inspector_ui(world: &mut World) {
     egui::Window::new("UI").show(&egui_context, |ui| {
         egui::ScrollArea::vertical().show(ui, |ui| {
             // equivalent to `WorldInspectorPlugin`
-            // bevy_inspector_egui::bevy_ecs_inspector::ui_for_world(world, ui);
+            // bevy_inspector_egui::bevy_inspector::ui_for_world(world, ui);
 
             egui::CollapsingHeader::new("Materials").show(ui, |ui| {
-                bevy_inspector_egui::bevy_ecs_inspector::ui_for_assets::<StandardMaterial>(world, ui);
+                bevy_inspector_egui::bevy_inspector::ui_for_assets::<StandardMaterial>(world, ui);
             });
 
             ui.heading("Entities");
-            bevy_inspector_egui::bevy_ecs_inspector::ui_for_world_entities(world, ui);
+            bevy_inspector_egui::bevy_inspector::ui_for_world_entities(world, ui);
         });
     });
 }
