@@ -153,6 +153,9 @@ pub mod restricted_world_view;
 mod egui_utils;
 mod utils;
 
+pub use bevy_egui;
+pub use egui;
+
 /// [`bevy_app::Plugin`] used to register default [`struct@InspectorOptions`] and [`InspectorEguiImpl`](crate::inspector_egui_impls::InspectorEguiImpl)s
 pub struct DefaultInspectorConfigPlugin;
 impl bevy_app::Plugin for DefaultInspectorConfigPlugin {
