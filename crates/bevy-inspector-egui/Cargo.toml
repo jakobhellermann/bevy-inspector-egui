@@ -35,3 +35,32 @@ smallvec = "1.9.0"
 bevy = { version = "0.9", default-features = false, features = ["render", "x11", "bevy_winit", "animation", "png"] }
 egui_dock = { git = "https://github.com/Adanos020/egui_dock", rev = "041e5f362c281c286a63edeef2f7d02dbd5d62f4" }
 egui-gizmo = "0.8"
+
+
+[[example]]
+name = "inspector_options"
+path = "examples/basic/inspector_options.rs"
+
+[[example]]
+name = "resource_inspector"
+path = "examples/quick/resource_inspector.rs"
+
+[[example]]
+name = "world_inspector"
+path = "examples/quick/world_inspector.rs"
+
+[[example]]
+name = "world_inspector_assets"
+path = "examples/quick/world_inspector_assets.rs"
+
+[[example]]
+name = "state_inspector"
+path = "examples/quick/state_inspector.rs"
+
+[[example]]
+name = "egui_dock"
+path = "examples/integrations/egui_dock.rs"
+
+[[example]]
+name = "side_panel"
+path = "examples/integrations/side_panel.rs"
