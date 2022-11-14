@@ -28,13 +28,10 @@ pub fn ui_for_value(
         .ui_for_reflect(value, ui)
 }
 
-#[non_exhaustive]
 #[derive(Default)]
 pub struct Context<'a> {
     pub world: Option<RestrictedWorldView<'a>>,
 }
-
-
 
 pub fn ui_for_reflect_no_context(
     value: &mut dyn Reflect,
