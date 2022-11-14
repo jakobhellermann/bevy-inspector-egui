@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="mobile-web-app-capable" content="yes">
     <title>
-        bevy-inspector-egui v0.15.0-alpha Announcement and Migration Guide - HackMD
+        bevy-inspector-egui v0.15.0-pre.0 Announcement and Migration Guide - HackMD
     </title>
     <link rel="icon" type="image/png" href="https://hackmd.io/favicon.png">
     <link rel="apple-touch-icon" href="https://hackmd.io/apple-touch-icon.png">
@@ -34,13 +34,14 @@
 </head>
 
 <body>
-    <div id="doc" class="markdown-body container-fluid comment-enabled" data-hard-breaks="true"><h1 id="bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide" data-id="bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide"><a class="anchor hidden-xs" href="#bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide" title="bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide"><span class="octicon octicon-link"></span></a><span>bevy-inspector-egui </span><code>v0.15.0-alpha</code><span> Announcement and Migration Guide</span></h1><h2 id="What’s-new-in-the-update" data-id="What’s-new-in-the-update"><a class="anchor hidden-xs" href="#What’s-new-in-the-update" title="What’s-new-in-the-update"><span class="octicon octicon-link"></span></a><span>What’s new in the update?</span></h2><p><span>This release features the removal of the </span><code>Inspectable</code><span> trait in favor of reusing the existing </span><code>Reflect</code><span> trait. This leads to less derive boilerplate and more reusability, paving the way for non-egui Inspector implementations (in the general sense, could also be autocomplete in a console) and usage outside of bevy.</span></p><h3 id="New-APIs" data-id="New-APIs"><a class="anchor hidden-xs" href="#New-APIs" title="New-APIs"><span class="octicon octicon-link"></span></a><span>New APIs</span></h3><p><span>The release is a rewrite from scratch so here’s the new layout of the crate. For more detail, you can browse the </span><a href="" target="_blank" rel="noopener"><span>docs</span></a><span>.</span></p><p><span>The main modules are:</span><br>
+    <div id="doc" class="markdown-body container-fluid comment-enabled" data-hard-breaks="true"><h1 id="bevy-inspector-egui-v0150-pre0-Announcement-and-Migration-Guide" data-id="bevy-inspector-egui-v0150-pre0-Announcement-and-Migration-Guide"><a class="anchor hidden-xs" href="#bevy-inspector-egui-v0150-pre0-Announcement-and-Migration-Guide" title="bevy-inspector-egui-v0150-pre0-Announcement-and-Migration-Guide"><span class="octicon octicon-link"></span></a><span>bevy-inspector-egui </span><code>v0.15.0-pre.0</code><span> Announcement and Migration Guide</span></h1><p><span>I just released the next version </span><code>0.15.0-pre.0</code><span> of </span><code>bevy-inspector-egui</code><span> and would like to gather some feedback before the actual release.</span><br>
+<span>If you just want a stable release for bevy </span><code>0.9</code><span>, feel free to continue using </span><code>bevy-inspector-egui</code><span> </span><code>0.14</code><span>.</span></p><p><span>If you miss any features from the previous release, or have suggestions for features or API design, please open an issue at </span><a href="https://github.com/jakobhellermann/bevy-inspector-egui/issues" target="_blank" rel="noopener"><span>bevy-inspector-egui/issues</span></a><span> or ping me on the bevy discord (in </span><code>#project-collaboration</code><span> </span><code>@dubi steinkek#2182</code><span>).</span></p><p><span>You can check out the </span><code>0.15.0</code><span> docs on </span><code>docs.rs</code><span>: </span><a href="https://docs.rs/bevy-inspector-egui/0.15.0-pre" target="_blank" rel="noopener"><span>https://docs.rs/bevy-inspector-egui/0.15.0-pre</span></a></p><h2 id="What’s-new-in-the-update" data-id="What’s-new-in-the-update"><a class="anchor hidden-xs" href="#What’s-new-in-the-update" title="What’s-new-in-the-update"><span class="octicon octicon-link"></span></a><span>What’s new in the update?</span></h2><p><span>This release features the removal of the </span><code>Inspectable</code><span> trait in favor of reusing the existing </span><code>Reflect</code><span> trait. This leads to less derive boilerplate and more reusability, paving the way for non-egui Inspector implementations (in the general sense, could also be autocomplete in a console) and usage outside of bevy.</span></p><h3 id="New-APIs" data-id="New-APIs"><a class="anchor hidden-xs" href="#New-APIs" title="New-APIs"><span class="octicon octicon-link"></span></a><span>New APIs</span></h3><p><span>The release is a rewrite from scratch so here’s the new layout of the crate. For more detail, you can browse the </span><a href="https://docs.rs/bevy-inspector-egui/0.15.0-pre" target="_blank" rel="noopener"><span>crate docs</span></a><span>.</span></p><p><span>The main modules are:</span><br>
 <code>egui_reflect_inspector</code><span> - General-purpose machinery for displaying Reflect types using egui</span><br>
-<code>bevy_ecs_inspector</code><span> - Methods for displaying bevy resources, assets and entities</span><br>
+<code>bevy_inspector</code><span> - Methods for displaying bevy resources, assets and entities</span><br>
 <code>inspector_options</code><span> - Way of associating options to fields using InspectorOptions</span><br>
-<code>quick</code><span> - Easy plugins for showing UI panels.</span></p><h4 id="egui_reflect_inspector" data-id="egui_reflect_inspector"><a class="anchor hidden-xs" href="#egui_reflect_inspector" title="egui_reflect_inspector"><span class="octicon octicon-link"></span></a><code>egui_reflect_inspector</code></h4><p><span>This module has no knowledge of bevy and provides general purpose methods for displaying arbitrary </span><code>&amp;mut dyn Reflect</code><span> or </span><code>&amp;dyn Reflect</code><span> (that’s right, we support readonly UI now).</span></p><p data-original-title="" title=""><span>Most of the time however you can just use either the</span></p><ul>
+<code>quick</code><span> - Easy plugins for showing UI panels.</span></p><h4 id="egui_reflect_inspector" data-id="egui_reflect_inspector"><a class="anchor hidden-xs" href="#egui_reflect_inspector" title="egui_reflect_inspector"><span class="octicon octicon-link"></span></a><code>egui_reflect_inspector</code></h4><p><span>This module has no knowledge of bevy and provides general purpose methods for displaying arbitrary </span><code>&amp;mut dyn Reflect</code><span> or </span><code>&amp;dyn Reflect</code><span> (that’s right, we support readonly UI now).</span></p><p><span>Most of the time however you can just use either the</span></p><ul>
 <li><code>quick</code><span> module for an simple </span><code>WorldInspectorPlugin</code><span>/</span><code>ResourceInspectorPlugin</code><span>/</span><code>StateInspectorPlugin</code><span> plugins, or the</span></li>
-<li><code>bevy_ecs_inspector</code><span> module for functions like </span><code>ui_for_resource</code><span>, </span><code>ui_for_entity</code><span>, etc.</span></li>
+<li><code>bevy_inspector</code><span> module for functions like </span><code>ui_for_resource</code><span>, </span><code>ui_for_entity</code><span>, etc.</span></li>
 </ul><pre><code class="rust hljs"><div class="wrapper"><div class="gutter linenumber"><span></span>
 <span></span>
 <span></span>
@@ -394,7 +395,7 @@ env<span class="token punctuation">.</span><span class="token function">ui_for_r
 
 <span class="token punctuation">...</span>
 app<span class="token punctuation">.</span><span class="token function">register_type</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">Data</span><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// will register `ReflectInspectorOptions` in the type registry</span>
-</div></div></code></pre></div>
+</div></div></code></pre><p><br><br></p><p><span>As I said in the beginning, if you have any feedback please open an issue or ping me on discord :)</span></p></div>
     <div class="ui-toc dropup unselectable hidden-print" style="display:none;">
         <div class="pull-right dropdown">
             <a id="tocLabel" class="ui-toc-label btn btn-default" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" title="Table of content">
@@ -402,7 +403,7 @@ app<span class="token punctuation">.</span><span class="token function">register
             </a>
             <ul id="ui-toc" class="ui-toc-dropdown dropdown-menu" aria-labelledby="tocLabel">
                 <div class="toc"><ul class="nav">
-<li><a href="#bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide" title="bevy-inspector-egui v0.15.0-alpha Announcement and Migration Guide">bevy-inspector-egui v0.15.0-alpha Announcement and Migration Guide</a><ul class="nav">
+<li><a href="#bevy-inspector-egui-v0150-pre0-Announcement-and-Migration-Guide" title="bevy-inspector-egui v0.15.0-pre.0 Announcement and Migration Guide">bevy-inspector-egui v0.15.0-pre.0 Announcement and Migration Guide</a><ul class="nav">
 <li><a href="#What’s-new-in-the-update" title="What’s new in the update?">What’s new in the update?</a><ul class="nav">
 <li><a href="#New-APIs" title="New APIs">New APIs</a></li>
 </ul>
@@ -422,7 +423,7 @@ app<span class="token punctuation">.</span><span class="token function">register
     </div>
     <div id="ui-toc-affix" class="ui-affix-toc ui-toc-dropdown unselectable hidden-print" data-spy="affix" style="top:17px;display:none;" null null>
         <div class="toc"><ul class="nav">
-<li><a href="#bevy-inspector-egui-v0150-alpha-Announcement-and-Migration-Guide" title="bevy-inspector-egui v0.15.0-alpha Announcement and Migration Guide">bevy-inspector-egui v0.15.0-alpha Announcement and Migration Guide</a><ul class="nav">
+<li><a href="#bevy-inspector-egui-v0150-pre0-Announcement-and-Migration-Guide" title="bevy-inspector-egui v0.15.0-pre.0 Announcement and Migration Guide">bevy-inspector-egui v0.15.0-pre.0 Announcement and Migration Guide</a><ul class="nav">
 <li><a href="#What’s-new-in-the-update" title="What’s new in the update?">What’s new in the update?</a><ul class="nav">
 <li><a href="#New-APIs" title="New APIs">New APIs</a></li>
 </ul>
