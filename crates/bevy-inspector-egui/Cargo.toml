@@ -10,7 +10,7 @@ keywords = ["bevy", "inspector", "egui", "visual", "editor", "game", "reflect"]
 categories = ["game-development", "gui", "visualization", "development-tools::procedural-macro-helpers"]
 
 [dependencies]
-bevy-inspector-egui-derive = { path = "../bevy-inspector-egui-derive" }
+bevy-inspector-egui-derive = { version = "0.15.0-pre.0", path = "../bevy-inspector-egui-derive" }
 bevy_reflect = { version = "0.9" }
 bevy_ecs = { version = "0.9" }
 bevy_app = { version = "0.9" }
