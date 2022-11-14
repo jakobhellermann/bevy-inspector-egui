@@ -1,4 +1,55 @@
 //! General-purpose machinery for displaying [`Reflect`](bevy_reflect::Reflect) types using [`egui`]
+//!
+//! # Examples
+//! **Basic usage**
+//! ```rust
+//! use bevy_reflect::{Reflect, TypeRegistry};
+//! use bevy_inspector_egui::egui_reflect_inspector::{InspectorUi, Context};
+//!
+//! #[derive(Reflect)]
+//! struct Data {
+//!     value: f32,
+//! }
+//!
+//! fn ui(data: &mut Data, ui: &mut egui::Ui, type_registry: &TypeRegistry) -> bool {
+//!     let mut cx = Context::default(); // empty context, with no access to the bevy world
+//!     let mut env = InspectorUi::new_no_short_circuit(type_registry, &mut cx); // no short circuiting, couldn't display `Handle<StandardMaterial>`
+//!
+//!     env.ui_for_reflect(data, ui)
+//! }
+//! ```
+//!
+//!
+//! **Bevy specific usage**
+//! ```rust
+//! use bevy_reflect::{Reflect, TypeRegistry};
+//! use bevy_inspector_egui::egui_reflect_inspector::{InspectorUi, Context};
+//!
+//! use bevy_ecs::prelude::*;
+//! use bevy_asset::Handle;
+//! use bevy_pbr::StandardMaterial;
+//!
+//! #[derive(Reflect)]
+//! struct Data {
+//!     material: Handle<StandardMaterial>,
+//! }
+//!
+//! fn ui(mut data: Mut<Data>, ui: &mut egui::Ui, world: &mut World, type_registry: &TypeRegistry) {
+//!     let mut cx = Context {
+//!         world: Some(world.into()),
+//!     };
+//!     let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+//!
+//!     // alternatively
+//!     // use crate::bevy_ecs_inspector::short_circuit;
+//!     // let mut env = InspectorUi::new(type_registry, &mut cx, Some(short_circuit::short_circuit), Some(short_circuit::short_circuit_readonly));
+//!
+//!     let changed = env.ui_for_reflect(data.bypass_change_detection(), ui);
+//!     if changed {
+//!         data.set_changed();
+//!     }
+//! }
+//! ```
 
 use crate::inspector_egui_impls::InspectorEguiImpl;
 use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};

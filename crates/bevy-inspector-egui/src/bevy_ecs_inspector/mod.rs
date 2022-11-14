@@ -1,6 +1,6 @@
 //! Methods for displaying `bevy` resources, assets and entities
 
-use std::any::{Any, TypeId};
+use std::any::TypeId;
 
 use bevy_app::prelude::AppTypeRegistry;
 use bevy_asset::{Asset, Assets, ReflectAsset};
@@ -21,7 +21,7 @@ use crate::{
     utils::guess_entity_name,
 };
 
-use self::errors::{name_of_type, show_error};
+use self::errors::show_error;
 
 /// Display a single [`&mut dyn Reflect`](bevy_reflect::Reflect).
 ///
@@ -386,29 +386,39 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         InspectorUi::new(
             type_registry,
             context,
-            Some(short_circuit),
-            Some(short_circuit_readonly),
+            Some(short_circuit::short_circuit),
+            Some(short_circuit::short_circuit_readonly),
         )
     }
 }
 
-// Short circuit reflect UI in cases where we have better information available through the world (e.g. handles to assets)
-fn short_circuit(
-    env: &mut InspectorUi,
-    value: &mut dyn Reflect,
-    ui: &mut egui::Ui,
-    id: egui::Id,
-    options: &dyn Any,
-) -> Option<bool> {
-    if let Some(reflect_handle) = env
-        .type_registry
-        .get_type_data::<bevy_asset::ReflectHandle>(Any::type_id(value))
-    {
-        let handle = reflect_handle
-            .downcast_handle_untyped(value.as_any())
-            .unwrap();
-        let handle_id = handle.id;
-        let Some(reflect_asset) = env
+/// Short circuiting methods for the [`InspectorUi`] to enable it to display [`Handle`](bevy_asset::Handle)s
+pub mod short_circuit {
+    use std::any::Any;
+
+    use bevy_asset::ReflectAsset;
+    use bevy_reflect::Reflect;
+
+    use crate::egui_reflect_inspector::{Context, InspectorUi};
+
+    use super::errors::{self, name_of_type};
+
+    pub fn short_circuit(
+        env: &mut InspectorUi,
+        value: &mut dyn Reflect,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+    ) -> Option<bool> {
+        if let Some(reflect_handle) = env
+            .type_registry
+            .get_type_data::<bevy_asset::ReflectHandle>(Any::type_id(value))
+        {
+            let handle = reflect_handle
+                .downcast_handle_untyped(value.as_any())
+                .unwrap();
+            let handle_id = handle.id;
+            let Some(reflect_asset) = env
             .type_registry
             .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
         else {
@@ -416,63 +426,65 @@ fn short_circuit(
             return Some(false);
         };
 
-        let Some(world) = &mut env.context.world else {
+            let Some(world) = &mut env.context.world else {
             errors::no_world_in_context(ui, value.type_name());
             return Some(false);
         };
 
-        let (assets_view, world) =
-            world.split_off_resource(reflect_asset.assets_resource_type_id());
+            let (assets_view, world) =
+                world.split_off_resource(reflect_asset.assets_resource_type_id());
 
-        let asset_value = {
-            // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
-            let interior_mutable_world = unsafe { assets_view.get() };
-            assert!(assets_view.allows_access_to_resource(reflect_asset.assets_resource_type_id()));
-            let asset_value =
+            let asset_value = {
+                // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
+                let interior_mutable_world = unsafe { assets_view.get() };
+                assert!(
+                    assets_view.allows_access_to_resource(reflect_asset.assets_resource_type_id())
+                );
+                let asset_value =
                 // SAFETY: the world allows mutable access to `Assets<T>`
                 unsafe { reflect_asset.get_unchecked_mut(interior_mutable_world, handle) };
-            match asset_value {
-                Some(value) => value,
-                None => {
-                    errors::dead_asset_handle(ui, handle_id);
-                    return Some(false);
+                match asset_value {
+                    Some(value) => value,
+                    None => {
+                        errors::dead_asset_handle(ui, handle_id);
+                        return Some(false);
+                    }
                 }
-            }
-        };
+            };
 
-        let mut restricted_env = InspectorUi {
-            type_registry: env.type_registry,
-            context: &mut Context { world: Some(world) },
-            short_circuit: env.short_circuit,
-            short_circuit_readonly: env.short_circuit_readonly,
-        };
-        return Some(restricted_env.ui_for_reflect_with_options(
-            asset_value,
-            ui,
-            id.with("asset"),
-            options,
-        ));
+            let mut restricted_env = InspectorUi {
+                type_registry: env.type_registry,
+                context: &mut Context { world: Some(world) },
+                short_circuit: env.short_circuit,
+                short_circuit_readonly: env.short_circuit_readonly,
+            };
+            return Some(restricted_env.ui_for_reflect_with_options(
+                asset_value,
+                ui,
+                id.with("asset"),
+                options,
+            ));
+        }
+
+        None
     }
 
-    None
-}
-
-fn short_circuit_readonly(
-    env: &mut InspectorUi,
-    value: &dyn Reflect,
-    ui: &mut egui::Ui,
-    id: egui::Id,
-    options: &dyn Any,
-) -> Option<()> {
-    if let Some(reflect_handle) = env
-        .type_registry
-        .get_type_data::<bevy_asset::ReflectHandle>(Any::type_id(value))
-    {
-        let handle = reflect_handle
-            .downcast_handle_untyped(value.as_any())
-            .unwrap();
-        let handle_id = handle.id;
-        let Some(reflect_asset) = env
+    pub fn short_circuit_readonly(
+        env: &mut InspectorUi,
+        value: &dyn Reflect,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+    ) -> Option<()> {
+        if let Some(reflect_handle) = env
+            .type_registry
+            .get_type_data::<bevy_asset::ReflectHandle>(Any::type_id(value))
+        {
+            let handle = reflect_handle
+                .downcast_handle_untyped(value.as_any())
+                .unwrap();
+            let handle_id = handle.id;
+            let Some(reflect_asset) = env
             .type_registry
             .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
         else {
@@ -480,42 +492,45 @@ fn short_circuit_readonly(
             return Some(());
         };
 
-        let Some(world) = &mut env.context.world else {
+            let Some(world) = &mut env.context.world else {
             errors::no_world_in_context(ui, value.type_name());
             return Some(());
         };
 
-        let (assets_view, world) =
-            world.split_off_resource(reflect_asset.assets_resource_type_id());
+            let (assets_view, world) =
+                world.split_off_resource(reflect_asset.assets_resource_type_id());
 
-        let asset_value = {
-            // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
-            let interior_mutable_world = unsafe { assets_view.get() };
-            assert!(assets_view.allows_access_to_resource(reflect_asset.assets_resource_type_id()));
-            let asset_value = reflect_asset.get(interior_mutable_world, handle);
-            match asset_value {
-                Some(value) => value,
-                None => {
-                    errors::dead_asset_handle(ui, handle_id);
-                    return Some(());
+            let asset_value = {
+                // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
+                let interior_mutable_world = unsafe { assets_view.get() };
+                assert!(
+                    assets_view.allows_access_to_resource(reflect_asset.assets_resource_type_id())
+                );
+                let asset_value = reflect_asset.get(interior_mutable_world, handle);
+                match asset_value {
+                    Some(value) => value,
+                    None => {
+                        errors::dead_asset_handle(ui, handle_id);
+                        return Some(());
+                    }
                 }
-            }
-        };
+            };
 
-        let mut restricted_env = InspectorUi {
-            type_registry: env.type_registry,
-            context: &mut Context { world: Some(world) },
-            short_circuit: env.short_circuit,
-            short_circuit_readonly: env.short_circuit_readonly,
-        };
-        restricted_env.ui_for_reflect_readonly_with_options(
-            asset_value,
-            ui,
-            id.with("asset"),
-            options,
-        );
-        return Some(());
+            let mut restricted_env = InspectorUi {
+                type_registry: env.type_registry,
+                context: &mut Context { world: Some(world) },
+                short_circuit: env.short_circuit,
+                short_circuit_readonly: env.short_circuit_readonly,
+            };
+            restricted_env.ui_for_reflect_readonly_with_options(
+                asset_value,
+                ui,
+                id.with("asset"),
+                options,
+            );
+            return Some(());
+        }
+
+        None
     }
-
-    None
 }
