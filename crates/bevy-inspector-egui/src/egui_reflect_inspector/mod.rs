@@ -57,7 +57,7 @@ use crate::restricted_world_view::RestrictedWorldView;
 use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, List, Map, Reflect, Struct, Tuple,
-    TupleStruct, TypeInfo, TypeRegistry, VariantInfo,
+    TupleStruct, TypeInfo, TypeRegistry, VariantInfo, VariantType,
 };
 use egui::Grid;
 use std::any::{Any, TypeId};
@@ -578,34 +578,41 @@ impl InspectorUi<'_, '_> {
                 self.ui_for_enum_variant_select(id, value, ui, type_info);
             changed |= variant_changed;
 
-            changed |= maybe_grid(value.field_len(), ui, id, |ui, label| {
-                (0..value.field_len())
-                    .map(|i| {
-                        if label {
-                            if let Some(name) = value.name_at(i) {
-                                ui.label(name);
-                            } else {
-                                ui.label(i.to_string());
+            let always_show_label = matches!(value.variant_type(), VariantType::Struct);
+            changed |= maybe_grid_always_show_label(
+                value.field_len(),
+                ui,
+                id,
+                always_show_label,
+                |ui, label| {
+                    (0..value.field_len())
+                        .map(|i| {
+                            if label {
+                                if let Some(name) = value.name_at(i) {
+                                    ui.label(name);
+                                } else {
+                                    ui.label(i.to_string());
+                                }
                             }
-                        }
-                        let field_value = value
-                            .field_at_mut(i)
-                            .expect("invalid reflect impl: field len");
-                        let changed = self.ui_for_reflect_with_options(
-                            field_value,
-                            ui,
-                            id.with(i),
-                            inspector_options_enum_variant_field(
-                                options,
-                                active_variant.clone(),
-                                i,
-                            ),
-                        );
-                        ui.end_row();
-                        changed
-                    })
-                    .fold(false, or)
-            });
+                            let field_value = value
+                                .field_at_mut(i)
+                                .expect("invalid reflect impl: field len");
+                            let changed = self.ui_for_reflect_with_options(
+                                field_value,
+                                ui,
+                                id.with(i),
+                                inspector_options_enum_variant_field(
+                                    options,
+                                    active_variant.clone(),
+                                    i,
+                                ),
+                            );
+                            ui.end_row();
+                            changed
+                        })
+                        .fold(false, or)
+                },
+            );
         });
 
         changed
@@ -803,6 +810,21 @@ fn maybe_grid(
     match i {
         0 => false,
         1 => f(ui, false),
+        _ => Grid::new(id).show(ui, |ui| f(ui, true)).inner,
+    }
+}
+
+#[must_use]
+fn maybe_grid_always_show_label(
+    i: usize,
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    always_show_label: bool,
+    mut f: impl FnMut(&mut egui::Ui, bool) -> bool,
+) -> bool {
+    match i {
+        0 => false,
+        1 if !always_show_label => f(ui, false),
         _ => Grid::new(id).show(ui, |ui| f(ui, true)).inner,
     }
 }
