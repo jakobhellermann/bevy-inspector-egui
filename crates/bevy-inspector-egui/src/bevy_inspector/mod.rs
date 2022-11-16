@@ -468,6 +468,7 @@ pub mod short_circuit {
 
             let asset_value = {
                 // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
+                // The world borrow is then immediately discarded and not live while the other part of the world is continued to be used
                 let interior_mutable_world = unsafe { assets_view.get() };
                 assert!(
                     assets_view.allows_access_to_resource(reflect_asset.assets_resource_type_id())

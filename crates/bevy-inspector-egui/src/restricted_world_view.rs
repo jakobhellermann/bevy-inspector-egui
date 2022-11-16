@@ -127,7 +127,15 @@ impl<'w> RestrictedWorldView<'w> {
     /// - The returned world reference may only be used to immediately access (mutably or immutably) resources and components
     /// that [`RestrictedWorldView::allows_access_to_resource`] and [`RestrictedWorldView::allows_access_to_component`] return `true` for.
     /// - No references into the world can remain when control is handed to unknown safe code
-    pub unsafe fn get(&self) -> &'w mut World {
+    pub unsafe fn get(&self) -> &'w World {
+        // SAFETY: the caller
+        unsafe { &mut *self.world }
+    }
+    // this is only used for the by_id methods that don't have unchecked variants.
+    // same SAFETY as get, again absolutely *no* references to the world in the presence of other views,
+    // you can only get a reference deep in the storage (like a resource) that doesn't get invalidated from a `&mut *` of the world.
+    pub(crate) unsafe fn get_mut(&mut self) -> &'w mut World {
+        // SAFETY: the caller
         unsafe { &mut *self.world }
     }
 
@@ -172,7 +180,7 @@ impl<'w> RestrictedWorldView<'w> {
         assert!(self.allows_access_to_resource(type_id));
 
         // SAFETY: `self` had `R` access, so we have unique access if we remove it from `self`
-        let resource = unsafe { self.get().get_resource_mut::<R>()? };
+        let resource = unsafe { self.get().get_resource_unchecked_mut::<R>()? };
 
         let rest = RestrictedWorldView {
             world: self.world,
@@ -240,10 +248,10 @@ impl<'w> RestrictedWorldView<'w> {
             return Err(Error::NoAccessToResource(type_id));
         }
 
-        // SAFETY: we have access to `type_id` and borrow `&mut self`
+        // SAFETY: we have access to `type_id`, get a reference into the world, and drop the `World` borrow
         let value = unsafe {
             self.get()
-                .get_resource_mut::<R>()
+                .get_resource_unchecked_mut::<R>()
                 .ok_or(Error::ResourceDoesNotExist(type_id))?
         };
 
@@ -264,6 +272,7 @@ impl<'w> RestrictedWorldView<'w> {
             return Err(Error::NoAccessToResource(type_id));
         }
 
+        // SAFETY: this only accesses the component ID and doesn't keep any references
         let component_id = unsafe {
             self.get()
                 .components()
@@ -273,7 +282,7 @@ impl<'w> RestrictedWorldView<'w> {
 
         // SAFETY: we have access to `type_id` and borrow `&mut self`
         let value = unsafe {
-            self.get()
+            self.get_mut()
                 .get_resource_mut_by_id(component_id)
                 .ok_or(Error::ResourceDoesNotExist(type_id))?
         };
@@ -299,6 +308,7 @@ impl<'w> RestrictedWorldView<'w> {
             return Err(Error::NoAccessToComponent((entity, component)));
         }
 
+        // SAFETY: this only accesses the component ID and doesn't keep any references
         let component_id = unsafe {
             self.get()
                 .components()
@@ -308,7 +318,7 @@ impl<'w> RestrictedWorldView<'w> {
 
         // SAFETY: we have access to (entity, component) and borrow `&mut self`
         let value = unsafe {
-            self.get()
+            self.get_mut()
                 .get_mut_by_id(entity, component_id)
                 .ok_or(Error::ComponentDoesNotExist((entity, component)))?
         };
@@ -351,7 +361,8 @@ mod tests {
     #[derive(Resource)]
     struct A(String);
 
-    #[derive(Resource)]
+    #[derive(Resource, Reflect, Default)]
+    #[reflect(Resource)]
     struct B(String);
 
     #[test]
@@ -368,6 +379,27 @@ mod tests {
 
         a.0.clear();
         b.0.clear();
+    }
+
+    #[test]
+    fn disjoint_resource_access_by_id() {
+        let mut world = World::new();
+        world.insert_resource(A("a".to_string()));
+        world.insert_resource(B("b".to_string()));
+
+        let mut world = RestrictedWorldView::new(&mut world);
+
+        let (mut a_view, mut world) = world.split_off_resource(TypeId::of::<A>());
+        let mut a = a_view.get_resource_mut::<A>().unwrap();
+
+        let mut type_registry = TypeRegistry::empty();
+        type_registry.register::<B>();
+        let b = world
+            .get_resource_reflect_mut_by_id(TypeId::of::<B>(), &type_registry)
+            .unwrap();
+
+        a.0.clear();
+        b.0.downcast_mut::<B>().unwrap().0.clear();
     }
 
     #[test]
