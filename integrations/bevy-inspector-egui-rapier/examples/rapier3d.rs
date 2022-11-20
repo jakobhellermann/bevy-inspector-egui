@@ -34,7 +34,7 @@ fn setup(
 
     commands
         // .spawn(floor)
-        .spawn()
+        .spawn_empty()
         .insert(Name::new("Floor"))
         .insert(RigidBody::Fixed)
         .insert(Collider::cuboid(floor_size / 2.0, 0.1, floor_size / 2.0));
@@ -47,7 +47,7 @@ fn setup(
 
     commands
         // .spawn(cube)
-        .spawn()
+        .spawn_empty()
         .insert(Cube)
         .insert(Name::new("Cube"))
         .insert(Collider::cuboid(
@@ -60,11 +60,11 @@ fn setup(
         .insert(SolverGroups::default())
         .insert(Transform::from_xyz(0.0, 2.0, 0.0));
 
-    commands.spawn_bundle(PointLightBundle {
+    commands.spawn(PointLightBundle {
         transform: Transform::from_xyz(4.0, 8.0, 4.0),
         ..Default::default()
     });
-    commands.spawn_bundle(Camera3dBundle {
+    commands.spawn(Camera3dBundle {
         transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::default(), Vec3::Y),
         ..Default::default()
     });

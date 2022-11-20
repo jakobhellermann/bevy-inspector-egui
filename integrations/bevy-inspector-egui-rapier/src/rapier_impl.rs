@@ -350,6 +350,7 @@ pub fn register(inspectable_registry: &mut InspectableRegistry) {
     inspectable_registry.register_raw::<LockedAxes, _>(locked_axes);
     inspectable_registry.register_raw::<MassProperties, _>(mass_properties);
     inspectable_registry.register_raw::<RapierColliderHandle, _>(noop_inspectable);
+    inspectable_registry.register_raw::<RapierRigidBodyHandle, _>(noop_inspectable);
     inspectable_registry.register_raw::<RapierImpulseJointHandle, _>(noop_inspectable);
     inspectable_registry.register_raw::<RapierMultibodyJointHandle, _>(noop_inspectable);
     inspectable_registry.register_raw::<Restitution, _>(restitution);
