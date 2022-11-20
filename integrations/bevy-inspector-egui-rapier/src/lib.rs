@@ -29,6 +29,9 @@ use bevy_inspector_egui::InspectableRegistry;
 /// Plugin that will add register rapier components on the [`InspectableRegistry`]
 pub struct InspectableRapierPlugin;
 
+#[cfg(all(feature = "rapier2d", feature = "rapier3d"))]
+compile_error!("enabling both `rapier2d` and `rapier3d` is not supported");
+
 #[cfg_attr(
     all(not(feature = "rapier2d"), not(feature = "rapier3d")),
     allow(unreachable_code, unused_variables)
