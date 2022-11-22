@@ -1,12 +1,13 @@
-use bevy::{
-    input::gamepad::GamepadButtonType,
-    prelude::GamepadAxisType,
-    prelude::KeyCode,
-    prelude::MouseButton,
+use bevy::input::{
+    gamepad::{GamepadAxisType, GamepadButtonType},
+    keyboard::KeyCode,
+    mouse::MouseButton,
 };
 
+use crate::{options::NumberAttributes, Context, Inspectable};
+
 impl_for_simple_enum!(
-    KeyCode: Key1,    
+    KeyCode: Key1,
     Key2,
     Key3,
     Key4,
@@ -171,13 +172,68 @@ impl_for_simple_enum!(
     Cut
 );
 
-// TODO: Add Other(u8) variant to MouseButton
-impl_for_simple_enum!(
-    MouseButton: Left,
-    Right,
-    Middle
-);
+impl Inspectable for MouseButton {
+    type Attributes = ();
 
+    fn ui(
+        &mut self,
+        ui: &mut bevy_egui::egui::Ui,
+        _: Self::Attributes,
+        context: &mut Context,
+    ) -> bool {
+        use std::mem::discriminant;        
+
+        let mut changed = false;
+        ui.vertical(|ui| {
+            bevy_egui::egui::ComboBox::from_id_source(context.id())
+                .selected_text(mouse_button_text(self))
+                .show_ui(ui, |ui| {
+                    for button in
+                        [MouseButton::Left, MouseButton::Right, MouseButton::Middle].iter()
+                    {
+                        if ui
+                            .selectable_label(*button == *self, mouse_button_text(button))
+                            .clicked()
+                        {
+                            *self = *button;
+                            changed = true;
+                        }
+                    }
+                    
+                    if ui.selectable_label(discriminant(self) == discriminant(&MouseButton::Other(0)), "Other").clicked() {
+                        *self = MouseButton::Other(0);
+                        changed = true;
+                    }
+                });
+
+            // Add support for other mouse buttons
+            if discriminant(self) == discriminant(&MouseButton::Other(0)) {
+                let mut value = match self {
+                    MouseButton::Other(val) => *val,
+                    _ => 0,
+                };
+
+                let attrs = NumberAttributes::default();
+                if value.ui(ui, attrs, context) {
+                    changed = true;
+                    *self = MouseButton::Other(value);
+                }
+            }
+        });
+
+        changed
+    }
+}
+
+
+fn mouse_button_text(value: &MouseButton) -> &str {
+    match value {
+        MouseButton::Left => "Left",
+        MouseButton::Right => "Right",
+        MouseButton::Middle => "Middle",                
+        MouseButton::Other(_) => "Other",
+    }
+}
 
 impl_for_simple_enum!(
     GamepadButtonType: South,
