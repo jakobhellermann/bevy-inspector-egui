@@ -2,8 +2,8 @@ use bevy::{
     input::gamepad::GamepadButtonType,
     prelude::GamepadAxisType,
     prelude::KeyCode,
+    prelude::MouseButton,
 };
-
 
 impl_for_simple_enum!(
     KeyCode: Key1,    
@@ -169,6 +169,13 @@ impl_for_simple_enum!(
     Copy,
     Paste,
     Cut
+);
+
+// TODO: Add Other(u8) variant to MouseButton
+impl_for_simple_enum!(
+    MouseButton: Left,
+    Right,
+    Middle
 );
 
 
