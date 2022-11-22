@@ -82,7 +82,7 @@ fn shape_update_system(data: Res<Data>, mut query: Query<(&mut Sprite, &mut Tran
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let font_handle = asset_server.load("/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf");
+    let font_handle = asset_server.load("fonts/FiraSans-Bold.ttf");
 
     commands.spawn(Camera2dBundle::default());
     commands.spawn(TextBundle {
