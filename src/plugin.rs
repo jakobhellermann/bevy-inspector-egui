@@ -136,8 +136,8 @@ where
             app.add_system(shared_access_ui::<T>);
         }
 
-        // init egui
-        if !app.world.contains_resource::<EguiContext>() {
+        // init egui, if its not already added
+        if !app.is_plugin_added::<EguiPlugin>() {
             app.add_plugin(EguiPlugin);
         }
 

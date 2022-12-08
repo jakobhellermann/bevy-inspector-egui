@@ -89,7 +89,7 @@ where
     F: ReadOnlyWorldQuery + 'static,
 {
     fn build(&self, app: &mut App) {
-        if !app.world.contains_resource::<EguiContext>() {
+        if !app.is_plugin_added::<EguiPlugin>() {
             app.add_plugin(EguiPlugin);
         }
 
