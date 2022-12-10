@@ -1,7 +1,7 @@
 use std::any::Any;
 
 use bevy_render::color::Color;
-use egui::{color::Hsva, Color32};
+use egui::{ecolor::Hsva, Color32};
 
 use crate::egui_reflect_inspector::InspectorUi;
 
