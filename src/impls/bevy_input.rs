@@ -181,7 +181,7 @@ impl Inspectable for MouseButton {
         _: Self::Attributes,
         context: &mut Context,
     ) -> bool {
-        use std::mem::discriminant;        
+        use std::mem::discriminant;
 
         let mut changed = false;
         ui.vertical(|ui| {
@@ -199,8 +199,14 @@ impl Inspectable for MouseButton {
                             changed = true;
                         }
                     }
-                    
-                    if ui.selectable_label(discriminant(self) == discriminant(&MouseButton::Other(0)), "Other").clicked() {
+
+                    if ui
+                        .selectable_label(
+                            discriminant(self) == discriminant(&MouseButton::Other(0)),
+                            "Other",
+                        )
+                        .clicked()
+                    {
                         *self = MouseButton::Other(0);
                         changed = true;
                     }
@@ -225,12 +231,11 @@ impl Inspectable for MouseButton {
     }
 }
 
-
 fn mouse_button_text(value: &MouseButton) -> &str {
     match value {
         MouseButton::Left => "Left",
         MouseButton::Right => "Right",
-        MouseButton::Middle => "Middle",                
+        MouseButton::Middle => "Middle",
         MouseButton::Other(_) => "Other",
     }
 }
