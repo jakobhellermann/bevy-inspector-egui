@@ -236,7 +236,7 @@ impl Inspectable for Color {
         let old: [f32; 4] = (*self).into();
 
         if options.alpha {
-            let mut color = egui::color::Color32::from_rgba_premultiplied(
+            let mut color = egui::ecolor::Color32::from_rgba_premultiplied(
                 (old[0] * u8::MAX as f32) as u8,
                 (old[1] * u8::MAX as f32) as u8,
                 (old[2] * u8::MAX as f32) as u8,
