@@ -9,6 +9,7 @@ use egui_gizmo::GizmoMode;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(bevy_framepace::FramepacePlugin) // reduces input lag
         .add_plugin(DefaultInspectorConfigPlugin)
         .add_plugin(bevy_egui::EguiPlugin)
         .insert_resource(UiState::new())

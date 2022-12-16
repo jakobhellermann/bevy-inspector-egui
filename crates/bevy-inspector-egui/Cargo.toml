@@ -36,6 +36,7 @@ smallvec = "1.10.0"
 bevy = { version = "0.9", default-features = false, features = ["render", "x11", "bevy_winit", "animation", "png"] }
 egui_dock = { git = "https://github.com/Adanos020/egui_dock", rev = "bf9cd36697211c3482020900526b66b27fac7480" }
 egui-gizmo = { git = "https://github.com/matthiascy/egui-gizmo", rev = "516dc8453bb6423d8cf050af172e854611a8a1d9" }
+bevy_framepace = "0.9"
 
 
 [[example]]
