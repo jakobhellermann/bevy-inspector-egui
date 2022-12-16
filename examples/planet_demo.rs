@@ -146,7 +146,7 @@ impl<'a> PlanetShape<'a> {
 
     fn elevation_at_point(&self, point: Vec3) -> f32 {
         let settings = &self.noise;
-        let noise_fn = noise::SuperSimplex::new();
+        let noise_fn = noise::SuperSimplex::new(0);
 
         let mut noise_value = 0.0;
         let mut frequency = settings.base_roughness;

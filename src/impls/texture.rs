@@ -1,8 +1,7 @@
 use crate::{
-    utils::{self, error_label_needs_world, image_texture_conversion},
+    utils::{self, error_label_needs_world},
     Context, Inspectable,
 };
-use bevy::utils::Entry;
 use bevy::{
     asset::{Asset, HandleId},
     ecs::event::Events,
@@ -10,6 +9,7 @@ use bevy::{
     render::texture::Image,
     utils::HashMap,
 };
+use bevy::{render::render_resource::TextureFormat, utils::Entry};
 use bevy_egui::{egui, EguiContext};
 use egui::TextureId;
 pub use image::imageops::FilterType;
@@ -143,9 +143,21 @@ fn rescaled_image<'a>(
         Entry::Vacant(entry) => {
             let original = textures.get(handle).unwrap();
 
-            let image = image_texture_conversion::texture_to_image(original)?;
+            let image = original.clone().try_into_dynamic().ok()?;
             let resized = image.resize(50, 50, FilterType::Nearest);
-            let resized = image_texture_conversion::image_to_texture(resized);
+            let is_srgb = matches!(
+                original.texture_descriptor.format,
+                TextureFormat::Rgba8UnormSrgb
+                    | TextureFormat::Bgra8UnormSrgb
+                    | TextureFormat::Bc1RgbaUnormSrgb
+                    | TextureFormat::Bc2RgbaUnormSrgb
+                    | TextureFormat::Bc3RgbaUnormSrgb
+                    | TextureFormat::Bc7RgbaUnormSrgb
+                    | TextureFormat::Etc2Rgb8UnormSrgb
+                    | TextureFormat::Etc2Rgb8A1UnormSrgb
+                    | TextureFormat::Etc2Rgba8UnormSrgb
+            );
+            let resized = Image::from_dynamic(resized, is_srgb);
 
             let handle = textures.add(resized);
             let weak = handle.clone_weak();

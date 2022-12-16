@@ -1,6 +1,5 @@
 #[macro_use]
 mod macros;
-pub mod image_texture_conversion;
 pub mod ui;
 
 use bevy_egui::egui::{self, RichText};
