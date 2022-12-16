@@ -121,6 +121,7 @@ fn configure_visuals(mut egui_ctx: ResMut<EguiContext>) {
 
 | bevy    | bevy-inspector-egui |
 | ------- | ------------------- |
+| 0.9     | 0.15                |
 | 0.9     | 0.14                |
 | 0.8     | 0.13                |
 | 0.8     | 0.12                |
