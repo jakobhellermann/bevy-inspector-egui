@@ -39,6 +39,7 @@ smallvec = "1.10.0"
 bevy = { version = "0.9", default-features = false, features = ["render", "x11", "bevy_winit", "animation", "png"] }
 egui_dock = "0.3"
 egui-gizmo = { git = "https://github.com/matthiascy/egui-gizmo", rev = "516dc8453bb6423d8cf050af172e854611a8a1d9" }
+bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
 bevy_framepace = "0.9"
 
 

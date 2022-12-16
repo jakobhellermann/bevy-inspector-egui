@@ -2,9 +2,11 @@ use std::any::TypeId;
 
 use bevy::prelude::*;
 use bevy_asset::{HandleId, ReflectAsset};
+use bevy_egui::EguiContext;
 use bevy_inspector_egui::bevy_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
 use bevy_inspector_egui::bevy_inspector::{self, ui_for_entities_shared_components, ui_for_entity};
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
+use bevy_mod_picking::prelude::*;
 use bevy_reflect::TypeRegistry;
 use bevy_render::camera::{CameraProjection, Viewport};
 use egui_dock::{NodeIndex, Tree};
@@ -16,14 +18,45 @@ fn main() {
         .add_plugin(bevy_framepace::FramepacePlugin) // reduces input lag
         .add_plugin(DefaultInspectorConfigPlugin)
         .add_plugin(bevy_egui::EguiPlugin)
+        .add_plugins(bevy_mod_picking::plugins::DefaultPickingPlugins)
         .insert_resource(UiState::new())
         .add_system_to_stage(CoreStage::PreUpdate, show_ui_system.at_end())
         .add_startup_system(setup)
         .add_system(set_camera_viewport)
         .add_system(set_gizmo_mode)
+        .add_system(auto_add_raycast_target)
+        .add_system(handle_pick_events)
         .register_type::<Option<Handle<Image>>>()
         .register_type::<AlphaMode>()
         .run();
+}
+
+fn auto_add_raycast_target(
+    mut commands: Commands,
+    query: Query<Entity, (Without<PickRaycastTarget>, With<Handle<Mesh>>)>,
+) {
+    for entity in &query {
+        commands
+            .entity(entity)
+            .insert((PickRaycastTarget::default(), PickableBundle::default()));
+    }
+}
+
+fn handle_pick_events(
+    mut ui_state: ResMut<UiState>,
+    mut click_events: EventReader<PointerClick>,
+    mut egui: ResMut<EguiContext>,
+) {
+    let egui_context = egui.ctx_mut();
+
+    for click in click_events.iter() {
+        let modifiers = egui_context.input().modifiers;
+        let add = modifiers.ctrl || modifiers.shift;
+
+        ui_state
+            .selected_entities
+            .select_maybe_add(click.target(), add);
+    }
 }
 
 #[derive(Component)]
@@ -427,11 +460,13 @@ fn setup(
     });
 
     // camera
-    commands
-        .spawn(Camera3dBundle {
+    commands.spawn((
+        Camera3dBundle {
             transform: Transform::from_xyz(0.0, box_offset, 4.0)
                 .looking_at(Vec3::new(0.0, box_offset, 0.0), Vec3::Y),
             ..Default::default()
-        })
-        .insert(MainCamera);
+        },
+        MainCamera,
+        PickRaycastSource,
+    ));
 }
