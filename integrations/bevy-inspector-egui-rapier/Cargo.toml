@@ -15,8 +15,8 @@ rapier2d = ["bevy_rapier2d"]
 rapier3d = ["bevy_rapier3d"]
 
 [dependencies]
-bevy = {version = "0.9", default-features = false}
-bevy-inspector-egui = {version = "0.14", path = "../..", features = ["nalgebra031"]}
+bevy = { version = "0.9", default-features = false }
+bevy-inspector-egui = {version = "0.15", path = "../..", features = ["nalgebra031"]}
 bevy_rapier2d = {version = "0.19", optional = true}
 bevy_rapier3d = {version = "0.19", optional = true}
 
