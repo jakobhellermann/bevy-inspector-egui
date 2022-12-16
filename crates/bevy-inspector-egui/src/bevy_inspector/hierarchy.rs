@@ -150,14 +150,14 @@ fn paint_default_icon(ui: &mut egui::Ui, openness: f32, response: &egui::Respons
 }
 
 /// Collection of currently selected entities
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct SelectedEntities {
     entities: Vec<Entity>,
     last_action: Option<(SelectionMode, Entity)>,
 }
 
 /// Kind of selection modifier
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum SelectionMode {
     /// No modifiers
     Replace,
@@ -178,6 +178,19 @@ impl SelectionMode {
 }
 
 impl SelectedEntities {
+    pub fn select_replace(&mut self, entity: Entity) {
+        self.insert_replace(entity);
+        self.last_action = Some((SelectionMode::Replace, entity));
+    }
+
+    pub fn select_maybe_add(&mut self, entity: Entity, add: bool) {
+        let mode = match add {
+            true => SelectionMode::Add,
+            false => SelectionMode::Replace,
+        };
+        self.select(mode, entity, |_, _| std::iter::empty());
+    }
+
     pub fn select<I: IntoIterator<Item = Entity>>(
         &mut self,
         mode: SelectionMode,
