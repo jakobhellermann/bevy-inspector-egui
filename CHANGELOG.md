@@ -1,5 +1,15 @@
 # Changelog
 
+
+## Version 0.15
+- update to bevy_egui 0.18
+- impl for `MouseButton`, `KeyCode`
+- fix font path in example
+
+## Version 0.14
+- implement Inspectable for slices
+- update to bevy 0.9
+
 ## Version 0.13
 
 - update to `bevy_egui` 0.16
