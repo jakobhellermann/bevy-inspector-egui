@@ -28,20 +28,20 @@ pub fn show_error(error: Error, ui: &mut egui::Ui, name_of_type: &str) {
 
 pub fn no_access_resource(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
-        (FontId::default(), "No access to resource "),
-        (FontId::monospace(14.0), type_name),
-        (FontId::default(), "."),
+        (FontId::proportional(13.0), "No access to resource "),
+        (FontId::monospace(12.0), type_name),
+        (FontId::proportional(13.0), "."),
     ]);
 
     ui.label(job);
 }
 pub fn no_access_component(ui: &mut egui::Ui, entity: Entity, type_name: &str) {
     let job = layout_job(&[
-        (FontId::default(), "No access to component "),
-        (FontId::monospace(14.0), type_name),
-        (FontId::default(), " on entity "),
-        (FontId::monospace(14.0), &format!("{entity:?}")),
-        (FontId::default(), "."),
+        (FontId::proportional(13.0), "No access to component "),
+        (FontId::monospace(12.0), type_name),
+        (FontId::proportional(13.0), " on entity "),
+        (FontId::monospace(12.0), &format!("{entity:?}")),
+        (FontId::proportional(13.0), "."),
     ]);
 
     ui.label(job);
@@ -49,9 +49,9 @@ pub fn no_access_component(ui: &mut egui::Ui, entity: Entity, type_name: &str) {
 
 pub fn resource_does_not_exist(ui: &mut egui::Ui, name: &str) {
     let job = layout_job(&[
-        (FontId::default(), "Resource "),
-        (FontId::monospace(14.0), name),
-        (FontId::default(), " does not exist in the world."),
+        (FontId::proportional(13.0), "Resource "),
+        (FontId::monospace(12.0), name),
+        (FontId::proportional(13.0), " does not exist in the world."),
     ]);
 
     ui.label(job);
@@ -59,11 +59,11 @@ pub fn resource_does_not_exist(ui: &mut egui::Ui, name: &str) {
 
 pub fn component_does_not_exist(ui: &mut egui::Ui, entity: Entity, name: &str) {
     let job = layout_job(&[
-        (FontId::default(), "Component "),
-        (FontId::monospace(14.0), name),
-        (FontId::default(), " does not exist on entity "),
-        (FontId::monospace(14.0), &format!("{entity:?}")),
-        (FontId::default(), "."),
+        (FontId::proportional(13.0), "Component "),
+        (FontId::monospace(12.0), name),
+        (FontId::proportional(13.0), " does not exist on entity "),
+        (FontId::monospace(12.0), &format!("{entity:?}")),
+        (FontId::proportional(13.0), "."),
     ]);
 
     ui.label(job);
@@ -71,10 +71,10 @@ pub fn component_does_not_exist(ui: &mut egui::Ui, entity: Entity, name: &str) {
 
 pub fn no_component_id(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
-        (FontId::monospace(14.0), type_name),
-        (FontId::default(), " has no associated "),
-        (FontId::monospace(14.0), "ComponentId"),
-        (FontId::default(), "."),
+        (FontId::monospace(12.0), type_name),
+        (FontId::proportional(13.0), " has no associated "),
+        (FontId::monospace(12.0), "ComponentId"),
+        (FontId::proportional(13.0), "."),
     ]);
 
     ui.label(job);
@@ -82,10 +82,13 @@ pub fn no_component_id(ui: &mut egui::Ui, type_name: &str) {
 
 pub fn no_type_data(ui: &mut egui::Ui, type_name: &str, type_data: &str) {
     let job = layout_job(&[
-        (FontId::monospace(14.0), type_name),
-        (FontId::default(), " has no "),
-        (FontId::monospace(14.0), type_data),
-        (FontId::default(), " type data, so it cannot be displayed"),
+        (FontId::monospace(12.0), type_name),
+        (FontId::proportional(13.0), " has no "),
+        (FontId::monospace(12.0), type_data),
+        (
+            FontId::proportional(13.0),
+            " type data, so it cannot be displayed",
+        ),
     ]);
 
     ui.label(job);
@@ -93,9 +96,9 @@ pub fn no_type_data(ui: &mut egui::Ui, type_name: &str, type_data: &str) {
 
 pub fn entity_does_not_exist(ui: &mut egui::Ui, entity: Entity) {
     let job = layout_job(&[
-        (FontId::default(), "Entity "),
-        (FontId::monospace(14.0), &format!("{entity:?}")),
-        (FontId::default(), " does not exist."),
+        (FontId::proportional(13.0), "Entity "),
+        (FontId::monospace(12.0), &format!("{entity:?}")),
+        (FontId::proportional(13.0), " does not exist."),
     ]);
 
     ui.label(job);
@@ -103,11 +106,11 @@ pub fn entity_does_not_exist(ui: &mut egui::Ui, entity: Entity) {
 
 pub fn no_world_in_context(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
-        (FontId::monospace(14.0), type_name),
-        (FontId::default(), " needs the bevy world in the "),
-        (FontId::monospace(14.0), "InspectorUi"),
+        (FontId::monospace(12.0), type_name),
+        (FontId::proportional(13.0), " needs the bevy world in the "),
+        (FontId::monospace(12.0), "InspectorUi"),
         (
-            FontId::default(),
+            FontId::proportional(13.0),
             " context to provide meaningful information.",
         ),
     ]);
@@ -117,9 +120,9 @@ pub fn no_world_in_context(ui: &mut egui::Ui, type_name: &str) {
 
 pub fn dead_asset_handle(ui: &mut egui::Ui, handle: HandleId) {
     let job = layout_job(&[
-        (FontId::default(), "Handle "),
-        (FontId::monospace(14.0), &format!("{:?}", handle)),
-        (FontId::default(), " points to no asset."),
+        (FontId::proportional(13.0), "Handle "),
+        (FontId::monospace(12.0), &format!("{:?}", handle)),
+        (FontId::proportional(13.0), " points to no asset."),
     ]);
 
     ui.label(job);
@@ -127,17 +130,17 @@ pub fn dead_asset_handle(ui: &mut egui::Ui, handle: HandleId) {
 
 pub fn state_does_not_exist(ui: &mut egui::Ui, name: &str) {
     let job = layout_job(&[
-        (FontId::default(), "State "),
-        (FontId::monospace(14.0), name),
+        (FontId::proportional(13.0), "State "),
+        (FontId::monospace(12.0), name),
         (
-            FontId::default(),
+            FontId::proportional(13.0),
             " does not exist. Did you forget to call ",
         ),
         (
-            FontId::monospace(14.0),
+            FontId::monospace(12.0),
             &format!(".add_state::<{name}>(..)"),
         ),
-        (FontId::default(), "?"),
+        (FontId::proportional(13.0), "?"),
     ]);
 
     ui.label(job);
@@ -145,9 +148,9 @@ pub fn state_does_not_exist(ui: &mut egui::Ui, name: &str) {
 
 pub fn error_message_no_type_id(ui: &mut egui::Ui, component_name: &str) {
     let job = layout_job(&[
-        (FontId::monospace(14.0), component_name),
+        (FontId::monospace(12.0), component_name),
         (
-            FontId::default(),
+            FontId::proportional(13.0),
             " is not backed by a rust type, so it cannot be displayed.",
         ),
     ]);
