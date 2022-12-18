@@ -6,6 +6,7 @@
 #![allow(
     clippy::needless_lifetimes, // can be good for clarity
     clippy::needless_doctest_main, // sometimes a full copy-pasteable standalone example is better
+    clippy::too_many_arguments,
 )]
 
 //! This crate contains

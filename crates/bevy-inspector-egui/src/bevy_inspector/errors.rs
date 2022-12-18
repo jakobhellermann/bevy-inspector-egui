@@ -121,7 +121,7 @@ pub fn no_world_in_context(ui: &mut egui::Ui, type_name: &str) {
 pub fn dead_asset_handle(ui: &mut egui::Ui, handle: HandleId) {
     let job = layout_job(&[
         (FontId::proportional(13.0), "Handle "),
-        (FontId::monospace(12.0), &format!("{:?}", handle)),
+        (FontId::monospace(12.0), &format!("{handle:?}")),
         (FontId::proportional(13.0), " points to no asset."),
     ]);
 

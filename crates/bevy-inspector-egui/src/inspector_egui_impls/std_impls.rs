@@ -105,7 +105,7 @@ fn display_number<T: egui::emath::Numeric>(
     changed
 }
 
-pub fn number_ui_many<'a, T>(
+pub fn number_ui_many<T>(
     ui: &mut egui::Ui,
     _: &dyn Any,
     _env: InspectorUi<'_, '_>,

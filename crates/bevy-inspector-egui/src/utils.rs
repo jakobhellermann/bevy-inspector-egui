@@ -58,10 +58,10 @@ pub mod guess_entity_name {
                 .iter()
                 .find_map(|&(name, matches)| (component_type == name).then_some(matches))
             {
-                return format!("{} ({:?})", name, id);
+                return format!("{name} ({id:?})");
             }
         }
 
-        format!("Entity ({:?})", id)
+        format!("Entity ({id:?})")
     }
 }

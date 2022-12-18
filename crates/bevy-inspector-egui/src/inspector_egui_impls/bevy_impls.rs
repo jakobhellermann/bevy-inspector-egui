@@ -143,13 +143,13 @@ pub fn handle_id_ui_readonly(
             };
 
             if let Some(path) = asset_server.get_handle_path(handle) {
-                ui.label(format!("{:?}", path));
+                ui.label(format!("{path:?}"));
                 return;
             }
         }
     }
 
-    ui.label(format!("{:?}", handle));
+    ui.label(format!("{handle:?}"));
 }
 
 pub fn color_ui(

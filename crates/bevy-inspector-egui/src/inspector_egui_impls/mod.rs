@@ -78,7 +78,7 @@ impl InspectorEguiImpl {
     }
 }
 
-fn many_unimplemented<'a, T: Any>(
+fn many_unimplemented<T: Any>(
     ui: &mut egui::Ui,
     _options: &dyn Any,
     _env: InspectorUi<'_, '_>,
@@ -234,7 +234,7 @@ macro_rules! many_ui {
             values: &mut [&mut dyn bevy_reflect::Reflect],
             projector: &dyn Fn(&mut dyn bevy_reflect::Reflect) -> &mut dyn bevy_reflect::Reflect,
         ) -> bool {
-            let same = crate::inspector_egui_impls::iter_all_eq(
+            let same = $crate::inspector_egui_impls::iter_all_eq(
                 values
                     .iter_mut()
                     .map(|value| projector(*value).downcast_ref::<$ty>().unwrap()),
