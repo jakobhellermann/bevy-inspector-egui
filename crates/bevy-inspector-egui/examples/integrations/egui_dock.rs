@@ -17,6 +17,8 @@ fn main() {
         .add_startup_system(setup)
         .add_system(set_camera_viewport)
         .add_system(set_gizmo_mode)
+        .register_type::<Option<Handle<Image>>>()
+        .register_type::<AlphaMode>()
         .run();
 }
 
