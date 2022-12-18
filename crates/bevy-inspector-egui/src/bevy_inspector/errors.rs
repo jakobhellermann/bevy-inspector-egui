@@ -16,7 +16,12 @@ pub fn show_error(error: Error, ui: &mut egui::Ui, name_of_type: &str) {
         }
         Error::ResourceDoesNotExist(_) => resource_does_not_exist(ui, name_of_type),
         Error::NoComponentId(_) => no_component_id(ui, name_of_type),
-        Error::NoTypeRegistration(_) => not_in_type_registry(ui, name_of_type),
+        Error::NoTypeRegistration(_) => {
+            crate::egui_reflect_inspector::errors::error_message_not_in_type_registry(
+                ui,
+                name_of_type,
+            )
+        }
         Error::NoTypeData(_, data) => no_type_data(ui, name_of_type, data),
     }
 }
@@ -115,16 +120,6 @@ pub fn dead_asset_handle(ui: &mut egui::Ui, handle: HandleId) {
         (FontId::default(), "Handle "),
         (FontId::monospace(14.0), &format!("{:?}", handle)),
         (FontId::default(), " points to no asset."),
-    ]);
-
-    ui.label(job);
-}
-
-pub fn not_in_type_registry(ui: &mut egui::Ui, type_name: &str) {
-    let job = layout_job(&[
-        (FontId::monospace(14.0), type_name),
-        (FontId::default(), " is not registered in the "),
-        (FontId::monospace(14.0), "TypeRegistry"),
     ]);
 
     ui.label(job);

@@ -330,6 +330,94 @@ fn components_of_entity(
     components
 }
 
+/// Display the given entity with all its components and children
+pub fn ui_for_entities_shared_components(
+    world: &mut World,
+    entities: &[Entity],
+    ui: &mut egui::Ui,
+) {
+    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
+    let type_registry = type_registry.read();
+
+    let Some(&first) = entities.first() else { return };
+
+    let Some(entity_ref) = world.get_entity(first) else {
+        return errors::entity_does_not_exist(ui, first);
+    };
+
+    let mut components = components_of_entity(entity_ref, world);
+
+    for &entity in entities.iter().skip(1) {
+        components.retain(|(_, id, _, _)| {
+            world
+                .get_entity(entity)
+                .map_or(true, |entity| entity.contains_id(*id))
+        })
+    }
+
+    let (resources_view, components_view) = RestrictedWorldView::resources_components(world);
+    let mut cx = Context {
+        world: Some(resources_view),
+    };
+    let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
+
+    let id = egui::Id::null();
+    for (name, component_id, component_type_id, size) in components {
+        let id = id.with(component_id);
+        egui::CollapsingHeader::new(&name)
+            .id_source(id)
+            .show(ui, |ui| {
+                if size == 0 {
+                    return;
+                }
+                let Some(component_type_id) = component_type_id else {
+                    return errors::error_message_no_type_id(ui, &name);
+                };
+
+                let mut values = Vec::with_capacity(entities.len());
+                let mut mark_changeds = Vec::with_capacity(entities.len());
+
+                for (i, &entity) in entities.iter().enumerate() {
+                    // skip duplicate entities
+                    if entities[0..i].contains(&entity) {
+                        continue;
+                    };
+
+                    // SAFETY: entities are distinct, env has a context with just resources
+                    match unsafe {
+                        components_view.get_entity_component_reflect_unchecked(
+                            entity,
+                            component_type_id,
+                            &type_registry,
+                        )
+                    } {
+                        Ok((value, mark_changed)) => {
+                            values.push(value);
+                            mark_changeds.push(mark_changed);
+                        }
+                        Err(error) => {
+                            errors::show_error(error, ui, &name);
+                            return;
+                        }
+                    }
+                }
+
+                let changed = env.ui_for_reflect_many_with_options(
+                    component_type_id,
+                    &name,
+                    ui,
+                    id.with(component_id),
+                    &(),
+                    values.as_mut_slice(),
+                    &|a| a,
+                );
+                if changed {
+                    mark_changeds.into_iter().for_each(|f| f());
+                }
+            });
+    }
+}
+
 pub mod by_type_id {
     use std::any::TypeId;
 
@@ -378,7 +466,7 @@ pub mod by_type_id {
         type_registry: &TypeRegistry,
     ) {
         let Some(registration) = type_registry.get(asset_type_id) else {
-        return errors::not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
+        return crate::egui_reflect_inspector::errors::error_message_not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
     };
         let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
         return errors::no_type_data(ui, &name_of_type(asset_type_id, type_registry), "ReflectAsset");
@@ -420,13 +508,14 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             context,
             Some(short_circuit::short_circuit),
             Some(short_circuit::short_circuit_readonly),
+            Some(short_circuit::short_circuit_many),
         )
     }
 }
 
 /// Short circuiting methods for the [`InspectorUi`] to enable it to display [`Handle`](bevy_asset::Handle)s
 pub mod short_circuit {
-    use std::any::Any;
+    use std::any::{Any, TypeId};
 
     use bevy_asset::ReflectAsset;
     use bevy_reflect::Reflect;
@@ -453,15 +542,15 @@ pub mod short_circuit {
             let Some(reflect_asset) = env
             .type_registry
             .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
-        else {
-            errors::no_type_data(ui, &name_of_type(reflect_handle.asset_type_id(), env.type_registry), "ReflectAsset");
-            return Some(false);
-        };
+            else {
+                errors::no_type_data(ui, &name_of_type(reflect_handle.asset_type_id(), env.type_registry), "ReflectAsset");
+                return Some(false);
+            };
 
             let Some(world) = &mut env.context.world else {
-            errors::no_world_in_context(ui, value.type_name());
-            return Some(false);
-        };
+                errors::no_world_in_context(ui, value.type_name());
+                return Some(false);
+            };
 
             let (assets_view, world) =
                 world.split_off_resource(reflect_asset.assets_resource_type_id());
@@ -490,12 +579,100 @@ pub mod short_circuit {
                 context: &mut Context { world: Some(world) },
                 short_circuit: env.short_circuit,
                 short_circuit_readonly: env.short_circuit_readonly,
+                short_circuit_many: env.short_circuit_many,
             };
             return Some(restricted_env.ui_for_reflect_with_options(
                 asset_value,
                 ui,
                 id.with("asset"),
                 options,
+            ));
+        }
+
+        None
+    }
+
+    pub fn short_circuit_many(
+        env: &mut InspectorUi,
+        type_id: TypeId,
+        type_name: &str,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+        values: &mut [&mut dyn Reflect],
+        projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+    ) -> Option<bool> {
+        if let Some(reflect_handle) = env
+            .type_registry
+            .get_type_data::<bevy_asset::ReflectHandle>(type_id)
+        {
+            let Some(reflect_asset) = env
+                .type_registry
+                .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
+            else {
+                errors::no_type_data(ui, &name_of_type(reflect_handle.asset_type_id(), env.type_registry), "ReflectAsset");
+                return Some(false);
+            };
+
+            let Some(world) = &mut env.context.world else {
+                errors::no_world_in_context(ui, type_name);
+                return Some(false);
+            };
+
+            let (assets_view, world) =
+                world.split_off_resource(reflect_asset.assets_resource_type_id());
+
+            let mut new_values = Vec::with_capacity(values.len());
+            let mut used_handles = Vec::with_capacity(values.len());
+
+            for value in values {
+                let handle = projector(*value);
+                let handle = reflect_handle
+                    .downcast_handle_untyped(handle.as_any())
+                    .unwrap();
+                let handle_id = handle.id;
+
+                if used_handles.contains(&handle_id) {
+                    continue;
+                };
+                used_handles.push(handle.id);
+
+                let asset_value = {
+                    // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
+                    // The world borrow is then immediately discarded and not live while the other part of the world is continued to be used
+                    let interior_mutable_world = unsafe { assets_view.get() };
+                    assert!(assets_view
+                        .allows_access_to_resource(reflect_asset.assets_resource_type_id()));
+                    let asset_value =
+                        // SAFETY: the world allows mutable access to `Assets<T>` 
+                        unsafe { reflect_asset.get_unchecked_mut(interior_mutable_world, handle) };
+                    match asset_value {
+                        Some(value) => value,
+                        None => {
+                            errors::dead_asset_handle(ui, handle_id);
+                            return Some(false);
+                        }
+                    }
+                };
+
+                new_values.push(asset_value);
+            }
+
+            let mut restricted_env = InspectorUi {
+                type_registry: env.type_registry,
+                context: &mut Context { world: Some(world) },
+                short_circuit: env.short_circuit,
+                short_circuit_readonly: env.short_circuit_readonly,
+                short_circuit_many: env.short_circuit_many,
+            };
+            return Some(restricted_env.ui_for_reflect_many_with_options(
+                reflect_handle.asset_type_id(),
+                "",
+                ui,
+                id.with("asset"),
+                options,
+                new_values.as_mut_slice(),
+                &|a| a,
             ));
         }
 
@@ -520,15 +697,15 @@ pub mod short_circuit {
             let Some(reflect_asset) = env
             .type_registry
             .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
-        else {
-            errors::no_type_data(ui, &name_of_type(reflect_handle.asset_type_id(), env.type_registry), "ReflectAsset");
-            return Some(());
-        };
+            else {
+                errors::no_type_data(ui, &name_of_type(reflect_handle.asset_type_id(), env.type_registry), "ReflectAsset");
+                return Some(());
+            };
 
             let Some(world) = &mut env.context.world else {
-            errors::no_world_in_context(ui, value.type_name());
-            return Some(());
-        };
+                errors::no_world_in_context(ui, value.type_name());
+                return Some(());
+            };
 
             let (assets_view, world) =
                 world.split_off_resource(reflect_asset.assets_resource_type_id());
@@ -554,6 +731,7 @@ pub mod short_circuit {
                 context: &mut Context { world: Some(world) },
                 short_circuit: env.short_circuit,
                 short_circuit_readonly: env.short_circuit_readonly,
+                short_circuit_many: env.short_circuit_many,
             };
             restricted_env.ui_for_reflect_readonly_with_options(
                 asset_value,

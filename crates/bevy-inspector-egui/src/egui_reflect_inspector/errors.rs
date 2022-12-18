@@ -55,3 +55,22 @@ pub fn error_message_unconstructable_variants(
 
     ui.label(job);
 }
+
+pub fn error_message_not_in_type_registry(ui: &mut egui::Ui, type_name: &str) {
+    let job = layout_job(&[
+        (FontId::monospace(14.0), type_name),
+        (FontId::default(), " is not registered in the "),
+        (FontId::monospace(14.0), "TypeRegistry"),
+    ]);
+
+    ui.label(job);
+}
+
+pub fn error_message_no_multiedit(ui: &mut egui::Ui, type_name: &str) {
+    let job = layout_job(&[
+        (FontId::monospace(14.0), type_name),
+        (FontId::default(), " doesn't support multi-editing."),
+    ]);
+
+    ui.label(job);
+}

@@ -1,8 +1,55 @@
 use std::any::Any;
 
 use bevy_math::{prelude::*, DMat2, DMat3, DMat4, DVec2, DVec3, DVec4, Mat3A, Vec3A};
+use bevy_reflect::Reflect;
 
 use crate::egui_reflect_inspector::InspectorUi;
+
+macro_rules! vec_ui_many {
+    ($name_many:ident $ty:ty>$elem_ty:ty: $count:literal $($component:ident)*) => {
+        pub fn $name_many<'a>(
+            ui: &mut egui::Ui,
+            _: &dyn Any,
+            _env: InspectorUi<'_, '_>,
+            values: &mut [&mut dyn Reflect],
+            projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+        ) -> bool {
+            let mut changed = false;
+            ui.scope(|ui| {
+                ui.style_mut().spacing.item_spacing = egui::Vec2::new(4.0, 0.);
+
+                ui.columns($count, |ui| match ui {
+                    [$($component),*] => {
+                        $(
+
+                            let same = super::iter_all_eq(values.iter_mut().map(|value| {
+                                projector(*value).downcast_ref::<$ty>().unwrap().$component
+                            }));
+
+                            let id = egui::Id::new(stringify!($component));
+                            changed |= crate::inspector_egui_impls::change_slider($component, id, same, |change, overwrite| {
+                                for value in values.iter_mut() {
+                                    let value = projector(*value);
+                                    let value = value.downcast_mut::<$ty>().unwrap();
+
+                                    if false { value.$component = change };
+                                    if overwrite {
+                                        value.$component = change;
+                                    } else {
+                                        value.$component += change;
+                                    }
+
+                                }
+                            });
+                        )*
+                    }
+                    _ => unreachable!(),
+                });
+            });
+            changed
+        }
+    };
+}
 
 macro_rules! vec_ui {
     ($name:ident $name_readonly:ident $ty:ty: $count:literal $($component:ident)*) => {
@@ -99,6 +146,19 @@ vec_ui!(dvec4_ui dvec4_ui_readonly DVec4: 4 x y z w);
 vec_ui!(bvec2_ui bvec2_ui_readonly BVec2: 2 x y);
 vec_ui!(bvec3_ui bvec3_ui_readonly BVec3: 3 x y z);
 vec_ui!(bvec4_ui bvec4_ui_readonly BVec4: 4 x y z w);
+vec_ui_many!(vec2_ui_many Vec2>f32: 2 x y);
+vec_ui_many!(vec3_ui_many Vec3>f32: 3 x y z);
+vec_ui_many!(vec3a_ui_many Vec3A>f32: 3 x y z);
+vec_ui_many!(vec4_ui_many Vec4>f32: 4 x y z w);
+vec_ui_many!(uvec2_ui_many UVec2>u32: 2 x y);
+vec_ui_many!(uvec3_ui_many UVec3>u32: 3 x y z);
+vec_ui_many!(uvec4_ui_many UVec4>u32: 4 x y z w);
+vec_ui_many!(ivec2_ui_many IVec2>i32: 2 x y);
+vec_ui_many!(ivec3_ui_many IVec3>i32: 3 x y z);
+vec_ui_many!(ivec4_ui_many IVec4>i32: 4 x y z w);
+vec_ui_many!(dvec2_ui_many DVec2>f64: 2 x y);
+vec_ui_many!(dvec3_ui_many DVec3>f64: 3 x y z);
+vec_ui_many!(dvec4_ui_many DVec4>f64: 4 x y z w);
 
 mat_ui!(mat2_ui mat2_ui_readonly Mat2: x_axis y_axis);
 mat_ui!(mat3_ui mat3_ui_readonly Mat3: x_axis y_axis z_axis);
@@ -117,6 +177,7 @@ pub mod quat {
     use crate::{
         egui_reflect_inspector::InspectorUi,
         inspector_options::std_options::{QuatDisplay, QuatOptions},
+        many_ui,
     };
 
     #[derive(Clone, Copy)]
@@ -275,4 +336,6 @@ pub mod quat {
         let mut value = *value.downcast_ref::<Quat>().unwrap();
         ui.add_enabled_ui(false, |ui| quat_ui(&mut value, ui, options, env));
     }
+
+    many_ui!(quat_ui_many quat_ui Quat);
 }

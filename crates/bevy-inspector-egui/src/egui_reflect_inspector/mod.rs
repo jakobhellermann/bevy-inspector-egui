@@ -51,19 +51,22 @@
 //! }
 //! ```
 
-use crate::inspector_egui_impls::InspectorEguiImpl;
+use crate::inspector_egui_impls::{iter_all_eq, InspectorEguiImpl};
 use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};
 use crate::restricted_world_view::RestrictedWorldView;
 use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
-    Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, List, Map, Reflect, Struct, Tuple,
-    TupleStruct, TypeInfo, TypeRegistry, VariantInfo, VariantType,
+    Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List, ListInfo, Map, Reflect,
+    Struct, StructInfo, Tuple, TupleInfo, TupleStruct, TupleStructInfo, TypeInfo, TypeRegistry,
+    ValueInfo, VariantInfo, VariantType,
 };
 use egui::Grid;
 use std::any::{Any, TypeId};
 use std::borrow::Cow;
 
-mod errors;
+use self::errors::{error_message_no_multiedit, error_message_not_in_type_registry};
+
+pub(crate) mod errors;
 
 /// Display the value without any [`Context`] or short circuiting behaviour.
 /// This means that for example bevy's `Handle<StandardMaterial>` values cannot be displayed,
@@ -121,6 +124,16 @@ type ShortCircuitFnReadonly = fn(
     id: egui::Id,
     options: &dyn Any,
 ) -> Option<()>;
+pub type ShortCircuitFnMany = fn(
+    &mut InspectorUi<'_, '_>,
+    type_id: TypeId,
+    type_name: &str,
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    options: &dyn Any,
+    values: &mut [&mut dyn Reflect],
+    projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+) -> Option<bool>;
 
 pub struct InspectorUi<'a, 'c> {
     /// Reference to the [`TypeRegistry`]
@@ -133,6 +146,7 @@ pub struct InspectorUi<'a, 'c> {
     pub short_circuit: ShortCircuitFn,
     /// Same as [`short_circuit`](InspectorUi::short_circuit), but for read only usage.
     pub short_circuit_readonly: ShortCircuitFnReadonly,
+    pub short_circuit_many: ShortCircuitFnMany,
 }
 
 impl<'a, 'c> InspectorUi<'a, 'c> {
@@ -141,12 +155,14 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         context: &'a mut Context<'c>,
         short_circuit: Option<ShortCircuitFn>,
         short_circuit_readonly: Option<ShortCircuitFnReadonly>,
+        short_circuit_many: Option<ShortCircuitFnMany>,
     ) -> Self {
         Self {
             type_registry,
             context,
             short_circuit: short_circuit.unwrap_or(|_, _, _, _, _| None),
             short_circuit_readonly: short_circuit_readonly.unwrap_or(|_, _, _, _, _| None),
+            short_circuit_many: short_circuit_many.unwrap_or(|_, _, _, _, _, _, _, _| None),
         }
     }
 
@@ -154,7 +170,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         type_registry: &'a TypeRegistry,
         context: &'a mut Context<'c>,
     ) -> Self {
-        InspectorUi::new(type_registry, context, None, None)
+        InspectorUi::new(type_registry, context, None, None, None)
     }
 }
 
@@ -277,6 +293,82 @@ impl InspectorUi<'_, '_> {
             }
         }
     }
+
+    pub fn ui_for_reflect_many_with_options(
+        &mut self,
+        type_id: TypeId,
+        name: &str,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+        values: &mut [&mut dyn Reflect],
+        projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+    ) -> bool {
+        let Some(registration) = self.type_registry.get(type_id) else {
+            error_message_not_in_type_registry(ui, name);
+            return false;
+        };
+        let info = registration.type_info();
+
+        let mut options = options;
+        if options.is::<()>() {
+            if let Some(data) = self
+                .type_registry
+                .get_type_data::<ReflectInspectorOptions>(type_id)
+            {
+                options = &data.0;
+            }
+        }
+
+        if let Some(s) = self
+            .type_registry
+            .get_type_data::<InspectorEguiImpl>(type_id)
+        {
+            return s.execute_many(ui, options, self.reborrow(), values, projector);
+        }
+
+        if let Some(changed) =
+            (self.short_circuit_many)(self, type_id, name, ui, id, options, values, projector)
+        {
+            return changed;
+        }
+
+        match info {
+            TypeInfo::Struct(info) => {
+                self.ui_for_struct_many(info, ui, id, options, values, projector)
+            }
+            TypeInfo::TupleStruct(info) => {
+                self.ui_for_tuple_struct_many(info, ui, id, options, values, projector)
+            }
+            TypeInfo::Tuple(info) => {
+                self.ui_for_tuple_many(info, ui, id, options, values, projector)
+            }
+            TypeInfo::List(info) => self.ui_for_list_many(info, ui, id, options, values, projector),
+            TypeInfo::Array(info) => {
+                error_message_no_multiedit(
+                    ui,
+                    &pretty_type_name::pretty_type_name_str(info.type_name()),
+                );
+                false
+            }
+            TypeInfo::Map(info) => {
+                error_message_no_multiedit(
+                    ui,
+                    &pretty_type_name::pretty_type_name_str(info.type_name()),
+                );
+                false
+            }
+            TypeInfo::Enum(info) => self.ui_for_enum_many(info, ui, id, options, values, projector),
+            TypeInfo::Value(info) => self.ui_for_value_many(info, ui, id, options),
+            TypeInfo::Dynamic(_) => {
+                error_message_no_multiedit(
+                    ui,
+                    &pretty_type_name::pretty_type_name_str(info.type_name()),
+                );
+                false
+            }
+        }
+    }
 }
 
 impl InspectorUi<'_, '_> {
@@ -331,6 +423,43 @@ impl InspectorUi<'_, '_> {
         })
     }
 
+    fn ui_for_struct_many(
+        &mut self,
+        info: &StructInfo,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+        values: &mut [&mut dyn Reflect],
+        projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+    ) -> bool {
+        maybe_grid(info.field_len(), ui, id, |ui, label| {
+            info.iter()
+                .enumerate()
+                .map(|(i, field)| {
+                    if label {
+                        ui.label(field.name());
+                    }
+                    let changed = self.ui_for_reflect_many_with_options(
+                        field.type_id(),
+                        field.type_name(),
+                        ui,
+                        id.with(i),
+                        inspector_options_struct_field(options, i),
+                        values,
+                        &|a| match projector(a).reflect_mut() {
+                            bevy_reflect::ReflectMut::Struct(strukt) => {
+                                strukt.field_at_mut(i).unwrap()
+                            }
+                            _ => unreachable!(),
+                        },
+                    );
+                    ui.end_row();
+                    changed
+                })
+                .fold(false, or)
+        })
+    }
+
     fn ui_for_tuple_struct(
         &mut self,
         value: &mut dyn TupleStruct,
@@ -379,6 +508,43 @@ impl InspectorUi<'_, '_> {
                 );
                 ui.end_row();
             }
+        })
+    }
+
+    fn ui_for_tuple_struct_many(
+        &mut self,
+        info: &TupleStructInfo,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+        values: &mut [&mut dyn Reflect],
+        projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+    ) -> bool {
+        maybe_grid(info.field_len(), ui, id, |ui, label| {
+            info.iter()
+                .enumerate()
+                .map(|(i, field)| {
+                    if label {
+                        ui.label(i.to_string());
+                    }
+                    let changed = self.ui_for_reflect_many_with_options(
+                        field.type_id(),
+                        field.type_name(),
+                        ui,
+                        id.with(i),
+                        inspector_options_struct_field(options, i),
+                        values,
+                        &|a| match projector(a).reflect_mut() {
+                            bevy_reflect::ReflectMut::TupleStruct(strukt) => {
+                                strukt.field_mut(i).unwrap()
+                            }
+                            _ => unreachable!(),
+                        },
+                    );
+                    ui.end_row();
+                    changed
+                })
+                .fold(false, or)
         })
     }
 
@@ -431,6 +597,41 @@ impl InspectorUi<'_, '_> {
                 ui.end_row();
             }
         });
+    }
+
+    fn ui_for_tuple_many(
+        &mut self,
+        info: &TupleInfo,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+        values: &mut [&mut dyn Reflect],
+        projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+    ) -> bool {
+        maybe_grid(info.field_len(), ui, id, |ui, label| {
+            info.iter()
+                .enumerate()
+                .map(|(i, field)| {
+                    if label {
+                        ui.label(i.to_string());
+                    }
+                    let changed = self.ui_for_reflect_many_with_options(
+                        field.type_id(),
+                        field.type_name(),
+                        ui,
+                        id.with(i),
+                        inspector_options_struct_field(options, i),
+                        values,
+                        &|a| match projector(a).reflect_mut() {
+                            bevy_reflect::ReflectMut::Tuple(strukt) => strukt.field_mut(i).unwrap(),
+                            _ => unreachable!(),
+                        },
+                    );
+                    ui.end_row();
+                    changed
+                })
+                .fold(false, or)
+        })
     }
 
     fn ui_for_list(
@@ -499,6 +700,98 @@ impl InspectorUi<'_, '_> {
                 }
             }
         });
+    }
+
+    fn ui_for_list_many(
+        &mut self,
+        info: &ListInfo,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+        values: &mut [&mut dyn Reflect],
+        projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+    ) -> bool {
+        let mut changed = false;
+
+        let add_button = |ui: &mut egui::Ui, values: &mut [&mut dyn Reflect]| {
+            ui.vertical_centered_justified(|ui| {
+                if ui.button("+").clicked() {
+                    for list in values.iter_mut() {
+                        let list = match projector(*list).reflect_mut() {
+                            bevy_reflect::ReflectMut::List(list) => list,
+                            _ => unreachable!(),
+                        };
+                        let last_element = list.get(list.len() - 1).unwrap().clone_value();
+                        list.push(last_element);
+                    }
+                    true
+                } else {
+                    false
+                }
+            })
+            .inner
+        };
+
+        let same_len =
+            iter_all_eq(
+                values
+                    .iter_mut()
+                    .map(|value| match projector(*value).reflect_mut() {
+                        bevy_reflect::ReflectMut::List(l) => l.len(),
+                        _ => unreachable!(),
+                    }),
+            );
+
+        match same_len {
+            Some(len) => {
+                ui.vertical(|ui| {
+                    // let mut to_delete = None;
+
+                    for i in 0..len {
+                        let mut items_at_i: Vec<&mut dyn Reflect> = values
+                            .iter_mut()
+                            .map(|value| match projector(*value).reflect_mut() {
+                                bevy_reflect::ReflectMut::List(list) => list.get_mut(i).unwrap(),
+                                _ => unreachable!(),
+                            })
+                            .collect();
+
+                        ui.horizontal(|ui| {
+                            changed |= self.ui_for_reflect_many_with_options(
+                                info.item_type_id(),
+                                info.item_type_name(),
+                                ui,
+                                id.with(i),
+                                options,
+                                items_at_i.as_mut_slice(),
+                                &|a| a,
+                            );
+
+                            /*if utils::ui::label_button(ui, "✖", egui::Color32::RED) {
+                                to_delete = Some(i);
+                            }*/
+                        });
+
+                        if i != len - 1 {
+                            ui.separator();
+                        }
+                    }
+
+                    if len > 0 {
+                        add_button(ui, values);
+                    }
+
+                    /*if let Some(_) = to_delete {
+                        changed = true;
+                    }*/
+                });
+            }
+            None => {
+                ui.label("lists have different sizes, cannot multiedit");
+            }
+        }
+
+        changed
     }
 
     fn ui_for_reflect_map(
@@ -574,9 +867,13 @@ impl InspectorUi<'_, '_> {
         let mut changed = false;
 
         ui.vertical(|ui| {
-            let (variant_changed, active_variant) =
-                self.ui_for_enum_variant_select(id, value, ui, type_info);
-            changed |= variant_changed;
+            let changed_variant =
+                self.ui_for_enum_variant_select(id, ui, value.variant_index(), type_info);
+            if let Some((_new_variant, dynamic_enum)) = changed_variant {
+                changed = true;
+                value.apply(&dynamic_enum);
+            }
+            let variant_idx = value.variant_index();
 
             let always_show_label = matches!(value.variant_type(), VariantType::Struct);
             changed |= maybe_grid_always_show_label(
@@ -603,7 +900,7 @@ impl InspectorUi<'_, '_> {
                                 id.with(i),
                                 inspector_options_enum_variant_field(
                                     options,
-                                    active_variant.clone(),
+                                    type_info.variant_names()[variant_idx].into(),
                                     i,
                                 ),
                             );
@@ -618,27 +915,145 @@ impl InspectorUi<'_, '_> {
         changed
     }
 
+    fn ui_for_enum_many(
+        &mut self,
+        info: &EnumInfo,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        options: &dyn Any,
+        values: &mut [&mut dyn Reflect],
+        projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+    ) -> bool {
+        let mut changed = false;
+
+        let same_variant =
+            iter_all_eq(
+                values
+                    .iter_mut()
+                    .map(|value| match projector(*value).reflect_mut() {
+                        bevy_reflect::ReflectMut::Enum(info) => info.variant_index(),
+                        _ => unreachable!(),
+                    }),
+            );
+
+        if let Some(variant_idx) = same_variant {
+            let mut variant = info.variant_at(variant_idx).unwrap();
+
+            ui.vertical(|ui| {
+                let variant_changed = self.ui_for_enum_variant_select(id, ui, variant_idx, info);
+                if let Some((new_variant_idx, dynamic_enum)) = variant_changed {
+                    changed = true;
+                    variant = info.variant_at(new_variant_idx).unwrap();
+
+                    for value in values.iter_mut() {
+                        let value = projector(*value);
+                        value.apply(&dynamic_enum);
+                    }
+                }
+
+                let field_len = match variant {
+                    VariantInfo::Struct(info) => info.field_len(),
+                    VariantInfo::Tuple(info) => info.field_len(),
+                    VariantInfo::Unit(_) => 0,
+                };
+
+                let always_show_label = matches!(variant, VariantInfo::Struct(_));
+                changed |= maybe_grid_always_show_label(
+                    field_len,
+                    ui,
+                    id,
+                    always_show_label,
+                    |ui, label| {
+                        let handle = |(field_index, field_name, field_type_id, field_type_name)| {
+                            if label {
+                                ui.label(field_name);
+                            }
+
+                            let mut variants_across: Vec<&mut dyn Reflect> = values
+                                .iter_mut()
+                                .map(|value| match projector(*value).reflect_mut() {
+                                    bevy_reflect::ReflectMut::Enum(value) => {
+                                        value.field_at_mut(field_index).unwrap()
+                                    }
+                                    _ => unreachable!(),
+                                })
+                                .collect();
+
+                            self.ui_for_reflect_many_with_options(
+                                field_type_id,
+                                field_type_name,
+                                ui,
+                                id.with(field_index),
+                                inspector_options_enum_variant_field(
+                                    options,
+                                    variant.name().into(),
+                                    field_index,
+                                ),
+                                variants_across.as_mut_slice(),
+                                &|a| a,
+                            );
+
+                            ui.end_row();
+
+                            false
+                        };
+
+                        match variant {
+                            VariantInfo::Struct(info) => info
+                                .iter()
+                                .enumerate()
+                                .map(|(i, field)| {
+                                    (
+                                        i,
+                                        Cow::Borrowed(field.name()),
+                                        field.type_id(),
+                                        field.type_name(),
+                                    )
+                                })
+                                .map(handle)
+                                .fold(false, or),
+                            VariantInfo::Tuple(info) => info
+                                .iter()
+                                .enumerate()
+                                .map(|(i, field)| {
+                                    (
+                                        i,
+                                        Cow::Owned(i.to_string()),
+                                        field.type_id(),
+                                        field.type_name(),
+                                    )
+                                })
+                                .map(handle)
+                                .fold(false, or),
+                            VariantInfo::Unit(_) => false,
+                        }
+                    },
+                );
+            });
+        } else {
+            ui.label("enums have different selected variants, cannot multiedit");
+        }
+
+        changed
+    }
+
     fn ui_for_enum_variant_select(
         &mut self,
         id: egui::Id,
-        value: &mut dyn Enum,
         ui: &mut egui::Ui,
-        type_info: &bevy_reflect::EnumInfo,
-    ) -> (bool, Cow<'static, str>) {
-        let mut active_variant = None;
-        let mut changed = false;
+        active_variant_idx: usize,
+        info: &bevy_reflect::EnumInfo,
+    ) -> Option<(usize, DynamicEnum)> {
+        let mut changed_variant = None;
+
         ui.horizontal(|ui| {
             let mut unconstructable_variants = Vec::new();
             egui::ComboBox::new(id.with("select"), "")
-                .selected_text(value.variant_name())
+                .selected_text(info.variant_names()[active_variant_idx])
                 .show_ui(ui, |ui| {
-                    for variant in type_info.iter() {
+                    for (i, variant) in info.iter().enumerate() {
                         let variant_name = variant.name();
-                        let is_active_variant = variant_name == value.variant_name();
-
-                        if is_active_variant {
-                            active_variant = Some(variant.name().into())
-                        }
+                        let is_active_variant = i == active_variant_idx;
 
                         let variant_is_constructable =
                             is_variant_constructable(self.type_registry, variant);
@@ -650,11 +1065,10 @@ impl InspectorUi<'_, '_> {
                                 .selectable_label(is_active_variant, variant_name)
                                 .clicked()
                             {
-                                changed = true;
                                 if let Ok(dynamic_enum) =
-                                    self.construct_default_variant(variant, ui, value)
+                                    self.construct_default_variant(variant, ui, info.type_name())
                                 {
-                                    value.apply(&dynamic_enum);
+                                    changed_variant = Some((i, dynamic_enum));
                                 };
                             }
                         });
@@ -665,16 +1079,13 @@ impl InspectorUi<'_, '_> {
             if !unconstructable_variants.is_empty() {
                 errors::error_message_unconstructable_variants(
                     ui,
-                    value.type_name(),
+                    info.type_name(),
                     &unconstructable_variants,
                 );
             }
         });
 
-        (
-            changed,
-            active_variant.unwrap_or_else(|| Cow::Owned(value.variant_name().to_owned())),
-        )
+        changed_variant
     }
 
     fn ui_for_enum_readonly(
@@ -738,6 +1149,17 @@ impl InspectorUi<'_, '_> {
     ) {
         errors::error_message_reflect_value_no_impl(ui, value.type_name());
     }
+
+    fn ui_for_value_many(
+        &mut self,
+        info: &ValueInfo,
+        ui: &mut egui::Ui,
+        _id: egui::Id,
+        _options: &dyn Any,
+    ) -> bool {
+        errors::error_message_reflect_value_no_impl(ui, info.type_name());
+        false
+    }
 }
 
 impl<'a, 'c> InspectorUi<'a, 'c> {
@@ -747,6 +1169,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             context: self.context,
             short_circuit: self.short_circuit,
             short_circuit_readonly: self.short_circuit_readonly,
+            short_circuit_many: self.short_circuit_many,
         }
     }
 
@@ -762,7 +1185,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         &mut self,
         variant: &VariantInfo,
         ui: &mut egui::Ui,
-        value: &dyn Enum,
+        enum_type_name: &'static str,
     ) -> Result<DynamicEnum, ()> {
         let dynamic_variant = match variant {
             VariantInfo::Struct(struct_info) => {
@@ -795,7 +1218,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             }
             VariantInfo::Unit(_) => DynamicVariant::Unit,
         };
-        let dynamic_enum = DynamicEnum::new(value.type_name(), variant.name(), dynamic_variant);
+        let dynamic_enum = DynamicEnum::new(enum_type_name, variant.name(), dynamic_variant);
         Ok(dynamic_enum)
     }
 }

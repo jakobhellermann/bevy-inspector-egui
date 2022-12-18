@@ -3,7 +3,7 @@ use std::any::Any;
 use bevy_render::color::Color;
 use egui::{ecolor::Hsva, Color32};
 
-use crate::egui_reflect_inspector::InspectorUi;
+use crate::{egui_reflect_inspector::InspectorUi, many_ui};
 
 pub fn color_ui(
     value: &mut dyn Any,
@@ -24,6 +24,8 @@ pub fn color_ui_readonly(value: &dyn Any, ui: &mut egui::Ui, _: &dyn Any, _: Ins
         color_ui_inner(&mut color, ui);
     });
 }
+
+many_ui!(color_ui_many color_ui Color);
 
 fn color_ui_inner(value: &mut Color, ui: &mut egui::Ui) -> bool {
     match value {

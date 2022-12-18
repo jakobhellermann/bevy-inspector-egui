@@ -118,7 +118,7 @@ fn rescaled_image<'a>(
                 return None;
             }
 
-            let original = textures.get(handle).unwrap();
+            let original = textures.get(handle)?;
 
             let (image, is_srgb) = image_texture_conversion::try_into_dynamic(original)?;
             let resized = image.resize(

@@ -1,9 +1,10 @@
-use std::{borrow::Cow, time::Instant};
+use std::{borrow::Cow, ops::AddAssign, time::Instant};
 
+use bevy_reflect::Reflect;
 use egui::{DragValue, RichText};
 
-use super::InspectorUi;
-use crate::inspector_options::std_options::NumberOptions;
+use super::{change_slider, iter_all_eq, InspectorUi};
+use crate::{inspector_options::std_options::NumberOptions, many_ui};
 use std::{any::Any, time::Duration};
 
 pub fn number_ui<T: egui::emath::Numeric>(
@@ -59,6 +60,7 @@ pub fn number_ui_subint<T: egui::emath::Numeric>(
         .unwrap_or_default();
     display_number(value, &options, ui, 0.1)
 }
+
 fn display_number<T: egui::emath::Numeric>(
     value: &mut T,
     options: &NumberOptions<T>,
@@ -103,6 +105,38 @@ fn display_number<T: egui::emath::Numeric>(
     changed
 }
 
+pub fn number_ui_many<'a, T>(
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _env: InspectorUi<'_, '_>,
+    values: &mut [&mut dyn Reflect],
+    projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+) -> bool
+where
+    T: Reflect + egui::emath::Numeric + AddAssign<T>,
+{
+    let id = egui::Id::new("<change slider"); // TODO pass id from context
+
+    let same = iter_all_eq(
+        values
+            .iter_mut()
+            .map(|value| *projector(*value).downcast_ref::<T>().unwrap()),
+    )
+    .map(T::to_f64);
+
+    change_slider(ui, id, same, |change, overwrite| {
+        for value in values.iter_mut() {
+            let value = projector(*value).downcast_mut::<T>().unwrap();
+            let change = T::from_f64(change);
+            if overwrite {
+                *value = change;
+            } else {
+                *value += change;
+            }
+        }
+    })
+}
+
 pub fn bool_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
@@ -123,6 +157,8 @@ pub fn bool_ui_readonly(
         bool_ui(&mut copy, ui, options, env);
     });
 }
+
+many_ui!(bool_ui_many bool_ui bool);
 
 pub fn string_ui(
     value: &mut dyn Any,
@@ -146,6 +182,8 @@ pub fn string_ui_readonly(value: &dyn Any, ui: &mut egui::Ui, _: &dyn Any, _: In
         ui.text_edit_singleline(&mut value.as_str());
     }
 }
+
+many_ui!(string_ui_many string_ui String);
 
 pub fn cow_str_ui(
     value: &mut dyn Any,
@@ -181,6 +219,8 @@ pub fn cow_str_ui_readonly(
         ui.text_edit_singleline(&mut value.as_ref());
     }
 }
+
+many_ui!(cow_str_ui_many cow_str_ui Cow<str>);
 
 pub fn duration_ui(
     value: &mut dyn Any,

@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::bevy_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
-use bevy_inspector_egui::bevy_inspector::{ui_for_all_assets, ui_for_entity, ui_for_resources};
+use bevy_inspector_egui::bevy_inspector::{
+    ui_for_all_assets, ui_for_entities_shared_components, ui_for_entity, ui_for_resources,
+};
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_render::camera::{CameraProjection, Viewport};
 use egui_dock::{NodeIndex, Tree};
@@ -148,19 +150,19 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                         .interact(ui)
                     else { continue };
 
-                    let mut transform = self.world.get_mut::<Transform>(selected).unwrap();
-                    *transform =
-                        Transform::from_matrix(Mat4::from_cols_array_2d(&result.transform));
+                        let mut transform = self.world.get_mut::<Transform>(selected).unwrap();
+                        *transform =
+                            Transform::from_matrix(Mat4::from_cols_array_2d(&result.transform));
+                    }
                 }
             }
             Window::Hierarchy => hierarchy_ui(self.world, ui, self.selected_entities),
             Window::Resources => ui_for_resources(self.world, ui),
             Window::Assets => ui_for_all_assets(self.world, ui),
-            Window::Inspector => {
-                for entity in self.selected_entities.iter() {
-                    ui_for_entity(self.world, entity, ui, self.selected_entities.len() > 1);
-                }
-            }
+            Window::Inspector => match self.selected_entities.as_slice() {
+                &[entity] => ui_for_entity(self.world, entity, ui, false),
+                entities => ui_for_entities_shared_components(self.world, entities, ui),
+            },
         }
     }
 

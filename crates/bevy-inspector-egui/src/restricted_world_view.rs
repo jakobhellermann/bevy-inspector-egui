@@ -68,6 +68,9 @@ impl<T: Clone + PartialEq> Allowed<T> {
     fn allow_just(value: T) -> Allowed<T> {
         Allowed::AllowList(smallvec![value])
     }
+    fn allow(values: impl IntoIterator<Item = T>) -> Allowed<T> {
+        Allowed::AllowList(values.into_iter().collect())
+    }
     fn everything() -> Allowed<T> {
         Allowed::ForbidList(SmallVec::new())
     }
@@ -100,6 +103,30 @@ impl<T: Clone + PartialEq> Allowed<T> {
             }
         }
     }
+    fn without_many(&self, values: impl Iterator<Item = T>) -> Allowed<T>
+    where
+        T: Copy,
+    {
+        match self {
+            Allowed::AllowList(list) => {
+                let new = list.clone();
+                for value in values {
+                    let position = list
+                        .iter()
+                        .position(|item| *item == value)
+                        .expect("called `without` without access");
+                    let mut new = list.clone();
+                    new.swap_remove(position);
+                }
+                Allowed::AllowList(new)
+            }
+            Allowed::ForbidList(list) => {
+                let mut new = list.clone();
+                new.extend(values);
+                Allowed::ForbidList(new)
+            }
+        }
+    }
 }
 
 impl<'a> From<&'a mut World> for RestrictedWorldView<'a> {
@@ -120,6 +147,25 @@ impl<'w> RestrictedWorldView<'w> {
             components: Allowed::everything(),
         }
     }
+    pub fn resources_components(
+        world: &'w mut World,
+    ) -> (RestrictedWorldView<'w>, RestrictedWorldView<'w>) {
+        // INVARIANTS: `world` is `&mut` so we have access to everything
+        let resources = RestrictedWorldView {
+            world,
+            _marker: PhantomData,
+            resources: Allowed::everything(),
+            components: Allowed::nothing(),
+        };
+        let components = RestrictedWorldView {
+            world,
+            _marker: PhantomData,
+            resources: Allowed::nothing(),
+            components: Allowed::everything(),
+        };
+
+        (resources, components)
+    }
 
     /// Get a reference to the inner [`World`].
     ///
@@ -135,6 +181,12 @@ impl<'w> RestrictedWorldView<'w> {
     // same SAFETY as get, again absolutely *no* references to the world in the presence of other views,
     // you can only get a reference deep in the storage (like a resource) that doesn't get invalidated from a `&mut *` of the world.
     pub(crate) unsafe fn get_mut(&mut self) -> &'w mut World {
+        // SAFETY: the caller
+        unsafe { &mut *self.world }
+    }
+
+    // required because get_component_unchecked_by_id doesn't exist
+    unsafe fn get_mut_from_shared(&self) -> &'w mut World {
         // SAFETY: the caller
         unsafe { &mut *self.world }
     }
@@ -211,6 +263,32 @@ impl<'w> RestrictedWorldView<'w> {
             _marker: PhantomData,
             resources: self.resources.clone(),
             components: self.components.without(component),
+        };
+
+        (split, rest)
+    }
+
+    /// Splits this view into one view that only has access the the component-entity pairs `components` (`.0`), and the rest (`.1`)
+    pub fn split_off_components(
+        &mut self,
+        components: impl Iterator<Item = EntityComponent> + Copy,
+    ) -> (RestrictedWorldView<'_>, RestrictedWorldView<'_>) {
+        for component in components {
+            assert!(self.allows_access_to_component(component));
+        }
+
+        // INVARIANTS: `self` had `component` access, so `split` has access if we remove it from `self`
+        let split = RestrictedWorldView {
+            world: self.world,
+            _marker: PhantomData,
+            resources: Allowed::nothing(),
+            components: Allowed::allow(components),
+        };
+        let rest = RestrictedWorldView {
+            world: self.world,
+            _marker: PhantomData,
+            resources: self.resources.clone(),
+            components: self.components.without_many(components),
         };
 
         (split, rest)
@@ -319,6 +397,36 @@ impl<'w> RestrictedWorldView<'w> {
         // SAFETY: we have access to (entity, component) and borrow `&mut self`
         let value = unsafe {
             self.get_mut()
+                .get_mut_by_id(entity, component_id)
+                .ok_or(Error::ComponentDoesNotExist((entity, component)))?
+        };
+
+        // SAFETY: value is of type component
+        unsafe { mut_untyped_to_reflect(value, type_registry, component) }
+    }
+
+    // SAFETY: must ensure distinct access
+    pub(crate) unsafe fn get_entity_component_reflect_unchecked(
+        &self,
+        entity: Entity,
+        component: TypeId,
+        type_registry: &TypeRegistry,
+    ) -> Result<(&'_ mut dyn Reflect, impl FnOnce() + '_), Error> {
+        if !self.allows_access_to_component((entity, component)) {
+            return Err(Error::NoAccessToComponent((entity, component)));
+        }
+
+        // SAFETY: this only accesses the component ID and doesn't keep any references
+        let component_id = unsafe {
+            self.get()
+                .components()
+                .get_id(component)
+                .ok_or(Error::NoComponentId(component))?
+        };
+
+        // SAFETY: we have access to (entity, component) and caller ensures distinct access
+        let value = unsafe {
+            self.get_mut_from_shared()
                 .get_mut_by_id(entity, component_id)
                 .ok_or(Error::ComponentDoesNotExist((entity, component)))?
         };

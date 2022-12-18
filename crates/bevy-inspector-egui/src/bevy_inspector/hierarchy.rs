@@ -274,4 +274,7 @@ impl SelectedEntities {
     pub fn iter(&self) -> impl Iterator<Item = Entity> + '_ {
         self.entities.iter().copied()
     }
+    pub fn as_slice(&self) -> &[Entity] {
+        self.entities.as_slice()
+    }
 }
