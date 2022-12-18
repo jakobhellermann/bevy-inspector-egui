@@ -1,9 +1,48 @@
-use std::any::Any;
+use std::any::{Any, TypeId};
 
+use bevy_asset::{AssetServer, HandleId};
 use bevy_render::color::Color;
 use egui::{ecolor::Hsva, Color32};
 
-use crate::{egui_reflect_inspector::InspectorUi, many_ui};
+use crate::{bevy_inspector::errors::show_error, egui_reflect_inspector::InspectorUi, many_ui};
+
+pub fn handle_id_ui(
+    value: &mut dyn Any,
+    ui: &mut egui::Ui,
+    options: &dyn Any,
+    env: InspectorUi<'_, '_>,
+) -> bool {
+    handle_id_ui_readonly(value, ui, options, env);
+    false
+}
+
+pub fn handle_id_ui_readonly(
+    value: &dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    env: InspectorUi<'_, '_>,
+) {
+    let handle = *value.downcast_ref::<HandleId>().unwrap();
+
+    if let Some(world) = &mut env.context.world {
+        if world.allows_access_to_resource(TypeId::of::<AssetServer>()) {
+            let asset_server = match world.get_resource_mut::<AssetServer>() {
+                Ok(asset_server) => asset_server,
+                Err(error) => {
+                    show_error(error, ui, "AssetServer");
+                    return;
+                }
+            };
+
+            if let Some(path) = asset_server.get_handle_path(handle) {
+                ui.label(format!("{:?}", path));
+                return;
+            }
+        }
+    }
+
+    ui.label(format!("{:?}", handle));
+}
 
 pub fn color_ui(
     value: &mut dyn Any,

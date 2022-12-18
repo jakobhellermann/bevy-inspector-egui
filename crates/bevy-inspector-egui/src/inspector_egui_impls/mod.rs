@@ -8,7 +8,7 @@ use std::{
     borrow::Cow,
 };
 
-mod color;
+mod bevy_impls;
 mod glam_impls;
 mod image;
 mod std_impls;
@@ -170,8 +170,9 @@ pub fn register_glam_impls(type_registry: &mut TypeRegistry) {
 /// Register [`InspectorEguiImpl`]s for `bevy` types
 #[rustfmt::skip]
 pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
+    add_no_many::<bevy_asset::HandleId>(type_registry, bevy_impls::handle_id_ui, bevy_impls::handle_id_ui_readonly);
     add_no_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, image::image_handle_ui, image::image_handle_ui_readonly);
-    add::<bevy_render::color::Color>(type_registry, color::color_ui, color::color_ui_readonly, color::color_ui_many);
+    add::<bevy_render::color::Color>(type_registry, bevy_impls::color_ui, bevy_impls::color_ui_readonly, bevy_impls::color_ui_many);
 }
 
 pub(crate) fn change_slider<T>(
