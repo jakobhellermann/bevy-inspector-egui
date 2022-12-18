@@ -132,11 +132,12 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                 let view_matrix = Mat4::from(cam_transform.affine().inverse());
                 let projection_matrix = projection.get_projection_matrix();
 
-                for selected in self.selected_entities.iter() {
-                    let transform = self.world.get::<Transform>(selected).unwrap();
-                    let model_matrix = transform.compute_matrix();
+                if self.selected_entities.len() == 1 {
+                    for selected in self.selected_entities.iter() {
+                        let transform = self.world.get::<Transform>(selected).unwrap();
+                        let model_matrix = transform.compute_matrix();
 
-                    let Some(result) = egui_gizmo::Gizmo::new(selected)
+                        let Some(result) = egui_gizmo::Gizmo::new(selected)
                         .model_matrix(model_matrix.to_cols_array_2d())
                         .view_matrix(view_matrix.to_cols_array_2d())
                         .projection_matrix(projection_matrix.to_cols_array_2d())
