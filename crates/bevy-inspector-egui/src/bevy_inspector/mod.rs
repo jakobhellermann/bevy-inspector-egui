@@ -421,7 +421,7 @@ pub fn ui_for_entities_shared_components(
 pub mod by_type_id {
     use std::any::TypeId;
 
-    use bevy_asset::{HandleUntyped, ReflectAsset, ReflectHandle};
+    use bevy_asset::{HandleId, HandleUntyped, ReflectAsset, ReflectHandle};
     use bevy_ecs::prelude::*;
     use bevy_reflect::TypeRegistry;
 
@@ -466,14 +466,14 @@ pub mod by_type_id {
         type_registry: &TypeRegistry,
     ) {
         let Some(registration) = type_registry.get(asset_type_id) else {
-        return crate::egui_reflect_inspector::errors::error_message_not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
-    };
+            return crate::egui_reflect_inspector::errors::error_message_not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
+        };
         let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
-        return errors::no_type_data(ui, &name_of_type(asset_type_id, type_registry), "ReflectAsset");
-    };
+            return errors::no_type_data(ui, &name_of_type(asset_type_id, type_registry), "ReflectAsset");
+        };
         let Some(reflect_handle) = type_registry.get_type_data::<ReflectHandle>(reflect_asset.handle_type_id()) else {
-        return errors::no_type_data(ui, &name_of_type(reflect_asset.handle_type_id(), type_registry), "ReflectHandle");
-    };
+            return errors::no_type_data(ui, &name_of_type(reflect_asset.handle_type_id(), type_registry), "ReflectHandle");
+        };
 
         let mut ids: Vec<_> = reflect_asset.ids(world).collect();
         ids.sort();
@@ -494,6 +494,39 @@ pub mod by_type_id {
                     env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
                 });
         }
+    }
+
+    /// Display a given asset by handle and asset [`TypeId`]
+    pub fn ui_for_asset(
+        world: &mut World,
+        asset_type_id: TypeId,
+        handle: HandleId,
+        ui: &mut egui::Ui,
+        type_registry: &TypeRegistry,
+    ) {
+        let Some(registration) = type_registry.get(asset_type_id) else {
+            return crate::egui_reflect_inspector::errors::error_message_not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
+        };
+        let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
+            return errors::no_type_data(ui, &name_of_type(asset_type_id, type_registry), "ReflectAsset");
+        };
+        let Some(reflect_handle) = type_registry.get_type_data::<ReflectHandle>(reflect_asset.handle_type_id()) else {
+            return errors::no_type_data(ui, &name_of_type(reflect_asset.handle_type_id(), type_registry), "ReflectHandle");
+        };
+
+        let mut ids: Vec<_> = reflect_asset.ids(world).collect();
+        ids.sort();
+
+        // Create a context with access to the entire world. Displaying the `Handle<T>` will short circuit into
+        // displaying the T with a world view excluding Assets<T>.
+        let world = RestrictedWorldView::new(world);
+        let mut cx = Context { world: Some(world) };
+
+        let id = egui::Id::new(handle);
+        let mut handle = reflect_handle.typed(HandleUntyped::weak(handle));
+
+        let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+        env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
     }
 }
 
