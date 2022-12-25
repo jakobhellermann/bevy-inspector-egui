@@ -395,23 +395,22 @@ impl<'a> WorldUIContext<'a> {
 
                 let result = self.world.resource_scope(
                     |world, inspectable_registry: Mut<InspectableRegistry>| {
-                        world.resource_scope(|world, type_registry: Mut<AppTypeRegistry>| {
-                            let type_registry = &*type_registry.internal.read();
+                        let type_registry = world.resource::<AppTypeRegistry>().clone();
+                        let type_registry = &*type_registry.internal.read();
 
-                            // Safety: according to this function's contract, entity_location (and therefore component_ptr) are valid
-                            try_display(
-                                world,
-                                entity,
-                                component_ptr,
-                                is_zst,
-                                type_id,
-                                &inspectable_registry,
-                                type_registry,
-                                ui,
-                                self.ui_ctx,
-                                id,
-                            )
-                        })
+                        // Safety: according to this function's contract, entity_location (and therefore component_ptr) are valid
+                        try_display(
+                            world,
+                            entity,
+                            component_ptr,
+                            is_zst,
+                            type_id,
+                            &inspectable_registry,
+                            type_registry,
+                            ui,
+                            self.ui_ctx,
+                            id,
+                        )
                     },
                 );
 
