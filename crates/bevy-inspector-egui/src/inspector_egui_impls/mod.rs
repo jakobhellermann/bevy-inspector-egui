@@ -13,11 +13,14 @@ mod glam_impls;
 mod image;
 mod std_impls;
 
-type InspectorEguiImplFn = fn(&mut dyn Any, &mut egui::Ui, &dyn Any, InspectorUi<'_, '_>) -> bool;
-type InspectorEguiImplFnReadonly = fn(&dyn Any, &mut egui::Ui, &dyn Any, InspectorUi<'_, '_>);
+type InspectorEguiImplFn =
+    fn(&mut dyn Any, &mut egui::Ui, &dyn Any, egui::Id, InspectorUi<'_, '_>) -> bool;
+type InspectorEguiImplFnReadonly =
+    fn(&dyn Any, &mut egui::Ui, &dyn Any, egui::Id, InspectorUi<'_, '_>);
 type InspectorEguiImplFnMany = for<'a> fn(
     &mut egui::Ui,
     &dyn Any,
+    egui::Id,
     InspectorUi<'_, '_>,
     &mut [&mut dyn Reflect],
     &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
@@ -53,34 +56,38 @@ impl InspectorEguiImpl {
         value: &mut dyn Any,
         ui: &mut egui::Ui,
         options: &dyn Any,
+        id: egui::Id,
         env: InspectorUi<'_, '_>,
     ) -> bool {
-        (self.fn_mut)(value, ui, options, env)
+        (self.fn_mut)(value, ui, options, id, env)
     }
     pub fn execute_readonly<'a, 'c: 'a>(
         &'a self,
         value: &dyn Any,
         ui: &mut egui::Ui,
         options: &dyn Any,
+        id: egui::Id,
         env: InspectorUi<'_, '_>,
     ) {
-        (self.fn_readonly)(value, ui, options, env)
+        (self.fn_readonly)(value, ui, options, id, env)
     }
     pub fn execute_many<'a, 'c: 'a, 'e>(
         &'a self,
         ui: &mut egui::Ui,
         options: &dyn Any,
+        id: egui::Id,
         env: InspectorUi<'_, '_>,
         values: &mut [&mut dyn Reflect],
         projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
     ) -> bool {
-        (self.fn_many)(ui, options, env, values, projector)
+        (self.fn_many)(ui, options, id, env, values, projector)
     }
 }
 
 fn many_unimplemented<T: Any>(
     ui: &mut egui::Ui,
     _options: &dyn Any,
+    _id: egui::Id,
     _env: InspectorUi<'_, '_>,
     _values: &mut [&mut dyn Reflect],
     _projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
@@ -230,6 +237,7 @@ macro_rules! many_ui {
         pub fn $name(
             ui: &mut egui::Ui,
             options: &dyn Any,
+            id: egui::Id,
             env: InspectorUi<'_, '_>,
             values: &mut [&mut dyn bevy_reflect::Reflect],
             projector: &dyn Fn(&mut dyn bevy_reflect::Reflect) -> &mut dyn bevy_reflect::Reflect,
@@ -241,7 +249,7 @@ macro_rules! many_ui {
             );
 
             let mut temp = same.cloned().unwrap_or_default();
-            if $inner(&mut temp, ui, options, env) {
+            if $inner(&mut temp, ui, options, id, env) {
                 for value in values.iter_mut() {
                     let value = projector(*value).downcast_mut::<$ty>().unwrap();
                     *value = temp.clone();

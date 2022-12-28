@@ -11,6 +11,7 @@ pub fn number_ui<T: egui::emath::Numeric>(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     options: &dyn Any,
+    _: egui::Id,
     _: InspectorUi<'_, '_>,
 ) -> bool {
     let value = value.downcast_mut::<T>().unwrap();
@@ -24,6 +25,7 @@ pub fn number_ui_readonly<T: egui::emath::Numeric>(
     value: &dyn Any,
     ui: &mut egui::Ui,
     options: &dyn Any,
+    _: egui::Id,
     _: InspectorUi<'_, '_>,
 ) {
     let value = value.downcast_ref::<T>().unwrap();
@@ -51,6 +53,7 @@ pub fn number_ui_subint<T: egui::emath::Numeric>(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     options: &dyn Any,
+    _: egui::Id,
     _: InspectorUi<'_, '_>,
 ) -> bool {
     let value = value.downcast_mut::<T>().unwrap();
@@ -108,6 +111,7 @@ fn display_number<T: egui::emath::Numeric>(
 pub fn number_ui_many<T>(
     ui: &mut egui::Ui,
     _: &dyn Any,
+    id: egui::Id,
     _env: InspectorUi<'_, '_>,
     values: &mut [&mut dyn Reflect],
     projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
@@ -115,8 +119,6 @@ pub fn number_ui_many<T>(
 where
     T: Reflect + egui::emath::Numeric + AddAssign<T>,
 {
-    let id = egui::Id::new("<change slider"); // TODO pass id from context
-
     let same = iter_all_eq(
         values
             .iter_mut()
@@ -141,6 +143,7 @@ pub fn bool_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
+    _: egui::Id,
     _: InspectorUi<'_, '_>,
 ) -> bool {
     let value = value.downcast_mut::<bool>().unwrap();
@@ -150,11 +153,12 @@ pub fn bool_ui_readonly(
     value: &dyn Any,
     ui: &mut egui::Ui,
     options: &dyn Any,
+    id: egui::Id,
     env: InspectorUi<'_, '_>,
 ) {
     let mut copy = *value.downcast_ref::<bool>().unwrap();
     ui.add_enabled_ui(false, |ui| {
-        bool_ui(&mut copy, ui, options, env);
+        bool_ui(&mut copy, ui, options, id, env);
     });
 }
 
@@ -164,6 +168,7 @@ pub fn string_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
+    _: egui::Id,
     _: InspectorUi<'_, '_>,
 ) -> bool {
     let value = value.downcast_mut::<String>().unwrap();
@@ -174,7 +179,13 @@ pub fn string_ui(
     }
 }
 
-pub fn string_ui_readonly(value: &dyn Any, ui: &mut egui::Ui, _: &dyn Any, _: InspectorUi<'_, '_>) {
+pub fn string_ui_readonly(
+    value: &dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: egui::Id,
+    _: InspectorUi<'_, '_>,
+) {
     let value = value.downcast_ref::<String>().unwrap();
     if value.contains('\n') {
         ui.text_edit_multiline(&mut value.as_str());
@@ -189,6 +200,7 @@ pub fn cow_str_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
+    _: egui::Id,
     _: InspectorUi<'_, '_>,
 ) -> bool {
     let value = value.downcast_mut::<Cow<str>>().unwrap();
@@ -210,6 +222,7 @@ pub fn cow_str_ui_readonly(
     value: &dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
+    _: egui::Id,
     _: InspectorUi<'_, '_>,
 ) {
     let value = value.downcast_ref::<Cow<str>>().unwrap();
@@ -226,6 +239,7 @@ pub fn duration_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
+    _: egui::Id,
     mut env: InspectorUi<'_, '_>,
 ) -> bool {
     let value = value.downcast_mut::<Duration>().unwrap();
@@ -246,6 +260,7 @@ pub fn duration_ui_readonly(
     value: &dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
+    _: egui::Id,
     mut env: InspectorUi<'_, '_>,
 ) {
     let value = value.downcast_ref::<Duration>().unwrap();
@@ -262,9 +277,10 @@ pub fn instant_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     options: &dyn Any,
+    id: egui::Id,
     env: InspectorUi<'_, '_>,
 ) -> bool {
-    instant_ui_readonly(value, ui, options, env);
+    instant_ui_readonly(value, ui, options, id, env);
     false
 }
 
@@ -272,6 +288,7 @@ pub fn instant_ui_readonly(
     value: &dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
+    _: egui::Id,
     _: InspectorUi<'_, '_>,
 ) {
     let value = value.downcast_ref::<Instant>().unwrap();

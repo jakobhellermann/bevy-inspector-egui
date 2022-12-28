@@ -214,7 +214,7 @@ impl InspectorUi<'_, '_> {
             .type_registry
             .get_type_data::<InspectorEguiImpl>(Any::type_id(value))
         {
-            return s.execute(value.as_any_mut(), ui, options, self.reborrow());
+            return s.execute(value.as_any_mut(), ui, options, id, self.reborrow());
         }
 
         if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
@@ -261,7 +261,7 @@ impl InspectorUi<'_, '_> {
             .type_registry
             .get_type_data::<InspectorEguiImpl>(Any::type_id(value))
         {
-            s.execute_readonly(value.as_any(), ui, options, self.reborrow());
+            s.execute_readonly(value.as_any(), ui, options, id, self.reborrow());
             return;
         }
 
@@ -327,7 +327,7 @@ impl InspectorUi<'_, '_> {
             .type_registry
             .get_type_data::<InspectorEguiImpl>(type_id)
         {
-            return s.execute_many(ui, options, self.reborrow(), values, projector);
+            return s.execute_many(ui, options, id, self.reborrow(), values, projector);
         }
 
         if let Some(changed) =

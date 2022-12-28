@@ -22,15 +22,17 @@ pub fn image_handle_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     options: &dyn Any,
+    id: egui::Id,
     env: InspectorUi<'_, '_>,
 ) -> bool {
-    image_handle_ui_readonly(value, ui, options, env);
+    image_handle_ui_readonly(value, ui, options, id, env);
     false
 }
 pub fn image_handle_ui_readonly(
     value: &dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
+    _: egui::Id,
     env: InspectorUi<'_, '_>,
 ) {
     let value = value.downcast_ref::<Handle<Image>>().unwrap();

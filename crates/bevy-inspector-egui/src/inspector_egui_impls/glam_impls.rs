@@ -10,6 +10,7 @@ macro_rules! vec_ui_many {
         pub fn $name_many<'a>(
             ui: &mut egui::Ui,
             _: &dyn Any,
+            _: egui::Id,
             _env: InspectorUi<'_, '_>,
             values: &mut [&mut dyn Reflect],
             projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
@@ -57,6 +58,7 @@ macro_rules! vec_ui {
             value: &mut dyn Any,
             ui: &mut egui::Ui,
             _: &dyn Any,
+            _: egui::Id,
             mut env: InspectorUi<'_, '_>,
         ) -> bool {
             let value = value.downcast_mut::<$ty>().unwrap();
@@ -79,6 +81,7 @@ macro_rules! vec_ui {
             value: &dyn Any,
             ui: &mut egui::Ui,
             _: &dyn Any,
+            _: egui::Id,
             mut env: InspectorUi<'_, '_>,
         ) {
             let value = value.downcast_ref::<$ty>().unwrap();
@@ -103,6 +106,7 @@ macro_rules! mat_ui {
             value: &mut dyn Any,
             ui: &mut egui::Ui,
             _: &dyn Any,
+            _: egui::Id,
             mut env: InspectorUi<'_, '_>,
         ) -> bool {
 
@@ -119,6 +123,7 @@ macro_rules! mat_ui {
             value: &dyn Any,
             ui: &mut egui::Ui,
             _: &dyn Any,
+            _: egui::Id,
             mut env: InspectorUi<'_, '_>,
         ) {
             let value = value.downcast_ref::<$ty>().unwrap();
@@ -302,6 +307,7 @@ pub mod quat {
         value: &mut dyn Any,
         ui: &mut egui::Ui,
         options: &dyn Any,
+        _: egui::Id,
         mut env: InspectorUi<'_, '_>,
     ) -> bool {
         let value = value.downcast_mut::<Quat>().unwrap();
@@ -331,10 +337,11 @@ pub mod quat {
         value: &dyn Any,
         ui: &mut egui::Ui,
         options: &dyn Any,
+        id: egui::Id,
         env: InspectorUi<'_, '_>,
     ) {
         let mut value = *value.downcast_ref::<Quat>().unwrap();
-        ui.add_enabled_ui(false, |ui| quat_ui(&mut value, ui, options, env));
+        ui.add_enabled_ui(false, |ui| quat_ui(&mut value, ui, options, id, env));
     }
 
     many_ui!(quat_ui_many quat_ui Quat);

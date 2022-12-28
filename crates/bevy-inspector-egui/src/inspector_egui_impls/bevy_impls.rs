@@ -14,6 +14,7 @@ pub fn mesh_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
+    _: egui::Id,
     env: InspectorUi<'_, '_>,
 ) -> bool {
     let handle = value.downcast_ref::<Handle<Mesh>>().unwrap();
@@ -53,7 +54,13 @@ pub fn mesh_ui(
     false
 }
 
-pub fn mesh_ui_readonly(value: &dyn Any, ui: &mut egui::Ui, _: &dyn Any, env: InspectorUi<'_, '_>) {
+pub fn mesh_ui_readonly(
+    value: &dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: egui::Id,
+    env: InspectorUi<'_, '_>,
+) {
     let handle = value.downcast_ref::<Handle<Mesh>>().unwrap();
 
     let Some(world) = &mut env.context.world else {
@@ -118,9 +125,10 @@ pub fn handle_id_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     options: &dyn Any,
+    id: egui::Id,
     env: InspectorUi<'_, '_>,
 ) -> bool {
-    handle_id_ui_readonly(value, ui, options, env);
+    handle_id_ui_readonly(value, ui, options, id, env);
     false
 }
 
@@ -128,6 +136,7 @@ pub fn handle_id_ui_readonly(
     value: &dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
+    _: egui::Id,
     env: InspectorUi<'_, '_>,
 ) {
     let handle = *value.downcast_ref::<HandleId>().unwrap();
@@ -156,6 +165,7 @@ pub fn color_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
+    _: egui::Id,
     _: InspectorUi<'_, '_>,
 ) -> bool {
     let value = value.downcast_mut::<Color>().unwrap();
@@ -163,7 +173,13 @@ pub fn color_ui(
     color_ui_inner(value, ui)
 }
 
-pub fn color_ui_readonly(value: &dyn Any, ui: &mut egui::Ui, _: &dyn Any, _: InspectorUi<'_, '_>) {
+pub fn color_ui_readonly(
+    value: &dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: egui::Id,
+    _: InspectorUi<'_, '_>,
+) {
     let value = value.downcast_ref::<Color>().unwrap();
 
     ui.add_enabled_ui(false, |ui| {
