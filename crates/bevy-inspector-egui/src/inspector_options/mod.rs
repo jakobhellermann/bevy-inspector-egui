@@ -102,6 +102,24 @@ where
     }
 }
 
+/// Helper trait for the [`derive@InspectorOptions`] macro.
+///
+/// ```skip
+///     #[inspector(min = 0.0, max = 1.0)]
+///     field: f32
+/// ```
+/// will expand to this:
+/// ```rust
+/// # use std::convert::Into;
+/// # use bevy_inspector_egui::inspector_options::{InspectorOptions, InspectorOptionsType, Target};
+/// let mut options = InspectorOptions::default();
+/// let mut field_options =  <f32 as InspectorOptionsType>::TypedOptions::default();
+/// field_options.min = Into::into(2.0);
+/// field_options.max = Into::into(3.0);
+/// options.insert(
+///     Target::Field(0usize),
+///     <f32 as InspectorOptionsType>::Options::from(field_options),
+/// );
 pub trait InspectorOptionsType {
     type TypedOptions: Default;
     type Options: From<Self::TypedOptions>;
