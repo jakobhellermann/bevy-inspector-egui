@@ -14,7 +14,7 @@
 //!
 //! fn show_ui(world: &mut World, ui: &mut egui::Ui) {
 //!     let mut any_reflect_value = Vec3::new(1.0, 2.0, 3.0);
-//!     bevy_inspector::ui_for_value(&mut any_reflect_value, world, ui);
+//!     bevy_inspector::ui_for_value(&mut any_reflect_value, ui, world);
 //!
 //!     ui.heading("Msaa resource");
 //!     bevy_inspector::ui_for_resource::<Msaa>(world, ui);
@@ -66,7 +66,7 @@ use self::errors::show_error;
 ///
 /// If all you're displaying is a simple value without any references into the bevy world, consider just using
 /// [`egui_reflect_inspector::ui_for_value`](crate::egui_reflect_inspector::ui_for_value).
-pub fn ui_for_value(value: &mut dyn Reflect, world: &mut World, ui: &mut egui::Ui) -> bool {
+pub fn ui_for_value(value: &mut dyn Reflect, ui: &mut egui::Ui, world: &mut World) -> bool {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
