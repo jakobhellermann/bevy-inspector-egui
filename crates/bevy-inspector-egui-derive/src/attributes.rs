@@ -17,7 +17,7 @@ fn is_reflect_ignore(attribute: &syn::Attribute) -> bool {
     false
 }
 pub fn is_reflect_ignore_field(field: &syn::Field) -> bool {
-    field.attrs.iter().any(|attr| is_reflect_ignore(attr))
+    field.attrs.iter().any(is_reflect_ignore)
 }
 
 pub enum InspectorAttribute {
