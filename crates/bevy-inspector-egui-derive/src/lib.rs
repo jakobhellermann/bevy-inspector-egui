@@ -22,6 +22,7 @@ fn expand_struct(input: &DeriveInput, data: &DataStruct) -> syn::Result<TokenStr
     let fields = data
         .fields
         .iter()
+        .filter(|field| !is_reflect_ignore_field(field))
         .enumerate()
         .filter_map(|(i, field)| {
             let ty = &field.ty;
@@ -70,6 +71,7 @@ fn expand_enum(input: &DeriveInput, data: &DataEnum) -> syn::Result<TokenStream>
             let attrs = variant
                 .fields
                 .iter()
+                .filter(|field| !is_reflect_ignore_field(field))
                 .enumerate()
                 .filter_map(|(field_index, field)| {
                     let ty = &field.ty;
@@ -120,6 +122,24 @@ fn expand_union(_: &DeriveInput, data: &DataUnion) -> syn::Result<TokenStream> {
         data.union_token,
         "`InspectorOptions` for unions is not implemented",
     ))
+}
+fn is_reflect_ignore(attribute: &syn::Attribute) -> bool {
+    if attribute.path.is_ident("reflect") {
+        if let Ok(syn::Meta::List(list)) = attribute.parse_meta() {
+            for nested in list.nested {
+                if let syn::NestedMeta::Meta(meta) = nested {
+                    if meta.path().is_ident("ignore") {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    false
+}
+fn is_reflect_ignore_field(field: &syn::Field) -> bool {
+    field.attrs.iter().any(|attr| is_reflect_ignore(attr))
 }
 
 fn collect_attrs(field: &syn::Field) -> Result<Vec<(syn::Ident, syn::Lit)>, syn::Error> {

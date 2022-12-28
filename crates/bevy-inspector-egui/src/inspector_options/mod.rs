@@ -10,7 +10,7 @@ pub(crate) mod default_options;
 pub mod std_options;
 
 /// Descriptor of a path into a struct/enum. Either a `Field` (`.foo`) or a `VariantField` (`RGBA.r`)
-#[derive(Hash, PartialEq, Eq, Clone, Debug)]
+#[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Target {
     Field(usize),
     VariantField {
@@ -47,6 +47,17 @@ pub use bevy_inspector_egui_derive::InspectorOptions;
 pub struct InspectorOptions {
     options: HashMap<Target, Box<dyn TypeData>>,
 }
+
+impl std::fmt::Debug for InspectorOptions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut options = f.debug_struct("InspectorOptions");
+        for entry in self.options.keys() {
+            options.field(&format!("{entry:?}"), &"..");
+        }
+        options.finish()
+    }
+}
+
 impl Clone for InspectorOptions {
     fn clone(&self) -> Self {
         Self {
@@ -71,6 +82,10 @@ impl InspectorOptions {
     }
     pub fn get(&self, target: Target) -> Option<&dyn Any> {
         self.options.get(&target).map(|value| value.as_any())
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (Target, &dyn TypeData)> + '_ {
+        self.options.iter().map(|(target, data)| (*target, &**data))
     }
 }
 

@@ -14,3 +14,7 @@ proc-macro = true
 syn = "1.0"
 quote = "1.0"
 proc-macro2 = "1.0"
+
+[dev-dependencies]
+bevy_reflect = { version = "0.9", default-features = false }
+bevy-inspector-egui = { path = "../bevy-inspector-egui" }
