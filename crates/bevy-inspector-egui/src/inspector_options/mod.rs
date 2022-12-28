@@ -1,6 +1,6 @@
 //! Way of associating options to fields using [`struct@InspectorOptions`]
 
-use std::{any::Any, borrow::Cow, collections::HashMap};
+use std::{any::Any, collections::HashMap};
 
 use bevy_reflect::{FromType, TypeData};
 
@@ -13,7 +13,10 @@ pub mod std_options;
 #[derive(Hash, PartialEq, Eq, Clone, Debug)]
 pub enum Target {
     Field(usize),
-    VariantField(Cow<'static, str>, usize),
+    VariantField {
+        variant_index: usize,
+        field_index: usize,
+    },
 }
 
 pub use bevy_inspector_egui_derive::InspectorOptions;

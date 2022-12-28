@@ -876,7 +876,7 @@ impl InspectorUi<'_, '_> {
                 changed = true;
                 value.apply(&dynamic_enum);
             }
-            let variant_idx = value.variant_index();
+            let variant_index = value.variant_index();
 
             let always_show_label = matches!(value.variant_type(), VariantType::Struct);
             changed |= maybe_grid_always_show_label(
@@ -901,11 +901,7 @@ impl InspectorUi<'_, '_> {
                                 field_value,
                                 ui,
                                 id.with(i),
-                                inspector_options_enum_variant_field(
-                                    options,
-                                    type_info.variant_names()[variant_idx].into(),
-                                    i,
-                                ),
+                                inspector_options_enum_variant_field(options, variant_index, i),
                             );
                             ui.end_row();
                             changed
@@ -939,11 +935,11 @@ impl InspectorUi<'_, '_> {
                     }),
             );
 
-        if let Some(variant_idx) = same_variant {
-            let mut variant = info.variant_at(variant_idx).unwrap();
+        if let Some(variant_index) = same_variant {
+            let mut variant = info.variant_at(variant_index).unwrap();
 
             ui.vertical(|ui| {
-                let variant_changed = self.ui_for_enum_variant_select(id, ui, variant_idx, info);
+                let variant_changed = self.ui_for_enum_variant_select(id, ui, variant_index, info);
                 if let Some((new_variant_idx, dynamic_enum)) = variant_changed {
                     changed = true;
                     variant = info.variant_at(new_variant_idx).unwrap();
@@ -989,7 +985,7 @@ impl InspectorUi<'_, '_> {
                                 id.with(field_index),
                                 inspector_options_enum_variant_field(
                                     options,
-                                    variant.name().into(),
+                                    variant_index,
                                     field_index,
                                 ),
                                 variants_across.as_mut_slice(),
@@ -1120,11 +1116,7 @@ impl InspectorUi<'_, '_> {
                         field_value,
                         ui,
                         id.with(i),
-                        inspector_options_enum_variant_field(
-                            options,
-                            active_variant.to_owned().into(),
-                            i,
-                        ),
+                        inspector_options_enum_variant_field(options, value.variant_index(), i),
                     );
                     ui.end_row();
                 }
@@ -1299,12 +1291,17 @@ fn inspector_options_struct_field(options: &dyn Any, field: usize) -> &dyn Any {
 
 fn inspector_options_enum_variant_field<'a>(
     options: &'a dyn Any,
-    variant: Cow<'static, str>,
-    field: usize,
+    variant_index: usize,
+    field_index: usize,
 ) -> &'a dyn Any {
     options
         .downcast_ref::<InspectorOptions>()
-        .and_then(|options| options.get(Target::VariantField(variant, field)))
+        .and_then(|options| {
+            options.get(Target::VariantField {
+                variant_index,
+                field_index,
+            })
+        })
         .unwrap_or(&())
 }
 

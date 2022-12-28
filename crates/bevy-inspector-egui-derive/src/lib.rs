@@ -65,13 +65,13 @@ fn expand_enum(input: &DeriveInput, data: &DataEnum) -> syn::Result<TokenStream>
     let fields = data
         .variants
         .iter()
-        .map(|variant| {
-            let variant_name = variant.ident.to_string();
+        .enumerate()
+        .map(|(variant_index, variant)| {
             let attrs = variant
                 .fields
                 .iter()
                 .enumerate()
-                .filter_map(|(i, field)| {
+                .filter_map(|(field_index, field)| {
                     let ty = &field.ty;
                     let attrs = match collect_attrs(field) {
                         Ok(attrs) => attrs,
@@ -87,7 +87,13 @@ fn expand_enum(input: &DeriveInput, data: &DataEnum) -> syn::Result<TokenStream>
                     Some(Ok(quote! {
                         let mut field_options = <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::TypedOptions::default();
                         #(#attrs)*
-                        options.insert(bevy_inspector_egui::inspector_options::Target::VariantField(std::borrow::Cow::Borrowed(#variant_name), #i), <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::Options::from(field_options));
+                        options.insert(
+                            bevy_inspector_egui::inspector_options::Target::VariantField {
+                                variant_index: #variant_index,
+                                field_index: #field_index,
+                            },
+                            <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::Options::from(field_options)
+                        );
                     }))
                 })
                 .collect::<syn::Result<Vec<_>>>()?;

@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use bevy_reflect::{TypeData, TypeInfo, TypeRegistry};
 
 use crate::{
@@ -39,13 +37,17 @@ fn insert_options_enum<T: 'static>(
                 TypeInfo::Enum(info) => info,
                 _ => unreachable!(),
             };
-            let field_index = match info.variant(variant).unwrap() {
+            let variant_index = info.index_of(variant).unwrap();
+            let field_index = match info.variant_at(variant_index).unwrap() {
                 bevy_reflect::VariantInfo::Struct(strukt) => strukt.index_of(field).unwrap(),
                 bevy_reflect::VariantInfo::Tuple(_) => field.parse().unwrap(),
                 bevy_reflect::VariantInfo::Unit(_) => unreachable!(),
             };
             options.insert_boxed(
-                Target::VariantField(Cow::Borrowed(variant), field_index),
+                Target::VariantField {
+                    variant_index,
+                    field_index,
+                },
                 TypeData::clone_type_data(*data),
             );
         }
