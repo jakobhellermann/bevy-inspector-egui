@@ -42,7 +42,7 @@ fn insert_options_enum<T: 'static>(
             let field_index = match info.variant(variant).unwrap() {
                 bevy_reflect::VariantInfo::Struct(strukt) => strukt.index_of(field).unwrap(),
                 bevy_reflect::VariantInfo::Tuple(_) => field.parse().unwrap(),
-                bevy_reflect::VariantInfo::Unit(_) => todo!(),
+                bevy_reflect::VariantInfo::Unit(_) => unreachable!(),
             };
             options.insert_boxed(
                 Target::VariantField(Cow::Borrowed(variant), field_index),
@@ -88,19 +88,17 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
             ("depth_bias", &NumberOptions::<f32>::positive()),
         ],
     );
-
-    // TODO: register in bevy
-    /*insert_options_enum::<bevy_pbr::ClusterConfig>(
+    insert_options_enum::<bevy_pbr::ClusterConfig>(
         type_registry,
         &[
             ("FixedZ", "z_slices", &NumberOptions::<u32>::at_least(1)),
             (
                 "XYZ",
                 "dimensions",
-                &NumberOptions::<UVec3>::at_least(UVec3::ONE),
+                &NumberOptions::<bevy_math::UVec3>::at_least(bevy_math::UVec3::ONE),
             ),
         ],
-    );*/
+    );
 
     insert_options_enum::<bevy_core_pipeline::core_3d::Camera3dDepthLoadOp>(
         type_registry,
