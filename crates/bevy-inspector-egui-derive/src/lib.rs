@@ -2,6 +2,8 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{DataEnum, DataStruct, DataUnion, DeriveInput};
 
+mod attributes;
+
 /// Derive macro used to derive `InspectorOptions`
 #[proc_macro_derive(InspectorOptions, attributes(inspector))]
 pub fn inspectable(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -22,19 +24,23 @@ fn expand_struct(input: &DeriveInput, data: &DataStruct) -> syn::Result<TokenStr
     let fields = data
         .fields
         .iter()
-        .filter(|field| !is_reflect_ignore_field(field))
+        .filter(|field| !attributes::is_reflect_ignore_field(field))
         .enumerate()
         .filter_map(|(i, field)| {
             let ty = &field.ty;
-            let attrs = match collect_attrs(field) {
+            let attrs = match attributes::extract_inspector_attributes(&field.attrs) {
                 Ok(attrs) => attrs,
                 Err(e) => return Some(Err(e)),
             };
             if attrs.is_empty() {
                 return None;
             }
-            let attrs = attrs.into_iter().map(|(name, value)| quote! {
-                field_options.#name = std::convert::Into::into(#value);
+            let attrs = attrs.into_iter().map(|attribute| {
+                let name = attribute.lhs();
+                let value = attribute.rhs();
+                quote! {
+                    field_options.#name = std::convert::Into::into(#value);
+                }
             });
 
             Some(Ok(quote! {
@@ -71,19 +77,23 @@ fn expand_enum(input: &DeriveInput, data: &DataEnum) -> syn::Result<TokenStream>
             let attrs = variant
                 .fields
                 .iter()
-                .filter(|field| !is_reflect_ignore_field(field))
+                .filter(|field| !attributes::is_reflect_ignore_field(field))
                 .enumerate()
                 .filter_map(|(field_index, field)| {
                     let ty = &field.ty;
-                    let attrs = match collect_attrs(field) {
+                    let attrs = match attributes::extract_inspector_attributes(&field.attrs) {
                         Ok(attrs) => attrs,
                         Err(e) => return Some(Err(e)),
                     };
                     if attrs.is_empty() {
                         return None;
                     }
-                    let attrs = attrs.into_iter().map(|(name, value)| quote! {
-                        field_options.#name = std::convert::Into::into(#value);
+                    let attrs = attrs.into_iter().map(|attribute| {
+                        let name = attribute.lhs();
+                        let value = attribute.rhs();
+                        quote! {
+                            field_options.#name = std::convert::Into::into(#value);
+                        }
                     });
 
                     Some(Ok(quote! {
@@ -122,81 +132,4 @@ fn expand_union(_: &DeriveInput, data: &DataUnion) -> syn::Result<TokenStream> {
         data.union_token,
         "`InspectorOptions` for unions is not implemented",
     ))
-}
-fn is_reflect_ignore(attribute: &syn::Attribute) -> bool {
-    if attribute.path.is_ident("reflect") {
-        if let Ok(syn::Meta::List(list)) = attribute.parse_meta() {
-            for nested in list.nested {
-                if let syn::NestedMeta::Meta(meta) = nested {
-                    if meta.path().is_ident("ignore") {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-
-    false
-}
-fn is_reflect_ignore_field(field: &syn::Field) -> bool {
-    field.attrs.iter().any(|attr| is_reflect_ignore(attr))
-}
-
-fn collect_attrs(field: &syn::Field) -> Result<Vec<(syn::Ident, syn::Lit)>, syn::Error> {
-    let fields = field
-        .attrs
-        .iter()
-        .filter(|attr| attr.path.is_ident("inspector"))
-        .map(|attr| {
-            let meta = attr.parse_meta()?;
-            let list = meta_list(meta)?;
-            let key_value = list
-                .nested
-                .into_iter()
-                .map(|meta| {
-                    let name_value = nested_meta_meta(meta).and_then(meta_name_value)?;
-                    let path = name_value
-                        .path
-                        .get_ident()
-                        .ok_or_else(|| {
-                            syn::Error::new_spanned(
-                                &name_value.path,
-                                "expected a simple identifier",
-                            )
-                        })?
-                        .clone();
-                    Ok((path, name_value.lit))
-                })
-                .collect::<syn::Result<Vec<_>>>()?;
-            Ok(key_value)
-        })
-        .collect::<syn::Result<Vec<_>>>()?
-        .into_iter()
-        .flatten();
-    Ok(fields.collect())
-}
-fn meta_list(meta: syn::Meta) -> Result<syn::MetaList, syn::Error> {
-    match meta {
-        syn::Meta::Path(path) => Err(syn::Error::new_spanned(path, "unexpected path")),
-        syn::Meta::NameValue(name_value) => Err(syn::Error::new_spanned(
-            name_value,
-            "unexpected name value pair",
-        )),
-        syn::Meta::List(list) => Ok(list),
-    }
-}
-
-fn meta_name_value(meta: syn::Meta) -> Result<syn::MetaNameValue, syn::Error> {
-    match meta {
-        syn::Meta::Path(path) => Err(syn::Error::new_spanned(path, "unexpected path")),
-        syn::Meta::List(list) => Err(syn::Error::new_spanned(list, "unexpected list")),
-        syn::Meta::NameValue(name_value) => Ok(name_value),
-    }
-}
-
-fn nested_meta_meta(meta: syn::NestedMeta) -> Result<syn::Meta, syn::Error> {
-    match meta {
-        syn::NestedMeta::Lit(lit) => Err(syn::Error::new_spanned(lit, "unexpected literal")),
-        syn::NestedMeta::Meta(meta) => Ok(meta),
-    }
 }

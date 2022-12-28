@@ -107,3 +107,5 @@ impl Default for QuatOptions {
         }
     }
 }
+
+impl_options!(bevy_math::Quat => QuatOptions);
