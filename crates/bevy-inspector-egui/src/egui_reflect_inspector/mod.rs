@@ -4,18 +4,21 @@
 //! **Basic usage**
 //! ```rust
 //! use bevy_reflect::{Reflect, TypeRegistry};
-//! use bevy_inspector_egui::egui_reflect_inspector::{InspectorUi, Context};
+//! use bevy_inspector_egui::egui_reflect_inspector::{ui_for_value, InspectorUi, Context};
 //!
 //! #[derive(Reflect)]
 //! struct Data {
 //!     value: f32,
 //! }
 //!
-//! fn ui(data: &mut Data, ui: &mut egui::Ui, type_registry: &TypeRegistry) -> bool {
+//! fn ui(data: &mut Data, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
 //!     let mut cx = Context::default(); // empty context, with no access to the bevy world
 //!     let mut env = InspectorUi::new_no_short_circuit(type_registry, &mut cx); // no short circuiting, couldn't display `Handle<StandardMaterial>`
 //!
-//!     env.ui_for_reflect(data, ui)
+//!     let _changed = env.ui_for_reflect(data, ui);
+//!
+//!     // alternatively, if you are using an empty `Context`:
+//!     let _changed = ui_for_value(data, ui, type_registry);
 //! }
 //! ```
 //!
