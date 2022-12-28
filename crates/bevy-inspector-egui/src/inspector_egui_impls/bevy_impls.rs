@@ -1,4 +1,5 @@
 use bevy_asset::{AssetServer, Assets, Handle, HandleId};
+use bevy_ecs::entity::Entity;
 use bevy_render::color::Color;
 use bevy_render::mesh::Mesh;
 use egui::{ecolor::Hsva, Color32};
@@ -9,6 +10,28 @@ use crate::{
     egui_reflect_inspector::InspectorUi,
     many_ui,
 };
+
+pub fn entity_ui(
+    value: &mut dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: egui::Id,
+    _: InspectorUi<'_, '_>,
+) -> bool {
+    let entity = value.downcast_ref::<Entity>().unwrap();
+    ui.label(format!("{entity:?}"));
+    false
+}
+pub fn entity_ui_readonly(
+    value: &dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: egui::Id,
+    _: InspectorUi<'_, '_>,
+) {
+    let entity = value.downcast_ref::<Entity>().unwrap();
+    ui.label(format!("{entity:?}"));
+}
 
 pub fn mesh_ui(
     value: &mut dyn Any,
