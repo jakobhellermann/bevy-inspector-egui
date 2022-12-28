@@ -60,23 +60,11 @@ impl<T: egui::emath::Numeric> NumberOptions<T> {
             suffix: String::new(),
         }
     }
-}
-impl NumberOptions<f32> {
+
     pub fn normalized() -> Self {
         NumberOptions {
-            min: Some(0.0),
-            max: Some(1.0),
-            speed: 0.01,
-            prefix: String::new(),
-            suffix: String::new(),
-        }
-    }
-}
-impl NumberOptions<f64> {
-    pub fn normalized() -> Self {
-        NumberOptions {
-            min: Some(0.0),
-            max: Some(1.0),
+            min: Some(T::from_f64(0.0)),
+            max: Some(T::from_f64(1.0)),
             speed: 0.01,
             prefix: String::new(),
             suffix: String::new(),
@@ -85,12 +73,19 @@ impl NumberOptions<f64> {
 }
 
 impl_options!(f32 => NumberOptions<f32>);
+impl_options!(f64 => NumberOptions<f64>);
+impl_options!(i8 => NumberOptions<i8>);
+impl_options!(i16 => NumberOptions<i16>);
+impl_options!(i32 => NumberOptions<i32>);
+impl_options!(i64 => NumberOptions<i64>);
+impl_options!(i128 => NumberOptions<i128>);
+impl_options!(isize => NumberOptions<isize>);
+impl_options!(u8 => NumberOptions<u8>);
+impl_options!(u16 => NumberOptions<u16>);
+impl_options!(u32 => NumberOptions<u32>);
+impl_options!(u64 => NumberOptions<u64>);
+impl_options!(u128 => NumberOptions<u128>);
 impl_options!(usize => NumberOptions<usize>);
-
-impl<T> InspectorOptionsType for Option<T> {
-    type TypedOptions = ();
-    type Options = ();
-}
 
 #[derive(Clone)]
 pub struct QuatOptions {
