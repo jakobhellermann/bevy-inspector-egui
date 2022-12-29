@@ -1,22 +1,17 @@
 use bevy::prelude::*;
-use bevy_egui::EguiPlugin;
-use bevy_inspector_egui::{bevy_inspector::ui_for_state, DefaultInspectorConfigPlugin};
+use bevy_inspector_egui::quick::StateInspectorPlugin;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::BLACK))
         .add_state(AppState::A)
-        .add_plugin(EguiPlugin)
-        .add_plugin(DefaultInspectorConfigPlugin)
-        // alternatively, just add
-        // .add_plugin(bevy_inspector_egui::quick::StateInspectorPlugin::<AppState>::default())
+        .register_type::<AppState>()
+        .add_plugin(StateInspectorPlugin::<AppState>::default())
         .add_startup_system(setup)
-        .add_system(ui)
         .add_system_set(SystemSet::on_enter(AppState::A).with_system(set_color::<158, 228, 147>))
         .add_system_set(SystemSet::on_enter(AppState::B).with_system(set_color::<171, 200, 192>))
         .add_system_set(SystemSet::on_enter(AppState::C).with_system(set_color::<194, 148, 138>))
-        .register_type::<AppState>()
         .run();
 }
 
@@ -25,21 +20,6 @@ enum AppState {
     A,
     B,
     C,
-}
-
-fn ui(world: &mut World) {
-    let egui_context = world
-        .resource_mut::<bevy_egui::EguiContext>()
-        .ctx_mut()
-        .clone();
-
-    egui::Window::new("UI")
-        .title_bar(false)
-        .resizable(false)
-        .show(&egui_context, |ui| {
-            ui.heading("AppState");
-            ui_for_state::<AppState>(world, ui);
-        });
 }
 
 #[derive(Component)]
