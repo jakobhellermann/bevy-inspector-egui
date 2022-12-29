@@ -60,8 +60,8 @@ use crate::restricted_world_view::RestrictedWorldView;
 use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List, ListInfo, Map, Reflect,
-    Struct, StructInfo, Tuple, TupleInfo, TupleStruct, TupleStructInfo, TypeInfo, TypeRegistry,
-    ValueInfo, VariantInfo, VariantType,
+    ReflectMut, ReflectRef, Struct, StructInfo, Tuple, TupleInfo, TupleStruct, TupleStructInfo,
+    TypeInfo, TypeRegistry, ValueInfo, VariantInfo, VariantType,
 };
 use egui::Grid;
 use std::any::{Any, TypeId};
@@ -222,16 +222,14 @@ impl InspectorUi<'_, '_> {
         }
 
         match value.reflect_mut() {
-            bevy_reflect::ReflectMut::Struct(value) => self.ui_for_struct(value, ui, id, options),
-            bevy_reflect::ReflectMut::TupleStruct(value) => {
-                self.ui_for_tuple_struct(value, ui, id, options)
-            }
-            bevy_reflect::ReflectMut::Tuple(value) => self.ui_for_tuple(value, ui, id, options),
-            bevy_reflect::ReflectMut::List(value) => self.ui_for_list(value, ui, id, options),
-            bevy_reflect::ReflectMut::Array(value) => self.ui_for_array(value, ui, id, options),
-            bevy_reflect::ReflectMut::Map(value) => self.ui_for_reflect_map(value, ui, id, options),
-            bevy_reflect::ReflectMut::Enum(value) => self.ui_for_enum(value, ui, id, options),
-            bevy_reflect::ReflectMut::Value(value) => self.ui_for_value(value, ui, id, options),
+            ReflectMut::Struct(value) => self.ui_for_struct(value, ui, id, options),
+            ReflectMut::TupleStruct(value) => self.ui_for_tuple_struct(value, ui, id, options),
+            ReflectMut::Tuple(value) => self.ui_for_tuple(value, ui, id, options),
+            ReflectMut::List(value) => self.ui_for_list(value, ui, id, options),
+            ReflectMut::Array(value) => self.ui_for_array(value, ui, id, options),
+            ReflectMut::Map(value) => self.ui_for_reflect_map(value, ui, id, options),
+            ReflectMut::Enum(value) => self.ui_for_enum(value, ui, id, options),
+            ReflectMut::Value(value) => self.ui_for_value(value, ui, id, options),
         }
     }
 
@@ -270,30 +268,16 @@ impl InspectorUi<'_, '_> {
         }
 
         match value.reflect_ref() {
-            bevy_reflect::ReflectRef::Struct(value) => {
-                self.ui_for_struct_readonly(value, ui, id, options)
-            }
-            bevy_reflect::ReflectRef::TupleStruct(value) => {
+            ReflectRef::Struct(value) => self.ui_for_struct_readonly(value, ui, id, options),
+            ReflectRef::TupleStruct(value) => {
                 self.ui_for_tuple_struct_readonly(value, ui, id, options)
             }
-            bevy_reflect::ReflectRef::Tuple(value) => {
-                self.ui_for_tuple_readonly(value, ui, id, options)
-            }
-            bevy_reflect::ReflectRef::List(value) => {
-                self.ui_for_list_readonly(value, ui, id, options)
-            }
-            bevy_reflect::ReflectRef::Array(value) => {
-                self.ui_for_array_readonly(value, ui, id, options)
-            }
-            bevy_reflect::ReflectRef::Map(value) => {
-                self.ui_for_reflect_map_readonly(value, ui, id, options)
-            }
-            bevy_reflect::ReflectRef::Enum(value) => {
-                self.ui_for_enum_readonly(value, ui, id, options)
-            }
-            bevy_reflect::ReflectRef::Value(value) => {
-                self.ui_for_value_readonly(value, ui, id, options)
-            }
+            ReflectRef::Tuple(value) => self.ui_for_tuple_readonly(value, ui, id, options),
+            ReflectRef::List(value) => self.ui_for_list_readonly(value, ui, id, options),
+            ReflectRef::Array(value) => self.ui_for_array_readonly(value, ui, id, options),
+            ReflectRef::Map(value) => self.ui_for_reflect_map_readonly(value, ui, id, options),
+            ReflectRef::Enum(value) => self.ui_for_enum_readonly(value, ui, id, options),
+            ReflectRef::Value(value) => self.ui_for_value_readonly(value, ui, id, options),
         }
     }
 
@@ -450,9 +434,7 @@ impl InspectorUi<'_, '_> {
                         inspector_options_struct_field(options, i),
                         values,
                         &|a| match projector(a).reflect_mut() {
-                            bevy_reflect::ReflectMut::Struct(strukt) => {
-                                strukt.field_at_mut(i).unwrap()
-                            }
+                            ReflectMut::Struct(strukt) => strukt.field_at_mut(i).unwrap(),
                             _ => unreachable!(),
                         },
                     );
@@ -538,9 +520,7 @@ impl InspectorUi<'_, '_> {
                         inspector_options_struct_field(options, i),
                         values,
                         &|a| match projector(a).reflect_mut() {
-                            bevy_reflect::ReflectMut::TupleStruct(strukt) => {
-                                strukt.field_mut(i).unwrap()
-                            }
+                            ReflectMut::TupleStruct(strukt) => strukt.field_mut(i).unwrap(),
                             _ => unreachable!(),
                         },
                     );
@@ -626,7 +606,7 @@ impl InspectorUi<'_, '_> {
                         inspector_options_struct_field(options, i),
                         values,
                         &|a| match projector(a).reflect_mut() {
-                            bevy_reflect::ReflectMut::Tuple(strukt) => strukt.field_mut(i).unwrap(),
+                            ReflectMut::Tuple(strukt) => strukt.field_mut(i).unwrap(),
                             _ => unreachable!(),
                         },
                     );
@@ -721,7 +701,7 @@ impl InspectorUi<'_, '_> {
                 if ui.button("+").clicked() {
                     for list in values.iter_mut() {
                         let list = match projector(*list).reflect_mut() {
-                            bevy_reflect::ReflectMut::List(list) => list,
+                            ReflectMut::List(list) => list,
                             _ => unreachable!(),
                         };
                         let last_element = list.get(list.len() - 1).unwrap().clone_value();
@@ -740,7 +720,7 @@ impl InspectorUi<'_, '_> {
                 values
                     .iter_mut()
                     .map(|value| match projector(*value).reflect_mut() {
-                        bevy_reflect::ReflectMut::List(l) => l.len(),
+                        ReflectMut::List(l) => l.len(),
                         _ => unreachable!(),
                     }),
             );
@@ -754,7 +734,7 @@ impl InspectorUi<'_, '_> {
                         let mut items_at_i: Vec<&mut dyn Reflect> = values
                             .iter_mut()
                             .map(|value| match projector(*value).reflect_mut() {
-                                bevy_reflect::ReflectMut::List(list) => list.get_mut(i).unwrap(),
+                                ReflectMut::List(list) => list.get_mut(i).unwrap(),
                                 _ => unreachable!(),
                             })
                             .collect();
@@ -930,7 +910,7 @@ impl InspectorUi<'_, '_> {
                 values
                     .iter_mut()
                     .map(|value| match projector(*value).reflect_mut() {
-                        bevy_reflect::ReflectMut::Enum(info) => info.variant_index(),
+                        ReflectMut::Enum(info) => info.variant_index(),
                         _ => unreachable!(),
                     }),
             );
@@ -971,7 +951,7 @@ impl InspectorUi<'_, '_> {
                             let mut variants_across: Vec<&mut dyn Reflect> = values
                                 .iter_mut()
                                 .map(|value| match projector(*value).reflect_mut() {
-                                    bevy_reflect::ReflectMut::Enum(value) => {
+                                    ReflectMut::Enum(value) => {
                                         value.field_at_mut(field_index).unwrap()
                                     }
                                     _ => unreachable!(),
