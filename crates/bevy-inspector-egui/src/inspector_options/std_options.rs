@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use crate::InspectorOptions;
 
 use super::{InspectorOptionsType, Target};
@@ -133,5 +135,30 @@ impl<T: InspectorOptionsType> InspectorOptionsType for Option<T> {
         );
 
         inspector_options
+    }
+}
+
+macro_rules! impl_options_defer_generic {
+    ($name:ident < $generic:ident >) => {
+        impl<T: InspectorOptionsType> InspectorOptionsType for $name<$generic> {
+            type DeriveOptions = $generic::DeriveOptions;
+            type Options = $generic::Options;
+
+            fn options_from_derive(options: Self::DeriveOptions) -> Self::Options {
+                $generic::options_from_derive(options)
+            }
+        }
+    };
+}
+
+impl_options_defer_generic!(Vec<T>);
+impl_options_defer_generic!(VecDeque<T>);
+
+impl<T: InspectorOptionsType, const N: usize> InspectorOptionsType for [T; N] {
+    type DeriveOptions = T::DeriveOptions;
+    type Options = T::Options;
+
+    fn options_from_derive(options: Self::DeriveOptions) -> Self::Options {
+        T::options_from_derive(options)
     }
 }
