@@ -815,23 +815,50 @@ impl InspectorUi<'_, '_> {
 
     fn ui_for_array(
         &mut self,
-        _value: &mut dyn Array,
+        array: &mut dyn Array,
         ui: &mut egui::Ui,
-        _id: egui::Id,
-        _options: &dyn Any,
+        id: egui::Id,
+        options: &dyn Any,
     ) -> bool {
-        ui.label("Array not yet implemented");
-        false
+        let mut changed = false;
+
+        ui.vertical(|ui| {
+            let len = array.len();
+            for i in 0..len {
+                let val = array.get_mut(i).unwrap();
+                ui.horizontal(|ui| {
+                    changed |= self.ui_for_reflect_with_options(val, ui, id.with(i), options);
+                });
+
+                if i != len - 1 {
+                    ui.separator();
+                }
+            }
+        });
+
+        changed
     }
 
     fn ui_for_array_readonly(
         &mut self,
-        _value: &dyn Array,
+        array: &dyn Array,
         ui: &mut egui::Ui,
-        _id: egui::Id,
-        _options: &dyn Any,
+        id: egui::Id,
+        options: &dyn Any,
     ) {
-        ui.label("Array not yet implemented");
+        ui.vertical(|ui| {
+            let len = array.len();
+            for i in 0..len {
+                let val = array.get(i).unwrap();
+                ui.horizontal(|ui| {
+                    self.ui_for_reflect_readonly_with_options(val, ui, id.with(i), options);
+                });
+
+                if i != len - 1 {
+                    ui.separator();
+                }
+            }
+        });
     }
 
     fn ui_for_enum(
