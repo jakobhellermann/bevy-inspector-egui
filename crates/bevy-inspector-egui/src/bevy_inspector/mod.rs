@@ -57,8 +57,6 @@ use crate::{
     utils::guess_entity_name,
 };
 
-use self::errors::show_error;
-
 /// Display a single [`&mut dyn Reflect`](bevy_reflect::Reflect).
 ///
 /// If you are wondering why this function takes in a [`&mut World`](bevy_ecs::world::World), it's so that if the value contains e.g. a
@@ -288,7 +286,7 @@ fn ui_for_entity_components(
                     return;
                 }
                 let Some(component_type_id) = component_type_id else {
-                    return errors::error_message_no_type_id(ui, &name);
+                    return errors::no_type_id(ui, &name);
                 };
 
                 // create a context with access to the world except for the currently viewed component
@@ -303,7 +301,7 @@ fn ui_for_entity_components(
                     type_registry,
                 ) {
                     Ok(value) => value,
-                    Err(e) => return show_error(e, ui, &name),
+                    Err(e) => return errors::show_error(e, ui, &name),
                 };
 
                 let changed = InspectorUi::for_bevy(type_registry, &mut cx)
@@ -375,7 +373,7 @@ pub fn ui_for_entities_shared_components(
                     return;
                 }
                 let Some(component_type_id) = component_type_id else {
-                    return errors::error_message_no_type_id(ui, &name);
+                    return errors::no_type_id(ui, &name);
                 };
 
                 let mut values = Vec::with_capacity(entities.len());
@@ -470,7 +468,7 @@ pub mod by_type_id {
         type_registry: &TypeRegistry,
     ) {
         let Some(registration) = type_registry.get(asset_type_id) else {
-            return crate::egui_reflect_inspector::errors::error_message_not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
+            return crate::egui_reflect_inspector::errors::not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
         };
         let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
             return errors::no_type_data(ui, &name_of_type(asset_type_id, type_registry), "ReflectAsset");
@@ -509,7 +507,7 @@ pub mod by_type_id {
         type_registry: &TypeRegistry,
     ) {
         let Some(registration) = type_registry.get(asset_type_id) else {
-            return crate::egui_reflect_inspector::errors::error_message_not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
+            return crate::egui_reflect_inspector::errors::not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
         };
         let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
             return errors::no_type_data(ui, &name_of_type(asset_type_id, type_registry), "ReflectAsset");

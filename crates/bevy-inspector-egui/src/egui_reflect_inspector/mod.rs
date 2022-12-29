@@ -67,8 +67,6 @@ use egui::Grid;
 use std::any::{Any, TypeId};
 use std::borrow::Cow;
 
-use self::errors::{error_message_no_multiedit, error_message_not_in_type_registry};
-
 pub(crate) mod errors;
 
 /// Display the value without any [`Context`] or short circuiting behaviour.
@@ -292,7 +290,7 @@ impl InspectorUi<'_, '_> {
         projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
     ) -> bool {
         let Some(registration) = self.type_registry.get(type_id) else {
-            error_message_not_in_type_registry(ui, name);
+            errors::not_in_type_registry(ui, name);
             return false;
         };
         let info = registration.type_info();
@@ -332,14 +330,14 @@ impl InspectorUi<'_, '_> {
             }
             TypeInfo::List(info) => self.ui_for_list_many(info, ui, id, options, values, projector),
             TypeInfo::Array(info) => {
-                error_message_no_multiedit(
+                errors::no_multiedit(
                     ui,
                     &pretty_type_name::pretty_type_name_str(info.type_name()),
                 );
                 false
             }
             TypeInfo::Map(info) => {
-                error_message_no_multiedit(
+                errors::no_multiedit(
                     ui,
                     &pretty_type_name::pretty_type_name_str(info.type_name()),
                 );
@@ -348,7 +346,7 @@ impl InspectorUi<'_, '_> {
             TypeInfo::Enum(info) => self.ui_for_enum_many(info, ui, id, options, values, projector),
             TypeInfo::Value(info) => self.ui_for_value_many(info, ui, id, options),
             TypeInfo::Dynamic(_) => {
-                error_message_no_multiedit(
+                errors::no_multiedit(
                     ui,
                     &pretty_type_name::pretty_type_name_str(info.type_name()),
                 );
@@ -1098,11 +1096,7 @@ impl InspectorUi<'_, '_> {
                     false
                 });
             if !unconstructable_variants.is_empty() {
-                errors::error_message_unconstructable_variants(
-                    ui,
-                    info.type_name(),
-                    &unconstructable_variants,
-                );
+                errors::unconstructable_variants(ui, info.type_name(), &unconstructable_variants);
             }
         });
 
@@ -1153,7 +1147,7 @@ impl InspectorUi<'_, '_> {
         _id: egui::Id,
         _options: &dyn Any,
     ) -> bool {
-        errors::error_message_reflect_value_no_impl(ui, value.type_name());
+        errors::reflect_value_no_impl(ui, value.type_name());
         false
     }
 
@@ -1164,7 +1158,7 @@ impl InspectorUi<'_, '_> {
         _id: egui::Id,
         _options: &dyn Any,
     ) {
-        errors::error_message_reflect_value_no_impl(ui, value.type_name());
+        errors::reflect_value_no_impl(ui, value.type_name());
     }
 
     fn ui_for_value_many(
@@ -1174,7 +1168,7 @@ impl InspectorUi<'_, '_> {
         _id: egui::Id,
         _options: &dyn Any,
     ) -> bool {
-        errors::error_message_reflect_value_no_impl(ui, info.type_name());
+        errors::reflect_value_no_impl(ui, info.type_name());
         false
     }
 }
@@ -1211,7 +1205,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                     let field_default_value = match self.get_default_value_for(field.type_id()) {
                         Some(value) => value,
                         None => {
-                            errors::error_message_no_default_value(ui, field.type_name());
+                            errors::no_default_value(ui, field.type_name());
                             return Err(());
                         }
                     };
@@ -1225,7 +1219,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                     let field_default_value = match self.get_default_value_for(field.type_id()) {
                         Some(value) => value,
                         None => {
-                            errors::error_message_no_default_value(ui, field.type_name());
+                            errors::no_default_value(ui, field.type_name());
                             return Err(());
                         }
                     };

@@ -2,7 +2,7 @@ use egui::FontId;
 
 use crate::egui_utils::layout_job;
 
-pub fn error_message_reflect_value_no_impl(ui: &mut egui::Ui, type_name: &str) {
+pub fn reflect_value_no_impl(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
         (FontId::monospace(12.0), type_name),
         (FontId::proportional(13.0), " is "),
@@ -16,7 +16,7 @@ pub fn error_message_reflect_value_no_impl(ui: &mut egui::Ui, type_name: &str) {
 
     ui.label(job);
 }
-pub fn error_message_no_default_value(ui: &mut egui::Ui, type_name: &str) {
+pub fn no_default_value(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
         (FontId::monospace(12.0), type_name),
         (FontId::proportional(13.0), " has no "),
@@ -30,7 +30,7 @@ pub fn error_message_no_default_value(ui: &mut egui::Ui, type_name: &str) {
     ui.label(job);
 }
 
-pub fn error_message_unconstructable_variants(
+pub fn unconstructable_variants(
     ui: &mut egui::Ui,
     type_name: &str,
     unconstructable_variants: &[&str],
@@ -59,7 +59,7 @@ pub fn error_message_unconstructable_variants(
     ui.label(job);
 }
 
-pub fn error_message_not_in_type_registry(ui: &mut egui::Ui, type_name: &str) {
+pub fn not_in_type_registry(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
         (FontId::monospace(12.0), type_name),
         (FontId::proportional(13.0), " is not registered in the "),
@@ -69,7 +69,7 @@ pub fn error_message_not_in_type_registry(ui: &mut egui::Ui, type_name: &str) {
     ui.label(job);
 }
 
-pub fn error_message_no_multiedit(ui: &mut egui::Ui, type_name: &str) {
+pub fn no_multiedit(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
         (FontId::monospace(12.0), type_name),
         (

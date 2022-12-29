@@ -1,6 +1,6 @@
 //! UI implementations for leaf types
 
-use crate::egui_reflect_inspector::{errors::error_message_no_multiedit, InspectorUi};
+use crate::egui_reflect_inspector::{errors::no_multiedit, InspectorUi};
 use bevy_reflect::{Reflect, TypeRegistry};
 use bevy_utils::Instant;
 use std::{
@@ -92,7 +92,7 @@ fn many_unimplemented<T: Any>(
     _values: &mut [&mut dyn Reflect],
     _projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
 ) -> bool {
-    error_message_no_multiedit(ui, &pretty_type_name::pretty_type_name::<T>());
+    no_multiedit(ui, &pretty_type_name::pretty_type_name::<T>());
     false
 }
 
