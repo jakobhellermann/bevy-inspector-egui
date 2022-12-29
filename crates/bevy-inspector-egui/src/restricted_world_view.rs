@@ -147,6 +147,8 @@ impl<'w> RestrictedWorldView<'w> {
             components: Allowed::everything(),
         }
     }
+
+    /// Splits the world into one view which may only be used for resource access, and another which may only be used for component access.
     pub fn resources_components(
         world: &'w mut World,
     ) -> (RestrictedWorldView<'w>, RestrictedWorldView<'w>) {

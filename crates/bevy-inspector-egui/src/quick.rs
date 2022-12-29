@@ -51,7 +51,7 @@ fn world_inspector_ui(world: &mut World) {
 }
 
 /// Plugin displaying an egui window for a single resource.
-/// Remember to call insert the resource and call [`App::register_type`](bevy_app::App::register_type).
+/// Remember to insert the resource and call [`App::register_type`](bevy_app::App::register_type).
 pub struct ResourceInspectorPlugin<T>(PhantomData<fn() -> T>);
 
 impl<T> Default for ResourceInspectorPlugin<T> {
@@ -138,8 +138,8 @@ fn state_ui<T: StateData + Reflect>(world: &mut World) {
         });
 }
 
-/// Plugin displaying an egui window for a single resource.
-/// Remember to call insert the resource and call [`App::register_type`](bevy_app::App::register_type).
+/// Plugin displaying an egui window for all assets of type `A`.
+/// Remember to call [`App::register_asset_reflect`](bevy_asset::AddAsset::register_asset_reflect).
 pub struct AssetInspectorPlugin<A>(PhantomData<fn() -> A>);
 
 impl<A> Default for AssetInspectorPlugin<A> {

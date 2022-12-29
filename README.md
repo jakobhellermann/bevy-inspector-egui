@@ -61,31 +61,9 @@ fn main() {
 }
 ```
 
-## StateInspectorPlugin
-Display the app state in a window, changing states on edit.
+<hr>
 
-![image of the state inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/rework/docs/state_inspector.png)
-
-```rust
-use bevy::prelude::*;
-use bevy_inspector_egui::quick::StateInspectorPlugin;
-
-fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugin(StateInspectorPlugin::<AppState>::default())
-        .add_state(AppState::A)
-        .register_type::<AppState>()
-        .run();
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Reflect)]
-enum AppState {
-    A,
-    B,
-    C,
-}
-```
+There is also the [`StateInspectorPlugin`](quick::StateInspectorPlugin) and the [`AssetInspectorPlugin`](quick::AssetInspectorPlugin).
 
 # Use case 2: Manual UI
 The [quick] plugins don't allow customization of the egui window or its content, but you can easily build your own UI:
@@ -124,7 +102,7 @@ fn inspector_ui(world: &mut World) {
 }
 ```
 
-Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_dock/) and you have your own editor in less than 100 lines: [`examples/egui_dock.rs`](https://github.com/jakobhellermann/bevy-inspector-egui/blob/rework/crates/bevy-inspector-egui/examples/egui_dock.rs).
+Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_dock/) and you have your own editor in less than 100 lines: [`examples/egui_dock.rs`](https://github.com/jakobhellermann/bevy-inspector-egui/blob/rework/crates/bevy-inspector-egui/examples/integrations/egui_dock.rs).
 ![image of the egui_dock example](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/rework/docs/egui_dock.png)
 
 

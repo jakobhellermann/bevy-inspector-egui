@@ -62,37 +62,15 @@
 //!         .init_resource::<Configuration>() // `ResourceInspectorPlugin` won't initialize the resource
 //!         .register_type::<Configuration>() // you need to register your type to display it
 //!         .add_plugin(ResourceInspectorPlugin::<Configuration>::default())
-//!         // also works with built-in resources, as long as they are `Reflect
+//!         // also works with built-in resources, as long as they implement `Reflect`
 //!         .add_plugin(ResourceInspectorPlugin::<Time>::default())
 //!         .run();
 //! }
 //! ```
 //!
-//! ## StateInspectorPlugin
-//! Display the app state in a window, changing states on edit.
+//! <hr>
 //!
-//! ![image of the state inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/rework/docs/state_inspector.png)
-//!
-//! ```no_run
-//! use bevy::prelude::*;
-//! use bevy_inspector_egui::quick::StateInspectorPlugin;
-//!
-//! fn main() {
-//!     App::new()
-//!         .add_plugins(DefaultPlugins)
-//!         .add_plugin(StateInspectorPlugin::<AppState>::default())
-//!         .add_state(AppState::A)
-//!         .register_type::<AppState>()
-//!         .run();
-//! }
-//!
-//! #[derive(Debug, Clone, Eq, PartialEq, Hash, Reflect)]
-//! enum AppState {
-//!     A,
-//!     B,
-//!     C,
-//! }
-//! ```
+//! There is also the [`StateInspectorPlugin`](quick::StateInspectorPlugin) and the [`AssetInspectorPlugin`](quick::AssetInspectorPlugin).
 //!
 //! # Use case 2: Manual UI
 //! The [`quick`] plugins don't allow customization of the egui window or its content, but you can easily build your own UI:
@@ -101,6 +79,7 @@
 //! use bevy::prelude::*;
 //! use bevy_egui::EguiPlugin;
 //! use bevy_inspector_egui::prelude::*;
+//! use bevy_inspector_egui::bevy_inspector;
 //! use std::any::TypeId;
 //!
 //! fn main() {
@@ -118,20 +97,24 @@
 //!     egui::Window::new("UI").show(&egui_context, |ui| {
 //!         egui::ScrollArea::vertical().show(ui, |ui| {
 //!             // equivalent to `WorldInspectorPlugin`
-//!             // bevy_inspector_egui::bevy_inspector::ui_for_world(world, ui);
+//!             bevy_inspector::ui_for_world(world, ui);
+//!             
+//!             // works with any `Reflect` value, including `Handle`s
+//!             let mut any_reflect_value: i32 = 5;
+//!             bevy_inspector::ui_for_value(&mut any_reflect_value, ui, world);
 //!
 //!             egui::CollapsingHeader::new("Materials").show(ui, |ui| {
-//!                 bevy_inspector_egui::bevy_inspector::ui_for_assets::<StandardMaterial>(world, ui);
+//!                 bevy_inspector::ui_for_assets::<StandardMaterial>(world, ui);
 //!             });
 //!
 //!             ui.heading("Entities");
-//!             bevy_inspector_egui::bevy_inspector::ui_for_world_entities(world, ui);
+//!             bevy_inspector::ui_for_world_entities(world, ui);
 //!         });
 //!     });
 //! }
 //! ```
 //!
-//! Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_dock/) and you have your own editor in less than 100 lines: [`examples/egui_dock.rs`](https://github.com/jakobhellermann/bevy-inspector-egui/blob/rework/crates/bevy-inspector-egui/examples/egui_dock.rs).
+//! Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_dock/) and you have your own editor in less than 100 lines: [`examples/egui_dock.rs`](https://github.com/jakobhellermann/bevy-inspector-egui/blob/rework/crates/bevy-inspector-egui/examples/integrations/egui_dock.rs).
 //! ![image of the egui_dock example](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/rework/docs/egui_dock.png)
 //!
 //! # FAQ
