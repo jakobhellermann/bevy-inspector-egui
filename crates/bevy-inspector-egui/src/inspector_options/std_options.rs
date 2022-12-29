@@ -1,4 +1,6 @@
-use super::InspectorOptionsType;
+use crate::InspectorOptions;
+
+use super::{InspectorOptionsType, Target};
 
 macro_rules! impl_options {
     ($ty:ty => $options:ty) => {
@@ -113,3 +115,23 @@ impl Default for QuatOptions {
 }
 
 impl_options!(bevy_math::Quat => QuatOptions);
+
+impl<T: InspectorOptionsType> InspectorOptionsType for Option<T> {
+    type DeriveOptions = T::DeriveOptions;
+    type Options = InspectorOptions;
+
+    fn options_from_derive(options: Self::DeriveOptions) -> Self::Options {
+        let inner_options = T::options_from_derive(options);
+
+        let mut inspector_options = InspectorOptions::new();
+        inspector_options.insert(
+            Target::VariantField {
+                variant_index: 1, // Some
+                field_index: 0,
+            },
+            inner_options,
+        );
+
+        inspector_options
+    }
+}

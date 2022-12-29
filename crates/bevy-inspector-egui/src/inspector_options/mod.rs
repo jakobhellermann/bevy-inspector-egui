@@ -122,7 +122,9 @@ where
 /// );
 pub trait InspectorOptionsType {
     type DeriveOptions: Default;
-    type Options;
+    /// Can be arbitrary types which will be passed to [`InspectorEguiImpl`](crate::inspector_egui_impls::InspectorEguiImpl) like [`NumberOptions`](crate::inspector_options::std_options::NumberOptions),
+    /// or nested [`struct@InspectorOptions`] which will be passed to children (see [`impl InspectorOptionsType for Option`](trait.InspectorOptionsType.html#impl-InspectorOptionsType-for-Option<T>)).
+    type Options: TypeData;
 
     fn options_from_derive(options: Self::DeriveOptions) -> Self::Options;
 }
