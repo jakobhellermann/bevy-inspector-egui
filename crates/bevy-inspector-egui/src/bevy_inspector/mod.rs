@@ -156,7 +156,9 @@ pub fn ui_for_assets<A: Asset + Reflect>(world: &mut World, ui: &mut egui::Ui) {
     };
     let mut cx = Context { world: Some(world) };
 
-    for (handle_id, asset) in assets.iter_mut() {
+    let mut assets: Vec<_> = assets.iter_mut().collect();
+    assets.sort_by(|(a, _), (b, _)| a.cmp(b));
+    for (handle_id, asset) in assets {
         let id = egui::Id::new(handle_id);
 
         egui::CollapsingHeader::new(format!("Handle({id:?})"))

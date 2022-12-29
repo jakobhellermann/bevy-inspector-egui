@@ -48,6 +48,10 @@ name = "resource_inspector"
 path = "examples/quick/resource_inspector.rs"
 
 [[example]]
+name = "asset_inspector"
+path = "examples/quick/asset_inspector.rs"
+
+[[example]]
 name = "world_inspector"
 path = "examples/quick/world_inspector.rs"
 

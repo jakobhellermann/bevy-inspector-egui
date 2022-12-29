@@ -5,6 +5,7 @@
 - `quick` - Demonstrations of the quick plugins
   - [`world_inspector.rs`](./quick/world_inspector.rs) Example of the `WorldInspectorPlugin`
   - [`resource_inspector.rs`](./quick/resource_inspector.rs) Example of the `ResourceInspectorPlugin`
+  - [`asset_inspector.rs`](./quick/asset_inspector.rs) Example of the `AssetInspectorPlugin`
   - [`state_inspector.rs`](./quick/state_inspector.rs) Example of the `StateInspectorPlugin`
 - `integrations` - examples showing how to integrate `bevy-inspector-egui` into your app in different ways
   - [`egui_dock.rs`](./integrations/egui_dock.rs) Full features examples of building your own mini-editor using `egui_dock` and `egui_gizmo`

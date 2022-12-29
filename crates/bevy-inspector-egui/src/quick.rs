@@ -9,6 +9,7 @@
 use std::marker::PhantomData;
 
 use bevy_app::Plugin;
+use bevy_asset::Asset;
 use bevy_ecs::{prelude::*, schedule::StateData};
 use bevy_egui::EguiPlugin;
 use bevy_reflect::Reflect;
@@ -133,6 +134,50 @@ fn state_ui<T: StateData + Reflect>(world: &mut World) {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.heading(pretty_type_name::<T>());
                 bevy_inspector::ui_for_state::<T>(world, ui);
+            });
+        });
+}
+
+/// Plugin displaying an egui window for a single resource.
+/// Remember to call insert the resource and call [`App::register_type`](bevy_app::App::register_type).
+pub struct AssetInspectorPlugin<A>(PhantomData<fn() -> A>);
+
+impl<A> Default for AssetInspectorPlugin<A> {
+    fn default() -> Self {
+        Self(PhantomData)
+    }
+}
+impl<A> AssetInspectorPlugin<A> {
+    pub fn new() -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
+    fn build(&self, app: &mut bevy_app::App) {
+        if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
+            app.add_plugin(DefaultInspectorConfigPlugin);
+        }
+        if !app.is_plugin_added::<EguiPlugin>() {
+            app.add_plugin(EguiPlugin);
+        }
+
+        app.add_system(asset_inspector_ui::<A>);
+    }
+}
+
+fn asset_inspector_ui<A: Asset + Reflect>(world: &mut World) {
+    let egui_context = world
+        .resource_mut::<bevy_egui::EguiContext>()
+        .ctx_mut()
+        .clone();
+    egui::Window::new(pretty_type_name::<A>())
+        .default_size(DEFAULT_SIZE)
+        .show(&egui_context, |ui| {
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                bevy_inspector::ui_for_assets::<A>(world, ui);
+
+                ui.allocate_space(ui.available_size());
             });
         });
 }
