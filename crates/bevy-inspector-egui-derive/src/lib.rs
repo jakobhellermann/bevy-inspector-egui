@@ -44,9 +44,9 @@ fn expand_struct(input: &DeriveInput, data: &DataStruct) -> syn::Result<TokenStr
             });
 
             Some(Ok(quote! {
-                let mut field_options = <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::TypedOptions::default();
+                let mut field_options = <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::DeriveOptions::default();
                 #(#attrs)*
-                options.insert(bevy_inspector_egui::inspector_options::Target::Field(#i), <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::Options::from(field_options));
+                options.insert(bevy_inspector_egui::inspector_options::Target::Field(#i), <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::options_from_derive(field_options));
             }))
         })
         .collect::<syn::Result<Vec<_>>>()?;
@@ -97,14 +97,14 @@ fn expand_enum(input: &DeriveInput, data: &DataEnum) -> syn::Result<TokenStream>
                     });
 
                     Some(Ok(quote! {
-                        let mut field_options = <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::TypedOptions::default();
+                        let mut field_options = <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::DeriveOptions::default();
                         #(#attrs)*
                         options.insert(
                             bevy_inspector_egui::inspector_options::Target::VariantField {
                                 variant_index: #variant_index,
                                 field_index: #field_index,
                             },
-                            <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::Options::from(field_options)
+                            <#ty as bevy_inspector_egui::inspector_options::InspectorOptionsType>::options_from_derive(field_options)
                         );
                     }))
                 })

@@ -3,8 +3,12 @@ use super::InspectorOptionsType;
 macro_rules! impl_options {
     ($ty:ty => $options:ty) => {
         impl InspectorOptionsType for $ty {
-            type TypedOptions = $options;
+            type DeriveOptions = $options;
             type Options = $options;
+
+            fn options_from_derive(options: Self::DeriveOptions) -> Self::Options {
+                options
+            }
         }
     };
 }
