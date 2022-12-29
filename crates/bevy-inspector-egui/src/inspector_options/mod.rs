@@ -11,6 +11,7 @@ pub mod std_options;
 
 /// Descriptor of a path into a struct/enum. Either a `Field` (`.foo`) or a `VariantField` (`RGBA.r`)
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
+#[non_exhaustive]
 pub enum Target {
     Field(usize),
     VariantField {
