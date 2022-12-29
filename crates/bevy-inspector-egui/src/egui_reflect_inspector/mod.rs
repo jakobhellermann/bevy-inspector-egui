@@ -644,15 +644,30 @@ impl InspectorUi<'_, '_> {
                 }
             }
 
-            if len > 0 {
-                ui.vertical_centered_justified(|ui| {
-                    if ui.button("+").clicked() {
-                        let last_element = list.get(len - 1).unwrap().clone_value();
-                        list.push(last_element);
+            let TypeInfo::List(info) = list.get_type_info() else { return };
+            let error_id = id.with("error");
 
-                        changed = true;
+            ui.vertical_centered_justified(|ui| {
+                if ui.button("+").clicked() {
+                    let default = self
+                        .get_default_value_for(info.item_type_id())
+                        .or_else(|| list.get(len - 1).map(Reflect::clone_value));
+
+                    if let Some(new_value) = default {
+                        list.push(new_value);
+                    } else {
+                        ui.data().insert_temp::<bool>(error_id, true);
                     }
-                });
+
+                    changed = true;
+                }
+            });
+            let error = *ui.data().get_temp_mut_or_default::<bool>(error_id);
+            if error {
+                errors::no_default_value(ui, info.item_type_name());
+            }
+            if ui.input().pointer.any_down() {
+                ui.data().insert_temp::<bool>(error_id, false);
             }
 
             /*if let Some(_) = to_delete {

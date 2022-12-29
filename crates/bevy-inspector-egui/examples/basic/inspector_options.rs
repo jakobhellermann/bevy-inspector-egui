@@ -9,6 +9,8 @@ struct Config {
     font_size: f32,
     #[inspector(min = -1.0, speed = 0.001)] // you can specify inner options for `Option<T>`
     option: Option<f32>,
+    #[inspector(min = 10, max = 20)] // same for Vec<T>
+    vec: Vec<u32>,
 }
 
 // Enums can be have `InspectorOptions` as well.
