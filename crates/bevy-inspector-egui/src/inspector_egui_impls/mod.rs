@@ -125,8 +125,8 @@ fn add<T: 'static>(
 /// Register [`InspectorEguiImpl`]s for primitive rust types as well as standard library types
 #[rustfmt::skip]
 pub fn register_std_impls(type_registry: &mut TypeRegistry) {
-    add::<f32>(type_registry, std_impls::number_ui_subint::<f32>, std_impls::number_ui_readonly::<f32>, std_impls::number_ui_many::<f32>);
-    add::<f64>(type_registry, std_impls::number_ui_subint::<f64>, std_impls::number_ui_readonly::<f64>, std_impls::number_ui_many::<f64>);
+    add::<f32>(type_registry, std_impls::number_ui::<f32>, std_impls::number_ui_readonly::<f32>, std_impls::number_ui_many::<f32>);
+    add::<f64>(type_registry, std_impls::number_ui::<f64>, std_impls::number_ui_readonly::<f64>, std_impls::number_ui_many::<f64>);
     add::<i8>(type_registry, std_impls::number_ui::<i8>, std_impls::number_ui_readonly::<i8>, std_impls::number_ui_many::<i8>);
     add::<i16>(type_registry, std_impls::number_ui::<i16>, std_impls::number_ui_readonly::<i16>, std_impls::number_ui_many::<i16>);
     add::<i32>(type_registry, std_impls::number_ui::<i32>, std_impls::number_ui_readonly::<i32>, std_impls::number_ui_many::<i32>);

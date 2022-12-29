@@ -19,7 +19,7 @@ pub fn number_ui<T: egui::emath::Numeric>(
         .downcast_ref::<NumberOptions<T>>()
         .cloned()
         .unwrap_or_default();
-    display_number(value, &options, ui, 1.0)
+    display_number(value, &options, ui, 0.1)
 }
 pub fn number_ui_readonly<T: egui::emath::Numeric>(
     value: &dyn Any,
@@ -47,21 +47,6 @@ pub fn number_ui_readonly<T: egui::emath::Numeric>(
         .wrap(false)
         .sense(egui::Sense::hover()),
     );
-}
-
-pub fn number_ui_subint<T: egui::emath::Numeric>(
-    value: &mut dyn Any,
-    ui: &mut egui::Ui,
-    options: &dyn Any,
-    _: egui::Id,
-    _: InspectorUi<'_, '_>,
-) -> bool {
-    let value = value.downcast_mut::<T>().unwrap();
-    let options = options
-        .downcast_ref::<NumberOptions<T>>()
-        .cloned()
-        .unwrap_or_default();
-    display_number(value, &options, ui, 0.1)
 }
 
 fn display_number<T: egui::emath::Numeric>(
