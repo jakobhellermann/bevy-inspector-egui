@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use bevy_app::AppTypeRegistry;
-use bevy_ecs::prelude::*;
+use bevy_ecs::{prelude::*, query::ReadOnlyWorldQuery};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::TypeRegistry;
 use egui::{CollapsingHeader, RichText};
@@ -18,20 +18,25 @@ pub fn hierarchy_ui(world: &mut World, ui: &mut egui::Ui, selected: &mut Selecte
         type_registry: &type_registry,
         selected,
         context_menu: None,
+        shortcircuit_entity: None,
+        extra_state: &mut (),
     }
-    .show(ui);
+    .show::<()>(ui);
 }
 
-pub struct Hierarchy<'a> {
+pub struct Hierarchy<'a, T = ()> {
     pub world: &'a mut World,
     pub type_registry: &'a TypeRegistry,
     pub selected: &'a mut SelectedEntities,
-    pub context_menu: Option<&'a mut dyn FnMut(&mut egui::Ui, Entity, &mut World)>,
+    pub context_menu: Option<&'a mut dyn FnMut(&mut egui::Ui, Entity, &mut World, &mut T)>,
+    pub shortcircuit_entity:
+        Option<&'a mut dyn FnMut(&mut egui::Ui, Entity, &mut World, &mut T) -> bool>,
+    pub extra_state: &'a mut T,
 }
 
-impl Hierarchy<'_> {
-    pub fn show(&mut self, ui: &mut egui::Ui) {
-        let mut root_query = self.world.query_filtered::<Entity, (Without<Parent>,)>();
+impl<T> Hierarchy<'_, T> {
+    pub fn show<F: ReadOnlyWorldQuery>(&mut self, ui: &mut egui::Ui) {
+        let mut root_query = self.world.query_filtered::<Entity, (Without<Parent>, F)>();
 
         let always_open: HashSet<Entity> = self
             .selected
@@ -81,6 +86,12 @@ impl Hierarchy<'_> {
             None
         };
 
+        if let Some(shortcircuit_entity) = self.shortcircuit_entity.as_mut() {
+            if shortcircuit_entity(ui, entity, self.world, &mut self.extra_state) {
+                return;
+            }
+        }
+
         #[allow(deprecated)] // the suggested replacement doesn't really work
         let response = CollapsingHeader::new(name)
             .id_source(entity)
@@ -128,7 +139,8 @@ impl Hierarchy<'_> {
         }
 
         if let Some(context_menu) = self.context_menu.as_mut() {
-            header_response.context_menu(|ui| context_menu(ui, entity, self.world));
+            header_response
+                .context_menu(|ui| context_menu(ui, entity, self.world, &mut self.extra_state));
         }
     }
 }
