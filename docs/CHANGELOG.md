@@ -1,5 +1,20 @@
 # Changelog
 
+## Version 0.16
+- **There's a migration guide at [MIGRATION_GUIDE_0.15_0.16.md](./MIGRATION_GUIDE_0.15_0.16.md)**
+- full rewrite of the crate
+    - now centered around `Reflect` instead of the custom `Inspectable` derive macro
+    - options can be specified using `#[derive(InspectorOptions)]`
+    - `quick::*` plugins like `WorldInspectorPlugin`, `ResourceInspectorPlugin<T>`, `StateInspectorPlugin<S>` and `AssetInspectorPlugin<A>`
+    - functions in `bevy_inspector` for bevy-specific debug UI: `ui_for_world`, `ui_for_resource`, `ui_for_value` etc.
+- multiediting is supported using `InspectorUi::ui_for_reflect_many`
+- read-only UI is now possible with `_readonly` variants
+
+### Breaking changes:
+- `InspectorPlugin<T>` got renamed to `quick::ResourceInspectorPlugin<T>` and doesn't automatically insert the resource anymore
+- You need to call `register_type` for every type that you want to be able to see
+
+
 
 ## Version 0.15
 - update to bevy_egui 0.18
