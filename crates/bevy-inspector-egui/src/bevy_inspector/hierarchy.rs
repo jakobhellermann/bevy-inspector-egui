@@ -17,18 +17,20 @@ pub fn hierarchy_ui(world: &mut World, ui: &mut egui::Ui, selected: &mut Selecte
         world,
         type_registry: &type_registry,
         selected,
+        context_menu: None,
     }
     .show(ui);
 }
 
-struct Hierarchy<'a> {
-    world: &'a mut World,
-    type_registry: &'a TypeRegistry,
-    selected: &'a mut SelectedEntities,
+pub struct Hierarchy<'a> {
+    pub world: &'a mut World,
+    pub type_registry: &'a TypeRegistry,
+    pub selected: &'a mut SelectedEntities,
+    pub context_menu: Option<&'a mut dyn FnMut(&mut egui::Ui, Entity, &mut World)>,
 }
 
 impl Hierarchy<'_> {
-    fn show(&mut self, ui: &mut egui::Ui) {
+    pub fn show(&mut self, ui: &mut egui::Ui) {
         let mut root_query = self.world.query_filtered::<Entity, (Without<Parent>,)>();
 
         let always_open: HashSet<Entity> = self
@@ -123,6 +125,10 @@ impl Hierarchy<'_> {
                     .flatten()
             };
             self.selected.select(selection_mode, entity, extend_with);
+        }
+
+        if let Some(context_menu) = self.context_menu.as_mut() {
+            header_response.context_menu(|ui| context_menu(ui, entity, self.world));
         }
     }
 }
