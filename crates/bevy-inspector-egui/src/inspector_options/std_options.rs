@@ -57,6 +57,10 @@ impl<T> NumberOptions<T> {
             suffix: String::new(),
         }
     }
+
+    pub fn with_speed(self, speed: f32) -> NumberOptions<T> {
+        NumberOptions { speed, ..self }
+    }
 }
 impl<T: egui::emath::Numeric> NumberOptions<T> {
     pub fn positive() -> NumberOptions<T> {
