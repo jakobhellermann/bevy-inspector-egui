@@ -10,7 +10,7 @@ macro_rules! vec_ui_many {
         pub fn $name_many<'a>(
             ui: &mut egui::Ui,
             _: &dyn Any,
-            _: egui::Id,
+            id: egui::Id,
             _env: InspectorUi<'_, '_>,
             values: &mut [&mut dyn Reflect],
             projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
@@ -27,7 +27,7 @@ macro_rules! vec_ui_many {
                                 projector(*value).downcast_ref::<$ty>().unwrap().$component
                             }));
 
-                            let id = egui::Id::new(stringify!($component));
+                            let id = id.with(stringify!($component));
                             changed |= crate::inspector_egui_impls::change_slider($component, id, same, |change, overwrite| {
                                 for value in values.iter_mut() {
                                     let value = projector(*value);

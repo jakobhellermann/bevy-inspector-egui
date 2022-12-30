@@ -224,7 +224,7 @@ pub fn duration_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
-    _: egui::Id,
+    id: egui::Id,
     mut env: InspectorUi<'_, '_>,
 ) -> bool {
     let value = value.downcast_mut::<Duration>().unwrap();
@@ -235,7 +235,7 @@ pub fn duration_ui(
         ..Default::default()
     };
 
-    let changed = env.ui_for_reflect_with_options(&mut seconds, ui, egui::Id::new(0), &options);
+    let changed = env.ui_for_reflect_with_options(&mut seconds, ui, id, &options);
     if changed {
         *value = Duration::from_secs_f64(seconds);
     }
@@ -245,7 +245,7 @@ pub fn duration_ui_readonly(
     value: &dyn Any,
     ui: &mut egui::Ui,
     _: &dyn Any,
-    _: egui::Id,
+    id: egui::Id,
     mut env: InspectorUi<'_, '_>,
 ) {
     let value = value.downcast_ref::<Duration>().unwrap();
@@ -255,7 +255,7 @@ pub fn duration_ui_readonly(
         suffix: "s".to_string(),
         ..Default::default()
     };
-    env.ui_for_reflect_readonly_with_options(&seconds, ui, egui::Id::new(0), &options);
+    env.ui_for_reflect_readonly_with_options(&seconds, ui, id, &options);
 }
 
 pub fn instant_ui(
