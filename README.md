@@ -14,7 +14,7 @@ These plugins can be easily added to your app, but don't allow for customization
 ## WorldInspectorPlugin
 Displays the world's entities, resources and assets.
 
-![image of the world inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/rework/docs/world_inspector.png)
+![image of the world inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/world_inspector.png)
 
 ```rust
 use bevy::prelude::*;
@@ -33,7 +33,7 @@ fn main() {
 ## ResourceInspectorPlugin
 Display a single resource in a window.
 
-![image of the resource inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/rework/docs/resource_inspector.png)
+![image of the resource inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/resource_inspector.png)
 
 ```rust
 use bevy::prelude::*;
@@ -102,8 +102,8 @@ fn inspector_ui(world: &mut World) {
 }
 ```
 
-Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_dock/) and you have your own editor in less than 100 lines: [`examples/egui_dock.rs`](https://github.com/jakobhellermann/bevy-inspector-egui/blob/rework/crates/bevy-inspector-egui/examples/integrations/egui_dock.rs).
-![image of the egui_dock example](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/rework/docs/egui_dock.png)
+Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_dock/) and you have your own editor in less than 100 lines: [`examples/egui_dock.rs`](https://github.com/jakobhellermann/bevy-inspector-egui/blob/main/crates/bevy-inspector-egui/examples/integrations/egui_dock.rs).
+![image of the egui_dock example](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/egui_dock.png)
 
 
 ## FAQ
@@ -117,7 +117,7 @@ Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_
 **A:** You can use `reflect_inspector::ui_for_value`. Note that displaying things like `Handle<StandardMaterial>` won't be able to display the asset's value.
 
 
-[reflect_inspector]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/reflect_inspector
-[inspector_options]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/inspector_options
-[quick]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/quick
-[bevy_inspector]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/bevy_inspector
+[reflect_inspector]: https://docs.rs/bevy-inspector-egui/0.16.0-pre/bevy_inspector_egui/reflect_inspector
+[inspector_options]: https://docs.rs/bevy-inspector-egui/0.16.0-pre/bevy_inspector_egui/inspector_options
+[quick]: https://docs.rs/bevy-inspector-egui/0.16.0-pre/bevy_inspector_egui/quick
+[bevy_inspector]: https://docs.rs/bevy-inspector-egui/0.16.0-pre/bevy_inspector_egui/bevy_inspector
