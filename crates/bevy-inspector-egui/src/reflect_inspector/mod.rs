@@ -89,8 +89,7 @@ pub fn ui_for_value(
 ///
 /// Use [`InspectorUi::new`] instead to provide context or use one of the methods in [`bevy_inspector`](crate::bevy_inspector).
 pub fn ui_for_value_readonly(value: &dyn Reflect, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
-    let mut context = Context::default();
-    InspectorUi::new_no_short_circuit(type_registry, &mut context)
+    InspectorUi::new_no_short_circuit(type_registry, &mut Context::default())
         .ui_for_reflect_readonly(value, ui);
 }
 
@@ -100,8 +99,8 @@ pub struct Context<'a> {
 }
 
 /// Function which will be executed for every field recursively, which can be used to skip regular traversal.
-/// This can be used to recognize `Handle<T>` types and display them as their actual value instead.
 ///
+/// This can be used to recognize `Handle<T>` types and display them as their actual value instead.
 /// Returning `None` means that no short circuiting is required, and `Some(changed)` means that the value was short-circuited
 /// and changed if the boolean is true.
 pub type ShortCircuitFn = fn(
@@ -111,13 +110,23 @@ pub type ShortCircuitFn = fn(
     id: egui::Id,
     options: &dyn Any,
 ) -> Option<bool>;
-type ShortCircuitFnReadonly = fn(
+/// Function which will be executed for every field recursively, which can be used to skip regular traversal, `_readonly` variant
+///
+/// This can be used to recognize `Handle<T>` types and display them as their actual value instead.
+/// Returning `None` means that no short circuiting is required, and `Some(changed)` means that the value was short-circuited
+/// and changed if the boolean is true.
+pub type ShortCircuitFnReadonly = fn(
     &mut InspectorUi<'_, '_>,
     value: &dyn Reflect,
     ui: &mut egui::Ui,
     id: egui::Id,
     options: &dyn Any,
 ) -> Option<()>;
+/// Function which will be executed for every field recursively, which can be used to skip regular traversal, `_many` variant
+///
+/// This can be used to recognize `Handle<T>` types and display them as their actual value instead.
+/// Returning `None` means that no short circuiting is required, and `Some(changed)` means that the value was short-circuited
+/// and changed if the boolean is true.
 pub type ShortCircuitFnMany = fn(
     &mut InspectorUi<'_, '_>,
     type_id: TypeId,
@@ -270,6 +279,18 @@ impl InspectorUi<'_, '_> {
             ReflectRef::Enum(value) => self.ui_for_enum_readonly(value, ui, id, options),
             ReflectRef::Value(value) => self.ui_for_value_readonly(value, ui, id, options),
         }
+    }
+
+    pub fn ui_for_reflect_many(
+        &mut self,
+        type_id: TypeId,
+        name: &str,
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        values: &mut [&mut dyn Reflect],
+        projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+    ) -> bool {
+        self.ui_for_reflect_many_with_options(type_id, name, ui, id, &(), values, projector)
     }
 
     pub fn ui_for_reflect_many_with_options(
