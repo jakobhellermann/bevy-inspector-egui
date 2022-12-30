@@ -8,6 +8,8 @@ This crate contains
 - utility functions for displaying bevy resource, entities and assets in [bevy_inspector]
 - some drop-in plugins in [quick] to get you started without any code necessary.
 
+The changelog can be found at [`docs/CHANGELOG.md`](./docs/CHANGELOG.md).
+
 # Use case 1: Quick plugins
 These plugins can be easily added to your app, but don't allow for customization of the presentation and content.
 
