@@ -1,0 +1,72 @@
+[package]
+name = "bevy-inspector-egui"
+version = "0.16.0-pre.2"
+edition = "2021"
+repository = "https://github.com/jakobhellermann/bevy-inspector-egui/"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+description = "Inspector plugin for the bevy game engine"
+keywords = ["bevy", "inspector", "egui", "editor", "reflect"]
+categories = ["game-development", "gui", "visualization", "development-tools::procedural-macro-helpers"]
+
+
+[dependencies]
+bevy-inspector-egui-derive = { version = "0.16.0-pre.0", path = "../bevy-inspector-egui-derive" }
+bevy_reflect = { version = "0.9" }
+bevy_ecs = { version = "0.9" }
+bevy_app = { version = "0.9" }
+bevy_asset = { version = "0.9" }
+bevy_hierarchy = { version = "0.9" }
+bevy_core = { version = "0.9" }
+bevy_render = { version = "0.9" }
+bevy_pbr = { version = "0.9" }
+bevy_math = { version = "0.9" }
+bevy_core_pipeline = { version = "0.9" }
+bevy_utils = { version = "0.9" }
+
+egui = "0.20.0"
+bevy_egui = "0.18"
+
+image = { version = "0.24.5", default-features = false }
+once_cell = "1.16.0"
+pretty-type-name = "1.0.0"
+smallvec = "1.10.0"
+
+[dev-dependencies]
+bevy = { version = "0.9", default-features = false, features = ["render", "x11", "bevy_winit", "animation", "png"] }
+egui_dock = "0.3"
+egui-gizmo = { git = "https://github.com/matthiascy/egui-gizmo", rev = "516dc8453bb6423d8cf050af172e854611a8a1d9" }
+bevy_framepace = "0.9"
+
+
+[[example]]
+name = "inspector_options"
+path = "examples/basic/inspector_options.rs"
+
+[[example]]
+name = "resource_inspector"
+path = "examples/quick/resource_inspector.rs"
+
+[[example]]
+name = "asset_inspector"
+path = "examples/quick/asset_inspector.rs"
+
+[[example]]
+name = "world_inspector"
+path = "examples/quick/world_inspector.rs"
+
+[[example]]
+name = "world_inspector_assets"
+path = "examples/quick/world_inspector_assets.rs"
+
+[[example]]
+name = "state_inspector"
+path = "examples/quick/state_inspector.rs"
+
+[[example]]
+name = "egui_dock"
+path = "examples/integrations/egui_dock.rs"
+
+[[example]]
+name = "side_panel"
+path = "examples/integrations/side_panel.rs"
