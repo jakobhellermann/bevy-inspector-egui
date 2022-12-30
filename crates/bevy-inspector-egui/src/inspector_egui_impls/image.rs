@@ -13,7 +13,7 @@ use pretty_type_name::pretty_type_name;
 
 use crate::{
     bevy_inspector::errors::{no_world_in_context, show_error},
-    egui_reflect_inspector::InspectorUi,
+    reflect_inspector::InspectorUi,
 };
 
 mod image_texture_conversion;

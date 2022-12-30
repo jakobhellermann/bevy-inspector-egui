@@ -17,7 +17,7 @@ pub fn show_error(error: Error, ui: &mut egui::Ui, name_of_type: &str) {
         Error::ResourceDoesNotExist(_) => resource_does_not_exist(ui, name_of_type),
         Error::NoComponentId(_) => no_component_id(ui, name_of_type),
         Error::NoTypeRegistration(_) => {
-            crate::egui_reflect_inspector::errors::not_in_type_registry(ui, name_of_type)
+            crate::reflect_inspector::errors::not_in_type_registry(ui, name_of_type)
         }
         Error::NoTypeData(_, data) => no_type_data(ui, name_of_type, data),
     }

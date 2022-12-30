@@ -53,7 +53,7 @@ pub mod hierarchy;
 
 use crate::restricted_world_view::RestrictedWorldView;
 use crate::{
-    egui_reflect_inspector::{Context, InspectorUi},
+    reflect_inspector::{Context, InspectorUi},
     utils::guess_entity_name,
 };
 
@@ -63,7 +63,7 @@ use crate::{
 /// `Handle<StandardMaterial>` it can look up the corresponding asset resource and display the asset value inline.
 ///
 /// If all you're displaying is a simple value without any references into the bevy world, consider just using
-/// [`egui_reflect_inspector::ui_for_value`](crate::egui_reflect_inspector::ui_for_value).
+/// [`reflect_inspector::ui_for_value`](crate::reflect_inspector::ui_for_value).
 pub fn ui_for_value(value: &mut dyn Reflect, ui: &mut egui::Ui, world: &mut World) -> bool {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
@@ -430,7 +430,7 @@ pub mod by_type_id {
     use bevy_reflect::TypeRegistry;
 
     use crate::{
-        egui_reflect_inspector::{Context, InspectorUi},
+        reflect_inspector::{Context, InspectorUi},
         restricted_world_view::RestrictedWorldView,
     };
 
@@ -470,7 +470,7 @@ pub mod by_type_id {
         type_registry: &TypeRegistry,
     ) {
         let Some(registration) = type_registry.get(asset_type_id) else {
-            return crate::egui_reflect_inspector::errors::not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
+            return crate::reflect_inspector::errors::not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
         };
         let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
             return errors::no_type_data(ui, &name_of_type(asset_type_id, type_registry), "ReflectAsset");
@@ -509,7 +509,7 @@ pub mod by_type_id {
         type_registry: &TypeRegistry,
     ) {
         let Some(registration) = type_registry.get(asset_type_id) else {
-            return crate::egui_reflect_inspector::errors::not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
+            return crate::reflect_inspector::errors::not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
         };
         let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
             return errors::no_type_data(ui, &name_of_type(asset_type_id, type_registry), "ReflectAsset");
@@ -557,7 +557,7 @@ pub mod short_circuit {
     use bevy_asset::ReflectAsset;
     use bevy_reflect::Reflect;
 
-    use crate::egui_reflect_inspector::{Context, InspectorUi};
+    use crate::reflect_inspector::{Context, InspectorUi};
 
     use super::errors::{self, name_of_type};
 

@@ -3,7 +3,7 @@ use std::any::Any;
 use bevy_math::{prelude::*, DMat2, DMat3, DMat4, DVec2, DVec3, DVec4, Mat3A, Vec3A};
 use bevy_reflect::Reflect;
 
-use crate::egui_reflect_inspector::InspectorUi;
+use crate::reflect_inspector::InspectorUi;
 
 macro_rules! vec_ui_many {
     ($name_many:ident $ty:ty>$elem_ty:ty: $count:literal $($component:ident)*) => {
@@ -180,9 +180,9 @@ pub mod quat {
     use bevy_math::{prelude::*, EulerRot};
 
     use crate::{
-        egui_reflect_inspector::InspectorUi,
         inspector_options::std_options::{QuatDisplay, QuatOptions},
         many_ui,
+        reflect_inspector::InspectorUi,
     };
 
     #[derive(Clone, Copy)]

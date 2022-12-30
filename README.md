@@ -3,7 +3,7 @@
 Examples can be found at [`./crates/bevy-inspector-egui/examples`](./crates/bevy-inspector-egui/examples/).
 
 This crate contains
-- general purpose machinery for displaying [`Reflect`](bevy_reflect::Reflect) values in [egui_reflect_inspector],
+- general purpose machinery for displaying [`Reflect`](bevy_reflect::Reflect) values in [reflect_inspector],
 - a way of associating arbitrary options with fields and enum variants in [inspector_options]
 - utility functions for displaying bevy resource, entities and assets in [bevy_inspector]
 - some drop-in plugins in [quick] to get you started without any code necessary.
@@ -114,10 +114,10 @@ Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_
 
 **Q: What if I just want to display a single value without passing in the whole `&mut World`?**
 
-**A:** You can use `egui_reflect_inspector::ui_for_value`. Note that displaying things like `Handle<StandardMaterial>` won't be able to display the asset's value.
+**A:** You can use `reflect_inspector::ui_for_value`. Note that displaying things like `Handle<StandardMaterial>` won't be able to display the asset's value.
 
 
-[egui_reflect_inspector]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/egui_reflect_inspector
+[reflect_inspector]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/reflect_inspector
 [inspector_options]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/inspector_options
 [quick]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/quick
 [bevy_inspector]: https://docs.rs/bevy-inspector-egui/0.15.0-pre/bevy_inspector_egui/bevy_inspector

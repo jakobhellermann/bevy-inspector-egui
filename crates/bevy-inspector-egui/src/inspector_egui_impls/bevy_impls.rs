@@ -7,8 +7,8 @@ use std::any::{Any, TypeId};
 
 use crate::{
     bevy_inspector::errors::{dead_asset_handle, no_world_in_context, show_error},
-    egui_reflect_inspector::InspectorUi,
     many_ui,
+    reflect_inspector::InspectorUi,
 };
 
 pub fn entity_ui(

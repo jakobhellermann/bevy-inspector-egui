@@ -4,7 +4,7 @@
 //! **Basic usage**
 //! ```rust
 //! use bevy_reflect::{Reflect, TypeRegistry};
-//! use bevy_inspector_egui::egui_reflect_inspector::{ui_for_value, InspectorUi, Context};
+//! use bevy_inspector_egui::reflect_inspector::{ui_for_value, InspectorUi, Context};
 //!
 //! #[derive(Reflect)]
 //! struct Data {
@@ -26,7 +26,7 @@
 //! **Bevy specific usage**
 //! ```rust
 //! use bevy_reflect::{Reflect, TypeRegistry};
-//! use bevy_inspector_egui::egui_reflect_inspector::{InspectorUi, Context};
+//! use bevy_inspector_egui::reflect_inspector::{InspectorUi, Context};
 //!
 //! use bevy_ecs::prelude::*;
 //! use bevy_asset::Handle;
