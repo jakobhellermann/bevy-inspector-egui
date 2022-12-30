@@ -14,7 +14,7 @@ These plugins can be easily added to your app, but don't allow for customization
 ## WorldInspectorPlugin
 Displays the world's entities, resources and assets.
 
-![image of the world inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/world_inspector.png)
+![image of the world inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/images/world_inspector.png)
 
 ```rust
 use bevy::prelude::*;
@@ -33,7 +33,7 @@ fn main() {
 ## ResourceInspectorPlugin
 Display a single resource in a window.
 
-![image of the resource inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/resource_inspector.png)
+![image of the resource inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/images/resource_inspector.png)
 
 ```rust
 use bevy::prelude::*;
@@ -103,7 +103,7 @@ fn inspector_ui(world: &mut World) {
 ```
 
 Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_dock/) and you have your own editor in less than 100 lines: [`examples/egui_dock.rs`](https://github.com/jakobhellermann/bevy-inspector-egui/blob/main/crates/bevy-inspector-egui/examples/integrations/egui_dock.rs).
-![image of the egui_dock example](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/egui_dock.png)
+![image of the egui_dock example](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/images/egui_dock.png)
 
 
 ## FAQ
