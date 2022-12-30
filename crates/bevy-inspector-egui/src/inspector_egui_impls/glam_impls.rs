@@ -3,6 +3,7 @@ use std::any::Any;
 use bevy_math::{prelude::*, DMat2, DMat3, DMat4, DVec2, DVec3, DVec4, Mat3A, Vec3A};
 use bevy_reflect::Reflect;
 
+use crate::inspector_options::std_options::NumberOptions;
 use crate::reflect_inspector::InspectorUi;
 
 macro_rules! vec_ui_many {
@@ -57,11 +58,16 @@ macro_rules! vec_ui {
         pub fn $name(
             value: &mut dyn Any,
             ui: &mut egui::Ui,
-            _: &dyn Any,
-            _: egui::Id,
+            options: &dyn Any,
+            id: egui::Id,
             mut env: InspectorUi<'_, '_>,
         ) -> bool {
             let value = value.downcast_mut::<$ty>().unwrap();
+
+            let options = options
+                .downcast_ref::<NumberOptions<$ty>>()
+                .cloned()
+                .unwrap_or_default();
 
             let mut changed = false;
             ui.scope(|ui| {
@@ -69,7 +75,7 @@ macro_rules! vec_ui {
 
                 ui.columns($count, |ui| match ui {
                     [$($component),*] => {
-                        $(changed |= env.ui_for_reflect(&mut value.$component, $component);)*
+                        $(changed |= env.ui_for_reflect_with_options(&mut value.$component, $component, id.with(stringify!($component)), &options.map(|vec| vec.$component));)*
                     }
                     _ => unreachable!(),
                 });
@@ -109,7 +115,6 @@ macro_rules! mat_ui {
             _: egui::Id,
             mut env: InspectorUi<'_, '_>,
         ) -> bool {
-
             let value = value.downcast_mut::<$ty>().unwrap();
 
             let mut changed = false;

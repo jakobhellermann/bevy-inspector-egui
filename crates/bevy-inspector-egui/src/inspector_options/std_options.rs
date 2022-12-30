@@ -61,6 +61,16 @@ impl<T> NumberOptions<T> {
     pub fn with_speed(self, speed: f32) -> NumberOptions<T> {
         NumberOptions { speed, ..self }
     }
+
+    pub fn map<U>(&self, f: impl Fn(&T) -> U) -> NumberOptions<U> {
+        NumberOptions {
+            min: self.min.as_ref().map(|min| f(min)),
+            max: self.max.as_ref().map(f),
+            speed: self.speed,
+            prefix: self.prefix.clone(),
+            suffix: self.suffix.clone(),
+        }
+    }
 }
 impl<T: egui::emath::Numeric> NumberOptions<T> {
     pub fn positive() -> NumberOptions<T> {
