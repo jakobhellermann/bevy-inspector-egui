@@ -59,7 +59,8 @@ impl Hierarchy<'_> {
     ) {
         let selected = self.selected.contains(entity);
 
-        let entity_name = guess_entity_name::entity_name(self.world, self.type_registry, entity);
+        let entity_name =
+            guess_entity_name::guess_entity_name(self.world, self.type_registry, entity);
         let mut name = RichText::new(entity_name);
         if selected {
             name = name.strong();

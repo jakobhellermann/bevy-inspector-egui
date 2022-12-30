@@ -51,11 +51,8 @@ pub(crate) mod errors;
 /// UI for displaying the entity hierarchy
 pub mod hierarchy;
 
+use crate::reflect_inspector::{Context, InspectorUi};
 use crate::restricted_world_view::RestrictedWorldView;
-use crate::{
-    reflect_inspector::{Context, InspectorUi},
-    utils::guess_entity_name,
-};
 
 /// Display a single [`&mut dyn Reflect`](bevy_reflect::Reflect).
 ///
@@ -231,7 +228,7 @@ fn ui_for_entity_inner(
     type_registry: &TypeRegistry,
     in_header: bool,
 ) {
-    let entity_name = guess_entity_name::entity_name(world, type_registry, entity);
+    let entity_name = guess_entity_name(world, type_registry, entity);
 
     let mut inner = |ui: &mut egui::Ui| {
         ui_for_entity_components(world, entity, ui, id, type_registry);
@@ -782,3 +779,5 @@ pub mod short_circuit {
         None
     }
 }
+
+pub use crate::utils::guess_entity_name::guess_entity_name;

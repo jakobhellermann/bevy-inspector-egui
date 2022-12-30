@@ -17,7 +17,11 @@ pub mod guess_entity_name {
     use bevy_reflect::TypeRegistry;
 
     /// Guesses an appropriate entity name like `Light (6)` or falls back to `Entity (8)`
-    pub fn entity_name(world: &World, type_registry: &TypeRegistry, entity: Entity) -> String {
+    pub fn guess_entity_name(
+        world: &World,
+        type_registry: &TypeRegistry,
+        entity: Entity,
+    ) -> String {
         match world.get_entity(entity) {
             Some(entity) => guess_entity_name_inner(world, entity, type_registry),
             None => format!("Entity {} (inexistent)", entity.index()),
