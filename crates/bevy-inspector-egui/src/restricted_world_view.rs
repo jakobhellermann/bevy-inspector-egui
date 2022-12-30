@@ -175,14 +175,14 @@ impl<'w> RestrictedWorldView<'w> {
     /// - The returned world reference may only be used to immediately access (mutably or immutably) resources and components
     /// that [`RestrictedWorldView::allows_access_to_resource`] and [`RestrictedWorldView::allows_access_to_component`] return `true` for.
     /// - No references into the world can remain when control is handed to unknown safe code
-    pub unsafe fn get(&self) -> &'w World {
+    pub(crate) unsafe fn get(&self) -> &'w World {
         // SAFETY: the caller
         unsafe { &mut *self.world }
     }
     // this is only used for the by_id methods that don't have unchecked variants.
     // same SAFETY as get, again absolutely *no* references to the world in the presence of other views,
     // you can only get a reference deep in the storage (like a resource) that doesn't get invalidated from a `&mut *` of the world.
-    pub(crate) unsafe fn get_mut(&mut self) -> &'w mut World {
+    unsafe fn get_mut(&mut self) -> &'w mut World {
         // SAFETY: the caller
         unsafe { &mut *self.world }
     }
