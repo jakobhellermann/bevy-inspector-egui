@@ -83,27 +83,20 @@ pub fn ui_for_value(
         .ui_for_reflect(value, ui)
 }
 
-#[derive(Default)]
-pub struct Context<'a> {
-    pub world: Option<RestrictedWorldView<'a>>,
-}
-
-pub fn ui_for_reflect_no_context(
-    value: &mut dyn Reflect,
-    ui: &mut egui::Ui,
-    type_registry: &TypeRegistry,
-) -> bool {
-    let mut context = Context::default();
-    InspectorUi::new_no_short_circuit(type_registry, &mut context).ui_for_reflect(value, ui)
-}
-pub fn ui_for_reflect_readonly_no_context(
-    value: &mut dyn Reflect,
-    ui: &mut egui::Ui,
-    type_registry: &TypeRegistry,
-) {
+/// Display the readonly value without any [`Context`] or short circuiting behaviour.
+/// This means that for example bevy's `Handle<StandardMaterial>` values cannot be displayed,
+/// as they would need to have access to the `World`.
+///
+/// Use [`InspectorUi::new`] instead to provide context or use one of the methods in [`bevy_inspector`](crate::bevy_inspector).
+pub fn ui_for_value_readonly(value: &dyn Reflect, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
     let mut context = Context::default();
     InspectorUi::new_no_short_circuit(type_registry, &mut context)
         .ui_for_reflect_readonly(value, ui);
+}
+
+#[derive(Default)]
+pub struct Context<'a> {
+    pub world: Option<RestrictedWorldView<'a>>,
 }
 
 /// Function which will be executed for every field recursively, which can be used to skip regular traversal.
