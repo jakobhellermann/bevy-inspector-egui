@@ -6,6 +6,7 @@ use crate::{
     InspectorOptions,
 };
 
+#[allow(dead_code)]
 fn insert_options_struct<T: 'static>(
     type_registry: &mut TypeRegistry,
     fields: &[(&'static str, &dyn TypeData)],
@@ -74,46 +75,49 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         ],
     );
 
-    insert_options_struct::<bevy_pbr::AmbientLight>(
-        type_registry,
-        &[("brightness", &NumberOptions::<f32>::normalized())],
-    );
-    insert_options_struct::<bevy_pbr::PointLight>(
-        type_registry,
-        &[
-            ("intensity", &NumberOptions::<f32>::positive()),
-            ("range", &NumberOptions::<f32>::positive()),
-            ("radius", &NumberOptions::<f32>::positive()),
-        ],
-    );
-    insert_options_struct::<bevy_pbr::DirectionalLight>(
-        type_registry,
-        &[("illuminance", &NumberOptions::<f32>::positive())],
-    );
+    #[cfg(feature = "bevy_pbr")]
+    {
+        insert_options_struct::<bevy_pbr::AmbientLight>(
+            type_registry,
+            &[("brightness", &NumberOptions::<f32>::normalized())],
+        );
+        insert_options_struct::<bevy_pbr::PointLight>(
+            type_registry,
+            &[
+                ("intensity", &NumberOptions::<f32>::positive()),
+                ("range", &NumberOptions::<f32>::positive()),
+                ("radius", &NumberOptions::<f32>::positive()),
+            ],
+        );
+        insert_options_struct::<bevy_pbr::DirectionalLight>(
+            type_registry,
+            &[("illuminance", &NumberOptions::<f32>::positive())],
+        );
 
-    insert_options_struct::<bevy_pbr::StandardMaterial>(
-        type_registry,
-        &[
-            (
-                "perceptual_roughness",
-                &NumberOptions::<f32>::between(0.089, 1.0),
-            ),
-            ("metallic", &NumberOptions::<f32>::normalized()),
-            ("reflectance", &NumberOptions::<f32>::normalized()),
-            ("depth_bias", &NumberOptions::<f32>::positive()),
-        ],
-    );
-    insert_options_enum::<bevy_pbr::ClusterConfig>(
-        type_registry,
-        &[
-            ("FixedZ", "z_slices", &NumberOptions::<u32>::at_least(1)),
-            (
-                "XYZ",
-                "dimensions",
-                &NumberOptions::<bevy_math::UVec3>::at_least(bevy_math::UVec3::ONE),
-            ),
-        ],
-    );
+        insert_options_struct::<bevy_pbr::StandardMaterial>(
+            type_registry,
+            &[
+                (
+                    "perceptual_roughness",
+                    &NumberOptions::<f32>::between(0.089, 1.0),
+                ),
+                ("metallic", &NumberOptions::<f32>::normalized()),
+                ("reflectance", &NumberOptions::<f32>::normalized()),
+                ("depth_bias", &NumberOptions::<f32>::positive()),
+            ],
+        );
+        insert_options_enum::<bevy_pbr::ClusterConfig>(
+            type_registry,
+            &[
+                ("FixedZ", "z_slices", &NumberOptions::<u32>::at_least(1)),
+                (
+                    "XYZ",
+                    "dimensions",
+                    &NumberOptions::<bevy_math::UVec3>::at_least(bevy_math::UVec3::ONE),
+                ),
+            ],
+        );
+    }
 
     insert_options_enum::<bevy_core_pipeline::core_3d::Camera3dDepthLoadOp>(
         type_registry,

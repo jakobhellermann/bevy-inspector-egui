@@ -9,20 +9,23 @@ description = "Inspector plugin for the bevy game engine"
 keywords = ["bevy", "inspector", "egui", "editor", "reflect"]
 categories = ["game-development", "gui", "visualization", "development-tools::procedural-macro-helpers"]
 
+[features]
+default = ["bevy_pbr"]
 
 [dependencies]
 bevy-inspector-egui-derive = { version = "0.16.0-pre.0", path = "../bevy-inspector-egui-derive" }
-bevy_reflect = { version = "0.9" }
-bevy_ecs = { version = "0.9" }
 bevy_app = { version = "0.9" }
 bevy_asset = { version = "0.9" }
-bevy_hierarchy = { version = "0.9" }
 bevy_core = { version = "0.9" }
-bevy_render = { version = "0.9" }
-bevy_pbr = { version = "0.9" }
+bevy_ecs = { version = "0.9" }
+bevy_hierarchy = { version = "0.9" }
 bevy_math = { version = "0.9" }
-bevy_core_pipeline = { version = "0.9" }
+bevy_reflect = { version = "0.9" }
 bevy_utils = { version = "0.9" }
+
+bevy_core_pipeline = { version = "0.9" }
+bevy_pbr = { version = "0.9", optional = true }
+bevy_render = { version = "0.9" }
 
 egui = "0.20.0"
 bevy_egui = "0.18"
