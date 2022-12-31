@@ -383,7 +383,7 @@ impl<'w> RestrictedWorldView<'w> {
         entity: Entity,
         component: TypeId,
         type_registry: &TypeRegistry,
-    ) -> Result<(&'_ mut dyn Reflect, impl FnOnce() + '_), Error> {
+    ) -> Result<(&'_ mut dyn Reflect, bool, impl FnOnce() + '_), Error> {
         if !self.allows_access_to_component((entity, component)) {
             return Err(Error::NoAccessToComponent((entity, component)));
         }
@@ -402,9 +402,12 @@ impl<'w> RestrictedWorldView<'w> {
                 .get_mut_by_id(entity, component_id)
                 .ok_or(Error::ComponentDoesNotExist((entity, component)))?
         };
+        let changed = value.is_changed();
 
         // SAFETY: value is of type component
-        unsafe { mut_untyped_to_reflect(value, type_registry, component) }
+        let (value, set_changed) =
+            unsafe { mut_untyped_to_reflect(value, type_registry, component) }?;
+        Ok((value, changed, set_changed))
     }
 
     // SAFETY: must ensure distinct access

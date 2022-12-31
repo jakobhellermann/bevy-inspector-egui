@@ -278,39 +278,74 @@ fn ui_for_entity_components(
 
     for (name, component_id, component_type_id, size) in components {
         let id = id.with(component_id);
-        egui::CollapsingHeader::new(&name)
-            .id_source(id)
-            .show(ui, |ui| {
-                if size == 0 {
-                    return;
-                }
-                let Some(component_type_id) = component_type_id else {
-                    return errors::no_type_id(ui, &name);
-                };
 
-                // create a context with access to the world except for the currently viewed component
-                let mut world = RestrictedWorldView::new(world);
-                let (mut component_view, world) =
-                    world.split_off_component((entity, component_type_id));
-                let mut cx = Context { world: Some(world) };
+        let header = egui::CollapsingHeader::new(&name).id_source(id);
 
-                let (value, set_changed) = match component_view.get_entity_component_reflect(
-                    entity,
-                    component_type_id,
-                    type_registry,
-                ) {
-                    Ok(value) => value,
-                    Err(e) => return errors::show_error(e, ui, &name),
-                };
+        let Some(component_type_id) = component_type_id else {
+                header.show(ui, |ui| errors::no_type_id(ui, &name));
+                return;
+            };
 
-                let changed = InspectorUi::for_bevy(type_registry, &mut cx)
-                    .ui_for_reflect_with_options(value, ui, id.with(component_id), &());
+        // create a context with access to the world except for the currently viewed component
+        let mut world = RestrictedWorldView::new(world);
+        let (mut component_view, world) = world.split_off_component((entity, component_type_id));
+        let mut cx = Context { world: Some(world) };
 
-                if changed {
-                    set_changed();
-                }
-            });
+        let (value, is_changed, set_changed) = match component_view.get_entity_component_reflect(
+            entity,
+            component_type_id,
+            type_registry,
+        ) {
+            Ok(value) => value,
+            Err(e) => {
+                header.show(ui, |ui| errors::show_error(e, ui, &name));
+                return;
+            }
+        };
+
+        if is_changed {
+            set_highlight_style(ui);
+        }
+
+        header.show(ui, |ui| {
+            ui.reset_style();
+
+            if size == 0 {
+                return;
+            }
+
+            let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
+                .ui_for_reflect_with_options(value, ui, id.with(component_id), &());
+
+            if inspector_changed {
+                set_changed();
+            }
+        });
+        ui.reset_style();
     }
+}
+
+fn set_highlight_style(ui: &mut egui::Ui) {
+    let highlight_color = egui::Color32::GOLD;
+
+    let visuals = &mut ui.style_mut().visuals;
+    visuals.collapsing_header_frame = true;
+    visuals.widgets.inactive.bg_stroke = egui::Stroke {
+        width: 1.0,
+        color: highlight_color,
+    };
+    visuals.widgets.active.bg_stroke = egui::Stroke {
+        width: 1.0,
+        color: highlight_color,
+    };
+    visuals.widgets.hovered.bg_stroke = egui::Stroke {
+        width: 1.0,
+        color: highlight_color,
+    };
+    visuals.widgets.noninteractive.bg_stroke = egui::Stroke {
+        width: 1.0,
+        color: highlight_color,
+    };
 }
 
 fn components_of_entity(
