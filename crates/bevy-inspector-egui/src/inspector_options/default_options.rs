@@ -78,6 +78,19 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         type_registry,
         &[("brightness", &NumberOptions::<f32>::normalized())],
     );
+    insert_options_struct::<bevy_pbr::PointLight>(
+        type_registry,
+        &[
+            ("intensity", &NumberOptions::<f32>::positive()),
+            ("range", &NumberOptions::<f32>::positive()),
+            ("radius", &NumberOptions::<f32>::positive()),
+        ],
+    );
+    insert_options_struct::<bevy_pbr::DirectionalLight>(
+        type_registry,
+        &[("illuminance", &NumberOptions::<f32>::positive())],
+    );
+
     insert_options_struct::<bevy_pbr::StandardMaterial>(
         type_registry,
         &[
