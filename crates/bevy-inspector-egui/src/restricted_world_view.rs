@@ -340,7 +340,7 @@ impl<'w> RestrictedWorldView<'w> {
 
     /// Gets a mutable reference in form of a [`&mut dyn Reflect`](bevy_reflect::Reflect) to the resource given by `type_id`.
     ///
-    /// Returns an error if the type does not register [`Reflect`] or [`ReflectResource`].
+    /// Returns an error if the type does not register [`Reflect`].
     ///
     /// Also returns a `impl FnOnce()` to mark the value as changed.
     pub fn get_resource_reflect_mut_by_id(
@@ -375,7 +375,7 @@ impl<'w> RestrictedWorldView<'w> {
 
     /// Gets a mutable reference in form of a [`&mut dyn Reflect`](bevy_reflect::Reflect) to a component at an entity.
     ///
-    /// Returns an error if the type does not register [`Reflect`] or [`ReflectResource`].
+    /// Returns an error if the type does not register [`Reflect`].
     ///
     /// Also returns a `impl FnOnce()` to mark the value as changed.
     pub fn get_entity_component_reflect(
