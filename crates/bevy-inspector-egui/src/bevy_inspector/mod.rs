@@ -201,62 +201,55 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
 
     let id = egui::Id::new("world ui");
     for entity in entities {
-        ui_for_entity_inner(world, entity, ui, id.with(entity), &type_registry, true);
+        ui_for_entity_with_children_inner(world, entity, ui, id.with(entity), &type_registry);
     }
 }
 
 /// Display the given entity with all its components and children
-pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui, in_header: bool) {
+pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
-    ui_for_entity_inner(
-        world,
-        entity,
-        ui,
-        egui::Id::new(entity),
-        &type_registry,
-        in_header,
-    )
+    ui_for_entity_with_children_inner(world, entity, ui, egui::Id::new(entity), &type_registry)
 }
 
-fn ui_for_entity_inner(
+fn ui_for_entity_with_children_inner(
     world: &mut World,
     entity: Entity,
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
-    in_header: bool,
 ) {
     let entity_name = guess_entity_name(world, type_registry, entity);
+    ui.label(&entity_name);
 
-    let mut inner = |ui: &mut egui::Ui| {
-        ui_for_entity_components(world, entity, ui, id, type_registry);
+    ui_for_entity_components(world, entity, ui, id, type_registry);
 
-        let children = world
-            .get::<Children>(entity)
-            .map(|children| children.iter().copied().collect::<Vec<_>>());
-        if let Some(children) = children {
-            if !children.is_empty() {
-                ui.label("Children");
-                for &child in children.iter() {
-                    let id = id.with(child);
-                    ui_for_entity_inner(world, child, ui, id, type_registry, true);
-                }
+    let children = world
+        .get::<Children>(entity)
+        .map(|children| children.iter().copied().collect::<Vec<_>>());
+    if let Some(children) = children {
+        if !children.is_empty() {
+            ui.label("Children");
+            for &child in children.iter() {
+                let id = id.with(child);
+
+                egui::CollapsingHeader::new(&entity_name)
+                    .id_source(id)
+                    .show(ui, |ui| {
+                        ui_for_entity_with_children_inner(world, child, ui, id, type_registry);
+                    });
             }
         }
-    };
-
-    if in_header {
-        egui::CollapsingHeader::new(entity_name)
-            .id_source(id)
-            .show(ui, |ui| {
-                inner(ui);
-            });
-    } else {
-        ui.label(entity_name);
-        inner(ui);
     }
+}
+
+/// Display the components of the given entity
+pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
+    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
+    let type_registry = type_registry.read();
+
+    ui_for_entity_components(world, entity, ui, egui::Id::new(entity), &type_registry)
 }
 
 /// Display the components of the given entity

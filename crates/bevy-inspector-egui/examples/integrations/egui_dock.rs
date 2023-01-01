@@ -4,7 +4,9 @@ use bevy::prelude::*;
 use bevy_asset::{HandleId, ReflectAsset};
 use bevy_egui::EguiContext;
 use bevy_inspector_egui::bevy_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
-use bevy_inspector_egui::bevy_inspector::{self, ui_for_entities_shared_components, ui_for_entity};
+use bevy_inspector_egui::bevy_inspector::{
+    self, ui_for_entities_shared_components, ui_for_entity_with_children,
+};
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_mod_picking::prelude::*;
 use bevy_reflect::TypeRegistry;
@@ -185,7 +187,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             Window::Assets => select_asset(ui, &type_registry, self.world, self.selection),
             Window::Inspector => match *self.selection {
                 InspectorSelection::Entities => match self.selected_entities.as_slice() {
-                    &[entity] => ui_for_entity(self.world, entity, ui, false),
+                    &[entity] => ui_for_entity_with_children(self.world, entity, ui),
                     entities => ui_for_entities_shared_components(self.world, entities, ui),
                 },
                 InspectorSelection::Resource(type_id, ref name) => {

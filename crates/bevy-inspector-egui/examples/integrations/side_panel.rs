@@ -57,11 +57,15 @@ fn inspector_ui(
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.heading("Inspector");
 
-                let in_header = selected_entities.len() > 1;
-                for entity in selected_entities.iter() {
-                    bevy_inspector_egui::bevy_inspector::ui_for_entity(
-                        world, entity, ui, in_header,
-                    );
+                match selected_entities.as_slice() {
+                    &[entity] => {
+                        bevy_inspector_egui::bevy_inspector::ui_for_entity(world, entity, ui);
+                    }
+                    entities => {
+                        bevy_inspector_egui::bevy_inspector::ui_for_entities_shared_components(
+                            world, entities, ui,
+                        );
+                    }
                 }
 
                 ui.allocate_space(ui.available_size());
