@@ -240,7 +240,7 @@ fn draw_gizmo(
     }
 
     for selected in selected_entities.iter() {
-        let transform = world.get::<Transform>(selected).unwrap();
+        let Some(transform) = world.get::<Transform>(selected) else { continue };
         let model_matrix = transform.compute_matrix();
 
         let Some(result) = egui_gizmo::Gizmo::new(selected)
