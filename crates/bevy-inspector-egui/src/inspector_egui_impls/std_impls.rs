@@ -4,7 +4,10 @@ use bevy_reflect::Reflect;
 use egui::{DragValue, RichText};
 
 use super::{change_slider, iter_all_eq, InspectorUi};
-use crate::{inspector_options::std_options::NumberOptions, many_ui};
+use crate::{
+    inspector_options::std_options::{NumberDisplay, NumberOptions},
+    many_ui,
+};
 use std::{any::Any, time::Duration};
 
 pub fn number_ui<T: egui::emath::Numeric>(
@@ -55,25 +58,37 @@ fn display_number<T: egui::emath::Numeric>(
     ui: &mut egui::Ui,
     default_speed: f32,
 ) -> bool {
-    let mut widget = egui::DragValue::new(value);
-    if !options.prefix.is_empty() {
-        widget = widget.prefix(&options.prefix);
-    }
-    if !options.suffix.is_empty() {
-        widget = widget.suffix(&options.suffix);
-    }
-    match (options.min, options.max) {
-        (Some(min), Some(max)) => widget = widget.clamp_range(min.to_f64()..=max.to_f64()),
-        (Some(min), None) => widget = widget.clamp_range(min.to_f64()..=f64::MAX),
-        (None, Some(max)) => widget = widget.clamp_range(f64::MIN..=max.to_f64()),
-        (None, None) => {}
-    }
-    if options.speed != 0.0 {
-        widget = widget.speed(options.speed);
-    } else {
-        widget = widget.speed(default_speed);
-    }
-    let mut changed = ui.add(widget).changed();
+    let mut changed = match options.display {
+        NumberDisplay::Drag => {
+            let mut widget = egui::DragValue::new(value);
+            if !options.prefix.is_empty() {
+                widget = widget.prefix(&options.prefix);
+            }
+            if !options.suffix.is_empty() {
+                widget = widget.suffix(&options.suffix);
+            }
+            match (options.min, options.max) {
+                (Some(min), Some(max)) => widget = widget.clamp_range(min.to_f64()..=max.to_f64()),
+                (Some(min), None) => widget = widget.clamp_range(min.to_f64()..=f64::MAX),
+                (None, Some(max)) => widget = widget.clamp_range(f64::MIN..=max.to_f64()),
+                (None, None) => {}
+            }
+            if options.speed != 0.0 {
+                widget = widget.speed(options.speed);
+            } else {
+                widget = widget.speed(default_speed);
+            }
+            ui.add(widget).changed()
+        }
+        NumberDisplay::Slider => {
+            let min = options.min.unwrap_or_else(|| T::from_f64(0.0));
+            let max = options.max.unwrap_or_else(|| T::from_f64(1.0));
+            let range = min..=max;
+            let widget = egui::Slider::new(value, range);
+            ui.add(widget).changed()
+        }
+    };
+
     if let Some(min) = options.min {
         let as_f64 = value.to_f64();
         let min = min.to_f64();

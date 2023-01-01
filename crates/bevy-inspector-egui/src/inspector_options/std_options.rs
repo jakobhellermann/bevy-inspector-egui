@@ -24,18 +24,28 @@ pub struct NumberOptions<T> {
     pub speed: f32,
     pub prefix: String,
     pub suffix: String,
+    pub display: NumberDisplay,
 }
 
 impl<T> Default for NumberOptions<T> {
     fn default() -> Self {
         Self {
-            min: Default::default(),
-            max: Default::default(),
+            min: None,
+            max: None,
             speed: 0.0,
             prefix: String::new(),
             suffix: String::new(),
+            display: NumberDisplay::default(),
         }
     }
+}
+
+#[derive(Clone, Copy, Default)]
+#[non_exhaustive]
+pub enum NumberDisplay {
+    #[default]
+    Drag,
+    Slider,
 }
 
 impl<T> NumberOptions<T> {
@@ -46,6 +56,7 @@ impl<T> NumberOptions<T> {
             speed: 0.0,
             prefix: String::new(),
             suffix: String::new(),
+            display: NumberDisplay::default(),
         }
     }
     pub fn at_least(min: T) -> NumberOptions<T> {
@@ -55,6 +66,7 @@ impl<T> NumberOptions<T> {
             speed: 0.0,
             prefix: String::new(),
             suffix: String::new(),
+            display: NumberDisplay::default(),
         }
     }
 
@@ -69,6 +81,7 @@ impl<T> NumberOptions<T> {
             speed: self.speed,
             prefix: self.prefix.clone(),
             suffix: self.suffix.clone(),
+            display: NumberDisplay::default(),
         }
     }
 }
@@ -80,6 +93,7 @@ impl<T: egui::emath::Numeric> NumberOptions<T> {
             speed: 0.0,
             prefix: String::new(),
             suffix: String::new(),
+            display: NumberDisplay::default(),
         }
     }
 
@@ -90,6 +104,7 @@ impl<T: egui::emath::Numeric> NumberOptions<T> {
             speed: 0.01,
             prefix: String::new(),
             suffix: String::new(),
+            display: NumberDisplay::default(),
         }
     }
 }
