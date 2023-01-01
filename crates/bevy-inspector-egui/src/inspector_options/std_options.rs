@@ -18,6 +18,7 @@ macro_rules! impl_options {
 }
 
 #[derive(Clone)]
+#[non_exhaustive]
 pub struct NumberOptions<T> {
     pub min: Option<T>,
     pub max: Option<T>,
@@ -124,25 +125,19 @@ impl_options!(u64 => NumberOptions<u64>);
 impl_options!(u128 => NumberOptions<u128>);
 impl_options!(usize => NumberOptions<usize>);
 
-#[derive(Clone)]
+#[derive(Default, Clone)]
+#[non_exhaustive]
 pub struct QuatOptions {
     pub display: QuatDisplay,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Default)]
 pub enum QuatDisplay {
     Raw,
+    #[default]
     Euler,
     YawPitchRoll,
     AxisAngle,
-}
-
-impl Default for QuatOptions {
-    fn default() -> Self {
-        QuatOptions {
-            display: QuatDisplay::Euler,
-        }
-    }
 }
 
 impl_options!(bevy_math::Quat => QuatOptions);
