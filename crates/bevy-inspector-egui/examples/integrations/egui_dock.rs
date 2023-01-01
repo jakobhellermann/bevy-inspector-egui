@@ -8,6 +8,7 @@ use bevy_inspector_egui::bevy_inspector::{
     self, ui_for_entities_shared_components, ui_for_entity_with_children,
 };
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
+use bevy_mod_picking::backends::egui::EguiPointer;
 use bevy_mod_picking::prelude::*;
 use bevy_reflect::TypeRegistry;
 use bevy_render::camera::{CameraProjection, Viewport};
@@ -48,10 +49,15 @@ fn handle_pick_events(
     mut ui_state: ResMut<UiState>,
     mut click_events: EventReader<PointerClick>,
     mut egui: ResMut<EguiContext>,
+    egui_entity: Query<&EguiPointer>,
 ) {
     let egui_context = egui.ctx_mut();
 
     for click in click_events.iter() {
+        if egui_entity.get(click.target()).is_ok() {
+            continue;
+        };
+
         let modifiers = egui_context.input().modifiers;
         let add = modifiers.ctrl || modifiers.shift;
 
