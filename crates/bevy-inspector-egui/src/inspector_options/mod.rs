@@ -41,7 +41,9 @@ pub use bevy_inspector_egui_derive::InspectorOptions;
 /// ```rust
 /// # use bevy_inspector_egui::inspector_options::{InspectorOptions, Target, std_options::NumberOptions};
 /// let mut options = InspectorOptions::default();
-/// let mut field_options = NumberOptions { min: 10.0.into(), max: 70.0.into(), ..Default::default() };
+/// let mut field_options = NumberOptions::default();
+/// field_options.min = 10.0.into();
+/// field_options.max = 70.0.into();
 /// options.insert(Target::Field(0usize), field_options);
 /// ```
 #[derive(Default)]
