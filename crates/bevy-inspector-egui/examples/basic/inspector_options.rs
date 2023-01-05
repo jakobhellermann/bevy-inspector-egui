@@ -1,11 +1,12 @@
 use bevy::prelude::*;
+use bevy_inspector_egui::inspector_options::std_options::NumberDisplay;
 use bevy_inspector_egui::{prelude::*, DefaultInspectorConfigPlugin};
 
 #[derive(Reflect, Default, InspectorOptions)]
 #[reflect(InspectorOptions)]
 struct Config {
     // `f32` uses `NumberOptions<f32>`
-    #[inspector(min = 10.0, max = 70.0)]
+    #[inspector(min = 10.0, max = 70.0, display = NumberDisplay::Slider)]
     font_size: f32,
     #[inspector(min = -1.0, speed = 0.001)] // you can specify inner options for `Option<T>`
     option: Option<f32>,
