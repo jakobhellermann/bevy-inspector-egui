@@ -6,6 +6,7 @@ repository = "https://github.com/jakobhellermann/bevy-inspector-egui/"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 description = "Inspector plugin for the bevy game engine"
+documentation = "https://docs.rs/bevy-inspector-egui"
 keywords = ["bevy", "inspector", "egui", "editor", "reflect"]
 categories = ["game-development", "gui", "visualization", "development-tools::procedural-macro-helpers"]
 

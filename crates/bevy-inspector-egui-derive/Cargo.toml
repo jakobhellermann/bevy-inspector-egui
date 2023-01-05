@@ -6,6 +6,7 @@ repository = "https://github.com/jakobhellermann/bevy-inspector-egui/"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 description = "Implementation detail of the `bevy-inspector-egui` crate"
+documentation = "https://docs.rs/bevy-inspector-egui-derive"
 
 [lib]
 proc-macro = true
