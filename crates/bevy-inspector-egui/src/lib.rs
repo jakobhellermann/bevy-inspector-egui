@@ -31,11 +31,9 @@
 //!     App::new()
 //!         .add_plugins(DefaultPlugins)
 //!         .add_plugin(WorldInspectorPlugin)
-//!         .add_startup_system(setup)
 //!         .run();
 //! }
 //!
-//! # fn setup() {}
 //! ```
 //! ## ResourceInspectorPlugin
 //! Display a single resource in a window.
