@@ -109,7 +109,7 @@ Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_
 
 **Q: How do I change the names of the entities in the world inspector?**
 
-**A:** You can insert the [`Name`](https://docs.rs/bevy_core/latest/Name) component.
+**A:** You can insert the [`Name`](https://docs.rs/bevy_core/latest/bevy_core/struct.Name.html) component.
 
 **Q: What if I just want to display a single value without passing in the whole `&mut World`?**
 
