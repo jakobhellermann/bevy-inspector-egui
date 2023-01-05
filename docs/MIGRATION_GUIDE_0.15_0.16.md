@@ -5,6 +5,18 @@
 - `InspectorPlugin` got moved to `quick::ResourceInspectorPlugin`
     - it doesn't automatically insert the resource anymore
     - you need to derive `Reflect` instead of `Inspectable` and call `.register_type`
+- `InspectorQuery` doesn't exist anymore. But you can now easily write your own queries:
+```rust
+let mut query = world.query::<&Handle<StandardMaterial>>();
+let handles: Vec<Handle<_>> = query.iter(world).cloned().collect();
+for mut handle in handles {
+    bevy_inspector_egui::bevy_inspector::ui_for_value(
+        &mut handle,
+        ui,
+        world
+    );
+}
+```
 - if you used `value.ui(ui, options, context)` directly, new usage looks like this:
     - `bevy_inspector::ui_for_value(&mut value, ui, world)` if you want to be able to resolve handles inside your type
     - `reflect_inspector::ui_for_value(&mut value, ui, type_registry)` if you don't have `World` access
