@@ -404,8 +404,8 @@ impl<'w> RestrictedWorldView<'w> {
         };
         let changed = value.is_changed();
 
-        // SAFETY: value is of type component
         let (value, set_changed) =
+            // SAFETY: value is of type component
             unsafe { mut_untyped_to_reflect(value, type_registry, component) }?;
         Ok((value, changed, set_changed))
     }

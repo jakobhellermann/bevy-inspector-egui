@@ -77,6 +77,7 @@ impl<T> NumberOptions<T> {
 
     pub fn map<U>(&self, f: impl Fn(&T) -> U) -> NumberOptions<U> {
         NumberOptions {
+            #[allow(clippy::redundant_closure)] // false positive
             min: self.min.as_ref().map(|min| f(min)),
             max: self.max.as_ref().map(f),
             speed: self.speed,

@@ -87,7 +87,7 @@ impl<T> Hierarchy<'_, T> {
         };
 
         if let Some(shortcircuit_entity) = self.shortcircuit_entity.as_mut() {
-            if shortcircuit_entity(ui, entity, self.world, &mut self.extra_state) {
+            if shortcircuit_entity(ui, entity, self.world, self.extra_state) {
                 return;
             }
         }
@@ -140,7 +140,7 @@ impl<T> Hierarchy<'_, T> {
 
         if let Some(context_menu) = self.context_menu.as_mut() {
             header_response
-                .context_menu(|ui| context_menu(ui, entity, self.world, &mut self.extra_state));
+                .context_menu(|ui| context_menu(ui, entity, self.world, self.extra_state));
         }
     }
 }
