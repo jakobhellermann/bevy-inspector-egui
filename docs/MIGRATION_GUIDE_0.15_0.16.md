@@ -43,6 +43,7 @@ struct MyStruct {
 
 app.register_type::<MyStruct>();
 ```
+- if you had your own custom UI implementation for a type and registered it using the `InspectableRegistry`, you can now instead add `InspectorEguiImpl` type data to the `TypeRegistry` for your type
 
 
 If you have any feedback or are missing some features from the old release, please open an issue.
