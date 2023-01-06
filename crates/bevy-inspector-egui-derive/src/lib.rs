@@ -52,9 +52,12 @@ fn expand_struct(input: &DeriveInput, data: &DataStruct) -> syn::Result<TokenStr
         .collect::<syn::Result<Vec<_>>>()?;
 
     let type_name = &input.ident;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
     Ok(quote! {
-        impl #bevy_reflect::FromType<#type_name> for bevy_inspector_egui::InspectorOptions {
+        impl #impl_generics #bevy_reflect::FromType<#type_name #ty_generics> for bevy_inspector_egui::InspectorOptions
+        #where_clause
+        {
             fn from_type() -> Self {
                 let mut options = bevy_inspector_egui::InspectorOptions::default();
 
@@ -114,9 +117,12 @@ fn expand_enum(input: &DeriveInput, data: &DataEnum) -> syn::Result<TokenStream>
         .collect::<syn::Result<Vec<_>>>()?;
 
     let type_name = &input.ident;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
     Ok(quote! {
-        impl #bevy_reflect::FromType<#type_name> for bevy_inspector_egui::InspectorOptions {
+        impl #impl_generics #bevy_reflect::FromType<#type_name #ty_generics> for bevy_inspector_egui::InspectorOptions
+        #where_clause
+        {
             fn from_type() -> Self {
                 let mut options = bevy_inspector_egui::InspectorOptions::default();
 
