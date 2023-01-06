@@ -325,6 +325,7 @@ fn ui_for_entity_components(
         };
 
         if is_changed {
+            #[cfg(feature = "highlight_changes")]
             set_highlight_style(ui);
         }
 
@@ -346,6 +347,7 @@ fn ui_for_entity_components(
     }
 }
 
+#[cfg(feature = "highlight_changes")]
 fn set_highlight_style(ui: &mut egui::Ui) {
     let highlight_color = egui::Color32::GOLD;
 

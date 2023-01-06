@@ -11,7 +11,8 @@ keywords = ["bevy", "inspector", "egui", "editor", "reflect"]
 categories = ["game-development", "gui", "visualization", "development-tools::procedural-macro-helpers"]
 
 [features]
-default = ["bevy_pbr"]
+default = ["bevy_pbr", "highlight_changes"]
+highlight_changes = []
 
 [dependencies]
 bevy-inspector-egui-derive = { version = "0.16.0-pre.0", path = "../bevy-inspector-egui-derive" }

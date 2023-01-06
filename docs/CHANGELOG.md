@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.16.2
+- add default `highlight-changes` feature for globally toggling the yellow highlight on changes
+  - if you would like more fine-grained control, open an issue
+
 ## Version 0.16.1
 - add `FilterQueryInspectorPlugin`
 - fix `#[derive(InspectorOptions)]` derive on generic type
