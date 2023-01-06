@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.16.1
+- add `FilterQueryInspectorPlugin`
+- fix `#[derive(InspectorOptions)]` derive on generic type
+- wrap entities in collapsing header in `ui_for_world_entities`
+- add utility function `bevy_inspector::ui_for_world_entities_filtered<F>`
+
 ## Version 0.16
 - **There's a migration guide at [MIGRATION_GUIDE_0.15_0.16.md](./MIGRATION_GUIDE_0.15_0.16.md)**
 - full rewrite of the crate

@@ -5,7 +5,8 @@
 - `InspectorPlugin` got moved to `quick::ResourceInspectorPlugin`
     - it doesn't automatically insert the resource anymore
     - you need to derive `Reflect` instead of `Inspectable` and call `.register_type`
-- `InspectorQuery` doesn't exist anymore. But you can now easily write your own queries:
+- `InspectorQuery` doesn't exist anymore. To show all entities matching a query, use `.add_plugin(FilterQueryInspectorPlugin::<With<Transform>>::default())`,
+for anything else you have to write your own UI logic:
 ```rust
 let mut query = world.query::<&Handle<StandardMaterial>>();
 let handles: Vec<Handle<_>> = query.iter(world).cloned().collect();
