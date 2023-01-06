@@ -53,6 +53,10 @@ name = "resource_inspector"
 path = "examples/quick/resource_inspector.rs"
 
 [[example]]
+name = "filter_query_inspector"
+path = "examples/quick/filter_query_inspector.rs"
+
+[[example]]
 name = "asset_inspector"
 path = "examples/quick/asset_inspector.rs"
 

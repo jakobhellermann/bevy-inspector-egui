@@ -40,6 +40,7 @@ use std::any::TypeId;
 
 use bevy_app::prelude::AppTypeRegistry;
 use bevy_asset::{Asset, Assets, ReflectAsset};
+use bevy_ecs::query::ReadOnlyWorldQuery;
 use bevy_ecs::schedule::StateData;
 use bevy_ecs::{component::ComponentId, prelude::*, world::EntityRef};
 use bevy_hierarchy::{Children, Parent};
@@ -192,6 +193,15 @@ pub fn ui_for_state<T: StateData + Reflect>(world: &mut World, ui: &mut egui::Ui
 
 /// Display all entities and their components
 pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
+    ui_for_world_entities_filtered::<Without<Parent>>(world, ui, true);
+}
+
+/// Display all entities matching the given filter
+pub fn ui_for_world_entities_filtered<F: ReadOnlyWorldQuery>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    with_children: bool,
+) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
@@ -201,7 +211,14 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
 
     let id = egui::Id::new("world ui");
     for entity in entities {
-        ui_for_entity_with_children_inner(world, entity, ui, id.with(entity), &type_registry);
+        let entity_name = guess_entity_name(world, &type_registry, entity);
+        ui.label(&entity_name);
+
+        if with_children {
+            ui_for_entity_with_children_inner(world, entity, ui, id.with(entity), &type_registry);
+        } else {
+            ui_for_entity_components(world, entity, ui, egui::Id::new(entity), &type_registry)
+        }
     }
 }
 
@@ -209,6 +226,9 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
 pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
+
+    let entity_name = guess_entity_name(world, &type_registry, entity);
+    ui.label(entity_name);
 
     ui_for_entity_with_children_inner(world, entity, ui, egui::Id::new(entity), &type_registry)
 }
@@ -220,9 +240,6 @@ fn ui_for_entity_with_children_inner(
     id: egui::Id,
     type_registry: &TypeRegistry,
 ) {
-    let entity_name = guess_entity_name(world, type_registry, entity);
-    ui.label(&entity_name);
-
     ui_for_entity_components(world, entity, ui, id, type_registry);
 
     let children = world
@@ -234,9 +251,12 @@ fn ui_for_entity_with_children_inner(
             for &child in children.iter() {
                 let id = id.with(child);
 
-                egui::CollapsingHeader::new(&entity_name)
+                let child_entity_name = guess_entity_name(world, type_registry, child);
+                egui::CollapsingHeader::new(&child_entity_name)
                     .id_source(id)
                     .show(ui, |ui| {
+                        ui.label(&child_entity_name);
+
                         ui_for_entity_with_children_inner(world, child, ui, id, type_registry);
                     });
             }
@@ -248,6 +268,9 @@ fn ui_for_entity_with_children_inner(
 pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
+
+    let entity_name = guess_entity_name(world, &type_registry, entity);
+    ui.label(entity_name);
 
     ui_for_entity_components(world, entity, ui, egui::Id::new(entity), &type_registry)
 }

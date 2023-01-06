@@ -10,7 +10,7 @@ use std::marker::PhantomData;
 
 use bevy_app::Plugin;
 use bevy_asset::Asset;
-use bevy_ecs::{prelude::*, schedule::StateData};
+use bevy_ecs::{prelude::*, query::ReadOnlyWorldQuery, schedule::StateData};
 use bevy_egui::EguiPlugin;
 use bevy_reflect::Reflect;
 use pretty_type_name::pretty_type_name;
@@ -262,6 +262,62 @@ fn asset_inspector_ui<A: Asset + Reflect>(world: &mut World) {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 bevy_inspector::ui_for_assets::<A>(world, ui);
 
+                ui.allocate_space(ui.available_size());
+            });
+        });
+}
+
+/// Plugin displaying an egui window for all entities matching the filter `F`.
+/// ```no_run
+/// use bevy::prelude::*;
+/// use bevy_inspector_egui::quick::FilterQueryInspectorPlugin;
+///
+/// fn main() {
+///     App::new()
+///         .add_plugins(DefaultPlugins)
+///         .add_plugin(FilterQueryInspectorPlugin::<With<Transform>>::default())
+///         .run();
+/// }
+/// ```
+pub struct FilterQueryInspectorPlugin<F>(PhantomData<fn() -> F>);
+
+impl<F> Default for FilterQueryInspectorPlugin<F> {
+    fn default() -> Self {
+        Self(PhantomData)
+    }
+}
+impl<A> FilterQueryInspectorPlugin<A> {
+    pub fn new() -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl<F: 'static> Plugin for FilterQueryInspectorPlugin<F>
+where
+    F: ReadOnlyWorldQuery,
+{
+    fn build(&self, app: &mut bevy_app::App) {
+        if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
+            app.add_plugin(DefaultInspectorConfigPlugin);
+        }
+        if !app.is_plugin_added::<EguiPlugin>() {
+            app.add_plugin(EguiPlugin);
+        }
+
+        app.add_system(entity_query_ui::<F>);
+    }
+}
+
+fn entity_query_ui<F: ReadOnlyWorldQuery>(world: &mut World) {
+    let egui_context = world
+        .resource_mut::<bevy_egui::EguiContext>()
+        .ctx_mut()
+        .clone();
+    egui::Window::new(pretty_type_name::<F>())
+        .default_size(DEFAULT_SIZE)
+        .show(&egui_context, |ui| {
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                bevy_inspector::ui_for_world_entities_filtered::<F>(world, ui, false);
                 ui.allocate_space(ui.available_size());
             });
         });
