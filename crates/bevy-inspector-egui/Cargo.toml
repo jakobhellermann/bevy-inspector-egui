@@ -20,6 +20,7 @@ bevy_asset = { version = "0.9" }
 bevy_core = { version = "0.9" }
 bevy_ecs = { version = "0.9" }
 bevy_hierarchy = { version = "0.9" }
+bevy_log = { version = "0.9" }
 bevy_math = { version = "0.9" }
 bevy_reflect = { version = "0.9" }
 bevy_utils = { version = "0.9" }

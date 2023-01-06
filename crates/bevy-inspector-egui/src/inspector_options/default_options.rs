@@ -11,7 +11,10 @@ fn insert_options_struct<T: 'static>(
     type_registry: &mut TypeRegistry,
     fields: &[(&'static str, &dyn TypeData)],
 ) {
-    let registration = type_registry.get_mut(std::any::TypeId::of::<T>()).unwrap();
+    let Some(registration) = type_registry.get_mut(std::any::TypeId::of::<T>()) else {
+        bevy_log::warn!("Attempting to set default inspector options for {}, but it wasn't registered in the type registry.", std::any::type_name::<T>());
+        return;
+    };
     if registration.data::<ReflectInspectorOptions>().is_none() {
         let mut options = InspectorOptions::new();
         for (field, data) in fields {
@@ -30,7 +33,10 @@ fn insert_options_enum<T: 'static>(
     type_registry: &mut TypeRegistry,
     fields: &[(&'static str, &'static str, &dyn TypeData)],
 ) {
-    let registration = type_registry.get_mut(std::any::TypeId::of::<T>()).unwrap();
+    let Some(registration) = type_registry.get_mut(std::any::TypeId::of::<T>()) else {
+        bevy_log::warn!("Attempting to set default inspector options for {}, but it wasn't registered in the type registry.", std::any::type_name::<T>());
+        return;
+    };
     if registration.data::<ReflectInspectorOptions>().is_none() {
         let mut options = InspectorOptions::new();
         for (variant, field, data) in fields {
