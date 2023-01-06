@@ -211,14 +211,19 @@ pub fn ui_for_world_entities_filtered<F: ReadOnlyWorldQuery>(
 
     let id = egui::Id::new("world ui");
     for entity in entities {
-        let entity_name = guess_entity_name(world, &type_registry, entity);
-        ui.label(&entity_name);
+        let id = id.with(entity);
 
-        if with_children {
-            ui_for_entity_with_children_inner(world, entity, ui, id.with(entity), &type_registry);
-        } else {
-            ui_for_entity_components(world, entity, ui, egui::Id::new(entity), &type_registry)
-        }
+        let entity_name = guess_entity_name(world, &type_registry, entity);
+
+        egui::CollapsingHeader::new(&entity_name)
+            .id_source(id)
+            .show(ui, |ui| {
+                if with_children {
+                    ui_for_entity_with_children_inner(world, entity, ui, id, &type_registry);
+                } else {
+                    ui_for_entity_components(world, entity, ui, id, &type_registry)
+                }
+            });
     }
 }
 
