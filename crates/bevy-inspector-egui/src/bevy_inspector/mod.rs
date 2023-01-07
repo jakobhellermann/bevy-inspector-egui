@@ -205,7 +205,7 @@ pub fn ui_for_world_entities_filtered<F: ReadOnlyWorldQuery>(
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
-    let mut root_entities = world.query_filtered::<Entity, Without<Parent>>();
+    let mut root_entities = world.query_filtered::<Entity, F>();
     let mut entities = root_entities.iter(world).collect::<Vec<_>>();
     entities.sort();
 

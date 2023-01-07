@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.16.3
+- fix `ui_for_world_entities_filtered` not actually using filter
+
 ## Version 0.16.2
 - add default `highlight-changes` feature for globally toggling the yellow highlight on changes
   - if you would like more fine-grained control, open an issue
