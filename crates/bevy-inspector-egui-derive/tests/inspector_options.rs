@@ -1,6 +1,7 @@
+use bevy_ecs::entity::Entity;
 use bevy_inspector_egui::{
     inspector_options::{
-        std_options::{NumberOptions, QuatDisplay, QuatOptions},
+        std_options::{EntityDisplay, EntityOptions, NumberOptions, QuatDisplay, QuatOptions},
         Target,
     },
     InspectorOptions,
@@ -17,6 +18,9 @@ fn expr_attribute() {
 
         #[inspector(min = 0.0)]
         option: Option<f32>,
+
+        #[inspector(display = EntityDisplay::Id)]
+        entity_list: Vec<Entity>,
     }
 
     let options = <InspectorOptions as FromType<Test>>::from_type();
@@ -42,4 +46,11 @@ fn expr_attribute() {
         .downcast_ref::<NumberOptions<f32>>()
         .unwrap();
     assert_eq!(option_inner_options.min, Some(0.0));
+
+    let entity_options = options
+        .get(Target::Field(1))
+        .unwrap()
+        .downcast_ref::<EntityOptions>()
+        .unwrap();
+    assert!(matches!(entity_options.display, EntityDisplay::Id));
 }

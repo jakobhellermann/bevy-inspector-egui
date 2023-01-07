@@ -1,3 +1,4 @@
+use bevy_ecs::entity::Entity;
 use std::collections::VecDeque;
 
 use crate::InspectorOptions;
@@ -156,6 +157,8 @@ pub enum EntityDisplay {
     #[default]
     Components,
 }
+
+impl_options!(Entity => EntityOptions);
 
 impl<T: InspectorOptionsType> InspectorOptionsType for Option<T> {
     type DeriveOptions = T::DeriveOptions;
