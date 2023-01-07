@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.16.4
+## Version 0.16.4/0.16.5
 - add `EntityOptions` with `display: EntityDisplay::Id | EntityDisplay::Components` (default to components)
 
 ## Version 0.16.3
