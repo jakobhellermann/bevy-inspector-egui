@@ -143,6 +143,20 @@ pub enum QuatDisplay {
 
 impl_options!(bevy_math::Quat => QuatOptions);
 
+#[derive(Default, Clone)]
+#[non_exhaustive]
+pub struct EntityOptions {
+    pub display: EntityDisplay,
+}
+
+#[derive(Copy, Clone, Default)]
+#[non_exhaustive]
+pub enum EntityDisplay {
+    Id,
+    #[default]
+    Components,
+}
+
 impl<T: InspectorOptionsType> InspectorOptionsType for Option<T> {
     type DeriveOptions = T::DeriveOptions;
     type Options = InspectorOptions;

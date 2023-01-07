@@ -7,6 +7,7 @@ use std::any::{Any, TypeId};
 
 use crate::{
     bevy_inspector::errors::{dead_asset_handle, no_world_in_context, show_error},
+    inspector_options::std_options::{EntityDisplay, EntityOptions},
     many_ui,
     reflect_inspector::InspectorUi,
 };
@@ -14,12 +15,45 @@ use crate::{
 pub fn entity_ui(
     value: &mut dyn Any,
     ui: &mut egui::Ui,
-    _: &dyn Any,
-    _: egui::Id,
-    _: InspectorUi<'_, '_>,
+    options: &dyn Any,
+    id: egui::Id,
+    env: InspectorUi<'_, '_>,
 ) -> bool {
-    let entity = value.downcast_ref::<Entity>().unwrap();
-    ui.label(format!("{entity:?}"));
+    let entity = *value.downcast_ref::<Entity>().unwrap();
+    let options = options
+        .downcast_ref::<EntityOptions>()
+        .cloned()
+        .unwrap_or_default();
+
+    match options.display {
+        EntityDisplay::Id => {
+            ui.label(format!("{entity:?}"));
+        }
+        EntityDisplay::Components => {
+            let Some(world) = &mut env.context.world else {
+                no_world_in_context(ui, "Entity");
+                return false;
+            };
+
+            let entity_name = crate::utils::guess_entity_name::guess_entity_name_restricted(
+                world,
+                env.type_registry,
+                entity,
+            );
+            egui::CollapsingHeader::new(&entity_name)
+                .id_source(id)
+                .show(ui, |ui| {
+                    crate::bevy_inspector::ui_for_entity_components(
+                        world,
+                        entity,
+                        ui,
+                        id,
+                        env.type_registry,
+                    );
+                });
+        }
+    }
+
     false
 }
 pub fn entity_ui_readonly(

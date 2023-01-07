@@ -16,12 +16,27 @@ pub mod guess_entity_name {
     use bevy_ecs::{prelude::*, world::EntityRef};
     use bevy_reflect::TypeRegistry;
 
+    use crate::restricted_world_view::RestrictedWorldView;
+
     /// Guesses an appropriate entity name like `Light (6)` or falls back to `Entity (8)`
     pub fn guess_entity_name(
         world: &World,
         type_registry: &TypeRegistry,
         entity: Entity,
     ) -> String {
+        match world.get_entity(entity) {
+            Some(entity) => guess_entity_name_inner(world, entity, type_registry),
+            None => format!("Entity {} (inexistent)", entity.index()),
+        }
+    }
+
+    pub(crate) fn guess_entity_name_restricted(
+        world: &mut RestrictedWorldView<'_>,
+        type_registry: &TypeRegistry,
+        entity: Entity,
+    ) -> String {
+        // SAFETY: no world references live after this function
+        let world = unsafe { world.get() };
         match world.get_entity(entity) {
             Some(entity) => guess_entity_name_inner(world, entity, type_registry),
             None => format!("Entity {} (inexistent)", entity.index()),

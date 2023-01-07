@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.16.4
+- add `EntityOptions` with `display: EntityDisplay::Id | EntityDisplay::Components` (default to components)
+
 ## Version 0.16.3
 - fix `ui_for_world_entities_filtered` not actually using filter
 

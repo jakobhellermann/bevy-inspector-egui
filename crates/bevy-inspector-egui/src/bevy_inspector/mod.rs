@@ -42,7 +42,7 @@ use bevy_app::prelude::AppTypeRegistry;
 use bevy_asset::{Asset, Assets, ReflectAsset};
 use bevy_ecs::query::ReadOnlyWorldQuery;
 use bevy_ecs::schedule::StateData;
-use bevy_ecs::{component::ComponentId, prelude::*, world::EntityRef};
+use bevy_ecs::{component::ComponentId, prelude::*};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::{Reflect, TypeRegistry};
 use pretty_type_name::pretty_type_name;
@@ -221,7 +221,7 @@ pub fn ui_for_world_entities_filtered<F: ReadOnlyWorldQuery>(
                 if with_children {
                     ui_for_entity_with_children_inner(world, entity, ui, id, &type_registry);
                 } else {
-                    ui_for_entity_components(world, entity, ui, id, &type_registry)
+                    ui_for_entity_components(&mut world.into(), entity, ui, id, &type_registry)
                 }
             });
     }
@@ -245,7 +245,7 @@ fn ui_for_entity_with_children_inner(
     id: egui::Id,
     type_registry: &TypeRegistry,
 ) {
-    ui_for_entity_components(world, entity, ui, id, type_registry);
+    ui_for_entity_components(&mut world.into(), entity, ui, id, type_registry);
 
     let children = world
         .get::<Children>(entity)
@@ -277,25 +277,27 @@ pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
     let entity_name = guess_entity_name(world, &type_registry, entity);
     ui.label(entity_name);
 
-    ui_for_entity_components(world, entity, ui, egui::Id::new(entity), &type_registry)
+    ui_for_entity_components(
+        &mut world.into(),
+        entity,
+        ui,
+        egui::Id::new(entity),
+        &type_registry,
+    )
 }
 
 /// Display the components of the given entity
-fn ui_for_entity_components(
-    world: &mut World,
+pub(crate) fn ui_for_entity_components(
+    mut world: &mut RestrictedWorldView<'_>,
     entity: Entity,
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
 ) {
-    let entity_ref = match world.get_entity(entity) {
-        Some(entity) => entity,
-        None => {
-            errors::entity_does_not_exist(ui, entity);
-            return;
-        }
+    let Some(components) = components_of_entity(&mut world, entity) else {
+        errors::entity_does_not_exist(ui, entity);
+        return;
     };
-    let components = components_of_entity(entity_ref, world);
 
     for (name, component_id, component_type_id, size) in components {
         let id = id.with(component_id);
@@ -308,7 +310,6 @@ fn ui_for_entity_components(
             };
 
         // create a context with access to the world except for the currently viewed component
-        let mut world = RestrictedWorldView::new(world);
         let (mut component_view, world) = world.split_off_component((entity, component_type_id));
         let mut cx = Context { world: Some(world) };
 
@@ -372,9 +373,14 @@ fn set_highlight_style(ui: &mut egui::Ui) {
 }
 
 fn components_of_entity(
-    entity_ref: EntityRef,
-    world: &World,
-) -> Vec<(String, ComponentId, Option<TypeId>, usize)> {
+    world: &mut RestrictedWorldView<'_>,
+    entity: Entity,
+) -> Option<Vec<(String, ComponentId, Option<TypeId>, usize)>> {
+    // SAFETY: no references into the world are live after this function
+    let world = unsafe { world.get() };
+
+    let entity_ref = world.get_entity(entity)?;
+
     let archetype = entity_ref.archetype();
     let mut components: Vec<_> = archetype
         .components()
@@ -386,7 +392,7 @@ fn components_of_entity(
         })
         .collect();
     components.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
-    components
+    Some(components)
 }
 
 /// Display the given entity with all its components and children
@@ -400,11 +406,9 @@ pub fn ui_for_entities_shared_components(
 
     let Some(&first) = entities.first() else { return };
 
-    let Some(entity_ref) = world.get_entity(first) else {
+    let Some(mut components) = components_of_entity(&mut world.into(), first) else {
         return errors::entity_does_not_exist(ui, first);
     };
-
-    let mut components = components_of_entity(entity_ref, world);
 
     for &entity in entities.iter().skip(1) {
         components.retain(|(_, id, _, _)| {
