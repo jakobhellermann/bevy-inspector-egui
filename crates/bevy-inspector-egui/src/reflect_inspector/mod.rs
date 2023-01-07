@@ -661,9 +661,10 @@ impl InspectorUi<'_, '_> {
 
             ui.vertical_centered_justified(|ui| {
                 if ui.button("+").clicked() {
-                    let default = self
-                        .get_default_value_for(info.item_type_id())
-                        .or_else(|| list.get(len - 1).map(Reflect::clone_value));
+                    let default = self.get_default_value_for(info.item_type_id()).or_else(|| {
+                        let last = len.checked_sub(1)?;
+                        Some(Reflect::clone_value(list.get(last)?))
+                    });
 
                     if let Some(new_value) = default {
                         list.push(new_value);
