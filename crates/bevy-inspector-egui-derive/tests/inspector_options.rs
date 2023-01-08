@@ -48,7 +48,7 @@ fn expr_attribute() {
     assert_eq!(option_inner_options.min, Some(0.0));
 
     let entity_options = options
-        .get(Target::Field(1))
+        .get(Target::Field(2))
         .unwrap()
         .downcast_ref::<EntityOptions>()
         .unwrap();
