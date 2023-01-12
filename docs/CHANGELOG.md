@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.16.6
+- fix bug where the world inspector would only show components until it finds an unregistered one
+
 ## Version 0.16.4/0.16.5
 - add `EntityOptions` with `display: EntityDisplay::Id | EntityDisplay::Components` (default to components)
 
