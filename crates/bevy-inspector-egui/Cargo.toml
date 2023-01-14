@@ -51,6 +51,10 @@ name = "inspector_options"
 path = "examples/basic/inspector_options.rs"
 
 [[example]]
+name = "resource_inspector_manual"
+path = "examples/basic/resource_inspector_manual.rs"
+
+[[example]]
 name = "resource_inspector"
 path = "examples/quick/resource_inspector.rs"
 
