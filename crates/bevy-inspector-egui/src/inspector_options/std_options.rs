@@ -144,10 +144,20 @@ pub enum QuatDisplay {
 
 impl_options!(bevy_math::Quat => QuatOptions);
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 #[non_exhaustive]
 pub struct EntityOptions {
     pub display: EntityDisplay,
+    pub despawnable: bool,
+}
+
+impl Default for EntityOptions {
+    fn default() -> Self {
+        Self {
+            display: EntityDisplay::default(),
+            despawnable: true,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Default)]

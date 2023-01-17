@@ -7,6 +7,7 @@ use std::any::{Any, TypeId};
 
 use crate::{
     bevy_inspector::errors::{dead_asset_handle, no_world_in_context, show_error},
+    egui_utils,
     inspector_options::std_options::{EntityDisplay, EntityOptions},
     many_ui,
     reflect_inspector::{Context, InspectorUi},
@@ -52,6 +53,13 @@ pub fn entity_ui(
                         id,
                         env.type_registry,
                     );
+                    if options.despawnable && world.contains_entity(entity) {
+                        if let Some(queue) = queue {
+                            if egui_utils::label_button(ui, "✖ Despawn", egui::Color32::RED) {
+                                queue.push(bevy_ecs::system::Despawn { entity });
+                            }
+                        }
+                    }
                 });
         }
     }

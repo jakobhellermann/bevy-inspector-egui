@@ -300,6 +300,12 @@ impl<'w> RestrictedWorldView<'w> {
 /// Some safe methods for getting values out of the [`RestrictedWorldView`].
 /// Also has some methods for getting values in their [`Reflect`] form.
 impl<'w> RestrictedWorldView<'w> {
+    pub fn contains_entity(&self, entity: Entity) -> bool {
+        // SAFETY: no access, just metadata
+        let world = unsafe { self.get() };
+        world.entities().contains(entity)
+    }
+
     /// Gets a mutable reference to the resource of the given type
     pub fn get_resource_mut<R: Resource>(&mut self) -> Result<Mut<'_, R>, Error> {
         // SAFETY: &mut self

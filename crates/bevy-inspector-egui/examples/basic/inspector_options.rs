@@ -45,6 +45,7 @@ enum Shape {
 struct UiData {
     config: Config,
     shape: Shape,
+    entity: Option<Entity>,
 }
 
 fn main() {
@@ -57,8 +58,14 @@ fn main() {
         .register_type::<Config>()
         .register_type::<Shape>()
         .register_type::<UiData>()
+        .add_startup_system(setup)
         .add_system(ui_example)
         .run();
+}
+
+fn setup(mut commands: Commands, mut ui_data: ResMut<UiData>) {
+    let entity = commands.spawn(PbrBundle::default()).id();
+    ui_data.entity = Some(entity);
 }
 
 fn ui_example(world: &mut World) {

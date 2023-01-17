@@ -14,3 +14,8 @@ pub fn layout_job(text: &[(FontId, &str)]) -> egui::epaint::text::LayoutJob {
     }
     job
 }
+
+pub fn label_button(ui: &mut egui::Ui, text: &str, text_color: egui::Color32) -> bool {
+    ui.add(egui::Button::new(egui::RichText::new(text).color(text_color)).frame(false))
+        .clicked()
+}
