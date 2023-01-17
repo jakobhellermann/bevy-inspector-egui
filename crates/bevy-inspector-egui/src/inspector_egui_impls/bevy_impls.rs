@@ -1,5 +1,5 @@
 use bevy_asset::{AssetServer, Assets, Handle, HandleId};
-use bevy_ecs::entity::Entity;
+use bevy_ecs::{entity::Entity, system::CommandQueue};
 use bevy_render::color::Color;
 use bevy_render::mesh::Mesh;
 use egui::{ecolor::Hsva, Color32};
@@ -9,7 +9,7 @@ use crate::{
     bevy_inspector::errors::{dead_asset_handle, no_world_in_context, show_error},
     inspector_options::std_options::{EntityDisplay, EntityOptions},
     many_ui,
-    reflect_inspector::InspectorUi,
+    reflect_inspector::{Context, InspectorUi},
 };
 
 pub fn entity_ui(
@@ -17,7 +17,7 @@ pub fn entity_ui(
     ui: &mut egui::Ui,
     options: &dyn Any,
     id: egui::Id,
-    env: InspectorUi<'_, '_>,
+    mut env: InspectorUi<'_, '_>,
 ) -> bool {
     let entity = *value.downcast_ref::<Entity>().unwrap();
     let options = options
@@ -30,7 +30,7 @@ pub fn entity_ui(
             ui.label(format!("{entity:?}"));
         }
         EntityDisplay::Components => {
-            let Some(world) = &mut env.context.world else {
+            let Context { world: Some(world), queue } = &mut env.context else {
                 no_world_in_context(ui, "Entity");
                 return false;
             };
@@ -43,8 +43,10 @@ pub fn entity_ui(
             egui::CollapsingHeader::new(&entity_name)
                 .id_source(id)
                 .show(ui, |ui| {
+                    let _queue = CommandQueue::default();
                     crate::bevy_inspector::ui_for_entity_components(
                         world,
+                        queue.as_deref_mut(),
                         entity,
                         ui,
                         id,

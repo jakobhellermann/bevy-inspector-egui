@@ -57,6 +57,7 @@
 use crate::inspector_egui_impls::{iter_all_eq, InspectorEguiImpl};
 use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};
 use crate::restricted_world_view::RestrictedWorldView;
+use bevy_ecs::system::CommandQueue;
 use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List, ListInfo, Map, Reflect,
@@ -96,6 +97,7 @@ pub fn ui_for_value_readonly(value: &dyn Reflect, ui: &mut egui::Ui, type_regist
 #[derive(Default)]
 pub struct Context<'a> {
     pub world: Option<RestrictedWorldView<'a>>,
+    pub queue: Option<&'a mut CommandQueue>,
 }
 
 /// Function which will be executed for every field recursively, which can be used to skip regular traversal.

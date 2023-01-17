@@ -42,6 +42,7 @@ use bevy_app::prelude::AppTypeRegistry;
 use bevy_asset::{Asset, Assets, ReflectAsset};
 use bevy_ecs::query::ReadOnlyWorldQuery;
 use bevy_ecs::schedule::StateData;
+use bevy_ecs::system::CommandQueue;
 use bevy_ecs::{component::ComponentId, prelude::*};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::{Reflect, TypeRegistry};
@@ -66,11 +67,15 @@ pub fn ui_for_value(value: &mut dyn Reflect, ui: &mut egui::Ui, world: &mut Worl
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
+    let mut queue = CommandQueue::default();
     let mut cx = Context {
         world: Some(RestrictedWorldView::new(world)),
+        queue: Some(&mut queue),
     };
     let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
-    env.ui_for_reflect(value, ui)
+    let changed = env.ui_for_reflect(value, ui);
+    queue.apply(world);
+    changed
 }
 
 /// Display `Entities`, `Resources` and `Assets` using their respective functions inside headers
@@ -112,16 +117,22 @@ pub fn ui_for_resource<R: Resource + Reflect>(world: &mut World, ui: &mut egui::
     let type_registry = type_registry.read();
 
     // create a context with access to the world except for the `R` resource
-    let Some((mut resource, world)) = RestrictedWorldView::new(world).split_off_resource_typed::<R>() else {
+    let Some((mut resource, world_view)) = RestrictedWorldView::new(world).split_off_resource_typed::<R>() else {
         errors::resource_does_not_exist(ui, &pretty_type_name::<R>());
         return;
     };
-    let mut cx = Context { world: Some(world) };
+    let mut queue = CommandQueue::default();
+    let mut cx = Context {
+        world: Some(world_view),
+        queue: Some(&mut queue),
+    };
     let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
 
     if env.ui_for_reflect(resource.bypass_change_detection(), ui) {
         resource.set_changed();
     }
+
+    queue.apply(world);
 }
 
 /// Display all reflectable assets
@@ -148,11 +159,15 @@ pub fn ui_for_assets<A: Asset + Reflect>(world: &mut World, ui: &mut egui::Ui) {
     let type_registry = type_registry.read();
 
     // create a context with access to the world except for the `R` resource
-    let Some((mut assets, world)) = RestrictedWorldView::new(world).split_off_resource_typed::<Assets<A>>() else {
+    let Some((mut assets, world_view)) = RestrictedWorldView::new(world).split_off_resource_typed::<Assets<A>>() else {
         errors::resource_does_not_exist(ui, &pretty_type_name::<Assets<A>>());
         return;
     };
-    let mut cx = Context { world: Some(world) };
+    let mut queue = CommandQueue::default();
+    let mut cx = Context {
+        world: Some(world_view),
+        queue: Some(&mut queue),
+    };
 
     let mut assets: Vec<_> = assets.iter_mut().collect();
     assets.sort_by(|(a, _), (b, _)| a.cmp(b));
@@ -166,6 +181,8 @@ pub fn ui_for_assets<A: Asset + Reflect>(world: &mut World, ui: &mut egui::Ui) {
                 env.ui_for_reflect_with_options(asset, ui, id, &());
             });
     }
+
+    queue.apply(world);
 }
 
 /// Display state `T` and change state on edit
@@ -174,11 +191,15 @@ pub fn ui_for_state<T: StateData + Reflect>(world: &mut World, ui: &mut egui::Ui
     let type_registry = type_registry.read();
 
     // create a context with access to the world except for the `State<T>` resource
-    let Some((mut state, world)) = RestrictedWorldView::new(world).split_off_resource_typed::<State<T>>() else {
+    let Some((mut state, world_view)) = RestrictedWorldView::new(world).split_off_resource_typed::<State<T>>() else {
         errors::state_does_not_exist(ui, &pretty_type_name::<T>());
         return;
     };
-    let mut cx = Context { world: Some(world) };
+    let mut queue = CommandQueue::default();
+    let mut cx = Context {
+        world: Some(world_view),
+        queue: Some(&mut queue),
+    };
     let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
 
     let mut current = state.current().clone();
@@ -189,6 +210,7 @@ pub fn ui_for_state<T: StateData + Reflect>(world: &mut World, ui: &mut egui::Ui
             ui.label(format!("{e:?}"));
         }
     }
+    queue.apply(world);
 }
 
 /// Display all entities and their components
@@ -221,7 +243,16 @@ pub fn ui_for_world_entities_filtered<F: ReadOnlyWorldQuery>(
                 if with_children {
                     ui_for_entity_with_children_inner(world, entity, ui, id, &type_registry);
                 } else {
-                    ui_for_entity_components(&mut world.into(), entity, ui, id, &type_registry)
+                    let mut queue = CommandQueue::default();
+                    ui_for_entity_components(
+                        &mut world.into(),
+                        Some(&mut queue),
+                        entity,
+                        ui,
+                        id,
+                        &type_registry,
+                    );
+                    queue.apply(world);
                 }
             });
     }
@@ -245,7 +276,15 @@ fn ui_for_entity_with_children_inner(
     id: egui::Id,
     type_registry: &TypeRegistry,
 ) {
-    ui_for_entity_components(&mut world.into(), entity, ui, id, type_registry);
+    let mut queue = CommandQueue::default();
+    ui_for_entity_components(
+        &mut world.into(),
+        Some(&mut queue),
+        entity,
+        ui,
+        id,
+        type_registry,
+    );
 
     let children = world
         .get::<Children>(entity)
@@ -267,6 +306,8 @@ fn ui_for_entity_with_children_inner(
             }
         }
     }
+
+    queue.apply(world);
 }
 
 /// Display the components of the given entity
@@ -277,24 +318,28 @@ pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
     let entity_name = guess_entity_name(world, &type_registry, entity);
     ui.label(entity_name);
 
+    let mut queue = CommandQueue::default();
     ui_for_entity_components(
         &mut world.into(),
+        Some(&mut queue),
         entity,
         ui,
         egui::Id::new(entity),
         &type_registry,
-    )
+    );
+    queue.apply(world);
 }
 
 /// Display the components of the given entity
 pub(crate) fn ui_for_entity_components(
-    mut world: &mut RestrictedWorldView<'_>,
+    world: &mut RestrictedWorldView<'_>,
+    mut queue: Option<&mut CommandQueue>,
     entity: Entity,
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
 ) {
-    let Some(components) = components_of_entity(&mut world, entity) else {
+    let Some(components) = components_of_entity(world, entity) else {
         errors::entity_does_not_exist(ui, entity);
         return;
     };
@@ -305,13 +350,16 @@ pub(crate) fn ui_for_entity_components(
         let header = egui::CollapsingHeader::new(&name).id_source(id);
 
         let Some(component_type_id) = component_type_id else {
-                header.show(ui, |ui| errors::no_type_id(ui, &name));
-                continue;
-            };
+            header.show(ui, |ui| errors::no_type_id(ui, &name));
+            continue;
+        };
 
         // create a context with access to the world except for the currently viewed component
         let (mut component_view, world) = world.split_off_component((entity, component_type_id));
-        let mut cx = Context { world: Some(world) };
+        let mut cx = Context {
+            world: Some(world),
+            queue: queue.as_deref_mut(),
+        };
 
         let (value, is_changed, set_changed) = match component_view.get_entity_component_reflect(
             entity,
@@ -419,8 +467,10 @@ pub fn ui_for_entities_shared_components(
     }
 
     let (resources_view, components_view) = RestrictedWorldView::resources_components(world);
+    let mut queue = CommandQueue::default();
     let mut cx = Context {
         world: Some(resources_view),
+        queue: Some(&mut queue),
     };
     let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
 
@@ -479,13 +529,15 @@ pub fn ui_for_entities_shared_components(
                 }
             });
     }
+
+    queue.apply(world);
 }
 
 pub mod by_type_id {
     use std::any::TypeId;
 
     use bevy_asset::{HandleId, HandleUntyped, ReflectAsset, ReflectHandle};
-    use bevy_ecs::prelude::*;
+    use bevy_ecs::{prelude::*, system::CommandQueue};
     use bevy_reflect::TypeRegistry;
 
     use crate::{
@@ -503,22 +555,32 @@ pub mod by_type_id {
         name_of_type: &str,
         type_registry: &TypeRegistry,
     ) {
-        // create a context with access to the world except for the current resource
-        let mut world = RestrictedWorldView::new(world);
-        let (mut resource_view, world) = world.split_off_resource(resource_type_id);
-        let mut cx = Context { world: Some(world) };
-        let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+        let mut queue = CommandQueue::default();
 
-        let (resource, set_changed) =
-            match resource_view.get_resource_reflect_mut_by_id(resource_type_id, type_registry) {
+        {
+            // create a context with access to the world except for the current resource
+            let mut world_view = RestrictedWorldView::new(world);
+            let (mut resource_view, world_view) = world_view.split_off_resource(resource_type_id);
+            let mut cx = Context {
+                world: Some(world_view),
+                queue: Some(&mut queue),
+            };
+            let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+
+            let (resource, set_changed) = match resource_view
+                .get_resource_reflect_mut_by_id(resource_type_id, type_registry)
+            {
                 Ok(resource) => resource,
                 Err(err) => return errors::show_error(err, ui, name_of_type),
             };
 
-        let changed = env.ui_for_reflect(resource, ui);
-        if changed {
-            set_changed();
+            let changed = env.ui_for_reflect(resource, ui);
+            if changed {
+                set_changed();
+            }
         }
+
+        queue.apply(world);
     }
 
     /// Display all assets of the given asset [`TypeId`]
@@ -543,8 +605,12 @@ pub mod by_type_id {
 
         // Create a context with access to the entire world. Displaying the `Handle<T>` will short circuit into
         // displaying the T with a world view excluding Assets<T>.
-        let world = RestrictedWorldView::new(world);
-        let mut cx = Context { world: Some(world) };
+        let world_view = RestrictedWorldView::new(world);
+        let mut queue = CommandQueue::default();
+        let mut cx = Context {
+            world: Some(world_view),
+            queue: Some(&mut queue),
+        };
 
         for handle_id in ids {
             let id = egui::Id::new(handle_id);
@@ -557,6 +623,8 @@ pub mod by_type_id {
                     env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
                 });
         }
+
+        queue.apply(world)
     }
 
     /// Display a given asset by handle and asset [`TypeId`]
@@ -582,14 +650,20 @@ pub mod by_type_id {
 
         // Create a context with access to the entire world. Displaying the `Handle<T>` will short circuit into
         // displaying the T with a world view excluding Assets<T>.
-        let world = RestrictedWorldView::new(world);
-        let mut cx = Context { world: Some(world) };
+        let world_view = RestrictedWorldView::new(world);
+        let mut queue = CommandQueue::default();
+        let mut cx = Context {
+            world: Some(world_view),
+            queue: Some(&mut queue),
+        };
 
         let id = egui::Id::new(handle);
         let mut handle = reflect_handle.typed(HandleUntyped::weak(handle));
 
         let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
         env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
+
+        queue.apply(world);
     }
 }
 
@@ -643,7 +717,7 @@ pub mod short_circuit {
                 return Some(false);
             };
 
-            let Some(world) = &mut env.context.world else {
+            let Context { world: Some(world), queue } = &mut env.context else {
                 errors::no_world_in_context(ui, value.type_name());
                 return Some(false);
             };
@@ -672,7 +746,10 @@ pub mod short_circuit {
 
             let mut restricted_env = InspectorUi {
                 type_registry: env.type_registry,
-                context: &mut Context { world: Some(world) },
+                context: &mut Context {
+                    world: Some(world),
+                    queue: queue.as_deref_mut(),
+                },
                 short_circuit: env.short_circuit,
                 short_circuit_readonly: env.short_circuit_readonly,
                 short_circuit_many: env.short_circuit_many,
@@ -710,7 +787,7 @@ pub mod short_circuit {
                 return Some(false);
             };
 
-            let Some(world) = &mut env.context.world else {
+            let Context { world: Some(world), queue } = &mut env.context else {
                 errors::no_world_in_context(ui, type_name);
                 return Some(false);
             };
@@ -756,7 +833,10 @@ pub mod short_circuit {
 
             let mut restricted_env = InspectorUi {
                 type_registry: env.type_registry,
-                context: &mut Context { world: Some(world) },
+                context: &mut Context {
+                    world: Some(world),
+                    queue: queue.as_deref_mut(),
+                },
                 short_circuit: env.short_circuit,
                 short_circuit_readonly: env.short_circuit_readonly,
                 short_circuit_many: env.short_circuit_many,
@@ -798,7 +878,7 @@ pub mod short_circuit {
                 return Some(());
             };
 
-            let Some(world) = &mut env.context.world else {
+            let Context { world: Some(world), queue } = &mut env.context else {
                 errors::no_world_in_context(ui, value.type_name());
                 return Some(());
             };
@@ -824,7 +904,10 @@ pub mod short_circuit {
 
             let mut restricted_env = InspectorUi {
                 type_registry: env.type_registry,
-                context: &mut Context { world: Some(world) },
+                context: &mut Context {
+                    world: Some(world),
+                    queue: queue.as_deref_mut(),
+                },
                 short_circuit: env.short_circuit,
                 short_circuit_readonly: env.short_circuit_readonly,
                 short_circuit_many: env.short_circuit_many,
