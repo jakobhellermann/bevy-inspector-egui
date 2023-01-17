@@ -1,6 +1,6 @@
 [package]
 name = "bevy-inspector-egui"
-version = "0.16.6"
+version = "0.17.0"
 edition = "2021"
 repository = "https://github.com/jakobhellermann/bevy-inspector-egui/"
 readme = "README.md"
@@ -15,7 +15,7 @@ default = ["bevy_pbr", "highlight_changes"]
 highlight_changes = []
 
 [dependencies]
-bevy-inspector-egui-derive = { version = "0.16.1", path = "../bevy-inspector-egui-derive" }
+bevy-inspector-egui-derive = { version = "0.17.0", path = "../bevy-inspector-egui-derive" }
 bevy_app = { version = "0.9" }
 bevy_asset = { version = "0.9" }
 bevy_core = { version = "0.9" }
@@ -41,9 +41,9 @@ smallvec = "1.10.0"
 [dev-dependencies]
 bevy = { version = "0.9", default-features = false, features = ["render", "x11", "bevy_winit", "animation", "png"] }
 egui_dock = "0.3"
-egui-gizmo = { git = "https://github.com/matthiascy/egui-gizmo", rev = "516dc8453bb6423d8cf050af172e854611a8a1d9" }
+egui-gizmo = "0.9"
 bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
-bevy_framepace = "0.9"
+bevy_framepace = "0.11"
 
 
 [[example]]

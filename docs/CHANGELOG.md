@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.17.0
+- update to `bevy_egui` 0.19
+
 ## Version 0.16.6
 - fix bug where the world inspector would only show components until it finds an unregistered one
 
