@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+- add `CommandQueue` to context
+  - this allows us to display a despawn button for entities
+- fix single struct field name not being displayed
+- return whether an entity was selected from hierarchy
+
 ## Version 0.17.0
 - update to `bevy_egui` 0.19
 
