@@ -597,6 +597,11 @@ pub(crate) fn ui_for_entity_components(
             continue;
         }
 
+        #[cfg(feature = "documentation")]
+        let type_docs = type_registry
+            .get_type_info(component_type_id)
+            .and_then(|info| info.docs());
+
         // create a context with access to the world except for the currently viewed component
         let (mut component_view, world) = world.split_off_component((entity, component_type_id));
         let mut cx = Context {
@@ -622,7 +627,7 @@ pub(crate) fn ui_for_entity_components(
             set_highlight_style(ui);
         }
 
-        header.show(ui, |ui| {
+        let _response = header.show(ui, |ui| {
             ui.reset_style();
 
             let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
@@ -637,6 +642,10 @@ pub(crate) fn ui_for_entity_components(
                 value.set_changed();
             }
         });
+        #[cfg(feature = "documentation")]
+        if let Some(type_docs) = type_docs {
+            _response.header_response.on_hover_text(type_docs);
+        };
         ui.reset_style();
     }
 }
