@@ -380,24 +380,21 @@ impl InspectorUi<'_, '_> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
-        maybe_grid(value.field_len(), ui, id, |ui, label| {
-            (0..value.field_len())
-                .map(|i| {
-                    if label {
-                        ui.label(value.name_at(i).unwrap());
-                    }
-                    let field = value.field_at_mut(i).unwrap();
-                    let changed = self.ui_for_reflect_with_options(
-                        field,
-                        ui,
-                        id.with(i),
-                        inspector_options_struct_field(options, i),
-                    );
-                    ui.end_row();
-                    changed
-                })
-                .fold(false, or)
-        })
+        let mut changed = false;
+        Grid::new(id).show(ui, |ui| {
+            for i in 0..value.field_len() {
+                ui.label(value.name_at(i).unwrap());
+                let field = value.field_at_mut(i).unwrap();
+                changed |= self.ui_for_reflect_with_options(
+                    field,
+                    ui,
+                    id.with(i),
+                    inspector_options_struct_field(options, i),
+                );
+                ui.end_row();
+            }
+        });
+        changed
     }
 
     fn ui_for_struct_readonly(
@@ -407,11 +404,9 @@ impl InspectorUi<'_, '_> {
         id: egui::Id,
         options: &dyn Any,
     ) {
-        maybe_grid_readonly(value.field_len(), ui, id, |ui, label| {
+        Grid::new(id).show(ui, |ui| {
             for i in 0..value.field_len() {
-                if label {
-                    ui.label(value.name_at(i).unwrap());
-                }
+                ui.label(value.name_at(i).unwrap());
                 let field = value.field_at(i).unwrap();
                 self.ui_for_reflect_readonly_with_options(
                     field,
@@ -421,7 +416,7 @@ impl InspectorUi<'_, '_> {
                 );
                 ui.end_row();
             }
-        })
+        });
     }
 
     fn ui_for_struct_many(
@@ -433,30 +428,26 @@ impl InspectorUi<'_, '_> {
         values: &mut [&mut dyn Reflect],
         projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
     ) -> bool {
-        maybe_grid(info.field_len(), ui, id, |ui, label| {
-            info.iter()
-                .enumerate()
-                .map(|(i, field)| {
-                    if label {
-                        ui.label(field.name());
-                    }
-                    let changed = self.ui_for_reflect_many_with_options(
-                        field.type_id(),
-                        field.type_name(),
-                        ui,
-                        id.with(i),
-                        inspector_options_struct_field(options, i),
-                        values,
-                        &|a| match projector(a).reflect_mut() {
-                            ReflectMut::Struct(strukt) => strukt.field_at_mut(i).unwrap(),
-                            _ => unreachable!(),
-                        },
-                    );
-                    ui.end_row();
-                    changed
-                })
-                .fold(false, or)
-        })
+        let mut changed = false;
+        Grid::new(id).show(ui, |ui| {
+            for (i, field) in info.iter().enumerate() {
+                ui.label(field.name());
+                changed |= self.ui_for_reflect_many_with_options(
+                    field.type_id(),
+                    field.type_name(),
+                    ui,
+                    id.with(i),
+                    inspector_options_struct_field(options, i),
+                    values,
+                    &|a| match projector(a).reflect_mut() {
+                        ReflectMut::Struct(strukt) => strukt.field_at_mut(i).unwrap(),
+                        _ => unreachable!(),
+                    },
+                );
+                ui.end_row();
+            }
+        });
+        changed
     }
 
     fn ui_for_tuple_struct(
@@ -916,12 +907,8 @@ impl InspectorUi<'_, '_> {
             let variant_index = value.variant_index();
 
             let always_show_label = matches!(value.variant_type(), VariantType::Struct);
-            changed |= maybe_grid_always_show_label(
-                value.field_len(),
-                ui,
-                id,
-                always_show_label,
-                |ui, label| {
+            changed |=
+                maybe_grid_label_if(value.field_len(), ui, id, always_show_label, |ui, label| {
                     (0..value.field_len())
                         .map(|i| {
                             if label {
@@ -944,8 +931,7 @@ impl InspectorUi<'_, '_> {
                             changed
                         })
                         .fold(false, or)
-                },
-            );
+                });
         });
 
         changed
@@ -994,12 +980,8 @@ impl InspectorUi<'_, '_> {
                 };
 
                 let always_show_label = matches!(variant, VariantInfo::Struct(_));
-                changed |= maybe_grid_always_show_label(
-                    field_len,
-                    ui,
-                    id,
-                    always_show_label,
-                    |ui, label| {
+                changed |=
+                    maybe_grid_label_if(field_len, ui, id, always_show_label, |ui, label| {
                         let handle = |(field_index, field_name, field_type_id, field_type_name)| {
                             if label {
                                 ui.label(field_name);
@@ -1063,8 +1045,7 @@ impl InspectorUi<'_, '_> {
                                 .fold(false, or),
                             VariantInfo::Unit(_) => false,
                         }
-                    },
-                );
+                    });
             });
         } else {
             ui.label("enums have different selected variants, cannot multiedit");
@@ -1135,25 +1116,33 @@ impl InspectorUi<'_, '_> {
                     .show_ui(ui, |_| {})
             });
 
-            maybe_grid_readonly(value.field_len(), ui, id, |ui, label| {
-                for i in 0..value.field_len() {
-                    if label {
-                        if let Some(name) = value.name_at(i) {
-                            ui.label(name);
-                        } else {
-                            ui.label(i.to_string());
+            let always_show_label = matches!(value.variant_type(), VariantType::Struct);
+            maybe_grid_readonly_label_if(
+                value.field_len(),
+                ui,
+                id,
+                always_show_label,
+                |ui, label| {
+                    for i in 0..value.field_len() {
+                        if label {
+                            if let Some(name) = value.name_at(i) {
+                                ui.label(name);
+                            } else {
+                                ui.label(i.to_string());
+                            }
                         }
+                        let field_value =
+                            value.field_at(i).expect("invalid reflect impl: field len");
+                        self.ui_for_reflect_readonly_with_options(
+                            field_value,
+                            ui,
+                            id.with(i),
+                            inspector_options_enum_variant_field(options, value.variant_index(), i),
+                        );
+                        ui.end_row();
                     }
-                    let field_value = value.field_at(i).expect("invalid reflect impl: field len");
-                    self.ui_for_reflect_readonly_with_options(
-                        field_value,
-                        ui,
-                        id.with(i),
-                        inspector_options_enum_variant_field(options, value.variant_index(), i),
-                    );
-                    ui.end_row();
-                }
-            });
+                },
+            );
         });
     }
 
@@ -1264,9 +1253,8 @@ fn maybe_grid(
         _ => Grid::new(id).show(ui, |ui| f(ui, true)).inner,
     }
 }
-
 #[must_use]
-fn maybe_grid_always_show_label(
+fn maybe_grid_label_if(
     i: usize,
     ui: &mut egui::Ui,
     id: egui::Id,
@@ -1289,6 +1277,21 @@ fn maybe_grid_readonly(
     match i {
         0 => {}
         1 => f(ui, false),
+        _ => {
+            Grid::new(id).show(ui, |ui| f(ui, true));
+        }
+    }
+}
+fn maybe_grid_readonly_label_if(
+    i: usize,
+    ui: &mut egui::Ui,
+    id: egui::Id,
+    always_show_label: bool,
+    mut f: impl FnMut(&mut egui::Ui, bool),
+) {
+    match i {
+        0 => {}
+        1 if !always_show_label => f(ui, false),
         _ => {
             Grid::new(id).show(ui, |ui| f(ui, true));
         }
