@@ -188,7 +188,12 @@ impl egui_dock::TabViewer for TabViewer<'_> {
 
                 draw_gizmo(ui, self.world, self.selected_entities, self.gizmo_mode);
             }
-            Window::Hierarchy => hierarchy_ui(self.world, ui, self.selected_entities),
+            Window::Hierarchy => {
+                let selected = hierarchy_ui(self.world, ui, self.selected_entities);
+                if selected {
+                    *self.selection = InspectorSelection::Entities;
+                }
+            }
             Window::Resources => select_resource(ui, &type_registry, self.selection),
             Window::Assets => select_asset(ui, &type_registry, self.world, self.selection),
             Window::Inspector => match *self.selection {

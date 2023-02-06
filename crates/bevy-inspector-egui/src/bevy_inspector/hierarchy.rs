@@ -8,8 +8,10 @@ use egui::{CollapsingHeader, RichText};
 
 use crate::utils::guess_entity_name;
 
-/// Display UI of the entity hierarchy
-pub fn hierarchy_ui(world: &mut World, ui: &mut egui::Ui, selected: &mut SelectedEntities) {
+/// Display UI of the entity hierarchy.
+///
+/// Returns `true` if a new entity was selected.
+pub fn hierarchy_ui(world: &mut World, ui: &mut egui::Ui, selected: &mut SelectedEntities) -> bool {
     let type_registry = world.resource::<AppTypeRegistry>().clone();
     let type_registry = type_registry.read();
 
@@ -21,7 +23,7 @@ pub fn hierarchy_ui(world: &mut World, ui: &mut egui::Ui, selected: &mut Selecte
         shortcircuit_entity: None,
         extra_state: &mut (),
     }
-    .show::<()>(ui);
+    .show::<()>(ui)
 }
 
 pub struct Hierarchy<'a, T = ()> {
@@ -35,7 +37,7 @@ pub struct Hierarchy<'a, T = ()> {
 }
 
 impl<T> Hierarchy<'_, T> {
-    pub fn show<F: ReadOnlyWorldQuery>(&mut self, ui: &mut egui::Ui) {
+    pub fn show<F: ReadOnlyWorldQuery>(&mut self, ui: &mut egui::Ui) -> bool {
         let mut root_query = self.world.query_filtered::<Entity, (Without<Parent>, F)>();
 
         let always_open: HashSet<Entity> = self
@@ -52,9 +54,11 @@ impl<T> Hierarchy<'_, T> {
         let mut entities: Vec<_> = root_query.iter(self.world).collect();
         entities.sort();
 
+        let mut selected = false;
         for &entity in &entities {
-            self.entity_ui(ui, entity, &always_open, &entities);
+            selected |= self.entity_ui(ui, entity, &always_open, &entities);
         }
+        selected
     }
 
     fn entity_ui(
@@ -63,7 +67,8 @@ impl<T> Hierarchy<'_, T> {
         entity: Entity,
         always_open: &HashSet<Entity>,
         at_same_level: &[Entity],
-    ) {
+    ) -> bool {
+        let mut new_selection = false;
         let selected = self.selected.contains(entity);
 
         let entity_name =
@@ -88,7 +93,7 @@ impl<T> Hierarchy<'_, T> {
 
         if let Some(shortcircuit_entity) = self.shortcircuit_entity.as_mut() {
             if shortcircuit_entity(ui, entity, self.world, self.extra_state) {
-                return;
+                return false;
             }
         }
 
@@ -136,12 +141,15 @@ impl<T> Hierarchy<'_, T> {
                     .flatten()
             };
             self.selected.select(selection_mode, entity, extend_with);
+            new_selection = true;
         }
 
         if let Some(context_menu) = self.context_menu.as_mut() {
             header_response
                 .context_menu(|ui| context_menu(ui, entity, self.world, self.extra_state));
         }
+
+        new_selection
     }
 }
 
