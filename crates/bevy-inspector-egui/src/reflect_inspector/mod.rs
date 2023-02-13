@@ -59,11 +59,16 @@
 //! }
 //! ```
 
+use crate::egui_utils::show_docs;
+use crate::inspector_egui_impls::{iter_all_eq, InspectorEguiImpl};
+use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};
+use crate::restricted_world_view::RestrictedWorldView;
 use crate::{
     egui_utils::{add_button, down_button, remove_button, up_button},
     utils::pretty_type_name_str,
 };
 use bevy_ecs::world::CommandQueue;
+use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List, ListInfo, Map, Reflect,
     ReflectMut, ReflectRef, Struct, StructInfo, Tuple, TupleInfo, TupleStruct, TupleStructInfo,
@@ -477,7 +482,9 @@ impl InspectorUi<'_, '_> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
-        let TypeInfo::Struct(type_info) = value.get_type_info() else { return false };
+        let Some(TypeInfo::Struct(type_info)) = value.get_represented_type_info() else {
+            return false;
+        };
 
         let mut changed = false;
         Grid::new(id).show(ui, |ui| {
@@ -486,9 +493,7 @@ impl InspectorUi<'_, '_> {
 
                 let _response = ui.label(field_info.name());
                 #[cfg(feature = "documentation")]
-                if let Some(docs) = field_info.docs() {
-                    _response.on_hover_text(docs);
-                }
+                show_docs(_response, field_info.docs());
 
                 let field = value.field_at_mut(i).unwrap();
                 changed |= self.ui_for_reflect_with_options(
@@ -510,7 +515,9 @@ impl InspectorUi<'_, '_> {
         id: egui::Id,
         options: &dyn Any,
     ) {
-        let TypeInfo::Struct(type_info) = value.get_type_info() else { return };
+        let Some(TypeInfo::Struct(type_info)) = value.get_represented_type_info() else {
+            return;
+        };
 
         Grid::new(id).show(ui, |ui| {
             for i in 0..value.field_len() {
@@ -518,9 +525,7 @@ impl InspectorUi<'_, '_> {
 
                 let _response = ui.label(field_info.name());
                 #[cfg(feature = "documentation")]
-                if let Some(docs) = field_info.docs() {
-                    _response.on_hover_text(docs);
-                }
+                show_docs(_response, field_info.docs());
 
                 let field = value.field_at(i).unwrap();
                 self.ui_for_reflect_readonly_with_options(
@@ -548,9 +553,7 @@ impl InspectorUi<'_, '_> {
             for (i, field) in info.iter().enumerate() {
                 let _response = ui.label(field.name());
                 #[cfg(feature = "documentation")]
-                if let Some(docs) = field.docs() {
-                    _response.on_hover_text(docs);
-                }
+                show_docs(_response, field.docs());
 
                 changed |= self.ui_for_reflect_many_with_options(
                     field.type_id(),
@@ -1478,9 +1481,7 @@ impl InspectorUi<'_, '_> {
                                     ui.label(i.to_string())
                                 };
                                 #[cfg(feature = "documentation")]
-                                if let Some(docs) = field_docs {
-                                    _response.on_hover_text(docs);
-                                }
+                                show_docs(_response, field_docs);
                             }
                             let field_value = value
                                 .field_at_mut(i)

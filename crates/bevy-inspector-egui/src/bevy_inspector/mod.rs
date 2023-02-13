@@ -643,9 +643,7 @@ pub(crate) fn ui_for_entity_components(
             }
         });
         #[cfg(feature = "documentation")]
-        if let Some(type_docs) = type_docs {
-            _response.header_response.on_hover_text(type_docs);
-        };
+        crate::egui_utils::show_docs(_response.header_response, type_docs);
         ui.reset_style();
     }
 }
