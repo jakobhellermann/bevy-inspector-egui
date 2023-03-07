@@ -1,8 +1,9 @@
-use bevy::prelude::*;
-use bevy_egui::EguiPlugin;
+use bevy::{input::common_conditions::input_toggle_active, prelude::*};
+use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_inspector_egui::{
     bevy_inspector::hierarchy::SelectedEntities, DefaultInspectorConfigPlugin,
 };
+use bevy_window::PrimaryWindow;
 
 fn main() {
     App::new()
@@ -11,32 +12,18 @@ fn main() {
         .add_plugin(DefaultInspectorConfigPlugin)
         .add_startup_system(setup)
         .add_system(rotator_system)
-        .add_system(inspector_ui)
+        .add_system(inspector_ui.run_if(input_toggle_active(true, KeyCode::Escape)))
         .run();
 }
 
-fn inspector_ui(
-    world: &mut World,
-    mut selected_entities: Local<SelectedEntities>,
-    mut inactive: Local<bool>,
-) {
-    let input = world.resource::<Input<KeyCode>>();
-    if input.just_pressed(KeyCode::Escape) {
-        *inactive = !*inactive;
-    }
-
-    if *inactive {
-        return;
-    }
-
-    let egui_context = world
-        .resource_mut::<bevy_egui::EguiContext>()
-        .ctx_mut()
+fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities>) {
+    let mut egui_context = world
+        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .single(world)
         .clone();
-
     egui::SidePanel::left("hierarchy")
         .default_width(200.0)
-        .show(&egui_context, |ui| {
+        .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.heading("Hierarchy");
 
@@ -53,7 +40,7 @@ fn inspector_ui(
 
     egui::SidePanel::right("inspector")
         .default_width(250.0)
-        .show(&egui_context, |ui| {
+        .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.heading("Inspector");
 

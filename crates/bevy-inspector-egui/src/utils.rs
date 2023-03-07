@@ -1,4 +1,4 @@
-use bevy_ecs::change_detection::{DetectChanges, MutUntyped};
+use bevy_ecs::change_detection::{DetectChangesMut, MutUntyped};
 use bevy_ecs::ptr::PtrMut;
 
 // workaround for https://github.com/bevyengine/bevy/pull/6430
@@ -13,63 +13,59 @@ pub fn mut_untyped_split<'a>(mut mut_untyped: MutUntyped<'a>) -> (PtrMut<'a>, im
 
 pub mod guess_entity_name {
     use bevy_core::Name;
-    use bevy_ecs::{prelude::*, world::EntityRef};
-    use bevy_reflect::TypeRegistry;
+    use bevy_ecs::{archetype::Archetype, prelude::*, world::unsafe_world_cell::UnsafeWorldCell};
 
     use crate::restricted_world_view::RestrictedWorldView;
 
     /// Guesses an appropriate entity name like `Light (6)` or falls back to `Entity (8)`
-    pub fn guess_entity_name(
-        world: &World,
-        type_registry: &TypeRegistry,
-        entity: Entity,
-    ) -> String {
+    pub fn guess_entity_name(world: &World, entity: Entity) -> String {
         match world.get_entity(entity) {
-            Some(entity) => guess_entity_name_inner(world, entity, type_registry),
+            Some(entity_ref) => {
+                if let Some(name) = entity_ref.get::<Name>() {
+                    return name.as_str().to_string();
+                }
+
+                guess_entity_name_inner(
+                    world.as_unsafe_world_cell_readonly(),
+                    entity,
+                    entity_ref.archetype(),
+                )
+            }
             None => format!("Entity {} (inexistent)", entity.index()),
         }
     }
 
     pub(crate) fn guess_entity_name_restricted(
         world: &mut RestrictedWorldView<'_>,
-        type_registry: &TypeRegistry,
         entity: Entity,
     ) -> String {
-        // SAFETY: no world references live after this function
-        let world = unsafe { world.get() };
-        match world.get_entity(entity) {
-            Some(entity) => guess_entity_name_inner(world, entity, type_registry),
+        match world.world().get_entity(entity) {
+            Some(cell) => guess_entity_name_inner(world.world(), entity, cell.archetype()),
             None => format!("Entity {} (inexistent)", entity.index()),
         }
     }
 
     fn guess_entity_name_inner(
-        world: &World,
-        entity: EntityRef,
-        type_registry: &TypeRegistry,
+        world: UnsafeWorldCell<'_>,
+        entity: Entity,
+        archetype: &Archetype,
     ) -> String {
-        let id = entity.id().index();
-
-        if let Some(name) = entity.get::<Name>() {
-            return name.as_str().to_string();
-        }
-
         #[rustfmt::skip]
         let associations = &[
+            ("bevy_window::window::PrimaryWindow", "Primary Window"),
             ("bevy_core_pipeline::core_3d::camera_3d::Camera3d", "Camera3d"),
             ("bevy_core_pipeline::core_2d::camera_2d::Camera2d", "Camera2d"),
             ("bevy_pbr::light::PointLight", "PointLight"),
             ("bevy_pbr::light::DirectionalLight", "DirectionalLight"),
             ("bevy_text::text::Text", "Text"),
             ("bevy_ui::ui_node::Node", "Node"),
-            ("bevy_asset::handle::Handle<bevy_pbr::pbr_material::StandardMaterial>", "Pbr Mesh")
-
+            ("bevy_asset::handle::Handle<bevy_pbr::pbr_material::StandardMaterial>", "Pbr Mesh"),
+            ("bevy_window::window::Window", "Window"),
         ];
 
-        let type_names = entity.archetype().components().filter_map(|id| {
-            let type_id = world.components().get_info(id)?.type_id()?;
-            let registration = type_registry.get(type_id)?;
-            Some(registration.type_name())
+        let type_names = archetype.components().filter_map(|id| {
+            let name = world.components().get_info(id)?.name();
+            Some(name)
         });
 
         for component_type in type_names {
@@ -77,10 +73,10 @@ pub mod guess_entity_name {
                 .iter()
                 .find_map(|&(name, matches)| (component_type == name).then_some(matches))
             {
-                return format!("{name} ({id:?})");
+                return format!("{name} ({entity:?})");
             }
         }
 
-        format!("Entity ({id:?})")
+        format!("Entity ({entity:?})")
     }
 }

@@ -41,7 +41,6 @@ use std::any::TypeId;
 use bevy_app::prelude::AppTypeRegistry;
 use bevy_asset::{Asset, Assets, ReflectAsset};
 use bevy_ecs::query::ReadOnlyWorldQuery;
-use bevy_ecs::schedule::StateData;
 use bevy_ecs::system::CommandQueue;
 use bevy_ecs::{component::ComponentId, prelude::*};
 use bevy_hierarchy::{Children, Parent};
@@ -186,12 +185,16 @@ pub fn ui_for_assets<A: Asset + Reflect>(world: &mut World, ui: &mut egui::Ui) {
 }
 
 /// Display state `T` and change state on edit
-pub fn ui_for_state<T: StateData + Reflect>(world: &mut World, ui: &mut egui::Ui) {
+pub fn ui_for_state<T: States + Reflect>(world: &mut World, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
     // create a context with access to the world except for the `State<T>` resource
-    let Some((mut state, world_view)) = RestrictedWorldView::new(world).split_off_resource_typed::<State<T>>() else {
+    let Some((state, world_view)) = RestrictedWorldView::new(world).split_off_resource_typed::<State<T>>() else {
+        errors::state_does_not_exist(ui, &pretty_type_name::<T>());
+        return;
+    };
+    let Some((mut next_state, world_view)) = world_view.split_off_resource_typed::<NextState<T>>() else {
         errors::state_does_not_exist(ui, &pretty_type_name::<T>());
         return;
     };
@@ -202,13 +205,11 @@ pub fn ui_for_state<T: StateData + Reflect>(world: &mut World, ui: &mut egui::Ui
     };
     let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
 
-    let mut current = state.current().clone();
-
+    let mut current = state.0.clone();
     let changed = env.ui_for_reflect(&mut current, ui);
+
     if changed {
-        if let Err(e) = state.set(current) {
-            ui.label(format!("{e:?}"));
-        }
+        next_state.0 = Some(current);
     }
     queue.apply(world);
 }
@@ -235,7 +236,7 @@ pub fn ui_for_world_entities_filtered<F: ReadOnlyWorldQuery>(
     for entity in entities {
         let id = id.with(entity);
 
-        let entity_name = guess_entity_name(world, &type_registry, entity);
+        let entity_name = guess_entity_name(world, entity);
 
         egui::CollapsingHeader::new(&entity_name)
             .id_source(id)
@@ -263,7 +264,7 @@ pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut e
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
-    let entity_name = guess_entity_name(world, &type_registry, entity);
+    let entity_name = guess_entity_name(world, entity);
     ui.label(entity_name);
 
     ui_for_entity_with_children_inner(world, entity, ui, egui::Id::new(entity), &type_registry)
@@ -295,7 +296,7 @@ fn ui_for_entity_with_children_inner(
             for &child in children.iter() {
                 let id = id.with(child);
 
-                let child_entity_name = guess_entity_name(world, type_registry, child);
+                let child_entity_name = guess_entity_name(world, child);
                 egui::CollapsingHeader::new(&child_entity_name)
                     .id_source(id)
                     .show(ui, |ui| {
@@ -315,7 +316,7 @@ pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
-    let entity_name = guess_entity_name(world, &type_registry, entity);
+    let entity_name = guess_entity_name(world, entity);
     ui.label(entity_name);
 
     let mut queue = CommandQueue::default();
@@ -424,16 +425,13 @@ fn components_of_entity(
     world: &mut RestrictedWorldView<'_>,
     entity: Entity,
 ) -> Option<Vec<(String, ComponentId, Option<TypeId>, usize)>> {
-    // SAFETY: no references into the world are live after this function
-    let world = unsafe { world.get() };
-
-    let entity_ref = world.get_entity(entity)?;
+    let entity_ref = world.world().get_entity(entity)?;
 
     let archetype = entity_ref.archetype();
     let mut components: Vec<_> = archetype
         .components()
         .map(|component_id| {
-            let info = world.components().get_info(component_id).unwrap();
+            let info = world.world().components().get_info(component_id).unwrap();
             let name = pretty_type_name::pretty_type_name_str(info.name());
 
             (name, component_id, info.type_id(), info.layout().size())
@@ -708,7 +706,7 @@ pub mod short_circuit {
             let handle = reflect_handle
                 .downcast_handle_untyped(value.as_any())
                 .unwrap();
-            let handle_id = handle.id;
+            let handle_id = handle.id();
             let Some(reflect_asset) = env
             .type_registry
             .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
@@ -726,15 +724,12 @@ pub mod short_circuit {
                 world.split_off_resource(reflect_asset.assets_resource_type_id());
 
             let asset_value = {
-                // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
-                // The world borrow is then immediately discarded and not live while the other part of the world is continued to be used
-                let interior_mutable_world = unsafe { assets_view.get() };
                 assert!(
                     assets_view.allows_access_to_resource(reflect_asset.assets_resource_type_id())
                 );
                 let asset_value =
                 // SAFETY: the world allows mutable access to `Assets<T>`
-                unsafe { reflect_asset.get_unchecked_mut(interior_mutable_world, handle) };
+                unsafe { reflect_asset.get_unchecked_mut(world.world(), handle) };
                 match asset_value {
                     Some(value) => value,
                     None => {
@@ -803,22 +798,19 @@ pub mod short_circuit {
                 let handle = reflect_handle
                     .downcast_handle_untyped(handle.as_any())
                     .unwrap();
-                let handle_id = handle.id;
+                let handle_id = handle.id();
 
                 if used_handles.contains(&handle_id) {
                     continue;
                 };
-                used_handles.push(handle.id);
+                used_handles.push(handle_id);
 
                 let asset_value = {
-                    // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
-                    // The world borrow is then immediately discarded and not live while the other part of the world is continued to be used
-                    let interior_mutable_world = unsafe { assets_view.get() };
                     assert!(assets_view
                         .allows_access_to_resource(reflect_asset.assets_resource_type_id()));
                     let asset_value =
                         // SAFETY: the world allows mutable access to `Assets<T>` 
-                        unsafe { reflect_asset.get_unchecked_mut(interior_mutable_world, handle) };
+                        unsafe { reflect_asset.get_unchecked_mut(world.world(), handle) };
                     match asset_value {
                         Some(value) => value,
                         None => {
@@ -869,7 +861,7 @@ pub mod short_circuit {
             let handle = reflect_handle
                 .downcast_handle_untyped(value.as_any())
                 .unwrap();
-            let handle_id = handle.id;
+            let handle_id = handle.id();
             let Some(reflect_asset) = env
             .type_registry
             .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
@@ -888,7 +880,7 @@ pub mod short_circuit {
 
             let asset_value = {
                 // SAFETY: the following code only accesses a resources it has access to, `Assets<T>`
-                let interior_mutable_world = unsafe { assets_view.get() };
+                let interior_mutable_world = unsafe { assets_view.world().world() };
                 assert!(
                     assets_view.allows_access_to_resource(reflect_asset.assets_resource_type_id())
                 );

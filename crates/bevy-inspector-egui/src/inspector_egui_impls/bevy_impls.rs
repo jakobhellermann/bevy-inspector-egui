@@ -36,11 +36,8 @@ pub fn entity_ui(
                 return false;
             };
 
-            let entity_name = crate::utils::guess_entity_name::guess_entity_name_restricted(
-                world,
-                env.type_registry,
-                entity,
-            );
+            let entity_name =
+                crate::utils::guess_entity_name::guess_entity_name_restricted(world, entity);
             egui::CollapsingHeader::new(&entity_name)
                 .id_source(id)
                 .show(ui, |ui| {
@@ -310,6 +307,14 @@ fn color_ui_inner(value: &mut Color, ui: &mut egui::Ui) -> bool {
                 *saturation = hsva.s;
                 *lightness = hsva.v;
                 *alpha = hsva.a;
+                return true;
+            }
+        }
+        Color::Lcha { .. } => {
+            let [hue, saturation, lightness, alpha] = value.as_hsla_f32();
+            let mut hsva = Hsva::new(hue, saturation, lightness, alpha);
+            if ui.color_edit_button_hsva(&mut hsva).changed() {
+                *value = Color::hsla(hue, saturation, lightness, alpha).as_lcha();
                 return true;
             }
         }

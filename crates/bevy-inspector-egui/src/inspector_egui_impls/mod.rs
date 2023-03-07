@@ -207,7 +207,7 @@ where
             changed
         }
         None => {
-            let old_change = *ui.memory().data.get_temp_mut_or_default::<T>(id);
+            let old_change = ui.memory_mut(|memory| *memory.data.get_temp_mut_or_default::<T>(id));
             let mut change = old_change;
 
             let widget = egui::DragValue::new(&mut change)
@@ -219,7 +219,7 @@ where
                 f(change - old_change, false);
             }
 
-            *ui.memory().data.get_temp_mut_or_default(id) = change;
+            ui.memory_mut(|memory| *memory.data.get_temp_mut_or_default(id) = change);
             changed
         }
     }

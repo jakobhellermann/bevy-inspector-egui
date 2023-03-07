@@ -1,6 +1,9 @@
 use bevy::prelude::*;
+use bevy_egui::EguiContext;
 use bevy_inspector_egui::inspector_options::std_options::NumberDisplay;
 use bevy_inspector_egui::{prelude::*, DefaultInspectorConfigPlugin};
+use bevy_pbr::PbrBundle;
+use bevy_window::PrimaryWindow;
 
 #[derive(Reflect, Default, InspectorOptions)]
 #[reflect(InspectorOptions)]
@@ -69,12 +72,12 @@ fn setup(mut commands: Commands, mut ui_data: ResMut<UiData>) {
 }
 
 fn ui_example(world: &mut World) {
-    let egui_context = world
-        .resource_mut::<bevy_egui::EguiContext>()
-        .ctx_mut()
+    let mut egui_context = world
+        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .single(world)
         .clone();
 
-    egui::Window::new("UI").show(&egui_context, |ui| {
+    egui::Window::new("UI").show(egui_context.get_mut(), |ui| {
         egui::ScrollArea::vertical().show(ui, |ui| {
             bevy_inspector_egui::bevy_inspector::ui_for_resource::<UiData>(world, ui);
         });

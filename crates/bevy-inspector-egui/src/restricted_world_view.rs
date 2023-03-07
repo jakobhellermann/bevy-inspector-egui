@@ -1,8 +1,10 @@
 //! A view into the world which may only access certain resources and components
 
-use std::{any::TypeId, marker::PhantomData};
+use std::any::TypeId;
 
-use bevy_ecs::{change_detection::MutUntyped, prelude::*};
+use bevy_ecs::{
+    change_detection::MutUntyped, prelude::*, world::unsafe_world_cell::UnsafeWorldCell,
+};
 use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
 use smallvec::{smallvec, SmallVec};
 
@@ -43,16 +45,7 @@ type EntityComponent = (Entity, TypeId);
 /// # fn pass_somewhere_else(_: RestrictedWorldView) {}
 /// ```
 pub struct RestrictedWorldView<'w> {
-    // In an ideal world, we'd use something like `InteriorMutableWorld` https://github.com/bevyengine/bevy/issues/5956,
-    // which wraps a `&World` and can (unsafely) access resources and components through `&self`.
-    // Alternatively, we should use `&World` and use `_unchecked_mut` methods that work with interior mutability, but they don't
-    // exist for `EntityRef::get_mut_by_id` https://github.com/bevyengine/bevy/pull/5922
-    // So instead we store a `*World` that can be briefly dereferenced turned into a `&mut World` to get a mutable reference into the world to a resource or component.
-    // These live inside the world behind a `BlobVec` and `UnsafeCell`, and a `&mut *world` doesn't invalidate their references in SB, at least according to
-    // `MIRIFLAGS="-Zmiri-retag-fields -Zmiri-strict-provenance" cargo miri test`.
-    world: *mut World,
-    _marker: PhantomData<&'w mut World>,
-
+    world: UnsafeWorldCell<'w>,
     resources: Allowed<TypeId>,
     components: Allowed<EntityComponent>,
 }
@@ -141,8 +134,7 @@ impl<'w> RestrictedWorldView<'w> {
     pub fn new(world: &'w mut World) -> RestrictedWorldView<'w> {
         // INVARIANTS: `world` is `&mut` so we have access to everything
         RestrictedWorldView {
-            world,
-            _marker: PhantomData,
+            world: world.as_unsafe_world_cell(),
             resources: Allowed::everything(),
             components: Allowed::everything(),
         }
@@ -152,16 +144,16 @@ impl<'w> RestrictedWorldView<'w> {
     pub fn resources_components(
         world: &'w mut World,
     ) -> (RestrictedWorldView<'w>, RestrictedWorldView<'w>) {
+        let world = world.as_unsafe_world_cell();
+
         // INVARIANTS: `world` is `&mut` so we have access to everything
         let resources = RestrictedWorldView {
             world,
-            _marker: PhantomData,
             resources: Allowed::everything(),
             components: Allowed::nothing(),
         };
         let components = RestrictedWorldView {
             world,
-            _marker: PhantomData,
             resources: Allowed::nothing(),
             components: Allowed::everything(),
         };
@@ -169,6 +161,11 @@ impl<'w> RestrictedWorldView<'w> {
         (resources, components)
     }
 
+    pub fn world(&self) -> UnsafeWorldCell<'w> {
+        self.world
+    }
+
+    /*
     /// Get a reference to the inner [`World`].
     ///
     /// # Safety
@@ -182,7 +179,7 @@ impl<'w> RestrictedWorldView<'w> {
     // this is only used for the by_id methods that don't have unchecked variants.
     // same SAFETY as get, again absolutely *no* references to the world in the presence of other views,
     // you can only get a reference deep in the storage (like a resource) that doesn't get invalidated from a `&mut *` of the world.
-    unsafe fn get_mut(&mut self) -> &'w mut World {
+    pub(crate) unsafe fn get_mut(&mut self) -> &'w mut World {
         // SAFETY: the caller
         unsafe { &mut *self.world }
     }
@@ -192,6 +189,7 @@ impl<'w> RestrictedWorldView<'w> {
         // SAFETY: the caller
         unsafe { &mut *self.world }
     }
+    */
 
     /// Whether the resource with the given [`TypeId`] may be accessed from this world view
     pub fn allows_access_to_resource(&self, type_id: TypeId) -> bool {
@@ -212,13 +210,11 @@ impl<'w> RestrictedWorldView<'w> {
         // INVARIANTS: `self` had `resource` access, so `split` has access if we remove it from `self`
         let split = RestrictedWorldView {
             world: self.world,
-            _marker: PhantomData,
             resources: Allowed::allow_just(resource),
             components: Allowed::nothing(),
         };
         let rest = RestrictedWorldView {
             world: self.world,
-            _marker: PhantomData,
             resources: self.resources.without(resource),
             components: self.components.clone(),
         };
@@ -234,11 +230,10 @@ impl<'w> RestrictedWorldView<'w> {
         assert!(self.allows_access_to_resource(type_id));
 
         // SAFETY: `self` had `R` access, so we have unique access if we remove it from `self`
-        let resource = unsafe { self.get().get_resource_unchecked_mut::<R>()? };
+        let resource = unsafe { self.world().get_resource_mut::<R>()? };
 
         let rest = RestrictedWorldView {
             world: self.world,
-            _marker: PhantomData,
             resources: self.resources.without(type_id),
             components: self.components,
         };
@@ -256,13 +251,11 @@ impl<'w> RestrictedWorldView<'w> {
         // INVARIANTS: `self` had `component` access, so `split` has access if we remove it from `self`
         let split = RestrictedWorldView {
             world: self.world,
-            _marker: PhantomData,
             resources: Allowed::nothing(),
             components: Allowed::allow_just(component),
         };
         let rest = RestrictedWorldView {
             world: self.world,
-            _marker: PhantomData,
             resources: self.resources.clone(),
             components: self.components.without(component),
         };
@@ -282,13 +275,11 @@ impl<'w> RestrictedWorldView<'w> {
         // INVARIANTS: `self` had `component` access, so `split` has access if we remove it from `self`
         let split = RestrictedWorldView {
             world: self.world,
-            _marker: PhantomData,
             resources: Allowed::nothing(),
             components: Allowed::allow(components),
         };
         let rest = RestrictedWorldView {
             world: self.world,
-            _marker: PhantomData,
             resources: self.resources.clone(),
             components: self.components.without_many(components),
         };
@@ -301,9 +292,7 @@ impl<'w> RestrictedWorldView<'w> {
 /// Also has some methods for getting values in their [`Reflect`] form.
 impl<'w> RestrictedWorldView<'w> {
     pub fn contains_entity(&self, entity: Entity) -> bool {
-        // SAFETY: no access, just metadata
-        let world = unsafe { self.get() };
-        world.entities().contains(entity)
+        self.world().entities().contains(entity)
     }
 
     /// Gets a mutable reference to the resource of the given type
@@ -334,10 +323,10 @@ impl<'w> RestrictedWorldView<'w> {
             return Err(Error::NoAccessToResource(type_id));
         }
 
-        // SAFETY: we have access to `type_id`, get a reference into the world, and drop the `World` borrow
+        // SAFETY: we have access to `type_id`, caller ensures unique access
         let value = unsafe {
-            self.get()
-                .get_resource_unchecked_mut::<R>()
+            self.world()
+                .get_resource_mut::<R>()
                 .ok_or(Error::ResourceDoesNotExist(type_id))?
         };
 
@@ -358,17 +347,15 @@ impl<'w> RestrictedWorldView<'w> {
             return Err(Error::NoAccessToResource(type_id));
         }
 
-        // SAFETY: this only accesses the component ID and doesn't keep any references
-        let component_id = unsafe {
-            self.get()
-                .components()
-                .get_resource_id(type_id)
-                .ok_or(Error::ResourceDoesNotExist(type_id))?
-        };
+        let component_id = self
+            .world()
+            .components()
+            .get_resource_id(type_id)
+            .ok_or(Error::ResourceDoesNotExist(type_id))?;
 
         // SAFETY: we have access to `type_id` and borrow `&mut self`
         let value = unsafe {
-            self.get_mut()
+            self.world()
                 .get_resource_mut_by_id(component_id)
                 .ok_or(Error::ResourceDoesNotExist(type_id))?
         };
@@ -395,17 +382,18 @@ impl<'w> RestrictedWorldView<'w> {
         }
 
         // SAFETY: this only accesses the component ID and doesn't keep any references
-        let component_id = unsafe {
-            self.get()
-                .components()
-                .get_id(component)
-                .ok_or(Error::NoComponentId(component))?
-        };
+        let component_id = self
+            .world()
+            .components()
+            .get_id(component)
+            .ok_or(Error::NoComponentId(component))?;
 
         // SAFETY: we have access to (entity, component) and borrow `&mut self`
         let value = unsafe {
-            self.get_mut()
-                .get_mut_by_id(entity, component_id)
+            self.world()
+                .get_entity(entity)
+                .ok_or(Error::ComponentDoesNotExist((entity, component)))?
+                .get_mut_by_id(component_id)
                 .ok_or(Error::ComponentDoesNotExist((entity, component)))?
         };
         let changed = value.is_changed();
@@ -428,17 +416,18 @@ impl<'w> RestrictedWorldView<'w> {
         }
 
         // SAFETY: this only accesses the component ID and doesn't keep any references
-        let component_id = unsafe {
-            self.get()
-                .components()
-                .get_id(component)
-                .ok_or(Error::NoComponentId(component))?
-        };
+        let component_id = self
+            .world()
+            .components()
+            .get_id(component)
+            .ok_or(Error::NoComponentId(component))?;
 
         // SAFETY: we have access to (entity, component) and caller ensures distinct access
         let value = unsafe {
-            self.get_mut_from_shared()
-                .get_mut_by_id(entity, component_id)
+            self.world()
+                .get_entity(entity)
+                .ok_or(Error::ComponentDoesNotExist((entity, component)))?
+                .get_mut_by_id(component_id)
                 .ok_or(Error::ComponentDoesNotExist((entity, component)))?
         };
 

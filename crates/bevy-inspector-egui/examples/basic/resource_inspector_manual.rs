@@ -1,7 +1,9 @@
 use bevy::prelude::*;
+use bevy_egui::EguiContext;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
 use bevy_inspector_egui::prelude::*;
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
+use bevy_window::PrimaryWindow;
 
 #[derive(Reflect, Resource, Default, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]
@@ -37,12 +39,13 @@ fn inspector_ui(world: &mut World, mut disabled: Local<bool>) {
         return;
     }
 
-    // the usual `ResourceInspector` code
-    let egui_context = world
-        .resource_mut::<bevy_egui::EguiContext>()
-        .ctx_mut()
+    let mut egui_context = world
+        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .single(world)
         .clone();
-    egui::Window::new("Resource Inspector").show(&egui_context, |ui| {
+
+    // the usual `ResourceInspector` code
+    egui::Window::new("Resource Inspector").show(egui_context.get_mut(), |ui| {
         egui::ScrollArea::vertical().show(ui, |ui| {
             bevy_inspector_egui::bevy_inspector::ui_for_resource::<Configuration>(world, ui);
 
@@ -60,7 +63,7 @@ fn setup(
 ) {
     // plane
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Plane { size: 5.0 })),
+        mesh: meshes.add(Mesh::from(shape::Plane::from_size(5.0))),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });

@@ -662,18 +662,18 @@ impl InspectorUi<'_, '_> {
                     if let Some(new_value) = default {
                         list.push(new_value);
                     } else {
-                        ui.data().insert_temp::<bool>(error_id, true);
+                        ui.data_mut(|data| data.insert_temp::<bool>(error_id, true));
                     }
 
                     changed = true;
                 }
             });
-            let error = *ui.data().get_temp_mut_or_default::<bool>(error_id);
+            let error = ui.data_mut(|data| *data.get_temp_mut_or_default::<bool>(error_id));
             if error {
                 errors::no_default_value(ui, info.item_type_name());
             }
-            if ui.input().pointer.any_down() {
-                ui.data().insert_temp::<bool>(error_id, false);
+            if ui.input(|input| input.pointer.any_down()) {
+                ui.data_mut(|data| data.insert_temp::<bool>(error_id, false));
             }
 
             /*if let Some(_) = to_delete {

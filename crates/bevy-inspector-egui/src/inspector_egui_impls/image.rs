@@ -5,7 +5,7 @@ use std::{
 };
 
 use bevy_asset::{Assets, Handle};
-use bevy_egui::EguiContext;
+use bevy_egui::EguiUserTextures;
 use bevy_reflect::Reflect;
 use bevy_render::texture::Image;
 use once_cell::sync::Lazy;
@@ -40,8 +40,8 @@ pub fn image_handle_ui_readonly(
         no_world_in_context(ui, value.type_name());
         return;
     };
-    let (mut egui_context, mut images) =
-        match world.get_two_resources_mut::<bevy_egui::EguiContext, Assets<Image>>() {
+    let (mut egui_user_textures, mut images) =
+        match world.get_two_resources_mut::<bevy_egui::EguiUserTextures, Assets<Image>>() {
             (Ok(a), Ok(b)) => (a, b),
             (a, b) => {
                 if let Err(e) = a {
@@ -61,7 +61,7 @@ pub fn image_handle_ui_readonly(
         value,
         &mut scaled_down_textures,
         &mut images,
-        &mut egui_context,
+        &mut egui_user_textures,
     );
     let (rescaled_handle, texture_id) = match rescaled {
         Some(it) => it,
@@ -108,12 +108,12 @@ fn rescaled_image<'a>(
     handle: &Handle<Image>,
     scaled_down_textures: &'a mut ScaledDownTextures,
     textures: &mut Assets<Image>,
-    egui_context: &mut EguiContext,
+    egui_usere_textures: &mut EguiUserTextures,
 ) -> Option<(Handle<Image>, egui::TextureId)> {
     let (texture, texture_id) = match scaled_down_textures.textures.entry(handle.clone()) {
         Entry::Occupied(handle) => {
             let handle: Handle<Image> = handle.get().clone();
-            (handle.clone(), egui_context.add_image(handle))
+            (handle.clone(), egui_usere_textures.add_image(handle))
         }
         Entry::Vacant(entry) => {
             if scaled_down_textures.rescaled_textures.contains(handle) {
@@ -132,7 +132,7 @@ fn rescaled_image<'a>(
 
             let resized_handle = textures.add(resized);
             let weak = resized_handle.clone_weak();
-            let texture_id = egui_context.add_image(resized_handle.clone());
+            let texture_id = egui_usere_textures.add_image(resized_handle.clone());
             entry.insert(resized_handle);
             scaled_down_textures.rescaled_textures.insert(weak.clone());
 

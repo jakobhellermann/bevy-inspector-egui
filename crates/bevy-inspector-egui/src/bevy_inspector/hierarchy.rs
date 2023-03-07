@@ -71,8 +71,7 @@ impl<T> Hierarchy<'_, T> {
         let mut new_selection = false;
         let selected = self.selected.contains(entity);
 
-        let entity_name =
-            guess_entity_name::guess_entity_name(self.world, self.type_registry, entity);
+        let entity_name = guess_entity_name::guess_entity_name(self.world, entity);
         let mut name = RichText::new(entity_name);
         if selected {
             name = name.strong();
@@ -123,10 +122,9 @@ impl<T> Hierarchy<'_, T> {
         let header_response = response.header_response;
 
         if header_response.clicked() {
-            let selection_mode = SelectionMode::from_ctrl_shift(
-                ui.input().modifiers.ctrl,
-                ui.input().modifiers.shift,
-            );
+            let selection_mode = ui.input(|input| {
+                SelectionMode::from_ctrl_shift(input.modifiers.ctrl, input.modifiers.shift)
+            });
             let extend_with = |from, to| {
                 // PERF: this could be done in one scan
                 let from_position = at_same_level.iter().position(|&entity| entity == from);

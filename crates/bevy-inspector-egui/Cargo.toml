@@ -15,23 +15,24 @@ default = ["bevy_pbr", "highlight_changes"]
 highlight_changes = []
 
 [dependencies]
-bevy-inspector-egui-derive = { version = "0.17.0", path = "../bevy-inspector-egui-derive" }
-bevy_app = { version = "0.9" }
-bevy_asset = { version = "0.9" }
-bevy_core = { version = "0.9" }
-bevy_ecs = { version = "0.9" }
-bevy_hierarchy = { version = "0.9" }
-bevy_log = { version = "0.9" }
-bevy_math = { version = "0.9" }
-bevy_reflect = { version = "0.9" }
-bevy_utils = { version = "0.9" }
+bevy-inspector-egui-derive = { version = "0.18.0", path = "../bevy-inspector-egui-derive" }
+bevy_app = { version = "0.10" }
+bevy_asset = { version = "0.10" }
+bevy_core = { version = "0.10" }
+bevy_ecs = { version = "0.10" }
+bevy_hierarchy = { version = "0.10" }
+bevy_log = { version = "0.10" }
+bevy_math = { version = "0.10" }
+bevy_reflect = { version = "0.10" }
+bevy_utils = { version = "0.10" }
+bevy_window = { version = "0.10" }
 
-bevy_core_pipeline = { version = "0.9" }
-bevy_pbr = { version = "0.9", optional = true }
-bevy_render = { version = "0.9" }
+bevy_core_pipeline = { version = "0.10" }
+bevy_pbr = { version = "0.10", optional = true }
+bevy_render = { version = "0.10" }
 
-egui = "0.20.0"
-bevy_egui = "0.19"
+egui = "0.21.0"
+bevy_egui = { git = "https://github.com/mvlabat/bevy_egui", branch = "bevy-0.10" }
 
 image = { version = "0.24.5", default-features = false }
 once_cell = "1.16.0"
@@ -39,11 +40,11 @@ pretty-type-name = "1.0.0"
 smallvec = "1.10.0"
 
 [dev-dependencies]
-bevy = { version = "0.9", default-features = false, features = ["render", "x11", "bevy_winit", "animation", "png"] }
-egui_dock = "0.3"
-egui-gizmo = "0.9"
-bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
-bevy_framepace = "0.11"
+bevy = { version = "0.10", default-features = false, features = ["x11", "bevy_winit", "bevy_pbr", "bevy_sprite", "animation", "png"] }
+egui_dock = "0.4"
+egui-gizmo = "0.10"
+# bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
+# bevy_framepace = "0.11"
 
 
 [[example]]

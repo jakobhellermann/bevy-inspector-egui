@@ -288,10 +288,11 @@ pub mod quat {
         env: InspectorUi<'_, '_>,
     ) -> bool {
         let id = ui.id();
-        let mut intermediate = *ui
-            .memory()
-            .data
-            .get_temp_mut_or_insert_with(id, || T::from_quat(*val));
+        let mut intermediate = ui.memory_mut(|memory| {
+            *memory
+                .data
+                .get_temp_mut_or_insert_with(id, || T::from_quat(*val))
+        });
 
         let externally_changed = !intermediate.to_quat().abs_diff_eq(*val, std::f32::EPSILON);
         if externally_changed {
@@ -302,7 +303,7 @@ pub mod quat {
 
         if changed || externally_changed {
             *val = intermediate.to_quat();
-            ui.memory().data.insert_temp(id, intermediate);
+            ui.memory_mut(|memory| memory.data.insert_temp(id, intermediate));
         }
 
         changed

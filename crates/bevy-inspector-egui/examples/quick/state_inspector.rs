@@ -5,18 +5,19 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::BLACK))
-        .add_state(AppState::A)
+        .add_state::<AppState>()
         .register_type::<AppState>()
         .add_plugin(StateInspectorPlugin::<AppState>::default())
         .add_startup_system(setup)
-        .add_system_set(SystemSet::on_enter(AppState::A).with_system(set_color::<158, 228, 147>))
-        .add_system_set(SystemSet::on_enter(AppState::B).with_system(set_color::<171, 200, 192>))
-        .add_system_set(SystemSet::on_enter(AppState::C).with_system(set_color::<194, 148, 138>))
+        .add_system(set_color::<158, 228, 147>.in_schedule(OnEnter(AppState::A)))
+        .add_system(set_color::<172, 200, 192>.in_schedule(OnEnter(AppState::B)))
+        .add_system(set_color::<194, 148, 138>.in_schedule(OnEnter(AppState::C)))
         .run();
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Reflect)]
+#[derive(States, Default, Debug, Clone, Eq, PartialEq, Hash, Reflect)]
 enum AppState {
+    #[default]
     A,
     B,
     C,

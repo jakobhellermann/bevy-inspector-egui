@@ -10,9 +10,10 @@ use std::marker::PhantomData;
 
 use bevy_app::Plugin;
 use bevy_asset::Asset;
-use bevy_ecs::{prelude::*, query::ReadOnlyWorldQuery, schedule::StateData};
-use bevy_egui::EguiPlugin;
+use bevy_ecs::{prelude::*, query::ReadOnlyWorldQuery};
+use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_reflect::Reflect;
+use bevy_window::PrimaryWindow;
 use pretty_type_name::pretty_type_name;
 
 use crate::{bevy_inspector, DefaultInspectorConfigPlugin};
@@ -62,13 +63,13 @@ impl Plugin for WorldInspectorPlugin {
 }
 
 fn world_inspector_ui(world: &mut World) {
-    let egui_context = world
-        .resource_mut::<bevy_egui::EguiContext>()
-        .ctx_mut()
+    let mut egui_context = world
+        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .single(world)
         .clone();
     egui::Window::new("World Inspector")
         .default_size(DEFAULT_SIZE)
-        .show(&egui_context, |ui| {
+        .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 bevy_inspector::ui_for_world(world, ui);
                 ui.allocate_space(ui.available_size());
@@ -131,13 +132,13 @@ impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
 }
 
 fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
-    let egui_context = world
-        .resource_mut::<bevy_egui::EguiContext>()
-        .ctx_mut()
+    let mut egui_context = world
+        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .single(world)
         .clone();
     egui::Window::new(pretty_type_name::<T>())
         .default_size((0., 0.))
-        .show(&egui_context, |ui| {
+        .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 bevy_inspector::ui_for_resource::<T>(world, ui);
 
@@ -183,7 +184,7 @@ impl<T> StateInspectorPlugin<T> {
     }
 }
 
-impl<T: StateData + Reflect> Plugin for StateInspectorPlugin<T> {
+impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
     fn build(&self, app: &mut bevy_app::App) {
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugin(DefaultInspectorConfigPlugin);
@@ -196,15 +197,15 @@ impl<T: StateData + Reflect> Plugin for StateInspectorPlugin<T> {
     }
 }
 
-fn state_ui<T: StateData + Reflect>(world: &mut World) {
-    let egui_context = world
-        .resource_mut::<bevy_egui::EguiContext>()
-        .ctx_mut()
+fn state_ui<T: States + Reflect>(world: &mut World) {
+    let mut egui_context = world
+        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .single(world)
         .clone();
     egui::Window::new(std::any::type_name::<T>())
         .resizable(false)
         .title_bar(false)
-        .show(&egui_context, |ui| {
+        .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.heading(pretty_type_name::<T>());
                 bevy_inspector::ui_for_state::<T>(world, ui);
@@ -252,13 +253,13 @@ impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
 }
 
 fn asset_inspector_ui<A: Asset + Reflect>(world: &mut World) {
-    let egui_context = world
-        .resource_mut::<bevy_egui::EguiContext>()
-        .ctx_mut()
+    let mut egui_context = world
+        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .single(world)
         .clone();
     egui::Window::new(pretty_type_name::<A>())
         .default_size(DEFAULT_SIZE)
-        .show(&egui_context, |ui| {
+        .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 bevy_inspector::ui_for_assets::<A>(world, ui);
 
@@ -309,13 +310,13 @@ where
 }
 
 fn entity_query_ui<F: ReadOnlyWorldQuery>(world: &mut World) {
-    let egui_context = world
-        .resource_mut::<bevy_egui::EguiContext>()
-        .ctx_mut()
+    let mut egui_context = world
+        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .single(world)
         .clone();
     egui::Window::new(pretty_type_name::<F>())
         .default_size(DEFAULT_SIZE)
-        .show(&egui_context, |ui| {
+        .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 bevy_inspector::ui_for_world_entities_filtered::<F>(world, ui, false);
                 ui.allocate_space(ui.available_size());
