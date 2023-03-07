@@ -81,6 +81,25 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         ],
     );
 
+    insert_options_struct::<bevy_render::view::ColorGrading>(
+        type_registry,
+        &[
+            (
+                "exposure",
+                &NumberOptions::<f32>::positive().with_speed(0.01),
+            ),
+            ("gamma", &NumberOptions::<f32>::positive().with_speed(0.01)),
+            (
+                "pre_saturation",
+                &NumberOptions::<f32>::positive().with_speed(0.01),
+            ),
+            (
+                "post_saturation",
+                &NumberOptions::<f32>::positive().with_speed(0.01),
+            ),
+        ],
+    );
+
     #[cfg(feature = "bevy_pbr")]
     {
         insert_options_struct::<bevy_pbr::AmbientLight>(
@@ -99,7 +118,6 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
             type_registry,
             &[("illuminance", &NumberOptions::<f32>::positive())],
         );
-
         insert_options_struct::<bevy_pbr::StandardMaterial>(
             type_registry,
             &[
