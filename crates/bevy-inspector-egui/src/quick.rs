@@ -396,7 +396,7 @@ where
         }
 
         let condition = self.condition.lock().unwrap().take();
-        let mut system = entity_query_ui::<F>.into_config();
+        let mut system = IntoSystemConfig::into_config(entity_query_ui::<F>);
         if let Some(condition) = condition {
             system = system.run_if(BoxedConditionHelper(condition));
         }

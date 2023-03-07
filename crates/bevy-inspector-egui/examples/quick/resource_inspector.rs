@@ -1,3 +1,4 @@
+use bevy::input::common_conditions::input_toggle_active;
 use bevy::prelude::*;
 use bevy_inspector_egui::prelude::*;
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
@@ -13,7 +14,10 @@ struct Configuration {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(ResourceInspectorPlugin::<Configuration>::default())
+        .add_plugin(
+            ResourceInspectorPlugin::<Configuration>::default()
+                .run_if(input_toggle_active(true, KeyCode::Escape)),
+        )
         .init_resource::<Configuration>()
         .register_type::<Configuration>()
         .add_startup_system(setup)
