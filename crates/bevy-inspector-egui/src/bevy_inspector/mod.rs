@@ -355,6 +355,11 @@ pub(crate) fn ui_for_entity_components(
             continue;
         };
 
+        if size == 0 {
+            header.show(ui, |_| {});
+            continue;
+        }
+
         // create a context with access to the world except for the currently viewed component
         let (mut component_view, world) = world.split_off_component((entity, component_type_id));
         let mut cx = Context {
@@ -381,10 +386,6 @@ pub(crate) fn ui_for_entity_components(
 
         header.show(ui, |ui| {
             ui.reset_style();
-
-            if size == 0 {
-                return;
-            }
 
             let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
                 .ui_for_reflect_with_options(value, ui, id.with(component_id), &());
