@@ -1,10 +1,13 @@
 # Changelog
 
-## Unreleased
+## Version 0.18.0
+- update to `bevy` 0.10
+- add `run_if` to `quick::*` plugins
 - add `CommandQueue` to context
   - this allows us to display a despawn button for entities
 - fix single struct field name not being displayed
 - return whether an entity was selected from hierarchy
+- don't show error for zero-sized types
 
 ## Version 0.17.0
 - update to `bevy_egui` 0.19
