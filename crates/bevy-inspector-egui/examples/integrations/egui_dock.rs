@@ -10,6 +10,7 @@ use bevy_inspector_egui::bevy_inspector::{
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 // use bevy_mod_picking::backends::egui::EguiPointer;
 // use bevy_mod_picking::prelude::*;
+use bevy_egui::EguiSet;
 use bevy_reflect::TypeRegistry;
 use bevy_render::camera::{CameraProjection, Viewport};
 use bevy_window::PrimaryWindow;
@@ -24,9 +25,18 @@ fn main() {
         .add_plugin(bevy_egui::EguiPlugin)
         // .add_plugins(bevy_mod_picking::plugins::DefaultPickingPlugins)
         .insert_resource(UiState::new())
-        .add_system(show_ui_system.in_base_set(CoreSet::PreUpdate))
         .add_startup_system(setup)
-        .add_system(set_camera_viewport)
+        .add_system(
+            show_ui_system
+                .in_base_set(CoreSet::PostUpdate)
+                .before(EguiSet::ProcessOutput)
+                .before(bevy::transform::TransformSystem::TransformPropagate),
+        )
+        .add_system(
+            set_camera_viewport
+                .in_base_set(CoreSet::PostUpdate)
+                .after(show_ui_system),
+        )
         .add_system(set_gizmo_mode)
         // .add_system(auto_add_raycast_target)
         // .add_system(handle_pick_events)
@@ -74,10 +84,11 @@ fn handle_pick_events(
 struct MainCamera;
 
 fn show_ui_system(world: &mut World) {
-    let mut egui_context = world
+    let Ok(egui_context) = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .single(world)
-        .clone();
+        .get_single(world) else { return };
+    let mut egui_context = egui_context.clone();
+
     world.resource_scope::<UiState, _>(|world, mut ui_state| {
         ui_state.ui(world, egui_context.get_mut())
     });
@@ -92,7 +103,8 @@ fn set_camera_viewport(
 ) {
     let mut cam = cameras.single_mut();
 
-    let window = primary_window.single();
+    let Ok(window) = primary_window.get_single() else { return };
+
     let scale_factor = window.scale_factor() * egui_settings.scale_factor;
 
     let viewport_pos = ui_state.viewport_rect.left_top().to_vec2() * scale_factor as f32;
