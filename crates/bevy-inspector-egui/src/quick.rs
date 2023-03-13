@@ -23,28 +23,18 @@ const DEFAULT_SIZE: (f32, f32) = (320., 160.);
 
 /// Plugin displaying a egui window with an entity list, resources and assets
 ///
+/// You can use [`WorldInspectorPlugin::run_if`] to control when the window is shown, for example
+/// in combination with `input_toggle_active`.
+///
 /// ```no_run
 /// use bevy::prelude::*;
 /// use bevy_inspector_egui::prelude::*;
-/// use bevy_inspector_egui::quick::ResourceInspectorPlugin;
-///
-/// // `InspectorOptions` are completely optional
-/// #[derive(Reflect, Resource, Default, InspectorOptions)]
-/// #[reflect(Resource, InspectorOptions)]
-/// struct Configuration {
-///     name: String,
-///     #[inspector(min = 0.0, max = 1.0)]
-///     option: f32,
-/// }
+/// use bevy_inspector_egui::quick::WorldInspectorPlugin;
 ///
 /// fn main() {
 ///     App::new()
 ///         .add_plugins(DefaultPlugins)
-///         .init_resource::<Configuration>() // `ResourceInspectorPlugin` won't initialize the resource
-///         .register_type::<Configuration>() // you need to register your type to display it
-///         .add_plugin(ResourceInspectorPlugin::<Configuration>::default())
-///         // also works with built-in resources, as long as they implement `Reflect`
-///         .add_plugin(ResourceInspectorPlugin::<Time>::default())
+///         .add_plugin(WorldInspectorPlugin::new())
 ///         .run();
 /// }
 /// ```
@@ -101,6 +91,9 @@ fn world_inspector_ui(world: &mut World) {
 
 /// Plugin displaying an egui window for a single resource.
 /// Remember to insert the resource and call [`App::register_type`](bevy_app::App::register_type).
+///
+/// You can use [`ResourceInspectorPlugin::run_if`] to control when the window is shown, for example
+/// in combination with `input_toggle_active`.
 ///
 /// ```no_run
 /// use bevy::prelude::*;
@@ -191,6 +184,9 @@ fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
 /// Plugin displaying an egui window for an app state.
 /// Remember to call [`App::add_state`](bevy_app::App::add_state) .
 ///
+/// You can use [`StateInspectorPlugin::run_if`] to control when the window is shown, for example
+/// in combination with `input_toggle_active`.
+///
 /// ```no_run
 /// use bevy::prelude::*;
 /// use bevy_inspector_egui::quick::StateInspectorPlugin;
@@ -199,14 +195,15 @@ fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
 ///     App::new()
 ///         .add_plugins(DefaultPlugins)
 ///         .insert_resource(ClearColor(Color::BLACK))
-///         .add_state(AppState::A)
+///         .add_state::<AppState>()
 ///         .register_type::<AppState>()
 ///         .add_plugin(StateInspectorPlugin::<AppState>::default())
 ///         .run();
 /// }
 ///
-/// #[derive(Debug, Clone, Eq, PartialEq, Hash, Reflect)]
+/// #[derive(Default, States, Debug, Clone, Eq, PartialEq, Hash, Reflect)]
 /// enum AppState {
+///     #[default]
 ///     A,
 ///     B,
 ///     C,
@@ -274,6 +271,10 @@ fn state_ui<T: States + Reflect>(world: &mut World) {
 
 /// Plugin displaying an egui window for all assets of type `A`.
 /// Remember to call [`App::register_asset_reflect`](bevy_asset::AddAsset::register_asset_reflect).
+///
+/// You can use [`AssetInspectorPlugin::run_if`] to control when the window is shown, for example
+/// in combination with `input_toggle_active`.
+///
 /// ```no_run
 /// use bevy::prelude::*;
 /// use bevy_inspector_egui::quick::AssetInspectorPlugin;
