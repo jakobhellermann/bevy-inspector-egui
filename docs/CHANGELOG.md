@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.18.1
+- fix nested entity name not being displayed
+- fix `WorldInspectorPlugin` docs
+- fix `egui_dock` system order
+
 ## Version 0.18.0
 - update to `bevy` 0.10
 - add `run_if` to `quick::*` plugins
