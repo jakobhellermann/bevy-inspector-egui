@@ -40,7 +40,15 @@ pub mod guess_entity_name {
         entity: Entity,
     ) -> String {
         match world.world().get_entity(entity) {
-            Some(cell) => guess_entity_name_inner(world.world(), entity, cell.archetype()),
+            Some(cell) => {
+                if world.allows_access_to_component((entity, std::any::TypeId::of::<Name>())) {
+                    // SAFETY: we have access and don't keep reference
+                    if let Some(name) = unsafe { cell.get::<Name>() } {
+                        return name.as_str().to_string();
+                    }
+                }
+                guess_entity_name_inner(world.world(), entity, cell.archetype())
+            }
             None => format!("Entity {} (inexistent)", entity.index()),
         }
     }
