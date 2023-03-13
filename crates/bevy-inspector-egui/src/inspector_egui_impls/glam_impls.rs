@@ -8,7 +8,7 @@ use crate::reflect_inspector::InspectorUi;
 
 macro_rules! vec_ui_many {
     ($name_many:ident $ty:ty>$elem_ty:ty: $count:literal $($component:ident)*) => {
-        pub fn $name_many<'a>(
+        pub fn $name_many(
             ui: &mut egui::Ui,
             _: &dyn Any,
             id: egui::Id,

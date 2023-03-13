@@ -454,6 +454,7 @@ impl System for BoxedConditionHelper {
     }
 
     unsafe fn run_unsafe(&mut self, input: Self::In, world: &World) -> Self::Out {
+        // SAFETY: same as this method
         unsafe { self.0.run_unsafe(input, world) }
     }
 

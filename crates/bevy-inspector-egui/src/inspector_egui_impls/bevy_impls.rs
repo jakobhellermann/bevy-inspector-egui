@@ -38,7 +38,7 @@ pub fn entity_ui(
 
             let entity_name =
                 crate::utils::guess_entity_name::guess_entity_name_restricted(world, entity);
-            egui::CollapsingHeader::new(&entity_name)
+            egui::CollapsingHeader::new(entity_name)
                 .id_source(id)
                 .show(ui, |ui| {
                     let _queue = CommandQueue::default();
