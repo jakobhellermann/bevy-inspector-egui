@@ -171,7 +171,12 @@ impl UiState {
             selection: &mut self.selection,
             gizmo_mode: self.gizmo_mode,
         };
-        egui_dock::DockArea::new(&mut self.tree).show(ctx, &mut tab_viewer);
+        egui_dock::DockArea::new(&mut self.tree)
+            .style(egui_dock::Style {
+                tab_bar_background_color: ctx.style().visuals.window_fill(),
+                ..egui_dock::Style::from_egui(ctx.style().as_ref())
+            })
+            .show(ctx, &mut tab_viewer);
     }
 }
 
