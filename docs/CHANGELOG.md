@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.18.2 (unreleased)
+- fix tab background in `egui_dock` example
+- add ui for `RenderLayers`
+
+
 ## Version 0.18.1
 - fix nested entity name not being displayed
 - fix `WorldInspectorPlugin` docs

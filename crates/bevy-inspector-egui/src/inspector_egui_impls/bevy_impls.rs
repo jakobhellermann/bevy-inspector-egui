@@ -1,7 +1,7 @@
 use bevy_asset::{AssetServer, Assets, Handle, HandleId};
 use bevy_ecs::{entity::Entity, system::CommandQueue};
-use bevy_render::color::Color;
 use bevy_render::mesh::Mesh;
+use bevy_render::{color::Color, view::RenderLayers};
 use egui::{ecolor::Hsva, Color32};
 use std::any::{Any, TypeId};
 
@@ -321,3 +321,64 @@ fn color_ui_inner(value: &mut Color, ui: &mut egui::Ui) -> bool {
     }
     false
 }
+
+pub fn render_layers_ui(
+    value: &mut dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    id: egui::Id,
+    _: InspectorUi<'_, '_>,
+) -> bool {
+    let value = value.downcast_mut::<RenderLayers>().unwrap();
+
+    let mut new_value = None;
+    egui::Grid::new(id).num_columns(2).show(ui, |ui| {
+        for layer in value.iter() {
+            let mut layer_copy = layer;
+            if ui
+                .add(
+                    egui::DragValue::new(&mut layer_copy)
+                        .clamp_range(0..=RenderLayers::TOTAL_LAYERS - 1),
+                )
+                .changed()
+            {
+                new_value = Some(value.without(layer).with(layer_copy));
+            }
+
+            if ui.button("-").clicked() {
+                new_value = Some(value.without(layer));
+            }
+            ui.end_row();
+        }
+    });
+
+    ui.horizontal(|ui| {
+        if ui.button("Add").clicked() {
+            let new_layer = value.iter().last().map_or(0, |last| last + 1);
+            new_value = Some(value.with(new_layer));
+        }
+    });
+
+    if let Some(new_value) = new_value {
+        *value = new_value;
+        true
+    } else {
+        false
+    }
+}
+
+pub fn render_layers_ui_readonly(
+    value: &dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: egui::Id,
+    _: InspectorUi<'_, '_>,
+) {
+    let value = value.downcast_ref::<RenderLayers>().unwrap();
+
+    for layer in value.iter() {
+        ui.label(format!("- {layer}"));
+    }
+}
+
+many_ui!(render_layers_ui_many render_layers_ui RenderLayers);

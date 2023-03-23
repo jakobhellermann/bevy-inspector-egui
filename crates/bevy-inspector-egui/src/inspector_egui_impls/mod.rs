@@ -182,6 +182,7 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
     add_no_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, bevy_impls::mesh_ui, bevy_impls::mesh_ui_readonly);
     add_no_many::<bevy_ecs::entity::Entity>(type_registry, bevy_impls::entity_ui, bevy_impls::entity_ui_readonly);
     add::<bevy_render::color::Color>(type_registry, bevy_impls::color_ui, bevy_impls::color_ui_readonly, bevy_impls::color_ui_many);
+    add::<bevy_render::view::RenderLayers>(type_registry, bevy_impls::render_layers_ui, bevy_impls::render_layers_ui_readonly, bevy_impls::render_layers_ui_many);
 }
 
 pub(crate) fn change_slider<T>(
