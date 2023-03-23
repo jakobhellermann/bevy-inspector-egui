@@ -206,8 +206,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
 
         match window {
             EguiWindow::GameView => {
-                (*self.viewport_rect, _) =
-                    ui.allocate_exact_size(ui.available_size(), egui::Sense::hover());
+                *self.viewport_rect = ui.clip_rect();
 
                 draw_gizmo(ui, self.world, self.selected_entities, self.gizmo_mode);
             }
