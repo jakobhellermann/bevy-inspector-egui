@@ -3,6 +3,8 @@
 ## Version 0.18.2 (unreleased)
 - fix tab background in `egui_dock` example
 - add ui for `RenderLayers`
+- update to `syn 2.0`
+- add suggestions for a fix in the error message for a missing `InspectorEguiImpl`
 
 
 ## Version 0.18.1
