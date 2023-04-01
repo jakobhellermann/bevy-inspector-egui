@@ -2,19 +2,16 @@ use proc_macro2::TokenStream;
 use quote::quote;
 
 fn is_reflect_ignore(attribute: &syn::Attribute) -> bool {
-    if attribute.path.is_ident("reflect") {
-        if let Ok(syn::Meta::List(list)) = attribute.parse_meta() {
-            for nested in list.nested {
-                if let syn::NestedMeta::Meta(meta) = nested {
-                    if meta.path().is_ident("ignore") {
-                        return true;
-                    }
-                }
-            }
-        }
+    if !attribute.path().is_ident("reflect") {
+        return false;
     }
 
-    false
+    let mut ignore = false;
+    let _ = attribute.parse_nested_meta(|meta| {
+        ignore = meta.path.is_ident("ignore");
+        Ok(())
+    });
+    ignore
 }
 pub fn is_reflect_ignore_field(field: &syn::Field) -> bool {
     field.attrs.iter().any(is_reflect_ignore)
@@ -56,7 +53,7 @@ fn parse_inspectable_attributes(
     };
 
     input
-        .parse_terminated::<_, syn::Token![,]>(parse_attribute)
+        .parse_terminated(parse_attribute, syn::Token![,])
         .map(IntoIterator::into_iter)
 }
 
@@ -65,7 +62,7 @@ pub fn extract_inspector_attributes(
 ) -> syn::Result<Vec<InspectorAttribute>> {
     Ok(attrs
         .iter()
-        .filter(|attr| attr.path.get_ident().map_or(false, |p| p == "inspector"))
+        .filter(|attr| attr.path().get_ident().map_or(false, |p| p == "inspector"))
         .map(|attr| attr.parse_args_with(parse_inspectable_attributes))
         .collect::<syn::Result<Vec<_>>>()?
         .into_iter()
