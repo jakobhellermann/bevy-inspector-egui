@@ -124,3 +124,25 @@ Ideally this should be runtime-configurable, but it was implemented like this as
 [inspector_options]: https://docs.rs/bevy-inspector-egui/0.16.0/bevy_inspector_egui/inspector_options
 [quick]: https://docs.rs/bevy-inspector-egui/0.16.0/bevy_inspector_egui/quick
 [bevy_inspector]: https://docs.rs/bevy-inspector-egui/0.16.0/bevy_inspector_egui/bevy_inspector
+
+## Bevy support table
+
+## Bevy support table
+
+| bevy    | bevy-inspector-egui |
+| ------- | ------------------- |
+| 0.10    | 0.18                |
+| 0.9     | 0.17                |
+| 0.9     | 0.16                |
+| 0.9     | 0.15                |
+| 0.9     | 0.14                |
+| 0.8     | 0.13                |
+| 0.8     | 0.12                |
+| 0.7     | 0.11                |
+| 0.7     | 0.10                |
+| 0.6     | 0.9                 |
+| 0.6     | 0.8                 |
+| 0.6     | 0.7                 |
+| 0.5     | 0.5-0.6             |
+| 0.5     | 0.4                 |
+| 0.4     | 0.1-0.3             |
