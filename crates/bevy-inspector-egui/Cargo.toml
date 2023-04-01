@@ -40,7 +40,7 @@ pretty-type-name = "1.0"
 smallvec = "1.10"
 
 [dev-dependencies]
-bevy = { version = "0.10", default-features = false, features = ["x11", "bevy_winit", "bevy_pbr", "bevy_sprite", "animation", "png"] }
+bevy = { version = "0.10", default-features = false, features = ["x11", "bevy_winit", "bevy_pbr", "bevy_sprite", "bevy_core_pipeline", "animation", "png"] }
 egui_dock = "0.4"
 egui-gizmo = "0.10"
 # bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
