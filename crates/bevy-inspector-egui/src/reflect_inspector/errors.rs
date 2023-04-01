@@ -11,7 +11,18 @@ pub fn reflect_value_no_impl(ui: &mut egui::Ui, type_name: &str) {
         (FontId::monospace(12.0), "InspectorEguiImpl"),
         (FontId::proportional(13.0), " registered in the "),
         (FontId::monospace(12.0), "TypeRegistry"),
-        (FontId::proportional(13.0), " ."),
+        (FontId::proportional(13.0), " .\n"),
+        (FontId::proportional(13.0), "Try calling "),
+        (
+            FontId::monospace(12.0),
+            &format!(
+                ".register_type::<{}>",
+                pretty_type_name::pretty_type_name_str(type_name)
+            ),
+        ),
+        (FontId::proportional(13.0), " or add the "),
+        (FontId::monospace(12.0), "DefaultInspectorConfigPlugin"),
+        (FontId::proportional(13.0), " for builtin types."),
     ]);
 
     ui.label(job);
