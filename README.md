@@ -2,8 +2,6 @@
 
 Examples can be found at [`./crates/bevy-inspector-egui/examples`](./crates/bevy-inspector-egui/examples/).
 
-Migration guide for 0.16 is at [`docs/MIGRATION_GUIDE_0.15_0.16.md`](./docs/MIGRATION_GUIDE_0.15_0.16.md)
-
 This crate contains
 - general purpose machinery for displaying [`Reflect`](bevy_reflect::Reflect) values in [reflect_inspector],
 - a way of associating arbitrary options with fields and enum variants in [inspector_options]
