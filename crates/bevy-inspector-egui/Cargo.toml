@@ -11,7 +11,7 @@ keywords = ["bevy", "inspector", "egui", "editor", "reflect"]
 categories = ["game-development", "gui", "visualization", "development-tools::procedural-macro-helpers"]
 
 [features]
-default = ["bevy_pbr", "highlight_changes"]
+default = ["bevy_pbr"]
 highlight_changes = []
 
 [dependencies]
