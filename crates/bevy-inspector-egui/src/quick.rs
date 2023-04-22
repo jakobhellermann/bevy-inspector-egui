@@ -77,8 +77,11 @@ impl Plugin for WorldInspectorPlugin {
 fn world_inspector_ui(world: &mut World) {
     let mut egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .single(world)
-        .clone();
+        .get_single(world);
+
+    let Ok(egui_context) = egui_context else {return;}
+    let egui_context = egui_context.clone();
+    
     egui::Window::new("World Inspector")
         .default_size(DEFAULT_SIZE)
         .show(egui_context.get_mut(), |ui| {
