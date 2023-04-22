@@ -79,8 +79,8 @@ fn world_inspector_ui(world: &mut World) {
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world);
 
-    let Ok(egui_context) = egui_context else {return;}
-    let egui_context = egui_context.clone();
+    let Ok(egui_context) = egui_context else {return;};
+    let mut egui_context = egui_context.clone();
     
     egui::Window::new("World Inspector")
         .default_size(DEFAULT_SIZE)
