@@ -75,7 +75,7 @@ impl Plugin for WorldInspectorPlugin {
 }
 
 fn world_inspector_ui(world: &mut World) {
-    let mut egui_context = world
+    let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world);
 
