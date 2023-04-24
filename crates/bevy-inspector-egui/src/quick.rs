@@ -169,10 +169,13 @@ impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
 }
 
 fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
-    let mut egui_context = world
+    let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .single(world)
-        .clone();
+        .get_single(world);
+
+    let Ok(egui_context) = egui_context else {return;};
+    let mut egui_context = egui_context.clone();
+
     egui::Window::new(pretty_type_name::<T>())
         .default_size((0., 0.))
         .show(egui_context.get_mut(), |ui| {
@@ -257,10 +260,13 @@ impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
 }
 
 fn state_ui<T: States + Reflect>(world: &mut World) {
-    let mut egui_context = world
+    let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .single(world)
-        .clone();
+        .get_single(world);
+
+    let Ok(egui_context) = egui_context else {return;};
+    let mut egui_context = egui_context.clone();
+
     egui::Window::new(std::any::type_name::<T>())
         .resizable(false)
         .title_bar(false)
@@ -334,10 +340,13 @@ impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
 }
 
 fn asset_inspector_ui<A: Asset + Reflect>(world: &mut World) {
-    let mut egui_context = world
+    let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .single(world)
-        .clone();
+        .get_single(world);
+
+    let Ok(egui_context) = egui_context else {return;};
+    let mut egui_context = egui_context.clone();
+        
     egui::Window::new(pretty_type_name::<A>())
         .default_size(DEFAULT_SIZE)
         .show(egui_context.get_mut(), |ui| {
@@ -409,10 +418,13 @@ where
 }
 
 fn entity_query_ui<F: ReadOnlyWorldQuery>(world: &mut World) {
-    let mut egui_context = world
+    let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .single(world)
-        .clone();
+        .get_single(world);
+
+    let Ok(egui_context) = egui_context else {return;};
+    let mut egui_context = egui_context.clone();
+    
     egui::Window::new(pretty_type_name::<F>())
         .default_size(DEFAULT_SIZE)
         .show(egui_context.get_mut(), |ui| {
