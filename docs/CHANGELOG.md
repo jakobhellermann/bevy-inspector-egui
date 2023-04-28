@@ -1,6 +1,8 @@
 # Changelog
+## Version 0.18.4 (unreleased)
+- don't panic in quick plugin if no `PrimaryWindow` exists
 
-## Version 0.18.2 (unreleased)
+## Version 0.18.3
 - fix tab background in `egui_dock` example
 - add ui for `RenderLayers`
 - update to `syn 2.0`
