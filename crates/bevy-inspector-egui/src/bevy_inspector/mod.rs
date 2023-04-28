@@ -9,8 +9,8 @@
 //! # use bevy_render::prelude::Msaa;
 //! # use bevy_math::Vec3;
 //!
-//! #[derive(Debug, Clone, Eq, PartialEq, Hash, Reflect)]
-//! enum AppState { A, B, C }
+//! #[derive(States, Debug, Clone, Eq, PartialEq, Hash, Reflect, Default)]
+//! enum AppState { #[default] A, B, C }
 //!
 //! fn show_ui(world: &mut World, ui: &mut egui::Ui) {
 //!     let mut any_reflect_value = Vec3::new(1.0, 2.0, 3.0);

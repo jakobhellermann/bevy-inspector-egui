@@ -31,7 +31,7 @@
 //! fn main() {
 //!     App::new()
 //!         .add_plugins(DefaultPlugins)
-//!         .add_plugin(WorldInspectorPlugin)
+//!         .add_plugin(WorldInspectorPlugin::new())
 //!         .run();
 //! }
 //!
@@ -76,9 +76,10 @@
 //!
 //! ```no_run
 //! use bevy::prelude::*;
-//! use bevy_egui::EguiPlugin;
+//! use bevy_egui::{EguiPlugin, EguiContext};
 //! use bevy_inspector_egui::prelude::*;
 //! use bevy_inspector_egui::bevy_inspector;
+//! use bevy_window::PrimaryWindow;
 //! use std::any::TypeId;
 //!
 //! fn main() {
@@ -91,9 +92,12 @@
 //! }
 //!
 //! fn inspector_ui(world: &mut World) {
-//!     let egui_context = world.resource_mut::<bevy_egui::EguiContext>().ctx_mut().clone();
+//!     let mut egui_context = world
+//!         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+//!         .single(world)
+//!         .clone();
 //!
-//!     egui::Window::new("UI").show(&egui_context, |ui| {
+//!     egui::Window::new("UI").show(egui_context.get_mut(), |ui| {
 //!         egui::ScrollArea::vertical().show(ui, |ui| {
 //!             // equivalent to `WorldInspectorPlugin`
 //!             bevy_inspector::ui_for_world(world, ui);

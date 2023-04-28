@@ -29,6 +29,7 @@
 //! use bevy_inspector_egui::reflect_inspector::{InspectorUi, Context};
 //!
 //! use bevy_ecs::prelude::*;
+//! use bevy_ecs::system::CommandQueue;
 //! use bevy_asset::Handle;
 //! use bevy_pbr::StandardMaterial;
 //!
@@ -38,8 +39,10 @@
 //! }
 //!
 //! fn ui(mut data: Mut<Data>, ui: &mut egui::Ui, world: &mut World, type_registry: &TypeRegistry) {
+//!     let mut queue = CommandQueue::default();
 //!     let mut cx = Context {
 //!         world: Some(world.into()),
+//!         queue: Some(&mut queue),
 //!     };
 //!     let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
 //!
@@ -51,6 +54,8 @@
 //!     if changed {
 //!         data.set_changed();
 //!     }
+//!
+//!     queue.apply(world);
 //! }
 //! ```
 
