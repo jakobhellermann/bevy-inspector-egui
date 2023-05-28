@@ -41,30 +41,35 @@ pub fn no_default_value(ui: &mut egui::Ui, type_name: &str) {
     ui.label(job);
 }
 
-pub fn unconstructable_variants(
+pub fn unconstructable_variant(
     ui: &mut egui::Ui,
     type_name: &str,
-    unconstructable_variants: &[&str],
+    variant: &str,
+    unconstructable_field_types: &[&str],
 ) {
-    let mut vec = Vec::with_capacity(2 + unconstructable_variants.len() * 2 + 3);
+    let mut vec = Vec::with_capacity(2 + unconstructable_field_types.len() * 2 + 4);
+
+    let qualified_variant = format!(
+        "{}::{}",
+        pretty_type_name::pretty_type_name_str(type_name),
+        variant
+    );
     vec.extend([
-        (FontId::monospace(12.0), type_name),
+        (FontId::monospace(12.0), qualified_variant.as_str()),
         (
             FontId::proportional(13.0),
-            " has unconstructable variants: ",
+            " has unconstructable fields.\nConsider adding ",
         ),
+        (FontId::monospace(12.0), "#[reflect(Default)]"),
+        (FontId::proportional(13.0), " to\n\n"),
     ]);
-    vec.extend(unconstructable_variants.iter().flat_map(|variant| {
+    vec.extend(unconstructable_field_types.iter().flat_map(|variant| {
         [
+            (FontId::proportional(13.0), "- "),
             (FontId::monospace(12.0), *variant),
-            (FontId::proportional(13.0), ", "),
         ]
     }));
-    vec.extend([
-        (FontId::proportional(13.0), "\nyou should register "),
-        (FontId::monospace(12.0), "ReflectDefault"),
-        (FontId::proportional(13.0), " for all fields."),
-    ]);
+
     let job = layout_job(&vec);
 
     ui.label(job);

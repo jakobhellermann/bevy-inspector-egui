@@ -1069,7 +1069,6 @@ impl InspectorUi<'_, '_> {
         let mut changed_variant = None;
 
         ui.horizontal(|ui| {
-            let mut unconstructable_variants = Vec::new();
             egui::ComboBox::new(id.with("select"), "")
                 .selected_text(info.variant_names()[active_variant_idx])
                 .show_ui(ui, |ui| {
@@ -1078,15 +1077,35 @@ impl InspectorUi<'_, '_> {
                         let is_active_variant = i == active_variant_idx;
 
                         let variant_is_constructable =
-                            is_variant_constructable(self.type_registry, variant);
-                        if !variant_is_constructable && !is_active_variant {
-                            unconstructable_variants.push(variant_name);
-                        }
-                        ui.add_enabled_ui(variant_is_constructable, |ui| {
-                            if ui
-                                .selectable_label(is_active_variant, variant_name)
-                                .clicked()
-                            {
+                            variant_constructable(self.type_registry, variant);
+
+                        ui.add_enabled_ui(variant_is_constructable.is_ok(), |ui| {
+                            let mut variant_label_response =
+                                ui.selectable_label(is_active_variant, variant_name);
+
+                            if let Err(fields) = variant_is_constructable {
+                                variant_label_response = variant_label_response
+                                    .on_disabled_hover_ui(|ui| {
+                                        errors::unconstructable_variant(
+                                            ui,
+                                            info.type_name(),
+                                            variant_name,
+                                            &fields,
+                                        );
+                                    });
+                            }
+
+                            /*let res = variant_label_response.on_hover_ui(|ui| {
+                                if !unconstructable_variants.is_empty() {
+                                    errors::unconstructable_variants(
+                                        ui,
+                                        info.type_name(),
+                                        &unconstructable_variants,
+                                    );
+                                }
+                            });*/
+
+                            if variant_label_response.clicked() {
                                 if let Ok(dynamic_enum) =
                                     self.construct_default_variant(variant, ui, info.type_name())
                                 {
@@ -1098,9 +1117,6 @@ impl InspectorUi<'_, '_> {
 
                     false
                 });
-            if !unconstructable_variants.is_empty() {
-                errors::unconstructable_variants(ui, info.type_name(), &unconstructable_variants);
-            }
         });
 
         changed_variant
@@ -1303,23 +1319,36 @@ fn maybe_grid_readonly_label_if(
     }
 }
 
-fn is_variant_constructable(type_registry: &TypeRegistry, variant: &VariantInfo) -> bool {
+fn variant_constructable<'a>(
+    type_registry: &TypeRegistry,
+    variant: &'a VariantInfo,
+) -> Result<(), Vec<&'a str>> {
     let type_id_is_constructable = |type_id: TypeId| {
         type_registry
             .get_type_data::<ReflectDefault>(type_id)
             .is_some()
     };
 
-    match variant {
+    let unconstructable_fields: Vec<&'a str> = match variant {
         VariantInfo::Struct(variant) => variant
             .iter()
-            .map(|field| field.type_id())
-            .all(type_id_is_constructable),
+            .filter_map(|field| {
+                (!type_id_is_constructable(field.type_id())).then_some(field.type_name())
+            })
+            .collect(),
         VariantInfo::Tuple(variant) => variant
             .iter()
-            .map(|field| field.type_id())
-            .all(type_id_is_constructable),
-        VariantInfo::Unit(_) => true,
+            .filter_map(|field| {
+                (!type_id_is_constructable(field.type_id())).then_some(field.type_name())
+            })
+            .collect(),
+        VariantInfo::Unit(_) => return Ok(()),
+    };
+
+    if unconstructable_fields.is_empty() {
+        Ok(())
+    } else {
+        Err(unconstructable_fields)
     }
 }
 
