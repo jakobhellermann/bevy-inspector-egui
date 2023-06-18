@@ -53,6 +53,9 @@ bevy = { git = "https://github.com/bevyengine/bevy.git", branch = "main", defaul
     "bevy_core_pipeline",
     "animation",
     "png",
+    "zstd",
+    "tonemapping_luts",
+    "ktx2",
 ] }
 egui_dock = "0.4"
 egui-gizmo = "0.10"
