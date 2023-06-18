@@ -205,7 +205,7 @@ pub fn ui_for_state<T: States + Reflect>(world: &mut World, ui: &mut egui::Ui) {
     };
     let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
 
-    let mut current = state.0.clone();
+    let mut current = state.clone();
     let changed = env.ui_for_reflect(&mut current, ui);
 
     if changed {

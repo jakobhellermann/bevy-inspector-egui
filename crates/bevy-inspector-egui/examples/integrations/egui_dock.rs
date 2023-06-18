@@ -25,21 +25,17 @@ fn main() {
         .add_plugin(bevy_egui::EguiPlugin)
         // .add_plugins(bevy_mod_picking::plugins::DefaultPickingPlugins)
         .insert_resource(UiState::new())
-        .add_startup_system(setup)
-        .add_system(
+        .add_systems(Startup, setup)
+        .add_systems(
+            PostUpdate,
             show_ui_system
-                .in_base_set(CoreSet::PostUpdate)
                 .before(EguiSet::ProcessOutput)
                 .before(bevy::transform::TransformSystem::TransformPropagate),
         )
-        .add_system(
-            set_camera_viewport
-                .in_base_set(CoreSet::PostUpdate)
-                .after(show_ui_system),
-        )
-        .add_system(set_gizmo_mode)
-        // .add_system(auto_add_raycast_target)
-        // .add_system(handle_pick_events)
+        .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
+        .add_systems(Update, set_gizmo_mode)
+        // .add_systems(Update, auto_add_raycast_target)
+        // .add_systems(Update, handle_pick_events)
         .register_type::<Option<Handle<Image>>>()
         .register_type::<AlphaMode>()
         .run();

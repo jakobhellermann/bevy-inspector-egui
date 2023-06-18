@@ -87,7 +87,7 @@
 //!         .add_plugins(DefaultPlugins)
 //!         .add_plugin(EguiPlugin)
 //!         .add_plugin(bevy_inspector_egui::DefaultInspectorConfigPlugin) // adds default options and `InspectorEguiImpl`s
-//!         .add_system(inspector_ui)
+//!         .add_systems(Update, inspector_ui)
 //!         .run();
 //! }
 //!

@@ -10,9 +10,12 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(EguiPlugin)
         .add_plugin(DefaultInspectorConfigPlugin)
-        .add_startup_system(setup)
-        .add_system(rotator_system)
-        .add_system(inspector_ui.run_if(input_toggle_active(true, KeyCode::Escape)))
+        .add_systems(Startup, setup)
+        .add_systems(Update, rotator_system)
+        .add_systems(
+            Update,
+            inspector_ui.run_if(input_toggle_active(true, KeyCode::Escape)),
+        )
         .run();
 }
 
