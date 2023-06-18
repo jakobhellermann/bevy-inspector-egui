@@ -20,7 +20,7 @@ fn main() {
         )
         .init_resource::<Configuration>()
         .register_type::<Configuration>()
-        .add_startup_system(setup)
+        .add_systems(Startup, setup)
         .run();
 }
 

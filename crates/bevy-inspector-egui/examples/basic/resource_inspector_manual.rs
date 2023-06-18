@@ -22,9 +22,9 @@ fn main() {
         // insert and register resource
         .init_resource::<Configuration>()
         .register_type::<Configuration>()
-        .add_startup_system(setup)
+        .add_systems(Startup, setup)
         // add the system showing the UI
-        .add_system(inspector_ui)
+        .add_systems(Update, inspector_ui)
         .run();
 }
 

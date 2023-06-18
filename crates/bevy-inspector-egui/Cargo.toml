@@ -8,7 +8,12 @@ license = "MIT OR Apache-2.0"
 description = "Inspector plugin for the bevy game engine"
 documentation = "https://docs.rs/bevy-inspector-egui"
 keywords = ["bevy", "inspector", "egui", "editor", "reflect"]
-categories = ["game-development", "gui", "visualization", "development-tools::procedural-macro-helpers"]
+categories = [
+    "game-development",
+    "gui",
+    "visualization",
+    "development-tools::procedural-macro-helpers",
+]
 
 [features]
 default = ["bevy_pbr"]
@@ -16,23 +21,23 @@ highlight_changes = []
 
 [dependencies]
 bevy-inspector-egui-derive = { version = "0.18.0", path = "../bevy-inspector-egui-derive" }
-bevy_app = { version = "0.10" }
-bevy_asset = { version = "0.10" }
-bevy_core = { version = "0.10" }
-bevy_ecs = { version = "0.10" }
-bevy_hierarchy = { version = "0.10" }
-bevy_log = { version = "0.10" }
-bevy_math = { version = "0.10" }
-bevy_reflect = { version = "0.10" }
-bevy_utils = { version = "0.10" }
-bevy_window = { version = "0.10" }
+bevy_app = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy_asset = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy_core = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy_ecs = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy_hierarchy = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy_log = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy_math = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy_reflect = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy_utils = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy_window = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
 
-bevy_core_pipeline = { version = "0.10" }
-bevy_pbr = { version = "0.10", optional = true }
-bevy_render = { version = "0.10" }
+bevy_core_pipeline = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy_pbr = { git = "https://github.com/bevyengine/bevy.git", branch = "main", optional = true }
+bevy_render = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
 
 egui = "0.21"
-bevy_egui = "0.20"
+bevy_egui = { git = "https://github.com/Vrixyz/bevy_egui.git", branch = "bevy-main" }
 
 image = { version = "0.24", default-features = false }
 once_cell = "1.16"
@@ -40,7 +45,15 @@ pretty-type-name = "1.0"
 smallvec = "1.10"
 
 [dev-dependencies]
-bevy = { version = "0.10", default-features = false, features = ["x11", "bevy_winit", "bevy_pbr", "bevy_sprite", "bevy_core_pipeline", "animation", "png"] }
+bevy = { git = "https://github.com/bevyengine/bevy.git", branch = "main", default-features = false, features = [
+    "x11",
+    "bevy_winit",
+    "bevy_pbr",
+    "bevy_sprite",
+    "bevy_core_pipeline",
+    "animation",
+    "png",
+] }
 egui_dock = "0.4"
 egui-gizmo = "0.10"
 # bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }

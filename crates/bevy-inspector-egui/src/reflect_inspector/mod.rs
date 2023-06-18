@@ -366,13 +366,6 @@ impl InspectorUi<'_, '_> {
             }
             TypeInfo::Enum(info) => self.ui_for_enum_many(info, ui, id, options, values, projector),
             TypeInfo::Value(info) => self.ui_for_value_many(info, ui, id, options),
-            TypeInfo::Dynamic(_) => {
-                errors::no_multiedit(
-                    ui,
-                    &pretty_type_name::pretty_type_name_str(info.type_name()),
-                );
-                false
-            }
         }
     }
 }
@@ -654,7 +647,7 @@ impl InspectorUi<'_, '_> {
                 }
             }
 
-            let TypeInfo::List(info) = list.get_type_info() else { return };
+            let Some(TypeInfo::List(info)) = list.get_represented_type_info() else { return };
             let error_id = id.with("error");
 
             ui.vertical_centered_justified(|ui| {
@@ -894,7 +887,10 @@ impl InspectorUi<'_, '_> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
-        let type_info = value.get_type_info();
+        let Some(type_info) = value.get_represented_type_info() else {
+            ui.label("Unrepresentable");
+            return false;
+        };
         let type_info = match type_info {
             TypeInfo::Enum(info) => info,
             _ => unreachable!("invalid reflect impl: type info mismatch"),
@@ -1256,7 +1252,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             }
             VariantInfo::Unit(_) => DynamicVariant::Unit,
         };
-        let dynamic_enum = DynamicEnum::new(enum_type_name, variant.name(), dynamic_variant);
+        let dynamic_enum = DynamicEnum::new(variant.name(), dynamic_variant);
         Ok(dynamic_enum)
     }
 }
