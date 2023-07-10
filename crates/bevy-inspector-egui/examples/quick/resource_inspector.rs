@@ -14,7 +14,7 @@ struct Configuration {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(
+        .add_plugins(
             ResourceInspectorPlugin::<Configuration>::default()
                 .run_if(input_toggle_active(true, KeyCode::Escape)),
         )

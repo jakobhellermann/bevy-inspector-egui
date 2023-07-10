@@ -4,7 +4,7 @@ use bevy_inspector_egui::quick::AssetInspectorPlugin;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(AssetInspectorPlugin::<StandardMaterial>::default())
+        .add_plugins(AssetInspectorPlugin::<StandardMaterial>::default())
         .add_systems(Startup, setup)
         .run();
 }

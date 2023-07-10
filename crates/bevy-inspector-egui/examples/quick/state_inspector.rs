@@ -7,7 +7,7 @@ fn main() {
         .insert_resource(ClearColor(Color::BLACK))
         .add_state::<AppState>()
         .register_type::<AppState>()
-        .add_plugin(StateInspectorPlugin::<AppState>::default())
+        .add_plugins(StateInspectorPlugin::<AppState>::default())
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::A), set_color::<158, 228, 147>)
         .add_systems(OnEnter(AppState::B), set_color::<172, 200, 192>)

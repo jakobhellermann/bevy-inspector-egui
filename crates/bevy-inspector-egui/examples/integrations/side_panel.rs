@@ -8,8 +8,8 @@ use bevy_window::PrimaryWindow;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(EguiPlugin)
-        .add_plugin(DefaultInspectorConfigPlugin)
+        .add_plugins(EguiPlugin)
+        .add_plugins(DefaultInspectorConfigPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, rotator_system)
         .add_systems(
