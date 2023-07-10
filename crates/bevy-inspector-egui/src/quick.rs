@@ -10,7 +10,10 @@ use std::{marker::PhantomData, sync::Mutex};
 
 use bevy_app::{Plugin, Update};
 use bevy_asset::Asset;
-use bevy_ecs::{prelude::*, component::Tick, query::ReadOnlyWorldQuery, schedule::BoxedCondition, system::ReadOnlySystem, world::unsafe_world_cell::UnsafeWorldCell};
+use bevy_ecs::{
+    component::Tick, prelude::*, query::ReadOnlyWorldQuery, schedule::BoxedCondition,
+    system::ReadOnlySystem, world::unsafe_world_cell::UnsafeWorldCell,
+};
 use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_reflect::Reflect;
 use bevy_window::PrimaryWindow;
@@ -467,11 +470,7 @@ impl System for BoxedConditionHelper {
     fn is_exclusive(&self) -> bool {
         self.0.is_exclusive()
     }
-    unsafe fn run_unsafe(
-        &mut self,
-        input: Self::In,
-        world: UnsafeWorldCell,
-    ) -> Self::Out {
+    unsafe fn run_unsafe(&mut self, input: Self::In, world: UnsafeWorldCell) -> Self::Out {
         // SAFETY: same as this method
         unsafe { self.0.run_unsafe(input, world) }
     }
@@ -484,10 +483,7 @@ impl System for BoxedConditionHelper {
         self.0.initialize(_world)
     }
 
-    fn update_archetype_component_access(
-        &mut self,
-        world: UnsafeWorldCell,
-    ) {
+    fn update_archetype_component_access(&mut self, world: UnsafeWorldCell) {
         self.0.update_archetype_component_access(world)
     }
     fn check_change_tick(&mut self, change_tick: Tick) {
