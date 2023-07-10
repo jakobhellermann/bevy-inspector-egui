@@ -1219,7 +1219,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         &mut self,
         variant: &VariantInfo,
         ui: &mut egui::Ui,
-        enum_type_name: &'static str,
+        _enum_type_name: &'static str,
     ) -> Result<DynamicEnum, ()> {
         let dynamic_variant = match variant {
             VariantInfo::Struct(struct_info) => {
