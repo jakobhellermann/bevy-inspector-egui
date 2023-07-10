@@ -21,8 +21,8 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         // .add_plugin(bevy_framepace::FramepacePlugin) // reduces input lag
-        .add_plugin(DefaultInspectorConfigPlugin)
-        .add_plugin(bevy_egui::EguiPlugin)
+        .add_plugins(DefaultInspectorConfigPlugin)
+        .add_plugins(bevy_egui::EguiPlugin)
         // .add_plugins(bevy_mod_picking::plugins::DefaultPickingPlugins)
         .insert_resource(UiState::new())
         .add_systems(Startup, setup)

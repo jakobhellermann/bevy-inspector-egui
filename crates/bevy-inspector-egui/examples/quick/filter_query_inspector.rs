@@ -4,7 +4,7 @@ use bevy_inspector_egui::quick::FilterQueryInspectorPlugin;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(FilterQueryInspectorPlugin::<With<Transform>>::default())
+        .add_plugins(FilterQueryInspectorPlugin::<With<Transform>>::default())
         .add_systems(Startup, setup)
         .run();
 }

@@ -17,8 +17,8 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         // if you don't use the `quick` plugins you need to add the `EguiPlugin` and the default inspector settings yourself
-        .add_plugin(EguiPlugin)
-        .add_plugin(DefaultInspectorConfigPlugin)
+        .add_plugins(EguiPlugin)
+        .add_plugins(DefaultInspectorConfigPlugin)
         // insert and register resource
         .init_resource::<Configuration>()
         .register_type::<Configuration>()

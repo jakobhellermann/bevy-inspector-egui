@@ -54,8 +54,8 @@ struct UiData {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(DefaultInspectorConfigPlugin)
-        .add_plugin(bevy_egui::EguiPlugin)
+        .add_plugins(DefaultInspectorConfigPlugin)
+        .add_plugins(bevy_egui::EguiPlugin)
         // types need to be registered
         .init_resource::<UiData>()
         .register_type::<Config>()
