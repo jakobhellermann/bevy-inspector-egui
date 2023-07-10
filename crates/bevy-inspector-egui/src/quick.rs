@@ -11,11 +11,7 @@ use std::{marker::PhantomData, sync::Mutex};
 use bevy_app::{Plugin, Update};
 use bevy_asset::Asset;
 use bevy_ecs::prelude::*;
-use bevy_ecs::{
-    query::ReadOnlyWorldQuery,
-    schedule::BoxedCondition,
-    system::ReadOnlySystem,
-};
+use bevy_ecs::{query::ReadOnlyWorldQuery, schedule::BoxedCondition, system::ReadOnlySystem};
 use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_reflect::Reflect;
 use bevy_window::PrimaryWindow;
