@@ -1103,7 +1103,7 @@ impl InspectorUi<'_, '_> {
 
                             if variant_label_response.clicked() {
                                 if let Ok(dynamic_enum) =
-                                    self.construct_default_variant(variant, ui, info.type_name())
+                                    self.construct_default_variant(variant, ui)
                                 {
                                     changed_variant = Some((i, dynamic_enum));
                                 };
@@ -1219,7 +1219,6 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         &mut self,
         variant: &VariantInfo,
         ui: &mut egui::Ui,
-        _enum_type_name: &'static str,
     ) -> Result<DynamicEnum, ()> {
         let dynamic_variant = match variant {
             VariantInfo::Struct(struct_info) => {
