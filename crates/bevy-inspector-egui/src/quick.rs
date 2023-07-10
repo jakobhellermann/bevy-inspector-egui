@@ -10,8 +10,7 @@ use std::{marker::PhantomData, sync::Mutex};
 
 use bevy_app::{Plugin, Update};
 use bevy_asset::Asset;
-use bevy_ecs::prelude::*;
-use bevy_ecs::{query::ReadOnlyWorldQuery, schedule::BoxedCondition, system::ReadOnlySystem};
+use bevy_ecs::{prelude::*, component::Tick, query::ReadOnlyWorldQuery, schedule::BoxedCondition, system::ReadOnlySystem, world::unsafe_world_cell::UnsafeWorldCell};
 use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_reflect::Reflect;
 use bevy_window::PrimaryWindow;
@@ -471,7 +470,7 @@ impl System for BoxedConditionHelper {
     unsafe fn run_unsafe(
         &mut self,
         input: Self::In,
-        world: bevy_ecs::world::unsafe_world_cell::UnsafeWorldCell,
+        world: UnsafeWorldCell,
     ) -> Self::Out {
         // SAFETY: same as this method
         unsafe { self.0.run_unsafe(input, world) }
@@ -487,17 +486,17 @@ impl System for BoxedConditionHelper {
 
     fn update_archetype_component_access(
         &mut self,
-        world: bevy_ecs::world::unsafe_world_cell::UnsafeWorldCell,
+        world: UnsafeWorldCell,
     ) {
         self.0.update_archetype_component_access(world)
     }
-    fn check_change_tick(&mut self, change_tick: bevy_ecs::component::Tick) {
+    fn check_change_tick(&mut self, change_tick: Tick) {
         self.0.check_change_tick(change_tick)
     }
-    fn get_last_run(&self) -> bevy_ecs::component::Tick {
+    fn get_last_run(&self) -> Tick {
         self.0.get_last_run()
     }
-    fn set_last_run(&mut self, last_run: bevy_ecs::component::Tick) {
+    fn set_last_run(&mut self, last_run: Tick) {
         self.0.set_last_run(last_run)
     }
 }
