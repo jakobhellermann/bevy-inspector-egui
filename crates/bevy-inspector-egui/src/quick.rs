@@ -12,7 +12,8 @@ use bevy_app::{Plugin, Update};
 use bevy_asset::Asset;
 use bevy_ecs::prelude::*;
 use bevy_ecs::{
-    query::ReadOnlyWorldQuery, schedule::BoxedCondition, schedule::IntoSystemSetConfig,
+    query::ReadOnlyWorldQuery,
+    schedule::BoxedCondition,
     system::ReadOnlySystem,
 };
 use bevy_egui::{EguiContext, EguiPlugin};
@@ -62,10 +63,10 @@ impl WorldInspectorPlugin {
 impl Plugin for WorldInspectorPlugin {
     fn build(&self, app: &mut bevy_app::App) {
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
-            app.add_plugin(DefaultInspectorConfigPlugin);
+            app.add_plugins(DefaultInspectorConfigPlugin);
         }
         if !app.is_plugin_added::<EguiPlugin>() {
-            app.add_plugin(EguiPlugin);
+            app.add_plugins(EguiPlugin);
         }
 
         let condition = self.condition.lock().unwrap().take();
@@ -156,10 +157,10 @@ impl<T> ResourceInspectorPlugin<T> {
 impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
     fn build(&self, app: &mut bevy_app::App) {
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
-            app.add_plugin(DefaultInspectorConfigPlugin);
+            app.add_plugins(DefaultInspectorConfigPlugin);
         }
         if !app.is_plugin_added::<EguiPlugin>() {
-            app.add_plugin(EguiPlugin);
+            app.add_plugins(EguiPlugin);
         }
 
         let condition = self.condition.lock().unwrap().take();
@@ -247,10 +248,10 @@ impl<T> StateInspectorPlugin<T> {
 impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
     fn build(&self, app: &mut bevy_app::App) {
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
-            app.add_plugin(DefaultInspectorConfigPlugin);
+            app.add_plugins(DefaultInspectorConfigPlugin);
         }
         if !app.is_plugin_added::<EguiPlugin>() {
-            app.add_plugin(EguiPlugin);
+            app.add_plugins(EguiPlugin);
         }
 
         let condition = self.condition.lock().unwrap().take();
@@ -327,10 +328,10 @@ impl<A> AssetInspectorPlugin<A> {
 impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
     fn build(&self, app: &mut bevy_app::App) {
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
-            app.add_plugin(DefaultInspectorConfigPlugin);
+            app.add_plugins(DefaultInspectorConfigPlugin);
         }
         if !app.is_plugin_added::<EguiPlugin>() {
-            app.add_plugin(EguiPlugin);
+            app.add_plugins(EguiPlugin);
         }
 
         let condition = self.condition.lock().unwrap().take();
@@ -405,10 +406,10 @@ where
 {
     fn build(&self, app: &mut bevy_app::App) {
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
-            app.add_plugin(DefaultInspectorConfigPlugin);
+            app.add_plugins(DefaultInspectorConfigPlugin);
         }
         if !app.is_plugin_added::<EguiPlugin>() {
-            app.add_plugin(EguiPlugin);
+            app.add_plugins(EguiPlugin);
         }
 
         let condition: Option<Box<dyn ReadOnlySystem<In = (), Out = bool>>> =

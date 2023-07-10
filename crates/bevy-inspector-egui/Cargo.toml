@@ -20,21 +20,21 @@ default = ["bevy_pbr"]
 highlight_changes = []
 
 [dependencies]
-bevy-inspector-egui-derive = { version = "0.18.0", path = "../bevy-inspector-egui-derive" }
-bevy_app = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
-bevy_asset = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
-bevy_core = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
-bevy_ecs = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
-bevy_hierarchy = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
-bevy_log = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
-bevy_math = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
-bevy_reflect = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
-bevy_utils = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
-bevy_window = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy-inspector-egui-derive = { version = "0.18.1", path = "../bevy-inspector-egui-derive" }
+bevy_app = { version = "0.11" }
+bevy_asset = { version = "0.11" }
+bevy_core = { version = "0.11" }
+bevy_ecs = { version = "0.11" }
+bevy_hierarchy = { version = "0.11" }
+bevy_log = { version = "0.11" }
+bevy_math = { version = "0.11" }
+bevy_reflect = { version = "0.11" }
+bevy_utils = { version = "0.11" }
+bevy_window = { version = "0.11" }
 
-bevy_core_pipeline = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
-bevy_pbr = { git = "https://github.com/bevyengine/bevy.git", branch = "main", optional = true }
-bevy_render = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy_core_pipeline = { version = "0.11" }
+bevy_pbr = { version = "0.11", optional = true }
+bevy_render = { version = "0.11" }
 
 egui = "0.21"
 bevy_egui = { git = "https://github.com/Vrixyz/bevy_egui.git", branch = "bevy-main" }
@@ -45,7 +45,7 @@ pretty-type-name = "1.0"
 smallvec = "1.10"
 
 [dev-dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", branch = "main", default-features = false, features = [
+bevy = { version = "0.11", default-features = false, features = [
     "x11",
     "bevy_winit",
     "bevy_pbr",
