@@ -168,10 +168,7 @@ impl UiState {
             gizmo_mode: self.gizmo_mode,
         };
         egui_dock::DockArea::new(&mut self.tree)
-            .style(egui_dock::Style {
-                tab_bar_background_color: ctx.style().visuals.window_fill(),
-                ..egui_dock::Style::from_egui(ctx.style().as_ref())
-            })
+            .style(egui_dock::Style::from_egui(ctx.style().as_ref()))
             .show(ctx, &mut tab_viewer);
     }
 }
@@ -196,7 +193,7 @@ struct TabViewer<'a> {
 impl egui_dock::TabViewer for TabViewer<'_> {
     type Tab = EguiWindow;
 
-    fn ui(&mut self, ui: &mut egui::Ui, window: &mut Self::Tab) {
+    fn ui(&mut self, ui: &mut egui_dock::egui::Ui, window: &mut Self::Tab) {
         let type_registry = self.world.resource::<AppTypeRegistry>().0.clone();
         let type_registry = type_registry.read();
 
@@ -243,7 +240,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         }
     }
 
-    fn title(&mut self, window: &mut Self::Tab) -> egui::WidgetText {
+    fn title(&mut self, window: &mut Self::Tab) -> egui_dock::egui::WidgetText {
         format!("{window:?}").into()
     }
 
