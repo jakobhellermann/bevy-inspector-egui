@@ -14,8 +14,8 @@ use bevy_egui::EguiSet;
 use bevy_reflect::TypeRegistry;
 use bevy_render::camera::{CameraProjection, Viewport};
 use bevy_window::PrimaryWindow;
-use egui_dock::{NodeIndex, Tree};
-use egui_gizmo::GizmoMode;
+use egui_dock::{DockArea, NodeIndex, Style, Tree};
+use egui_gizmo::{Gizmo, GizmoMode, GizmoOrientation};
 
 fn main() {
     App::new()
@@ -167,8 +167,8 @@ impl UiState {
             selection: &mut self.selection,
             gizmo_mode: self.gizmo_mode,
         };
-        egui_dock::DockArea::new(&mut self.tree)
-            .style(egui_dock::Style::from_egui(ctx.style().as_ref()))
+        DockArea::new(&mut self.tree)
+            .style(Style::from_egui(ctx.style().as_ref()))
             .show(ctx, &mut tab_viewer);
     }
 }
@@ -269,11 +269,11 @@ fn draw_gizmo(
         let Some(transform) = world.get::<Transform>(selected) else { continue };
         let model_matrix = transform.compute_matrix();
 
-        let Some(result) = egui_gizmo::Gizmo::new(selected)
+        let Some(result) = Gizmo::new(selected)
                     .model_matrix(model_matrix.to_cols_array_2d())
                     .view_matrix(view_matrix.to_cols_array_2d())
                     .projection_matrix(projection_matrix.to_cols_array_2d())
-                    .orientation(egui_gizmo::GizmoOrientation::Local)
+                    .orientation(GizmoOrientation::Local)
                     .mode(gizmo_mode)
                     .interact(ui)
                 else { continue };
