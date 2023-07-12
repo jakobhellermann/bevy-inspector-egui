@@ -82,7 +82,10 @@ struct MainCamera;
 fn show_ui_system(world: &mut World) {
     let Ok(egui_context) = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world) else { return };
+        .get_single(world)
+    else {
+        return;
+    };
     let mut egui_context = egui_context.clone();
 
     world.resource_scope::<UiState, _>(|world, mut ui_state| {
@@ -99,7 +102,9 @@ fn set_camera_viewport(
 ) {
     let mut cam = cameras.single_mut();
 
-    let Ok(window) = primary_window.get_single() else { return };
+    let Ok(window) = primary_window.get_single() else {
+        return;
+    };
 
     let scale_factor = window.scale_factor() * egui_settings.scale_factor;
 
@@ -266,17 +271,21 @@ fn draw_gizmo(
     }
 
     for selected in selected_entities.iter() {
-        let Some(transform) = world.get::<Transform>(selected) else { continue };
+        let Some(transform) = world.get::<Transform>(selected) else {
+            continue;
+        };
         let model_matrix = transform.compute_matrix();
 
         let Some(result) = Gizmo::new(selected)
-                    .model_matrix(model_matrix.to_cols_array_2d())
-                    .view_matrix(view_matrix.to_cols_array_2d())
-                    .projection_matrix(projection_matrix.to_cols_array_2d())
-                    .orientation(GizmoOrientation::Local)
-                    .mode(gizmo_mode)
-                    .interact(ui)
-                else { continue };
+            .model_matrix(model_matrix.to_cols_array_2d())
+            .view_matrix(view_matrix.to_cols_array_2d())
+            .projection_matrix(projection_matrix.to_cols_array_2d())
+            .orientation(GizmoOrientation::Local)
+            .mode(gizmo_mode)
+            .interact(ui)
+        else {
+            continue;
+        };
 
         let mut transform = world.get_mut::<Transform>(selected).unwrap();
         *transform = Transform {

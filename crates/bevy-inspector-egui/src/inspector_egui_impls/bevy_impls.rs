@@ -31,7 +31,11 @@ pub fn entity_ui(
             ui.label(format!("{entity:?}"));
         }
         EntityDisplay::Components => {
-            let Context { world: Some(world), queue } = &mut env.context else {
+            let Context {
+                world: Some(world),
+                queue,
+            } = &mut env.context
+            else {
                 no_world_in_context(ui, "Entity");
                 return false;
             };

@@ -227,7 +227,9 @@ where
 }
 
 pub(crate) fn iter_all_eq<T: Copy + PartialEq>(mut iter: impl Iterator<Item = T>) -> Option<T> {
-    let Some(first) = iter.next() else { return None };
+    let Some(first) = iter.next() else {
+        return None;
+    };
 
     iter.all(|elem| elem == first).then_some(first)
 }

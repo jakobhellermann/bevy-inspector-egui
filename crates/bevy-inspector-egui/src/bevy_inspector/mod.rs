@@ -116,7 +116,9 @@ pub fn ui_for_resource<R: Resource + Reflect>(world: &mut World, ui: &mut egui::
     let type_registry = type_registry.read();
 
     // create a context with access to the world except for the `R` resource
-    let Some((mut resource, world_view)) = RestrictedWorldView::new(world).split_off_resource_typed::<R>() else {
+    let Some((mut resource, world_view)) =
+        RestrictedWorldView::new(world).split_off_resource_typed::<R>()
+    else {
         errors::resource_does_not_exist(ui, &pretty_type_name::<R>());
         return;
     };
@@ -158,7 +160,9 @@ pub fn ui_for_assets<A: Asset + Reflect>(world: &mut World, ui: &mut egui::Ui) {
     let type_registry = type_registry.read();
 
     // create a context with access to the world except for the `R` resource
-    let Some((mut assets, world_view)) = RestrictedWorldView::new(world).split_off_resource_typed::<Assets<A>>() else {
+    let Some((mut assets, world_view)) =
+        RestrictedWorldView::new(world).split_off_resource_typed::<Assets<A>>()
+    else {
         errors::resource_does_not_exist(ui, &pretty_type_name::<Assets<A>>());
         return;
     };
@@ -190,11 +194,14 @@ pub fn ui_for_state<T: States + Reflect>(world: &mut World, ui: &mut egui::Ui) {
     let type_registry = type_registry.read();
 
     // create a context with access to the world except for the `State<T>` resource
-    let Some((state, world_view)) = RestrictedWorldView::new(world).split_off_resource_typed::<State<T>>() else {
+    let Some((state, world_view)) =
+        RestrictedWorldView::new(world).split_off_resource_typed::<State<T>>()
+    else {
         errors::state_does_not_exist(ui, &pretty_type_name::<T>());
         return;
     };
-    let Some((mut next_state, world_view)) = world_view.split_off_resource_typed::<NextState<T>>() else {
+    let Some((mut next_state, world_view)) = world_view.split_off_resource_typed::<NextState<T>>()
+    else {
         errors::state_does_not_exist(ui, &pretty_type_name::<T>());
         return;
     };
@@ -451,7 +458,9 @@ pub fn ui_for_entities_shared_components(
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
-    let Some(&first) = entities.first() else { return };
+    let Some(&first) = entities.first() else {
+        return;
+    };
 
     let Some(mut components) = components_of_entity(&mut world.into(), first) else {
         return errors::entity_does_not_exist(ui, first);
@@ -590,13 +599,26 @@ pub mod by_type_id {
         type_registry: &TypeRegistry,
     ) {
         let Some(registration) = type_registry.get(asset_type_id) else {
-            return crate::reflect_inspector::errors::not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
+            return crate::reflect_inspector::errors::not_in_type_registry(
+                ui,
+                &name_of_type(asset_type_id, type_registry),
+            );
         };
         let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
-            return errors::no_type_data(ui, &name_of_type(asset_type_id, type_registry), "ReflectAsset");
+            return errors::no_type_data(
+                ui,
+                &name_of_type(asset_type_id, type_registry),
+                "ReflectAsset",
+            );
         };
-        let Some(reflect_handle) = type_registry.get_type_data::<ReflectHandle>(reflect_asset.handle_type_id()) else {
-            return errors::no_type_data(ui, &name_of_type(reflect_asset.handle_type_id(), type_registry), "ReflectHandle");
+        let Some(reflect_handle) =
+            type_registry.get_type_data::<ReflectHandle>(reflect_asset.handle_type_id())
+        else {
+            return errors::no_type_data(
+                ui,
+                &name_of_type(reflect_asset.handle_type_id(), type_registry),
+                "ReflectHandle",
+            );
         };
 
         let mut ids: Vec<_> = reflect_asset.ids(world).collect();
@@ -635,13 +657,26 @@ pub mod by_type_id {
         type_registry: &TypeRegistry,
     ) {
         let Some(registration) = type_registry.get(asset_type_id) else {
-            return crate::reflect_inspector::errors::not_in_type_registry(ui, &name_of_type(asset_type_id, type_registry));
+            return crate::reflect_inspector::errors::not_in_type_registry(
+                ui,
+                &name_of_type(asset_type_id, type_registry),
+            );
         };
         let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
-            return errors::no_type_data(ui, &name_of_type(asset_type_id, type_registry), "ReflectAsset");
+            return errors::no_type_data(
+                ui,
+                &name_of_type(asset_type_id, type_registry),
+                "ReflectAsset",
+            );
         };
-        let Some(reflect_handle) = type_registry.get_type_data::<ReflectHandle>(reflect_asset.handle_type_id()) else {
-            return errors::no_type_data(ui, &name_of_type(reflect_asset.handle_type_id(), type_registry), "ReflectHandle");
+        let Some(reflect_handle) =
+            type_registry.get_type_data::<ReflectHandle>(reflect_asset.handle_type_id())
+        else {
+            return errors::no_type_data(
+                ui,
+                &name_of_type(reflect_asset.handle_type_id(), type_registry),
+                "ReflectHandle",
+            );
         };
 
         let mut ids: Vec<_> = reflect_asset.ids(world).collect();
@@ -709,14 +744,22 @@ pub mod short_circuit {
                 .unwrap();
             let handle_id = handle.id();
             let Some(reflect_asset) = env
-            .type_registry
-            .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
+                .type_registry
+                .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
             else {
-                errors::no_type_data(ui, &name_of_type(reflect_handle.asset_type_id(), env.type_registry), "ReflectAsset");
+                errors::no_type_data(
+                    ui,
+                    &name_of_type(reflect_handle.asset_type_id(), env.type_registry),
+                    "ReflectAsset",
+                );
                 return Some(false);
             };
 
-            let Context { world: Some(world), queue } = &mut env.context else {
+            let Context {
+                world: Some(world),
+                queue,
+            } = &mut env.context
+            else {
                 errors::no_world_in_context(ui, value.type_name());
                 return Some(false);
             };
@@ -779,11 +822,19 @@ pub mod short_circuit {
                 .type_registry
                 .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
             else {
-                errors::no_type_data(ui, &name_of_type(reflect_handle.asset_type_id(), env.type_registry), "ReflectAsset");
+                errors::no_type_data(
+                    ui,
+                    &name_of_type(reflect_handle.asset_type_id(), env.type_registry),
+                    "ReflectAsset",
+                );
                 return Some(false);
             };
 
-            let Context { world: Some(world), queue } = &mut env.context else {
+            let Context {
+                world: Some(world),
+                queue,
+            } = &mut env.context
+            else {
                 errors::no_world_in_context(ui, type_name);
                 return Some(false);
             };
@@ -864,14 +915,22 @@ pub mod short_circuit {
                 .unwrap();
             let handle_id = handle.id();
             let Some(reflect_asset) = env
-            .type_registry
-            .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
+                .type_registry
+                .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
             else {
-                errors::no_type_data(ui, &name_of_type(reflect_handle.asset_type_id(), env.type_registry), "ReflectAsset");
+                errors::no_type_data(
+                    ui,
+                    &name_of_type(reflect_handle.asset_type_id(), env.type_registry),
+                    "ReflectAsset",
+                );
                 return Some(());
             };
 
-            let Context { world: Some(world), queue } = &mut env.context else {
+            let Context {
+                world: Some(world),
+                queue,
+            } = &mut env.context
+            else {
                 errors::no_world_in_context(ui, value.type_name());
                 return Some(());
             };

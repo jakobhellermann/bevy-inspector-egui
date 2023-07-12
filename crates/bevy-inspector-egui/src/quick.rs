@@ -81,7 +81,9 @@ fn world_inspector_ui(world: &mut World) {
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world);
 
-    let Ok(egui_context) = egui_context else {return;};
+    let Ok(egui_context) = egui_context else {
+        return;
+    };
     let mut egui_context = egui_context.clone();
 
     egui::Window::new("World Inspector")
@@ -175,7 +177,9 @@ fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world);
 
-    let Ok(egui_context) = egui_context else {return;};
+    let Ok(egui_context) = egui_context else {
+        return;
+    };
     let mut egui_context = egui_context.clone();
 
     egui::Window::new(pretty_type_name::<T>())
@@ -266,7 +270,9 @@ fn state_ui<T: States + Reflect>(world: &mut World) {
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world);
 
-    let Ok(egui_context) = egui_context else {return;};
+    let Ok(egui_context) = egui_context else {
+        return;
+    };
     let mut egui_context = egui_context.clone();
 
     egui::Window::new(std::any::type_name::<T>())
@@ -346,7 +352,9 @@ fn asset_inspector_ui<A: Asset + Reflect>(world: &mut World) {
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world);
 
-    let Ok(egui_context) = egui_context else {return;};
+    let Ok(egui_context) = egui_context else {
+        return;
+    };
     let mut egui_context = egui_context.clone();
 
     egui::Window::new(pretty_type_name::<A>())
@@ -425,7 +433,9 @@ fn entity_query_ui<F: ReadOnlyWorldQuery>(world: &mut World) {
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world);
 
-    let Ok(egui_context) = egui_context else {return;};
+    let Ok(egui_context) = egui_context else {
+        return;
+    };
     let mut egui_context = egui_context.clone();
 
     egui::Window::new(pretty_type_name::<F>())

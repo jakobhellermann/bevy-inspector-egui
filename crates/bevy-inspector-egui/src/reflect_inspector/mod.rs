@@ -647,7 +647,9 @@ impl InspectorUi<'_, '_> {
                 }
             }
 
-            let Some(TypeInfo::List(info)) = list.get_represented_type_info() else { return };
+            let Some(TypeInfo::List(info)) = list.get_represented_type_info() else {
+                return;
+            };
             let error_id = id.with("error");
 
             ui.vertical_centered_justified(|ui| {
