@@ -127,8 +127,6 @@ Ideally this should be runtime-configurable, but it was implemented like this as
 
 ## Bevy support table
 
-## Bevy support table
-
 | bevy    | bevy-inspector-egui |
 | ------- | ------------------- |
 | 0.11    | 0.19                |
