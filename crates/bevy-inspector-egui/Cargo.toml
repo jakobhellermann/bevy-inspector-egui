@@ -88,6 +88,10 @@ name = "world_inspector"
 path = "examples/quick/world_inspector.rs"
 
 [[example]]
+name = "world_inspector_mouse_check"
+path = "examples/quick/world_inspector_mouse_check.rs"
+
+[[example]]
 name = "world_inspector_assets"
 path = "examples/quick/world_inspector_assets.rs"
 
