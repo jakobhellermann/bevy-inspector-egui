@@ -1,7 +1,19 @@
+use bevy_app::{App, Plugin, PreUpdate, Startup};
 use bevy_ecs::prelude::*;
 use bevy_egui::EguiContexts;
 use bevy_log::error;
 use bevy_window::PrimaryWindow;
+
+#[derive(Default)]
+pub struct EguiMouseCheck;
+
+impl Plugin for EguiMouseCheck {
+    fn build(&self, app: &mut App) {
+        app.init_resource::<EguiMousePointerCheck>()
+            .add_systems(Startup, initialize_egui_mouse_check)
+            .add_systems(PreUpdate, update_egui_mouse_check);
+    }
+}
 
 #[derive(Resource)]
 pub struct EguiMousePointerCheck {
@@ -40,6 +52,6 @@ pub fn update_egui_mouse_check(
     }
 }
 
-pub fn mouse_pointer_valid() -> impl FnMut(Res<EguiMousePointerCheck>) -> bool + Clone {
+pub fn mouse_pointer_valid() -> impl Fn(Res<EguiMousePointerCheck>) -> bool + Clone {
     move |egui_mouse_check: Res<EguiMousePointerCheck>| egui_mouse_check.pointer_is_valid
 }

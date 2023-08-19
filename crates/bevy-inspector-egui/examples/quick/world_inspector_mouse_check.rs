@@ -7,15 +7,11 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(
+        .add_plugins((
             WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Escape)),
-        )
-        .init_resource::<egui_mouse_check::EguiMousePointerCheck>()
-        .add_systems(
-            Startup,
-            (setup, egui_mouse_check::initialize_egui_mouse_check),
-        )
-        .add_systems(PreUpdate, egui_mouse_check::update_egui_mouse_check)
+            egui_mouse_check::EguiMouseCheck::default(),
+        ))
+        .add_systems(Startup, setup)
         .add_systems(
             Update,
             (camera_pan, camera_zoom).run_if(egui_mouse_check::mouse_pointer_valid()),
