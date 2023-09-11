@@ -655,28 +655,31 @@ pub mod by_type_id {
         handle: HandleId,
         ui: &mut egui::Ui,
         type_registry: &TypeRegistry,
-    ) {
+    ) -> bool {
         let Some(registration) = type_registry.get(asset_type_id) else {
-            return crate::reflect_inspector::errors::not_in_type_registry(
+            crate::reflect_inspector::errors::not_in_type_registry(
                 ui,
                 &name_of_type(asset_type_id, type_registry),
             );
+            return false;
         };
         let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
-            return errors::no_type_data(
+            errors::no_type_data(
                 ui,
                 &name_of_type(asset_type_id, type_registry),
                 "ReflectAsset",
             );
+            return false;
         };
         let Some(reflect_handle) =
             type_registry.get_type_data::<ReflectHandle>(reflect_asset.handle_type_id())
         else {
-            return errors::no_type_data(
+            errors::no_type_data(
                 ui,
                 &name_of_type(reflect_asset.handle_type_id(), type_registry),
                 "ReflectHandle",
             );
+            return false;
         };
 
         let mut ids: Vec<_> = reflect_asset.ids(world).collect();
@@ -695,9 +698,11 @@ pub mod by_type_id {
         let mut handle = reflect_handle.typed(HandleUntyped::weak(handle));
 
         let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
-        env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
+        let changed = env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
 
         queue.apply(world);
+
+        return changed;
     }
 }
 
