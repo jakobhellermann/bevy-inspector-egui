@@ -36,7 +36,7 @@ const DEFAULT_SIZE: (f32, f32) = (320., 160.);
 /// fn main() {
 ///     App::new()
 ///         .add_plugins(DefaultPlugins)
-///         .add_plugin(WorldInspectorPlugin::new())
+///         .add_plugins(WorldInspectorPlugin::new())
 ///         .run();
 /// }
 /// ```
@@ -121,9 +121,9 @@ fn world_inspector_ui(world: &mut World) {
 ///         .add_plugins(DefaultPlugins)
 ///         .init_resource::<Configuration>() // `ResourceInspectorPlugin` won't initialize the resource
 ///         .register_type::<Configuration>() // you need to register your type to display it
-///         .add_plugin(ResourceInspectorPlugin::<Configuration>::default())
+///         .add_plugins(ResourceInspectorPlugin::<Configuration>::default())
 ///         // also works with built-in resources, as long as they implement `Reflect`
-///         .add_plugin(ResourceInspectorPlugin::<Time>::default())
+///         .add_plugins(ResourceInspectorPlugin::<Time>::default())
 ///         .run();
 /// }
 /// ```
@@ -209,7 +209,7 @@ fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
 ///         .insert_resource(ClearColor(Color::BLACK))
 ///         .add_state::<AppState>()
 ///         .register_type::<AppState>()
-///         .add_plugin(StateInspectorPlugin::<AppState>::default())
+///         .add_plugins(StateInspectorPlugin::<AppState>::default())
 ///         .run();
 /// }
 ///
@@ -299,7 +299,7 @@ fn state_ui<T: States + Reflect>(world: &mut World) {
 /// fn main() {
 ///     App::new()
 ///         .add_plugins(DefaultPlugins)
-///         .add_plugin(AssetInspectorPlugin::<StandardMaterial>::default())
+///         .add_plugins(AssetInspectorPlugin::<StandardMaterial>::default())
 ///         .run();
 /// }
 /// ```
@@ -376,7 +376,7 @@ fn asset_inspector_ui<A: Asset + Reflect>(world: &mut World) {
 /// fn main() {
 ///     App::new()
 ///         .add_plugins(DefaultPlugins)
-///         .add_plugin(FilterQueryInspectorPlugin::<With<Transform>>::default())
+///         .add_plugins(FilterQueryInspectorPlugin::<With<Transform>>::default())
 ///         .run();
 /// }
 /// ```

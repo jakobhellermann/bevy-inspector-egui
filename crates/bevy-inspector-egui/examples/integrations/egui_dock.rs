@@ -20,7 +20,7 @@ use egui_gizmo::{Gizmo, GizmoMode, GizmoOrientation};
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        // .add_plugin(bevy_framepace::FramepacePlugin) // reduces input lag
+        // .add_plugins(bevy_framepace::FramepacePlugin) // reduces input lag
         .add_plugins(DefaultInspectorConfigPlugin)
         .add_plugins(bevy_egui::EguiPlugin)
         // .add_plugins(bevy_mod_picking::plugins::DefaultPickingPlugins)

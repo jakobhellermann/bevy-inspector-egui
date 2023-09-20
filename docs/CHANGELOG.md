@@ -187,7 +187,7 @@
   When access to the resources is needed, add the plugin like
 
   ```rust
-  add.add_plugin(InspectorPlugin::<T>::thread_local())
+  add.add_plugins(InspectorPlugin::<T>::thread_local())
   ```
 
 - implementations of `Inspectable` for `StandardMaterial` and `Range{,Inclusive}<T>`
