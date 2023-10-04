@@ -59,9 +59,15 @@
 //! }
 //! ```
 
-use crate::inspector_egui_impls::{iter_all_eq, InspectorEguiImpl};
-use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};
-use crate::restricted_world_view::RestrictedWorldView;
+use crate::{egui_utils::up_button, restricted_world_view::RestrictedWorldView};
+use crate::{
+    egui_utils::{add_button, remove_button},
+    inspector_options::{InspectorOptions, ReflectInspectorOptions, Target},
+};
+use crate::{
+    egui_utils::{down_button, label_button},
+    inspector_egui_impls::{iter_all_eq, InspectorEguiImpl},
+};
 use bevy_ecs::system::CommandQueue;
 use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
@@ -370,6 +376,51 @@ impl InspectorUi<'_, '_> {
     }
 }
 
+enum ListOp {
+    AddElement(usize),
+    RemoveElement(usize),
+    MoveElementUp(usize),
+    MoveElementDown(usize),
+}
+
+fn ui_for_empty_list(ui: &mut egui::Ui) -> bool {
+    let mut add = false;
+    ui.vertical_centered(|ui| {
+        ui.label("(Empty list)");
+        if add_button(ui).on_hover_text("Add element").clicked() {
+            add = true;
+        }
+    });
+    add
+}
+
+fn ui_for_list_controls(ui: &mut egui::Ui, index: usize, len: usize) -> Option<ListOp> {
+    use ListOp::*;
+    let mut op = None;
+    // UI for controls
+    ui.horizontal(|ui| {
+        if add_button(ui).on_hover_text("Add element").clicked() {
+            op = Some(AddElement(index));
+        }
+        if remove_button(ui).on_hover_text("Remove element").clicked() {
+            op = Some(RemoveElement(index));
+        }
+        let up_enabled = index > 0;
+        ui.add_enabled_ui(up_enabled, |ui| {
+            if up_button(ui).on_hover_text("Move element up").clicked() {
+                op = Some(MoveElementUp(index));
+            }
+        });
+        let down_enabled = len.checked_sub(1).map(|l| index < l).unwrap_or(false);
+        ui.add_enabled_ui(down_enabled, |ui| {
+            if down_button(ui).on_hover_text("Move element down").clicked() {
+                op = Some(MoveElementDown(index));
+            }
+        });
+    });
+    op
+}
+
 impl InspectorUi<'_, '_> {
     fn ui_for_struct(
         &mut self,
@@ -627,19 +678,32 @@ impl InspectorUi<'_, '_> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
+        use ListOp::*;
         let mut changed = false;
 
         ui.vertical(|ui| {
-            // let mut to_delete = None;
+            let mut op = None;
 
             let len = list.len();
+            // UI for empty list
+            if len == 0 {
+                if ui_for_empty_list(ui) {
+                    op = Some(AddElement(0))
+                }
+            }
             for i in 0..len {
-                let val = list.get_mut(i).unwrap();
-                ui.horizontal(|ui| {
-                    /*if utils::ui::label_button(ui, "✖", egui::Color32::RED) {
-                        to_delete = Some(i);
-                    }*/
-                    changed |= self.ui_for_reflect_with_options(val, ui, id.with(i), options);
+                egui::Grid::new((id, i)).show(ui, |ui| {
+                    ui.label(i.to_string());
+                    let val = list.get_mut(i).unwrap();
+                    ui.horizontal(|ui| {
+                        changed |= self.ui_for_reflect_with_options(val, ui, id.with(i), options);
+                    });
+                    ui.end_row();
+
+                    let item_op = ui_for_list_controls(ui, i, len);
+                    if item_op.is_some() {
+                        op = item_op;
+                    }
                 });
 
                 if i != len - 1 {
@@ -652,22 +716,51 @@ impl InspectorUi<'_, '_> {
             };
             let error_id = id.with("error");
 
-            ui.vertical_centered_justified(|ui| {
-                if ui.button("+").clicked() {
-                    let default = self.get_default_value_for(info.item_type_id()).or_else(|| {
-                        let last = len.checked_sub(1)?;
-                        Some(Reflect::clone_value(list.get(last)?))
-                    });
-
+            // Respond to control interaction
+            match op {
+                None => {}
+                Some(AddElement(i)) => {
+                    let default = self
+                        .get_default_value_for(info.item_type_id())
+                        .or_else(|| list.get(i).map(Reflect::clone_value));
                     if let Some(new_value) = default {
-                        list.push(new_value);
+                        list.insert(i, new_value);
                     } else {
                         ui.data_mut(|data| data.insert_temp::<bool>(error_id, true));
                     }
 
                     changed = true;
                 }
-            });
+                Some(RemoveElement(i)) => {
+                    list.remove(i);
+                    changed = true;
+                }
+                Some(MoveElementUp(i)) => {
+                    if let Some(prev_idx) = i.checked_sub(1) {
+                        // Clone this element and insert it at its index - 1.
+                        if let Some(element) = list.get(i) {
+                            let clone = element.clone_value();
+                            list.insert(prev_idx, clone);
+                        }
+                        // Remove the original, now at its index + 1.
+                        list.remove(i + 1);
+                        changed = true;
+                    }
+                }
+                Some(MoveElementDown(i)) => {
+                    if i + 1 < len {
+                        // Clone the next element and insert it at this index.
+                        if let Some(next_element) = list.get(i + 1) {
+                            let next_clone = next_element.clone_value();
+                            list.insert(i, next_clone);
+                        }
+                        // Remove the original, now at i + 2.
+                        list.remove(i + 2);
+                        changed = true;
+                    }
+                }
+            }
+
             let error = ui.data_mut(|data| *data.get_temp_mut_or_default::<bool>(error_id));
             if error {
                 errors::no_default_value(ui, info.item_type_name());
@@ -675,10 +768,6 @@ impl InspectorUi<'_, '_> {
             if ui.input(|input| input.pointer.any_down()) {
                 ui.data_mut(|data| data.insert_temp::<bool>(error_id, false));
             }
-
-            /*if let Some(_) = to_delete {
-                changed = true;
-            }*/
         });
 
         changed
@@ -715,26 +804,8 @@ impl InspectorUi<'_, '_> {
         values: &mut [&mut dyn Reflect],
         projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
     ) -> bool {
+        use ListOp::*;
         let mut changed = false;
-
-        let add_button = |ui: &mut egui::Ui, values: &mut [&mut dyn Reflect]| {
-            ui.vertical_centered_justified(|ui| {
-                if ui.button("+").clicked() {
-                    for list in values.iter_mut() {
-                        let list = match projector(*list).reflect_mut() {
-                            ReflectMut::List(list) => list,
-                            _ => unreachable!(),
-                        };
-                        let last_element = list.get(list.len() - 1).unwrap().clone_value();
-                        list.push(last_element);
-                    }
-                    true
-                } else {
-                    false
-                }
-            })
-            .inner
-        };
 
         let same_len =
             iter_all_eq(
@@ -746,54 +817,130 @@ impl InspectorUi<'_, '_> {
                     }),
             );
 
-        match same_len {
-            Some(len) => {
-                ui.vertical(|ui| {
-                    // let mut to_delete = None;
+        let Some(len) = same_len else {
+            ui.label("lists have different sizes, cannot multiedit");
+            return changed;
+        };
 
-                    for i in 0..len {
-                        let mut items_at_i: Vec<&mut dyn Reflect> = values
-                            .iter_mut()
-                            .map(|value| match projector(*value).reflect_mut() {
-                                ReflectMut::List(list) => list.get_mut(i).unwrap(),
+        ui.vertical(|ui| {
+            let mut op = None;
+
+            if len == 0 {
+                if ui_for_empty_list(ui) {
+                    op = Some(AddElement(0));
+                }
+            }
+
+            for i in 0..len {
+                let mut items_at_i: Vec<&mut dyn Reflect> = values
+                    .iter_mut()
+                    .map(|value| match projector(*value).reflect_mut() {
+                        ReflectMut::List(list) => list.get_mut(i).unwrap(),
+                        _ => unreachable!(),
+                    })
+                    .collect();
+
+                egui::Grid::new((id, i)).show(ui, |ui| {
+                    ui.label(i.to_string());
+                    ui.horizontal(|ui| {
+                        changed |= self.ui_for_reflect_many_with_options(
+                            info.item_type_id(),
+                            info.item_type_name(),
+                            ui,
+                            id.with(i),
+                            options,
+                            items_at_i.as_mut_slice(),
+                            &|a| a,
+                        );
+                    });
+                    ui.end_row();
+                    let item_op = ui_for_list_controls(ui, i, len);
+                    if item_op.is_some() {
+                        op = item_op;
+                    }
+                });
+
+                if i != len - 1 {
+                    ui.separator();
+                }
+            }
+
+            let error_id = id.with("error");
+            // Respond to control interaction
+            match op {
+                None => {}
+                Some(AddElement(i)) => {
+                    for list in values.iter_mut() {
+                        let list = match projector(*list).reflect_mut() {
+                            ReflectMut::List(list) => list,
+                            _ => unreachable!(),
+                        };
+                        let default = self
+                            .get_default_value_for(info.type_id())
+                            .or_else(|| list.get(i).map(Reflect::clone_value));
+                        if let Some(new_value) = default {
+                            list.insert(i, new_value);
+                        } else {
+                            ui.data_mut(|data| data.insert_temp::<bool>(error_id, true));
+                        }
+                        changed = true;
+                    }
+                }
+                Some(RemoveElement(i)) => {
+                    for list in values.iter_mut() {
+                        let list = match projector(*list).reflect_mut() {
+                            ReflectMut::List(list) => list,
+                            _ => unreachable!(),
+                        };
+                        list.remove(i);
+                        changed = true;
+                    }
+                }
+                Some(MoveElementUp(i)) => {
+                    if let Some(prev_idx) = i.checked_sub(1) {
+                        for list in values.iter_mut() {
+                            let list = match projector(*list).reflect_mut() {
+                                ReflectMut::List(list) => list,
                                 _ => unreachable!(),
-                            })
-                            .collect();
-
-                        ui.horizontal(|ui| {
-                            changed |= self.ui_for_reflect_many_with_options(
-                                info.item_type_id(),
-                                info.item_type_name(),
-                                ui,
-                                id.with(i),
-                                options,
-                                items_at_i.as_mut_slice(),
-                                &|a| a,
-                            );
-
-                            /*if utils::ui::label_button(ui, "✖", egui::Color32::RED) {
-                                to_delete = Some(i);
-                            }*/
-                        });
-
-                        if i != len - 1 {
-                            ui.separator();
+                            };
+                            // Clone this element and insert it at its index - 1.
+                            if let Some(element) = list.get(i) {
+                                let clone = element.clone_value();
+                                list.insert(prev_idx, clone);
+                            }
+                            // Remove the original, now at its index + 1.
+                            list.remove(i + 1);
+                            changed = true;
                         }
                     }
-
-                    if len > 0 {
-                        add_button(ui, values);
+                }
+                Some(MoveElementDown(i)) => {
+                    if i + 1 < len {
+                        for list in values.iter_mut() {
+                            let list = match projector(*list).reflect_mut() {
+                                ReflectMut::List(list) => list,
+                                _ => unreachable!(),
+                            };
+                            // Clone the next element and insert it at this index.
+                            if let Some(next_element) = list.get(i + 1) {
+                                let next_clone = next_element.clone_value();
+                                list.insert(i, next_clone);
+                            }
+                            // Remove the original, now at i + 2.
+                            list.remove(i + 2);
+                            changed = true;
+                        }
                     }
-
-                    /*if let Some(_) = to_delete {
-                        changed = true;
-                    }*/
-                });
+                }
             }
-            None => {
-                ui.label("lists have different sizes, cannot multiedit");
+            let error = ui.data_mut(|data| *data.get_temp_mut_or_default::<bool>(error_id));
+            if error {
+                errors::no_default_value(ui, info.item_type_name());
             }
-        }
+            if ui.input(|input| input.pointer.any_down()) {
+                ui.data_mut(|data| data.insert_temp::<bool>(error_id, false));
+            }
+        });
 
         changed
     }
