@@ -394,7 +394,6 @@ fn ui_for_empty_list(ui: &mut egui::Ui) -> bool {
 fn ui_for_list_controls(ui: &mut egui::Ui, index: usize, len: usize) -> Option<ListOp> {
     use ListOp::*;
     let mut op = None;
-    // UI for controls
     ui.horizontal(|ui| {
         if add_button(ui).on_hover_text("Add element").clicked() {
             op = Some(AddElement(index));
@@ -739,9 +738,7 @@ impl InspectorUi<'_, '_> {
 
         ui.vertical(|ui| {
             let mut op = None;
-
             let len = list.len();
-            // UI for empty list
             if len == 0 {
                 if ui_for_empty_list(ui) {
                     op = Some(AddElement(0))
