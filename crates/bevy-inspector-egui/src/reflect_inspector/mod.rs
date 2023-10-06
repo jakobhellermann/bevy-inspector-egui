@@ -66,7 +66,7 @@ use crate::{
     restricted_world_view::RestrictedWorldView,
 };
 use bevy_ecs::system::CommandQueue;
-use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
+use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct, FromType};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List, ListInfo, Map, Reflect,
     ReflectMut, ReflectRef, Struct, StructInfo, Tuple, TupleInfo, TupleStruct, TupleStructInfo,
@@ -683,11 +683,13 @@ impl InspectorUi<'_, '_> {
             let Some(TypeInfo::List(info)) = list.get_represented_type_info() else {
                 continue;
             };
+            dbg!(info);
             match op {
                 AddElement(i) => {
                     let default = self
-                        .get_default_value_for(info.type_id())
+                        .get_default_value_for(info.item_type_id())
                         .or_else(|| list.get(i).map(Reflect::clone_value));
+                    dbg!(&default);
                     if let Some(new_value) = default {
                         list.insert(i, new_value);
                     } else {
