@@ -683,13 +683,11 @@ impl InspectorUi<'_, '_> {
             let Some(TypeInfo::List(info)) = list.get_represented_type_info() else {
                 continue;
             };
-            dbg!(info);
             match op {
                 AddElement(i) => {
                     let default = self
                         .get_default_value_for(info.item_type_id())
                         .or_else(|| list.get(i).map(Reflect::clone_value));
-                    dbg!(&default);
                     if let Some(new_value) = default {
                         list.insert(i, new_value);
                     } else {
