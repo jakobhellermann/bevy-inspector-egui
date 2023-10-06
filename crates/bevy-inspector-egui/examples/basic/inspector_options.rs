@@ -3,6 +3,7 @@ use bevy_egui::EguiContext;
 use bevy_inspector_egui::inspector_options::std_options::NumberDisplay;
 use bevy_inspector_egui::{prelude::*, DefaultInspectorConfigPlugin};
 use bevy_pbr::PbrBundle;
+use bevy_utils::HashMap;
 use bevy_window::PrimaryWindow;
 
 #[derive(Reflect, Default, InspectorOptions)]
@@ -15,6 +16,7 @@ struct Config {
     option: Option<f32>,
     #[inspector(min = 10, max = 20)] // same for Vec<T>
     vec: Vec<u32>,
+    hash_map: HashMap<u32, String>,
 }
 
 // Enums can be have `InspectorOptions` as well.
