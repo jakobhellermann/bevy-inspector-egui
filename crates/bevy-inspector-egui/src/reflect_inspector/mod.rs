@@ -66,7 +66,7 @@ use crate::{
     restricted_world_view::RestrictedWorldView,
 };
 use bevy_ecs::system::CommandQueue;
-use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct, FromType};
+use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List, ListInfo, Map, Reflect,
     ReflectMut, ReflectRef, Struct, StructInfo, Tuple, TupleInfo, TupleStruct, TupleStructInfo,
