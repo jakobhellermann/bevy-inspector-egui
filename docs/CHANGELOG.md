@@ -1,5 +1,14 @@
 # Changelog
-## Version 0.18.4 (unreleased)
+
+## Version 0.20
+- update egui to `0.23`
+- add better list controls (https://github.com/jakobhellermann/bevy-inspector-egui/pull/152 by @B-Reif)
+
+## Version 0.19
+- improve some error messages
+- update egui
+
+## Version 0.18.4
 - don't panic in quick plugin if no `PrimaryWindow` exists
 
 ## Version 0.18.3
