@@ -8,6 +8,7 @@ use bevy_asset::{Assets, Handle};
 use bevy_egui::EguiUserTextures;
 use bevy_reflect::Reflect;
 use bevy_render::texture::Image;
+use egui::load::SizedTexture;
 use once_cell::sync::Lazy;
 use pretty_type_name::pretty_type_name;
 
@@ -83,15 +84,18 @@ fn show_image(
     ui: &mut egui::Ui,
 ) -> Option<egui::Response> {
     let size = image.texture_descriptor.size;
-    let size = [size.width as f32, size.height as f32];
+    let size = egui::Vec2::new(size.width as f32, size.height as f32);
 
-    let max = size[0].max(size[1]);
-    if max >= 128.0 {
-        let response =
-            egui::CollapsingHeader::new("Texture").show(ui, |ui| ui.image(texture_id, size));
+    let source = SizedTexture {
+        id: texture_id,
+        size: egui::Vec2::from(size),
+    };
+
+    if size.max_elem() >= 128.0 {
+        let response = egui::CollapsingHeader::new("Texture").show(ui, |ui| ui.image(source));
         response.body_response
     } else {
-        let response = ui.image(texture_id, size);
+        let response = ui.image(source);
         Some(response)
     }
 }
