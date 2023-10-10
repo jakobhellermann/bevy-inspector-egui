@@ -144,7 +144,7 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     add_no_many::<Instant>(type_registry, std_impls::instant_ui, std_impls::instant_ui_readonly);
 }
 
-/// Register [`InspectorEguiImpl`]s for [`bevy_math`](bevy_math)/`glam` types
+/// Register [`InspectorEguiImpl`]s for [`bevy_math`]/`glam` types
 #[rustfmt::skip]
 pub fn register_glam_impls(type_registry: &mut TypeRegistry) {
     add::<bevy_math::Vec2>(type_registry, glam_impls::vec2_ui, glam_impls::vec2_ui_readonly, glam_impls::vec2_ui_many);

@@ -1,4 +1,4 @@
-//! General-purpose machinery for displaying [`Reflect`](bevy_reflect::Reflect) types using [`egui`]
+//! General-purpose machinery for displaying [`Reflect`] types using [`egui`]
 //!
 //! # Examples
 //! **Basic usage**
@@ -739,10 +739,8 @@ impl InspectorUi<'_, '_> {
         ui.vertical(|ui| {
             let mut op = None;
             let len = list.len();
-            if len == 0 {
-                if ui_for_empty_list(ui) {
-                    op = Some(AddElement(0))
-                }
+            if len == 0 && ui_for_empty_list(ui) {
+                op = Some(AddElement(0))
             }
             for i in 0..len {
                 egui::Grid::new((id, i)).show(ui, |ui| {
@@ -839,10 +837,8 @@ impl InspectorUi<'_, '_> {
         ui.vertical(|ui| {
             let mut op = None;
 
-            if len == 0 {
-                if ui_for_empty_list(ui) {
-                    op = Some(AddElement(0));
-                }
+            if len == 0 && ui_for_empty_list(ui) {
+                op = Some(AddElement(0));
             }
 
             for i in 0..len {

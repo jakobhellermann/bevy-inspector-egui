@@ -88,7 +88,7 @@ fn show_image(
 
     let source = SizedTexture {
         id: texture_id,
-        size: egui::Vec2::from(size),
+        size,
     };
 
     if size.max_elem() >= 128.0 {

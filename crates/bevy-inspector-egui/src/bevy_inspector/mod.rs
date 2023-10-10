@@ -371,6 +371,7 @@ pub(crate) fn ui_for_entity_components(
         let (mut component_view, world) = world.split_off_component((entity, component_type_id));
         let mut cx = Context {
             world: Some(world),
+            #[allow(clippy::needless_option_as_deref)]
             queue: queue.as_deref_mut(),
         };
 
@@ -702,7 +703,7 @@ pub mod by_type_id {
 
         queue.apply(world);
 
-        return changed;
+        changed
     }
 }
 
