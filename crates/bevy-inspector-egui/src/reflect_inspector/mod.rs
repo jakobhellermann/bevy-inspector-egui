@@ -930,12 +930,16 @@ impl InspectorUi<'_, '_> {
             data.get_temp_mut_or_default::<Option<MapDraftElement>>(map_draft_id)
                 .to_owned()
         });
+        let mut to_delete: Option<usize> = None;
 
         egui::Grid::new(id).show(ui, |ui| {
             for i in 0..map.len() {
                 if let Some((key, value)) = map.get_at_mut(i) {
                     self.ui_for_reflect_readonly_with_options(key, ui, id.with(i), &());
                     changed |= self.ui_for_reflect_with_options(value, ui, id.with(i), &());
+                    if remove_button(ui).on_hover_text("Remove element").clicked() {
+                        to_delete = Some(i);
+                    }
                     ui.end_row();
                 }
             }
@@ -991,6 +995,15 @@ impl InspectorUi<'_, '_> {
                 }
             }
         });
+
+        if let Some(index) = to_delete {
+            // Can't have both an immutable borrow of the map's key,
+            // and mutably borrow the map to delete the element.
+            let cloned_key = map.get_at(index).map(|(key, _)| key.clone_value());
+            if let Some(key) = cloned_key {
+                map.remove(key.as_ref());
+            }
+        }
 
         changed
     }
