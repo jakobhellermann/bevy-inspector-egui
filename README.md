@@ -25,7 +25,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(WorldInspectorPlugin::new())
+        .add_plugins(WorldInspectorPlugin::new())
         .run();
 }
 ```
@@ -53,9 +53,9 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .init_resource::<Configuration>() // `ResourceInspectorPlugin` won't initialize the resource
         .register_type::<Configuration>() // you need to register your type to display it
-        .add_plugin(ResourceInspectorPlugin::<Configuration>::default())
+        .add_plugins(ResourceInspectorPlugin::<Configuration>::default())
         // also works with built-in resources, as long as they are `Reflect`
-        .add_plugin(ResourceInspectorPlugin::<Time>::default())
+        .add_plugins(ResourceInspectorPlugin::<Time>::default())
         .run();
 }
 ```
@@ -76,8 +76,8 @@ use std::any::TypeId;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(EguiPlugin)
-        .add_plugin(bevy_inspector_egui::DefaultInspectorConfigPlugin) // adds default options and `InspectorEguiImpl`s
+        .add_plugins(EguiPlugin)
+        .add_plugins(bevy_inspector_egui::DefaultInspectorConfigPlugin) // adds default options and `InspectorEguiImpl`s
         .add_systems(Update, inspector_ui)
         .run();
 }
