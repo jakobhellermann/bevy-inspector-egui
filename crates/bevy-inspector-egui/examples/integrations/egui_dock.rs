@@ -14,7 +14,7 @@ use bevy_egui::EguiSet;
 use bevy_reflect::TypeRegistry;
 use bevy_render::camera::{CameraProjection, Viewport};
 use bevy_window::PrimaryWindow;
-use egui_dock::{DockArea, NodeIndex, Style, Tree};
+use egui_dock::{DockArea, DockState, NodeIndex, Style};
 use egui_gizmo::{Gizmo, GizmoMode, GizmoOrientation};
 
 fn main() {
@@ -139,7 +139,7 @@ enum InspectorSelection {
 
 #[derive(Resource)]
 struct UiState {
-    tree: Tree<EguiWindow>,
+    state: DockState<EguiWindow>,
     viewport_rect: egui::Rect,
     selected_entities: SelectedEntities,
     selection: InspectorSelection,
@@ -148,7 +148,8 @@ struct UiState {
 
 impl UiState {
     pub fn new() -> Self {
-        let mut tree = Tree::new(vec![EguiWindow::GameView]);
+        let mut state = DockState::new(vec![EguiWindow::GameView]);
+        let tree = state.main_surface_mut();
         let [game, _inspector] =
             tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
         let [game, _hierarchy] = tree.split_left(game, 0.2, vec![EguiWindow::Hierarchy]);
@@ -156,7 +157,7 @@ impl UiState {
             tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Assets]);
 
         Self {
-            tree,
+            state,
             selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,
             viewport_rect: egui::Rect::NOTHING,
@@ -172,7 +173,7 @@ impl UiState {
             selection: &mut self.selection,
             gizmo_mode: self.gizmo_mode,
         };
-        DockArea::new(&mut self.tree)
+        DockArea::new(&mut self.state)
             .style(Style::from_egui(ctx.style().as_ref()))
             .show(ctx, &mut tab_viewer);
     }
