@@ -946,6 +946,7 @@ impl InspectorUi<'_, '_> {
             }
             ui.separator();
             ui.end_row();
+            ui.label("New element");
             match draft_clone {
                 None => {
                     // If no draft element exists, show a button to create one.
@@ -962,12 +963,12 @@ impl InspectorUi<'_, '_> {
                             }
                         }
                     }
+                    ui.end_row();
                 }
                 Some(MapDraftElement {
                     key: mut k,
                     value: mut v,
                 }) => {
-                    ui.label("New element");
                     ui.end_row();
                     // Show controls for editing our draft element.
                     let key_changed = self.ui_for_reflect_with_options(k.as_mut(), ui, id, &());
