@@ -925,6 +925,7 @@ impl InspectorUi<'_, '_> {
         let map_draft_id = id.with("map_draft");
         if map.len() == 0 {
             ui.label("(Empty Map)");
+            ui.end_row();
         }
         let draft_clone = ui.data_mut(|data| {
             data.get_temp_mut_or_default::<Option<MapDraftElement>>(map_draft_id)
