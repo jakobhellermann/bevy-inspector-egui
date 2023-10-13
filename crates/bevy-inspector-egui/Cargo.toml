@@ -58,7 +58,7 @@ bevy = { version = "0.11", default-features = false, features = [
     "ktx2",
 ] }
 egui_dock = "0.8"
-egui-gizmo = { git = "https://github.com/jakobhellermann/egui-gizmo", branch = "update-egui" }
+egui-gizmo = "0.12"
 # bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
 # bevy_framepace = "0.11"
 
