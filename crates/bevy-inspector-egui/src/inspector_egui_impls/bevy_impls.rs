@@ -1,4 +1,4 @@
-use bevy_asset::{AssetServer, Assets, Handle, HandleId};
+use bevy_asset::{AssetServer, Assets, Handle, UntypedAssetId};
 use bevy_ecs::{entity::Entity, system::CommandQueue};
 use bevy_render::mesh::Mesh;
 use bevy_render::{color::Color, view::RenderLayers};
@@ -207,7 +207,7 @@ pub fn handle_id_ui_readonly(
     _: egui::Id,
     env: InspectorUi<'_, '_>,
 ) {
-    let handle = *value.downcast_ref::<HandleId>().unwrap();
+    let handle = *value.downcast_ref::<UntypedAssetId>().unwrap();
 
     if let Some(world) = &mut env.context.world {
         if world.allows_access_to_resource(TypeId::of::<AssetServer>()) {
@@ -219,7 +219,7 @@ pub fn handle_id_ui_readonly(
                 }
             };
 
-            if let Some(path) = asset_server.get_handle_path(handle) {
+            if let Some(path) = asset_server.get_id_handle_untyped(handle) {
                 ui.label(format!("{path:?}"));
                 return;
             }

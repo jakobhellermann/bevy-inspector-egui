@@ -356,14 +356,14 @@ impl InspectorUi<'_, '_> {
             TypeInfo::Array(info) => {
                 errors::no_multiedit(
                     ui,
-                    &pretty_type_name::pretty_type_name_str(info.type_name()),
+                    &pretty_type_name::pretty_type_name_str(info.type_path()),
                 );
                 false
             }
             TypeInfo::Map(info) => {
                 errors::no_multiedit(
                     ui,
-                    &pretty_type_name::pretty_type_name_str(info.type_name()),
+                    &pretty_type_name::pretty_type_name_str(info.type_path()),
                 );
                 false
             }
@@ -479,7 +479,7 @@ impl InspectorUi<'_, '_> {
                 ui.label(field.name());
                 changed |= self.ui_for_reflect_many_with_options(
                     field.type_id(),
-                    field.type_name(),
+                    field.type_path(),
                     ui,
                     id.with(i),
                     inspector_options_struct_field(options, i),
@@ -564,7 +564,7 @@ impl InspectorUi<'_, '_> {
                     }
                     let changed = self.ui_for_reflect_many_with_options(
                         field.type_id(),
-                        field.type_name(),
+                        field.type_path(),
                         ui,
                         id.with(i),
                         inspector_options_struct_field(options, i),
@@ -650,7 +650,7 @@ impl InspectorUi<'_, '_> {
                     }
                     let changed = self.ui_for_reflect_many_with_options(
                         field.type_id(),
-                        field.type_name(),
+                        field.type_path(),
                         ui,
                         id.with(i),
                         inspector_options_struct_field(options, i),
@@ -775,7 +775,7 @@ impl InspectorUi<'_, '_> {
 
             let error = ui.data_mut(|data| *data.get_temp_mut_or_default::<bool>(error_id));
             if error {
-                errors::no_default_value(ui, info.item_type_name());
+                errors::no_default_value(ui, info.type_path());
             }
             if ui.input(|input| input.pointer.any_down()) {
                 ui.data_mut(|data| data.insert_temp::<bool>(error_id, false));
@@ -855,7 +855,7 @@ impl InspectorUi<'_, '_> {
                     ui.horizontal(|ui| {
                         changed |= self.ui_for_reflect_many_with_options(
                             info.item_type_id(),
-                            info.item_type_name(),
+                            info.type_path(),
                             ui,
                             id.with(i),
                             options,
@@ -878,7 +878,7 @@ impl InspectorUi<'_, '_> {
             let error_id = id.with("error");
             let error = ui.data_mut(|data| *data.get_temp_mut_or_default::<bool>(error_id));
             if error {
-                errors::no_default_value(ui, info.item_type_name());
+                errors::no_default_value(ui, info.type_path());
             }
             if ui.input(|input| input.pointer.any_down()) {
                 ui.data_mut(|data| data.insert_temp::<bool>(error_id, false));
@@ -1127,7 +1127,7 @@ impl InspectorUi<'_, '_> {
                                         i,
                                         Cow::Borrowed(field.name()),
                                         field.type_id(),
-                                        field.type_name(),
+                                        field.type_path(),
                                     )
                                 })
                                 .map(handle)
@@ -1140,7 +1140,7 @@ impl InspectorUi<'_, '_> {
                                         i,
                                         Cow::Owned(i.to_string()),
                                         field.type_id(),
-                                        field.type_name(),
+                                        field.type_path(),
                                     )
                                 })
                                 .map(handle)
@@ -1185,7 +1185,7 @@ impl InspectorUi<'_, '_> {
                                     .on_disabled_hover_ui(|ui| {
                                         errors::unconstructable_variant(
                                             ui,
-                                            info.type_name(),
+                                            info.type_path(),
                                             variant_name,
                                             &fields,
                                         );
@@ -1271,7 +1271,7 @@ impl InspectorUi<'_, '_> {
         _id: egui::Id,
         _options: &dyn Any,
     ) -> bool {
-        errors::reflect_value_no_impl(ui, value.type_name());
+        errors::reflect_value_no_impl(ui, value.get_represented_type_info().unwrap().type_path());
         false
     }
 
@@ -1282,7 +1282,7 @@ impl InspectorUi<'_, '_> {
         _id: egui::Id,
         _options: &dyn Any,
     ) {
-        errors::reflect_value_no_impl(ui, value.type_name());
+        errors::reflect_value_no_impl(ui, value.get_represented_type_info().unwrap().type_path());
     }
 
     fn ui_for_value_many(
@@ -1292,7 +1292,7 @@ impl InspectorUi<'_, '_> {
         _id: egui::Id,
         _options: &dyn Any,
     ) -> bool {
-        errors::reflect_value_no_impl(ui, info.type_name());
+        errors::reflect_value_no_impl(ui, info.type_path());
         false
     }
 }
@@ -1328,7 +1328,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                     let field_default_value = match self.get_default_value_for(field.type_id()) {
                         Some(value) => value,
                         None => {
-                            errors::no_default_value(ui, field.type_name());
+                            errors::no_default_value(ui, field.type_path());
                             return Err(());
                         }
                     };
@@ -1342,7 +1342,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                     let field_default_value = match self.get_default_value_for(field.type_id()) {
                         Some(value) => value,
                         None => {
-                            errors::no_default_value(ui, field.type_name());
+                            errors::no_default_value(ui, field.type_path());
                             return Err(());
                         }
                     };
@@ -1429,13 +1429,13 @@ fn variant_constructable<'a>(
         VariantInfo::Struct(variant) => variant
             .iter()
             .filter_map(|field| {
-                (!type_id_is_constructable(field.type_id())).then_some(field.type_name())
+                (!type_id_is_constructable(field.type_id())).then_some(field.type_path())
             })
             .collect(),
         VariantInfo::Tuple(variant) => variant
             .iter()
             .filter_map(|field| {
-                (!type_id_is_constructable(field.type_id())).then_some(field.type_name())
+                (!type_id_is_constructable(field.type_id())).then_some(field.type_path())
             })
             .collect(),
         VariantInfo::Unit(_) => return Ok(()),

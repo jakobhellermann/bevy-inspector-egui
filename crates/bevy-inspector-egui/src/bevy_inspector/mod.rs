@@ -100,7 +100,12 @@ pub fn ui_for_resources(world: &mut World, ui: &mut egui::Ui) {
     let mut resources: Vec<_> = type_registry
         .iter()
         .filter(|registration| registration.data::<ReflectResource>().is_some())
-        .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
+        .map(|registration| {
+            (
+                registration.type_info().type_path().to_owned(),
+                registration.type_id(),
+            )
+        })
         .collect();
     resources.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
     for (name, type_id) in resources {
@@ -144,7 +149,12 @@ pub fn ui_for_all_assets(world: &mut World, ui: &mut egui::Ui) {
     let mut assets: Vec<_> = type_registry
         .iter()
         .filter(|registration| registration.data::<ReflectAsset>().is_some())
-        .map(|registration| (registration.short_name().to_owned(), registration.type_id()))
+        .map(|registration| {
+            (
+                registration.type_info().type_path().to_owned(),
+                registration.type_id(),
+            )
+        })
         .collect();
     assets.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
     for (name, type_id) in assets {
@@ -545,7 +555,7 @@ pub fn ui_for_entities_shared_components(
 pub mod by_type_id {
     use std::any::TypeId;
 
-    use bevy_asset::{HandleId, HandleUntyped, ReflectAsset, ReflectHandle};
+    use bevy_asset::{ReflectAsset, ReflectHandle, UntypedAssetId, UntypedHandle};
     use bevy_ecs::{prelude::*, system::CommandQueue};
     use bevy_reflect::TypeRegistry;
 
@@ -622,8 +632,7 @@ pub mod by_type_id {
             );
         };
 
-        let mut ids: Vec<_> = reflect_asset.ids(world).collect();
-        ids.sort();
+        let ids: Vec<_> = reflect_asset.ids(world).collect();
 
         // Create a context with access to the entire world. Displaying the `Handle<T>` will short circuit into
         // displaying the T with a world view excluding Assets<T>.
@@ -636,7 +645,7 @@ pub mod by_type_id {
 
         for handle_id in ids {
             let id = egui::Id::new(handle_id);
-            let mut handle = reflect_handle.typed(HandleUntyped::weak(handle_id));
+            let mut handle = reflect_handle.typed(UntypedHandle::Weak(handle_id));
 
             egui::CollapsingHeader::new(format!("Handle({id:?})"))
                 .id_source(id)
@@ -653,7 +662,7 @@ pub mod by_type_id {
     pub fn ui_for_asset(
         world: &mut World,
         asset_type_id: TypeId,
-        handle: HandleId,
+        handle: UntypedAssetId,
         ui: &mut egui::Ui,
         type_registry: &TypeRegistry,
     ) -> bool {
@@ -683,8 +692,7 @@ pub mod by_type_id {
             return false;
         };
 
-        let mut ids: Vec<_> = reflect_asset.ids(world).collect();
-        ids.sort();
+        let _: Vec<_> = reflect_asset.ids(world).collect();
 
         // Create a context with access to the entire world. Displaying the `Handle<T>` will short circuit into
         // displaying the T with a world view excluding Assets<T>.
@@ -696,7 +704,7 @@ pub mod by_type_id {
         };
 
         let id = egui::Id::new(handle);
-        let mut handle = reflect_handle.typed(HandleUntyped::weak(handle));
+        let mut handle = reflect_handle.typed(UntypedHandle::Weak(handle));
 
         let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
         let changed = env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
@@ -766,7 +774,10 @@ pub mod short_circuit {
                 queue,
             } = &mut env.context
             else {
-                errors::no_world_in_context(ui, value.type_name());
+                errors::no_world_in_context(
+                    ui,
+                    value.get_represented_type_info().unwrap().type_path(),
+                );
                 return Some(false);
             };
 

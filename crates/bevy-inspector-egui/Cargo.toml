@@ -21,23 +21,23 @@ highlight_changes = []
 
 [dependencies]
 bevy-inspector-egui-derive = { version = "0.20.0", path = "../bevy-inspector-egui-derive" }
-bevy_app = { version = "0.11" }
-bevy_asset = { version = "0.11" }
-bevy_core = { version = "0.11" }
-bevy_ecs = { version = "0.11" }
-bevy_hierarchy = { version = "0.11" }
-bevy_log = { version = "0.11" }
-bevy_math = { version = "0.11" }
-bevy_reflect = { version = "0.11" }
-bevy_utils = { version = "0.11" }
-bevy_window = { version = "0.11" }
+bevy_app = { git = "https://github.com/bevyengine/bevy.git" }
+bevy_asset = { git = "https://github.com/bevyengine/bevy.git" }
+bevy_core = { git = "https://github.com/bevyengine/bevy.git" }
+bevy_ecs = { git = "https://github.com/bevyengine/bevy.git" }
+bevy_hierarchy = { git = "https://github.com/bevyengine/bevy.git" }
+bevy_log = { git = "https://github.com/bevyengine/bevy.git" }
+bevy_math = { git = "https://github.com/bevyengine/bevy.git" }
+bevy_reflect = { git = "https://github.com/bevyengine/bevy.git" }
+bevy_utils = { git = "https://github.com/bevyengine/bevy.git" }
+bevy_window = { git = "https://github.com/bevyengine/bevy.git" }
 
-bevy_core_pipeline = { version = "0.11" }
-bevy_pbr = { version = "0.11", optional = true }
-bevy_render = { version = "0.11" }
+bevy_core_pipeline = { git = "https://github.com/bevyengine/bevy.git" }
+bevy_pbr = { git = "https://github.com/bevyengine/bevy.git", optional = true }
+bevy_render = { git = "https://github.com/bevyengine/bevy.git" }
 
 egui = "0.23"
-bevy_egui = "0.22"
+bevy_egui = { git = "https://github.com/raffaeleragni/bevy_egui", branch = "bevy_0_12" }
 
 image = { version = "0.24", default-features = false }
 once_cell = "1.16"
@@ -45,7 +45,7 @@ pretty-type-name = "1.0"
 smallvec = "1.10"
 
 [dev-dependencies]
-bevy = { version = "0.11", default-features = false, features = [
+bevy = { git = "https://github.com/bevyengine/bevy.git", default-features = false, features = [
     "x11",
     "bevy_winit",
     "bevy_pbr",

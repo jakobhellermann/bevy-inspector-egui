@@ -38,7 +38,7 @@ pub fn image_handle_ui_readonly(
 ) {
     let value = value.downcast_ref::<Handle<Image>>().unwrap();
     let Some(world) = &mut env.context.world else {
-        no_world_in_context(ui, value.type_name());
+        no_world_in_context(ui, value.get_represented_type_info().unwrap().type_path());
         return;
     };
     let (mut egui_user_textures, mut images) =
