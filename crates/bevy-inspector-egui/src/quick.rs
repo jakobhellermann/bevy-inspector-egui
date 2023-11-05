@@ -12,8 +12,7 @@ use bevy_app::{Plugin, Update};
 use bevy_asset::Asset;
 use bevy_core::TypeRegistrationPlugin;
 use bevy_ecs::{
-    component::Tick, prelude::*, query::ReadOnlyWorldQuery, schedule::BoxedCondition,
-    system::ReadOnlySystem, world::unsafe_world_cell::UnsafeWorldCell,
+    prelude::*, query::ReadOnlyWorldQuery, schedule::BoxedCondition, system::ReadOnlySystem,
 };
 use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_reflect::Reflect;
@@ -73,7 +72,7 @@ impl Plugin for WorldInspectorPlugin {
         let condition = self.condition.lock().unwrap().take();
         let mut system = world_inspector_ui.into_configs();
         if let Some(condition) = condition {
-            system = system.run_if(BoxedConditionHelper(condition));
+            system.run_if_dyn(condition);
         }
         app.add_systems(Update, system);
     }
@@ -171,7 +170,7 @@ impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
         let condition = self.condition.lock().unwrap().take();
         let mut system = inspector_ui::<T>.into_configs();
         if let Some(condition) = condition {
-            system = system.run_if(BoxedConditionHelper(condition));
+            system.run_if_dyn(condition);
         }
         app.add_systems(Update, system);
     }
@@ -266,7 +265,7 @@ impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
         let condition = self.condition.lock().unwrap().take();
         let mut system = state_ui::<T>.into_configs();
         if let Some(condition) = condition {
-            system = system.run_if(BoxedConditionHelper(condition));
+            system.run_if_dyn(condition);
         }
         app.add_systems(Update, system);
     }
@@ -350,7 +349,7 @@ impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
         let condition = self.condition.lock().unwrap().take();
         let mut system = asset_inspector_ui::<A>.into_configs();
         if let Some(condition) = condition {
-            system = system.run_if(BoxedConditionHelper(condition));
+            system.run_if_dyn(condition);
         }
         app.add_systems(Update, system);
     }
@@ -433,7 +432,7 @@ where
             self.condition.lock().unwrap().take();
         let mut system = entity_query_ui::<F>.into_configs();
         if let Some(condition) = condition {
-            system = system.run_if(BoxedConditionHelper(condition));
+            system.run_if_dyn(condition);
         }
         app.add_systems(Update, system);
     }
@@ -457,65 +456,6 @@ fn entity_query_ui<F: ReadOnlyWorldQuery>(world: &mut World) {
                 ui.allocate_space(ui.available_size());
             });
         });
-}
-
-struct BoxedConditionHelper(BoxedCondition);
-// SAFETY: BoxedCondition is a Box<dyn ReadOnlySystem>
-unsafe impl ReadOnlySystem for BoxedConditionHelper {}
-impl System for BoxedConditionHelper {
-    type In = ();
-    type Out = bool;
-
-    fn name(&self) -> std::borrow::Cow<'static, str> {
-        self.0.name()
-    }
-
-    fn type_id(&self) -> std::any::TypeId {
-        self.0.type_id()
-    }
-
-    fn component_access(&self) -> &bevy_ecs::query::Access<bevy_ecs::component::ComponentId> {
-        self.0.component_access()
-    }
-
-    fn archetype_component_access(
-        &self,
-    ) -> &bevy_ecs::query::Access<bevy_ecs::archetype::ArchetypeComponentId> {
-        self.0.archetype_component_access()
-    }
-
-    fn is_send(&self) -> bool {
-        self.0.is_send()
-    }
-
-    fn is_exclusive(&self) -> bool {
-        self.0.is_exclusive()
-    }
-    unsafe fn run_unsafe(&mut self, input: Self::In, world: UnsafeWorldCell) -> Self::Out {
-        // SAFETY: same as this method
-        unsafe { self.0.run_unsafe(input, world) }
-    }
-
-    fn apply_deferred(&mut self, world: &mut World) {
-        self.0.apply_deferred(world)
-    }
-
-    fn initialize(&mut self, _world: &mut World) {
-        self.0.initialize(_world)
-    }
-
-    fn update_archetype_component_access(&mut self, world: UnsafeWorldCell) {
-        self.0.update_archetype_component_access(world)
-    }
-    fn check_change_tick(&mut self, change_tick: Tick) {
-        self.0.check_change_tick(change_tick)
-    }
-    fn get_last_run(&self) -> Tick {
-        self.0.get_last_run()
-    }
-    fn set_last_run(&mut self, last_run: Tick) {
-        self.0.set_last_run(last_run)
-    }
 }
 
 fn check_default_plugins(app: &bevy_app::App, name: &str) {
