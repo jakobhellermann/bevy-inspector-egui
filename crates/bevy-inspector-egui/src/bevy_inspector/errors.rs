@@ -1,6 +1,6 @@
 use std::{any::TypeId, borrow::Cow};
 
-use bevy_asset::HandleId;
+use bevy_asset::UntypedAssetId;
 use bevy_ecs::entity::Entity;
 use bevy_reflect::TypeRegistry;
 use egui::FontId;
@@ -115,7 +115,7 @@ pub fn no_world_in_context(ui: &mut egui::Ui, type_name: &str) {
     ui.label(job);
 }
 
-pub fn dead_asset_handle(ui: &mut egui::Ui, handle: HandleId) {
+pub fn dead_asset_handle(ui: &mut egui::Ui, handle: UntypedAssetId) {
     let job = layout_job(&[
         (FontId::proportional(13.0), "Handle "),
         (FontId::monospace(12.0), &format!("{handle:?}")),
@@ -158,6 +158,6 @@ pub fn no_type_id(ui: &mut egui::Ui, component_name: &str) {
 pub fn name_of_type(type_id: TypeId, type_registry: &TypeRegistry) -> Cow<str> {
     type_registry
         .get(type_id)
-        .map(|registration| Cow::Borrowed(registration.short_name()))
+        .map(|registration| Cow::Borrowed(registration.type_info().type_path_table().short_path()))
         .unwrap_or_else(|| Cow::Owned(format!("{type_id:?}")))
 }

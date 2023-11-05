@@ -177,7 +177,6 @@ pub fn register_glam_impls(type_registry: &mut TypeRegistry) {
 /// Register [`InspectorEguiImpl`]s for `bevy` types
 #[rustfmt::skip]
 pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
-    add_no_many::<bevy_asset::HandleId>(type_registry, bevy_impls::handle_id_ui, bevy_impls::handle_id_ui_readonly);
     add_no_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, image::image_handle_ui, image::image_handle_ui_readonly);
     add_no_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, bevy_impls::mesh_ui, bevy_impls::mesh_ui_readonly);
     add_no_many::<bevy_ecs::entity::Entity>(type_registry, bevy_impls::entity_ui, bevy_impls::entity_ui_readonly);

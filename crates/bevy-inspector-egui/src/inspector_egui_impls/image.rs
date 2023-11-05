@@ -6,7 +6,7 @@ use std::{
 
 use bevy_asset::{Assets, Handle};
 use bevy_egui::EguiUserTextures;
-use bevy_reflect::Reflect;
+use bevy_reflect::DynamicTypePath;
 use bevy_render::texture::Image;
 use egui::load::SizedTexture;
 use once_cell::sync::Lazy;
@@ -38,7 +38,7 @@ pub fn image_handle_ui_readonly(
 ) {
     let value = value.downcast_ref::<Handle<Image>>().unwrap();
     let Some(world) = &mut env.context.world else {
-        no_world_in_context(ui, value.type_name());
+        no_world_in_context(ui, value.reflect_short_type_path());
         return;
     };
     let (mut egui_user_textures, mut images) =

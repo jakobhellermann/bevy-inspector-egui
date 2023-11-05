@@ -426,7 +426,7 @@ unsafe fn mut_untyped_to_reflect<'a>(
     let (ptr, set_changed) = crate::utils::mut_untyped_split(value);
     assert_eq!(reflect_from_ptr.type_id(), type_id);
     // SAFETY: ptr is of type type_id as required in safety contract, type_id was checked above
-    let value = unsafe { reflect_from_ptr.as_reflect_ptr_mut(ptr) };
+    let value = unsafe { reflect_from_ptr.as_reflect_mut(ptr) };
 
     Ok((value, set_changed))
 }
