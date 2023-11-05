@@ -10,6 +10,7 @@ use std::{marker::PhantomData, sync::Mutex};
 
 use bevy_app::{Plugin, Update};
 use bevy_asset::Asset;
+use bevy_core::TypeRegistrationPlugin;
 use bevy_ecs::{
     prelude::*, query::ReadOnlyWorldQuery, schedule::BoxedCondition, system::ReadOnlySystem,
 };
@@ -59,6 +60,8 @@ impl WorldInspectorPlugin {
 
 impl Plugin for WorldInspectorPlugin {
     fn build(&self, app: &mut bevy_app::App) {
+        check_default_plugins(app, "WorldInspectorPlugin");
+
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
@@ -155,6 +158,8 @@ impl<T> ResourceInspectorPlugin<T> {
 
 impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
     fn build(&self, app: &mut bevy_app::App) {
+        check_default_plugins(app, "ResourceInspectorPlugin");
+
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
@@ -248,6 +253,8 @@ impl<T> StateInspectorPlugin<T> {
 
 impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
     fn build(&self, app: &mut bevy_app::App) {
+        check_default_plugins(app, "StateInspectorPlugin");
+
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
@@ -330,6 +337,8 @@ impl<A> AssetInspectorPlugin<A> {
 
 impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
     fn build(&self, app: &mut bevy_app::App) {
+        check_default_plugins(app, "AssetInspectorPlugin");
+
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
@@ -410,6 +419,8 @@ where
     F: ReadOnlyWorldQuery,
 {
     fn build(&self, app: &mut bevy_app::App) {
+        check_default_plugins(app, "FilterQueryInspectorPlugin");
+
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
@@ -445,4 +456,16 @@ fn entity_query_ui<F: ReadOnlyWorldQuery>(world: &mut World) {
                 ui.allocate_space(ui.available_size());
             });
         });
+}
+
+fn check_default_plugins(app: &bevy_app::App, name: &str) {
+    if !app.is_plugin_added::<TypeRegistrationPlugin>() {
+        panic!(
+            r#"`{name}` should be added after the default plugins:
+        .add_plugins(DefaultPlugins)
+        .add_plugins({name}::default())
+            "#,
+            name = name,
+        );
+    }
 }
