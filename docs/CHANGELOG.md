@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.21
+- update to bevy `0.12` (@raffaeleragni, https://github.com/jakobhellermann/bevy-inspector-egui/pull/157)
+- add ability to edit and insert elements into maps (@B-Reif, https://github.com/jakobhellermann/bevy-inspector-egui/pull/155)
+
 ## Version 0.20
 - update egui to `0.23`
 - add better list controls (https://github.com/jakobhellermann/bevy-inspector-egui/pull/152 by @B-Reif)
