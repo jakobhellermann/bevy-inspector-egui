@@ -1,9 +1,9 @@
-use bevy_asset::{AssetServer, Assets, Handle, UntypedAssetId};
+use bevy_asset::{Assets, Handle};
 use bevy_ecs::{entity::Entity, system::CommandQueue};
 use bevy_render::mesh::Mesh;
 use bevy_render::{color::Color, view::RenderLayers};
 use egui::{ecolor::Hsva, Color32};
-use std::any::{Any, TypeId};
+use std::any::Any;
 
 use crate::{
     bevy_inspector::errors::{dead_asset_handle, no_world_in_context, show_error},
@@ -187,46 +187,6 @@ fn mesh_ui_inner(mesh: &Mesh, ui: &mut egui::Ui) {
             }
         });
     });
-}
-
-pub fn handle_id_ui(
-    value: &mut dyn Any,
-    ui: &mut egui::Ui,
-    options: &dyn Any,
-    id: egui::Id,
-    env: InspectorUi<'_, '_>,
-) -> bool {
-    handle_id_ui_readonly(value, ui, options, id, env);
-    false
-}
-
-pub fn handle_id_ui_readonly(
-    value: &dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    _: egui::Id,
-    env: InspectorUi<'_, '_>,
-) {
-    let handle = *value.downcast_ref::<UntypedAssetId>().unwrap();
-
-    if let Some(world) = &mut env.context.world {
-        if world.allows_access_to_resource(TypeId::of::<AssetServer>()) {
-            let asset_server = match world.get_resource_mut::<AssetServer>() {
-                Ok(asset_server) => asset_server,
-                Err(error) => {
-                    show_error(error, ui, "AssetServer");
-                    return;
-                }
-            };
-
-            if let Some(path) = asset_server.get_id_handle_untyped(handle) {
-                ui.label(format!("{path:?}"));
-                return;
-            }
-        }
-    }
-
-    ui.label(format!("{handle:?}"));
 }
 
 pub fn color_ui(
