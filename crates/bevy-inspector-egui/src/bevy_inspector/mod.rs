@@ -38,7 +38,7 @@
 
 use std::any::TypeId;
 
-use bevy_asset::{Asset, Assets, ReflectAsset};
+use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
 use bevy_ecs::query::ReadOnlyWorldQuery;
 use bevy_ecs::reflect::AppTypeRegistry;
 use bevy_ecs::system::CommandQueue;
@@ -166,6 +166,8 @@ pub fn ui_for_all_assets(world: &mut World, ui: &mut egui::Ui) {
 
 /// Display all assets of the specified asset type `A`
 pub fn ui_for_assets<A: Asset + Reflect>(world: &mut World, ui: &mut egui::Ui) {
+    let asset_server = world.get_resource::<AssetServer>().cloned();
+
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
@@ -176,6 +178,7 @@ pub fn ui_for_assets<A: Asset + Reflect>(world: &mut World, ui: &mut egui::Ui) {
         errors::resource_does_not_exist(ui, &pretty_type_name::<Assets<A>>());
         return;
     };
+
     let mut queue = CommandQueue::default();
     let mut cx = Context {
         world: Some(world_view),
@@ -187,7 +190,7 @@ pub fn ui_for_assets<A: Asset + Reflect>(world: &mut World, ui: &mut egui::Ui) {
     for (handle_id, asset) in assets {
         let id = egui::Id::new(handle_id);
 
-        egui::CollapsingHeader::new(format!("Handle({id:?})"))
+        egui::CollapsingHeader::new(handle_name(handle_id.untyped(), asset_server.as_ref()))
             .id_source(id)
             .show(ui, |ui| {
                 let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
@@ -555,7 +558,7 @@ pub fn ui_for_entities_shared_components(
 pub mod by_type_id {
     use std::any::TypeId;
 
-    use bevy_asset::{ReflectAsset, ReflectHandle, UntypedAssetId, UntypedHandle};
+    use bevy_asset::{AssetServer, ReflectAsset, ReflectHandle, UntypedAssetId, UntypedHandle};
     use bevy_ecs::{prelude::*, system::CommandQueue};
     use bevy_reflect::TypeRegistry;
 
@@ -564,7 +567,10 @@ pub mod by_type_id {
         restricted_world_view::RestrictedWorldView,
     };
 
-    use super::errors::{self, name_of_type};
+    use super::{
+        errors::{self, name_of_type},
+        handle_name,
+    };
 
     /// Display the resource with the given [`TypeId`]
     pub fn ui_for_resource(
@@ -609,6 +615,8 @@ pub mod by_type_id {
         ui: &mut egui::Ui,
         type_registry: &TypeRegistry,
     ) {
+        let asset_server = world.get_resource::<AssetServer>().cloned();
+
         let Some(registration) = type_registry.get(asset_type_id) else {
             return crate::reflect_inspector::errors::not_in_type_registry(
                 ui,
@@ -647,7 +655,7 @@ pub mod by_type_id {
             let id = egui::Id::new(handle_id);
             let mut handle = reflect_handle.typed(UntypedHandle::Weak(handle_id));
 
-            egui::CollapsingHeader::new(format!("Handle({id:?})"))
+            egui::CollapsingHeader::new(handle_name(handle_id, asset_server.as_ref()))
                 .id_source(id)
                 .show(ui, |ui| {
                     let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
@@ -712,6 +720,24 @@ pub mod by_type_id {
         queue.apply(world);
 
         changed
+    }
+}
+
+fn handle_name(handle: UntypedAssetId, asset_server: Option<&AssetServer>) -> String {
+    if let Some(path) = asset_server
+        .as_ref()
+        .and_then(|server| server.get_path(handle))
+    {
+        return path.to_string();
+    }
+
+    match handle {
+        UntypedAssetId::Index { index, .. } => {
+            format!("{:?}", egui::Id::new(index))
+        }
+        UntypedAssetId::Uuid { uuid, .. } => {
+            format!("{}", uuid)
+        }
     }
 }
 
