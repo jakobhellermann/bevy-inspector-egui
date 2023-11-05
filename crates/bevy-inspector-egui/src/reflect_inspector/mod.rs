@@ -1271,7 +1271,7 @@ impl InspectorUi<'_, '_> {
         _id: egui::Id,
         _options: &dyn Any,
     ) -> bool {
-        errors::reflect_value_no_impl(ui, value.get_represented_type_info().unwrap().type_path());
+        errors::reflect_value_no_impl(ui, value.reflect_short_type_path());
         false
     }
 
@@ -1282,7 +1282,7 @@ impl InspectorUi<'_, '_> {
         _id: egui::Id,
         _options: &dyn Any,
     ) {
-        errors::reflect_value_no_impl(ui, value.get_represented_type_info().unwrap().type_path());
+        errors::reflect_value_no_impl(ui, value.reflect_short_type_path());
     }
 
     fn ui_for_value_many(

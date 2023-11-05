@@ -102,14 +102,14 @@ pub fn ui_for_resources(world: &mut World, ui: &mut egui::Ui) {
         .filter(|registration| registration.data::<ReflectResource>().is_some())
         .map(|registration| {
             (
-                registration.type_info().type_path().to_owned(),
+                registration.type_info().type_path_table().short_path(),
                 registration.type_id(),
             )
         })
         .collect();
     resources.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
     for (name, type_id) in resources {
-        ui.collapsing(&name, |ui| {
+        ui.collapsing(name, |ui| {
             by_type_id::ui_for_resource(world, type_id, ui, &name, &type_registry);
         });
     }
@@ -151,14 +151,14 @@ pub fn ui_for_all_assets(world: &mut World, ui: &mut egui::Ui) {
         .filter(|registration| registration.data::<ReflectAsset>().is_some())
         .map(|registration| {
             (
-                registration.type_info().type_path().to_owned(),
+                registration.type_info().type_path_table().short_path(),
                 registration.type_id(),
             )
         })
         .collect();
     assets.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
     for (name, type_id) in assets {
-        ui.collapsing(&name, |ui| {
+        ui.collapsing(name, |ui| {
             by_type_id::ui_for_assets(world, type_id, ui, &type_registry);
         });
     }
@@ -774,10 +774,7 @@ pub mod short_circuit {
                 queue,
             } = &mut env.context
             else {
-                errors::no_world_in_context(
-                    ui,
-                    value.get_represented_type_info().unwrap().type_path(),
-                );
+                errors::no_world_in_context(ui, value.reflect_short_type_path());
                 return Some(false);
             };
 
@@ -948,7 +945,7 @@ pub mod short_circuit {
                 queue,
             } = &mut env.context
             else {
-                errors::no_world_in_context(ui, value.type_name());
+                errors::no_world_in_context(ui, value.reflect_short_type_path());
                 return Some(());
             };
 

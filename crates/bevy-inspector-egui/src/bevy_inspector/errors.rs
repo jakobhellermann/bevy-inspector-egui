@@ -158,6 +158,6 @@ pub fn no_type_id(ui: &mut egui::Ui, component_name: &str) {
 pub fn name_of_type(type_id: TypeId, type_registry: &TypeRegistry) -> Cow<str> {
     type_registry
         .get(type_id)
-        .map(|registration| Cow::Borrowed(registration.type_info().type_path()))
+        .map(|registration| Cow::Borrowed(registration.type_info().type_path_table().short_path()))
         .unwrap_or_else(|| Cow::Owned(format!("{type_id:?}")))
 }

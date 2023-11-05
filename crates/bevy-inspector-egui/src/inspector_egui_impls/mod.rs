@@ -1,7 +1,7 @@
 //! UI implementations for leaf types
 
 use crate::reflect_inspector::{errors::no_multiedit, InspectorUi};
-use bevy_reflect::{GetTypeRegistration, Reflect, TypeRegistry};
+use bevy_reflect::{Reflect, TypeRegistry};
 use bevy_utils::Instant;
 use std::{
     any::{Any, TypeId},

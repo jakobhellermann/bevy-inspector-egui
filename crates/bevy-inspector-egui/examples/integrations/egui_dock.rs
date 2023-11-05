@@ -307,7 +307,7 @@ fn select_resource(
         .filter(|registration| registration.data::<ReflectResource>().is_some())
         .map(|registration| {
             (
-                registration.type_info().type_path().to_owned(),
+                registration.type_info().type_path_table().short_path(),
                 registration.type_id(),
             )
         })
@@ -320,8 +320,8 @@ fn select_resource(
             _ => false,
         };
 
-        if ui.selectable_label(selected, &resource_name).clicked() {
-            *selection = InspectorSelection::Resource(type_id, resource_name);
+        if ui.selectable_label(selected, resource_name).clicked() {
+            *selection = InspectorSelection::Resource(type_id, resource_name.to_string());
         }
     }
 }
@@ -337,7 +337,7 @@ fn select_asset(
         .filter_map(|registration| {
             let reflect_asset = registration.data::<ReflectAsset>()?;
             Some((
-                registration.type_info().type_path().to_owned(),
+                registration.type_info().type_path_table().short_path(),
                 registration.type_id(),
                 reflect_asset,
             ))
@@ -360,7 +360,7 @@ fn select_asset(
                     .clicked()
                 {
                     *selection =
-                        InspectorSelection::Asset(asset_type_id, asset_name.clone(), handle);
+                        InspectorSelection::Asset(asset_type_id, asset_name.to_string(), handle);
                 }
             }
         });
