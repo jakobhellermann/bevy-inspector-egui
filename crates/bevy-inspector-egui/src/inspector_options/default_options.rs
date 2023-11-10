@@ -147,4 +147,12 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         type_registry,
         &[("Clear", "0", &NumberOptions::<f32>::normalized())],
     );
+
+    insert_options_struct::<bevy_time::Virtual>(
+        type_registry,
+        &[
+            ("relative_speed", &NumberOptions::<f32>::positive()),
+            ("effective_speed", &NumberOptions::<f32>::positive()),
+        ],
+    );
 }

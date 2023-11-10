@@ -29,6 +29,7 @@ bevy_hierarchy = { version = "0.12" }
 bevy_log = { version = "0.12" }
 bevy_math = { version = "0.12" }
 bevy_reflect = { version = "0.12" }
+bevy_time = { version = "0.12" }
 bevy_utils = { version = "0.12" }
 bevy_window = { version = "0.12" }
 
