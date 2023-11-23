@@ -27,7 +27,7 @@ fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities
     egui::SidePanel::left("hierarchy")
         .default_width(200.0)
         .show(egui_context.get_mut(), |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
+            egui::ScrollArea::both().show(ui, |ui| {
                 ui.heading("Hierarchy");
 
                 bevy_inspector_egui::bevy_inspector::hierarchy::hierarchy_ui(
@@ -44,7 +44,7 @@ fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities
     egui::SidePanel::right("inspector")
         .default_width(250.0)
         .show(egui_context.get_mut(), |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
+            egui::ScrollArea::both().show(ui, |ui| {
                 ui.heading("Inspector");
 
                 match selected_entities.as_slice() {
