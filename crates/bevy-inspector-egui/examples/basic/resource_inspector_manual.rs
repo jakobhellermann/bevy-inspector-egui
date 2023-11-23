@@ -46,7 +46,7 @@ fn inspector_ui(world: &mut World, mut disabled: Local<bool>) {
 
     // the usual `ResourceInspector` code
     egui::Window::new("Resource Inspector").show(egui_context.get_mut(), |ui| {
-        egui::ScrollArea::vertical().show(ui, |ui| {
+        egui::ScrollArea::both().show(ui, |ui| {
             bevy_inspector_egui::bevy_inspector::ui_for_resource::<Configuration>(world, ui);
 
             ui.separator();
