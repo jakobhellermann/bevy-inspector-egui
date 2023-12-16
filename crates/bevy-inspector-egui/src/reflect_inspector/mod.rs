@@ -190,12 +190,12 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
 impl InspectorUi<'_, '_> {
     /// Draws the inspector UI for the given value.
     pub fn ui_for_reflect(&mut self, value: &mut dyn Reflect, ui: &mut egui::Ui) -> bool {
-        self.ui_for_reflect_with_options(value, ui, egui::Id::null(), &())
+        self.ui_for_reflect_with_options(value, ui, egui::Id::NULL, &())
     }
 
     /// Draws the inspector UI for the given value in a read-only way.
     pub fn ui_for_reflect_readonly(&mut self, value: &dyn Reflect, ui: &mut egui::Ui) {
-        self.ui_for_reflect_readonly_with_options(value, ui, egui::Id::null(), &());
+        self.ui_for_reflect_readonly_with_options(value, ui, egui::Id::NULL, &());
     }
 
     /// Draws the inspector UI for the given value with some options.
