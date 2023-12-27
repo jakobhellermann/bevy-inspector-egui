@@ -17,6 +17,18 @@ macro_rules! impl_options {
         }
     };
 }
+macro_rules! impl_options_defer_generic {
+    ($name:ident < $generic:ident >) => {
+        impl<$generic: InspectorOptionsType> InspectorOptionsType for $name<$generic> {
+            type DeriveOptions = <$generic as InspectorOptionsType>::DeriveOptions;
+            type Options = <$generic as InspectorOptionsType>::Options;
+
+            fn options_from_derive(options: Self::DeriveOptions) -> Self::Options {
+                $generic::options_from_derive(options)
+            }
+        }
+    };
+}
 
 #[derive(Clone)]
 #[non_exhaustive]
@@ -127,6 +139,39 @@ impl_options!(u64 => NumberOptions<u64>);
 impl_options!(u128 => NumberOptions<u128>);
 impl_options!(usize => NumberOptions<usize>);
 
+#[non_exhaustive]
+pub struct RangeOptions<T: InspectorOptionsType> {
+    pub start: T::Options,
+    pub end: T::Options,
+}
+
+impl<T: InspectorOptionsType> Clone for RangeOptions<T> {
+    fn clone(&self) -> Self {
+        Self {
+            start: self.start.clone(),
+            end: self.end.clone(),
+        }
+    }
+}
+
+impl<T: InspectorOptionsType> Default for RangeOptions<T> {
+    fn default() -> Self {
+        Self {
+            start: T::options_from_derive(T::DeriveOptions::default()),
+            end: T::options_from_derive(T::DeriveOptions::default()),
+        }
+    }
+}
+
+impl<T: InspectorOptionsType + 'static> InspectorOptionsType for std::ops::Range<T> {
+    type DeriveOptions = RangeOptions<T>;
+    type Options = RangeOptions<T>;
+
+    fn options_from_derive(options: Self::DeriveOptions) -> Self::Options {
+        options
+    }
+}
+
 #[derive(Default, Clone)]
 #[non_exhaustive]
 pub struct QuatOptions {
@@ -188,19 +233,6 @@ impl<T: InspectorOptionsType> InspectorOptionsType for Option<T> {
 
         inspector_options
     }
-}
-
-macro_rules! impl_options_defer_generic {
-    ($name:ident < $generic:ident >) => {
-        impl<T: InspectorOptionsType> InspectorOptionsType for $name<$generic> {
-            type DeriveOptions = $generic::DeriveOptions;
-            type Options = $generic::Options;
-
-            fn options_from_derive(options: Self::DeriveOptions) -> Self::Options {
-                $generic::options_from_derive(options)
-            }
-        }
-    };
 }
 
 impl_options_defer_generic!(Vec<T>);

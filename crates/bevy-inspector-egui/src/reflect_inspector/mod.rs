@@ -1391,7 +1391,7 @@ impl InspectorUi<'_, '_> {
 }
 
 impl<'a, 'c> InspectorUi<'a, 'c> {
-    fn reborrow<'s>(&'s mut self) -> InspectorUi<'s, 'c> {
+    pub fn reborrow<'s>(&'s mut self) -> InspectorUi<'s, 'c> {
         InspectorUi {
             type_registry: self.type_registry,
             context: self.context,

@@ -4,10 +4,11 @@ use bevy_reflect::Reflect;
 use egui::{DragValue, RichText};
 
 use super::{change_slider, iter_all_eq, InspectorUi};
-use crate::{
-    inspector_options::std_options::{NumberDisplay, NumberOptions},
-    many_ui,
+use crate::inspector_options::{
+    std_options::{NumberDisplay, NumberOptions, RangeOptions},
+    InspectorOptionsType,
 };
+use crate::many_ui;
 use std::{any::Any, time::Duration};
 
 pub fn number_ui<T: egui::emath::Numeric>(
@@ -296,5 +297,95 @@ pub fn instant_ui_readonly(
     ui.horizontal(|ui| {
         ui.add_enabled(false, DragValue::new(&mut secs));
         ui.label("seconds ago");
+    });
+}
+
+pub fn range_ui<T: egui::emath::Numeric + InspectorOptionsType>(
+    value: &mut dyn Any,
+    ui: &mut egui::Ui,
+    options: &dyn Any,
+    id: egui::Id,
+    env: InspectorUi<'_, '_>,
+) -> bool {
+    let std::ops::Range { start, end } = value.downcast_mut::<std::ops::Range<T>>().unwrap();
+    display_range::<T>(ui, options, id, env, "..", Some(start), Some(end))
+}
+
+fn display_range<T: egui::emath::Numeric + InspectorOptionsType>(
+    ui: &mut egui::Ui,
+    options: &dyn Any,
+    id: egui::Id,
+    mut env: InspectorUi<'_, '_>,
+
+    // this is made to be generic but I'm currently just using it for a..b, not a..=b, ..a, a.., .., etc., because these types don't hand out mutable references
+    symbol: &'static str,
+    start: Option<&mut T>,
+    end: Option<&mut T>,
+) -> bool {
+    let options = options.downcast_ref::<RangeOptions<T>>();
+
+    let start_options = options
+        .as_deref()
+        .map(|a| &a.start as &dyn Any)
+        .unwrap_or(&());
+    let end_options = options
+        .as_deref()
+        .map(|a| &a.end as &dyn Any)
+        .unwrap_or(&());
+
+    let mut changed = false;
+    ui.horizontal(|ui| {
+        if let Some(start) = start {
+            changed |= number_ui::<T>(start, ui, start_options, id, env.reborrow());
+        }
+        ui.label(symbol);
+        if let Some(end) = end {
+            changed |= number_ui::<T>(end, ui, end_options, id, env.reborrow());
+        }
+    });
+
+    changed
+}
+
+pub fn range_ui_readonly<T: egui::emath::Numeric + InspectorOptionsType>(
+    value: &dyn Any,
+    ui: &mut egui::Ui,
+    options: &dyn Any,
+    id: egui::Id,
+    env: InspectorUi<'_, '_>,
+) {
+    let std::ops::Range { start, end } = value.downcast_ref::<std::ops::Range<T>>().unwrap();
+    display_range_readonly::<T>(ui, options, id, env, "..", Some(start), Some(end));
+}
+
+fn display_range_readonly<T: egui::emath::Numeric + InspectorOptionsType>(
+    ui: &mut egui::Ui,
+    options: &dyn Any,
+    id: egui::Id,
+    mut env: InspectorUi<'_, '_>,
+
+    symbol: &'static str,
+    start: Option<&T>,
+    end: Option<&T>,
+) {
+    let options = options.downcast_ref::<RangeOptions<T>>();
+
+    let start_options = options
+        .as_deref()
+        .map(|a| &a.start as &dyn Any)
+        .unwrap_or(&());
+    let end_options = options
+        .as_deref()
+        .map(|a| &a.end as &dyn Any)
+        .unwrap_or(&());
+
+    ui.horizontal(|ui| {
+        if let Some(start) = start {
+            number_ui_readonly::<T>(start, ui, start_options, id, env.reborrow());
+        }
+        ui.label(symbol);
+        if let Some(end) = end {
+            number_ui_readonly::<T>(end, ui, end_options, id, env.reborrow());
+        }
     });
 }
