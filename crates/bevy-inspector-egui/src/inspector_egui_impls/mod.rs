@@ -6,6 +6,7 @@ use bevy_utils::Instant;
 use std::{
     any::{Any, TypeId},
     borrow::Cow,
+    path::PathBuf,
 };
 
 mod bevy_impls;
@@ -140,6 +141,7 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     add::<bool>(type_registry, std_impls::bool_ui, std_impls::bool_ui_readonly, std_impls::bool_ui_many);
     add::<String>(type_registry, std_impls::string_ui, std_impls::string_ui_readonly, std_impls::string_ui_many);
     add::<Cow<str>>(type_registry, std_impls::cow_str_ui, std_impls::cow_str_ui_readonly, std_impls::cow_str_ui_many);
+    add::<PathBuf>(type_registry, std_impls::pathbuf_ui, std_impls::pathbuf_ui_readonly, std_impls::pathbuf_ui_many);
 
     type_registry.register::<std::ops::Range<f64>>();
 

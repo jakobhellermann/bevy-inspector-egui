@@ -1,5 +1,8 @@
 # Changelog
 
+## Versino 0.22.1
+- add `InspectorEguiImpl` for `PathBuf`
+
 ## Version 0.22
 - update to `egui` `0.24` [#174](https://github.com/jakobhellermann/bevy-inspector-egui/pull/174)
 - show entity ID beside name [#172](https://github.com/jakobhellermann/bevy-inspector-egui/pull/172)

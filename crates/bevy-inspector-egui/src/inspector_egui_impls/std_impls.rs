@@ -1,7 +1,7 @@
-use std::{borrow::Cow, ops::AddAssign, time::Instant};
+use std::{borrow::Cow, ops::AddAssign, path::PathBuf, time::Instant};
 
 use bevy_reflect::Reflect;
-use egui::{DragValue, RichText};
+use egui::{DragValue, RichText, TextBuffer};
 
 use super::{change_slider, iter_all_eq, InspectorUi};
 use crate::inspector_options::{
@@ -389,3 +389,34 @@ fn display_range_readonly<T: egui::emath::Numeric + InspectorOptionsType>(
         }
     });
 }
+
+pub fn pathbuf_ui(
+    value: &mut dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: egui::Id,
+    _: InspectorUi<'_, '_>,
+) -> bool {
+    let value = value.downcast_mut::<PathBuf>().unwrap();
+    let mut str = value.to_string_lossy();
+    let changed = ui.text_edit_singleline(&mut str).changed();
+
+    if changed {
+        *value = PathBuf::from(str.as_str());
+    }
+
+    changed
+}
+
+pub fn pathbuf_ui_readonly(
+    value: &dyn Any,
+    ui: &mut egui::Ui,
+    _: &dyn Any,
+    _: egui::Id,
+    _: InspectorUi<'_, '_>,
+) {
+    let value = value.downcast_ref::<PathBuf>().unwrap();
+    ui.text_edit_singleline(&mut value.to_string_lossy());
+}
+
+many_ui!(pathbuf_ui_many pathbuf_ui PathBuf);
