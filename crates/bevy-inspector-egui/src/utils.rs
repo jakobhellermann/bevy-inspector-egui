@@ -44,7 +44,7 @@ pub mod guess_entity_name {
                 if world.allows_access_to_component((entity, std::any::TypeId::of::<Name>())) {
                     // SAFETY: we have access and don't keep reference
                     if let Some(name) = unsafe { cell.get::<Name>() } {
-                        return name.as_str().to_string();
+                        return format!("{} ({:?})", name.as_str(), entity);
                     }
                 }
                 guess_entity_name_inner(world.world(), entity, cell.archetype())
