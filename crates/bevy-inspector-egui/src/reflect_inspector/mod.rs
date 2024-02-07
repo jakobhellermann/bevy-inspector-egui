@@ -190,12 +190,12 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
 impl InspectorUi<'_, '_> {
     /// Draws the inspector UI for the given value.
     pub fn ui_for_reflect(&mut self, value: &mut dyn Reflect, ui: &mut egui::Ui) -> bool {
-        self.ui_for_reflect_with_options(value, ui, egui::Id::null(), &())
+        self.ui_for_reflect_with_options(value, ui, egui::Id::NULL, &())
     }
 
     /// Draws the inspector UI for the given value in a read-only way.
     pub fn ui_for_reflect_readonly(&mut self, value: &dyn Reflect, ui: &mut egui::Ui) {
-        self.ui_for_reflect_readonly_with_options(value, ui, egui::Id::null(), &());
+        self.ui_for_reflect_readonly_with_options(value, ui, egui::Id::NULL, &());
     }
 
     /// Draws the inspector UI for the given value with some options.
@@ -398,7 +398,7 @@ fn ui_for_empty_list(ui: &mut egui::Ui) -> bool {
 fn ui_for_list_controls(ui: &mut egui::Ui, index: usize, len: usize) -> Option<ListOp> {
     use ListOp::*;
     let mut op = None;
-    ui.horizontal(|ui| {
+    ui.horizontal_top(|ui| {
         if add_button(ui).on_hover_text("Add element").clicked() {
             op = Some(AddElement(index));
         }
@@ -763,7 +763,7 @@ impl InspectorUi<'_, '_> {
                 egui::Grid::new((id, i)).show(ui, |ui| {
                     ui.label(i.to_string());
                     let val = list.get_mut(i).unwrap();
-                    ui.horizontal(|ui| {
+                    ui.horizontal_top(|ui| {
                         changed |= self.ui_for_reflect_with_options(val, ui, id.with(i), options);
                     });
                     ui.end_row();
@@ -813,7 +813,7 @@ impl InspectorUi<'_, '_> {
             let len = list.len();
             for i in 0..len {
                 let val = list.get(i).unwrap();
-                ui.horizontal(|ui| {
+                ui.horizontal_top(|ui| {
                     self.ui_for_reflect_readonly_with_options(val, ui, id.with(i), options)
                 });
 
@@ -869,7 +869,7 @@ impl InspectorUi<'_, '_> {
 
                 egui::Grid::new((id, i)).show(ui, |ui| {
                     ui.label(i.to_string());
-                    ui.horizontal(|ui| {
+                    ui.horizontal_top(|ui| {
                         changed |= self.ui_for_reflect_many_with_options(
                             info.item_type_id(),
                             info.type_path(),
@@ -1039,7 +1039,7 @@ impl InspectorUi<'_, '_> {
             let len = array.len();
             for i in 0..len {
                 let val = array.get_mut(i).unwrap();
-                ui.horizontal(|ui| {
+                ui.horizontal_top(|ui| {
                     changed |= self.ui_for_reflect_with_options(val, ui, id.with(i), options);
                 });
 
@@ -1063,7 +1063,7 @@ impl InspectorUi<'_, '_> {
             let len = array.len();
             for i in 0..len {
                 let val = array.get(i).unwrap();
-                ui.horizontal(|ui| {
+                ui.horizontal_top(|ui| {
                     self.ui_for_reflect_readonly_with_options(val, ui, id.with(i), options);
                 });
 
@@ -1258,7 +1258,7 @@ impl InspectorUi<'_, '_> {
     ) -> Option<(usize, DynamicEnum)> {
         let mut changed_variant = None;
 
-        ui.horizontal(|ui| {
+        ui.horizontal_top(|ui| {
             egui::ComboBox::new(id.with("select"), "")
                 .selected_text(info.variant_names()[active_variant_idx])
                 .show_ui(ui, |ui| {
@@ -1391,7 +1391,7 @@ impl InspectorUi<'_, '_> {
 }
 
 impl<'a, 'c> InspectorUi<'a, 'c> {
-    fn reborrow<'s>(&'s mut self) -> InspectorUi<'s, 'c> {
+    pub fn reborrow<'s>(&'s mut self) -> InspectorUi<'s, 'c> {
         InspectorUi {
             type_registry: self.type_registry,
             context: self.context,

@@ -496,7 +496,7 @@ pub fn ui_for_entities_shared_components(
     };
     let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
 
-    let id = egui::Id::null();
+    let id = egui::Id::NULL;
     for (name, component_id, component_type_id, size) in components {
         let id = id.with(component_id);
         egui::CollapsingHeader::new(&name)

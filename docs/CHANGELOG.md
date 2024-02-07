@@ -1,5 +1,15 @@
 # Changelog
 
+## Versino 0.22.1
+- add `InspectorEguiImpl` for `PathBuf`
+
+## Version 0.22
+- update to `egui` `0.24` [#174](https://github.com/jakobhellermann/bevy-inspector-egui/pull/174)
+- show entity ID beside name [#172](https://github.com/jakobhellermann/bevy-inspector-egui/pull/172)
+- allow horizontal scrolling and improve UI [#166](https://github.com/jakobhellermann/bevy-inspector-egui/pull/166)
+- allow inspecting `Range<T>`
+- restrict `Time<Virtual>` to positive durations
+
 ## Version 0.21
 - update to bevy `0.12` (@raffaeleragni, https://github.com/jakobhellermann/bevy-inspector-egui/pull/157)
 - add ability to edit and insert elements into maps (@B-Reif, https://github.com/jakobhellermann/bevy-inspector-egui/pull/155)

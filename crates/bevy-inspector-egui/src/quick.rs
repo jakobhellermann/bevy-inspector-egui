@@ -91,7 +91,7 @@ fn world_inspector_ui(world: &mut World) {
     egui::Window::new("World Inspector")
         .default_size(DEFAULT_SIZE)
         .show(egui_context.get_mut(), |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
+            egui::ScrollArea::both().show(ui, |ui| {
                 bevy_inspector::ui_for_world(world, ui);
                 ui.allocate_space(ui.available_size());
             });
@@ -189,7 +189,7 @@ fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
     egui::Window::new(pretty_type_name::<T>())
         .default_size((0., 0.))
         .show(egui_context.get_mut(), |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
+            egui::ScrollArea::both().show(ui, |ui| {
                 bevy_inspector::ui_for_resource::<T>(world, ui);
 
                 ui.allocate_space(ui.available_size());
@@ -285,7 +285,7 @@ fn state_ui<T: States + Reflect>(world: &mut World) {
         .resizable(false)
         .title_bar(false)
         .show(egui_context.get_mut(), |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
+            egui::ScrollArea::both().show(ui, |ui| {
                 ui.heading(pretty_type_name::<T>());
                 bevy_inspector::ui_for_state::<T>(world, ui);
             });
@@ -368,7 +368,7 @@ fn asset_inspector_ui<A: Asset + Reflect>(world: &mut World) {
     egui::Window::new(pretty_type_name::<A>())
         .default_size(DEFAULT_SIZE)
         .show(egui_context.get_mut(), |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
+            egui::ScrollArea::both().show(ui, |ui| {
                 bevy_inspector::ui_for_assets::<A>(world, ui);
 
                 ui.allocate_space(ui.available_size());
@@ -451,7 +451,7 @@ fn entity_query_ui<F: ReadOnlyWorldQuery>(world: &mut World) {
     egui::Window::new(pretty_type_name::<F>())
         .default_size(DEFAULT_SIZE)
         .show(egui_context.get_mut(), |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
+            egui::ScrollArea::both().show(ui, |ui| {
                 bevy_inspector::ui_for_world_entities_filtered::<F>(world, ui, false);
                 ui.allocate_space(ui.available_size());
             });

@@ -22,7 +22,7 @@ pub mod guess_entity_name {
         match world.get_entity(entity) {
             Some(entity_ref) => {
                 if let Some(name) = entity_ref.get::<Name>() {
-                    return name.as_str().to_string();
+                    return format!("{} ({:?})", name.as_str(), entity);
                 }
 
                 guess_entity_name_inner(

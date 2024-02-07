@@ -98,7 +98,7 @@
 //!         .clone();
 //!
 //!     egui::Window::new("UI").show(egui_context.get_mut(), |ui| {
-//!         egui::ScrollArea::vertical().show(ui, |ui| {
+//!         egui::ScrollArea::both().show(ui, |ui| {
 //!             // equivalent to `WorldInspectorPlugin`
 //!             bevy_inspector::ui_for_world(world, ui);
 //!             

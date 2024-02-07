@@ -278,9 +278,9 @@ fn draw_gizmo(
         let model_matrix = transform.compute_matrix();
 
         let Some(result) = Gizmo::new(selected)
-            .model_matrix(model_matrix.to_cols_array_2d())
-            .view_matrix(view_matrix.to_cols_array_2d())
-            .projection_matrix(projection_matrix.to_cols_array_2d())
+            .model_matrix(model_matrix.into())
+            .view_matrix(view_matrix.into())
+            .projection_matrix(projection_matrix.into())
             .orientation(GizmoOrientation::Local)
             .mode(gizmo_mode)
             .interact(ui)
