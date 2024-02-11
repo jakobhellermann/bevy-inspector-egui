@@ -112,7 +112,7 @@ impl<T> Hierarchy<'_, T> {
                 if let Some(children) = children {
                     let children = children.to_vec();
                     for &child in children.iter() {
-                        self.entity_ui(ui, child, always_open, &children);
+                        new_selection |= self.entity_ui(ui, child, always_open, &children);
                     }
                 } else {
                     ui.label("No children");
