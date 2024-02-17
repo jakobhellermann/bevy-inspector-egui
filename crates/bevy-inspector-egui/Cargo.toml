@@ -26,6 +26,7 @@ bevy_asset = { version = "0.12" }
 bevy_core = { version = "0.12" }
 bevy_ecs = { version = "0.12" }
 bevy_hierarchy = { version = "0.12" }
+bevy_input ={ version = "0.12" }
 bevy_log = { version = "0.12" }
 bevy_math = { version = "0.12" }
 bevy_reflect = { version = "0.12" }
