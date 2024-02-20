@@ -11,12 +11,7 @@ use std::{marker::PhantomData, sync::Mutex};
 use bevy_app::{Plugin, Update};
 use bevy_asset::Asset;
 use bevy_core::TypeRegistrationPlugin;
-use bevy_ecs::{
-    prelude::*,
-    query::{QueryFilter, WorldQuery},
-    schedule::BoxedCondition,
-    system::ReadOnlySystem,
-};
+use bevy_ecs::{prelude::*, query::QueryFilter, schedule::BoxedCondition};
 use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_reflect::Reflect;
 use bevy_window::PrimaryWindow;
@@ -419,7 +414,7 @@ impl<A> FilterQueryInspectorPlugin<A> {
 
 impl<F: 'static> Plugin for FilterQueryInspectorPlugin<F>
 where
-    F: WorldQuery + QueryFilter,
+    F: QueryFilter,
 {
     fn build(&self, app: &mut bevy_app::App) {
         check_default_plugins(app, "FilterQueryInspectorPlugin");
@@ -441,7 +436,7 @@ where
     }
 }
 
-fn entity_query_ui<F: WorldQuery + QueryFilter>(world: &mut World) {
+fn entity_query_ui<F: QueryFilter>(world: &mut World) {
     let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world);
