@@ -181,8 +181,7 @@ mat_ui!(dmat4_ui dmat4_ui_readonly DMat4: x_axis y_axis z_axis w_axis);
 pub mod quat {
     use std::any::Any;
 
-    use bevy_egui::egui;
-    use bevy_math::{prelude::*, EulerRot};
+    use bevy_math::prelude::*;
 
     use crate::{
         inspector_options::std_options::{QuatDisplay, QuatOptions},

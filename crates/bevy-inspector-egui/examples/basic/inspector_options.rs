@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use bevy_egui::EguiContext;
 use bevy_inspector_egui::inspector_options::std_options::NumberDisplay;
 use bevy_inspector_egui::{prelude::*, DefaultInspectorConfigPlugin};
-use bevy_pbr::PbrBundle;
 use bevy_utils::HashMap;
 use bevy_window::PrimaryWindow;
 
