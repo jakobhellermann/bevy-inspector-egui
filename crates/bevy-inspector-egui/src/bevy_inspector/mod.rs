@@ -39,7 +39,7 @@
 use std::any::TypeId;
 
 use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
-use bevy_ecs::query::ReadOnlyWorldQuery;
+use bevy_ecs::query::{QueryFilter, WorldQuery};
 use bevy_ecs::reflect::AppTypeRegistry;
 use bevy_ecs::system::CommandQueue;
 use bevy_ecs::{component::ComponentId, prelude::*};
@@ -240,7 +240,7 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
 }
 
 /// Display all entities matching the given filter
-pub fn ui_for_world_entities_filtered<F: ReadOnlyWorldQuery>(
+pub fn ui_for_world_entities_filtered<F: WorldQuery + QueryFilter>(
     world: &mut World,
     ui: &mut egui::Ui,
     with_children: bool,

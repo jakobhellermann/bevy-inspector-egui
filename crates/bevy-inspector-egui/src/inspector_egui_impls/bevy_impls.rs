@@ -57,7 +57,7 @@ pub fn entity_ui(
                     if options.despawnable && world.contains_entity(entity) {
                         if let Some(queue) = queue {
                             if egui_utils::label_button(ui, "✖ Despawn", egui::Color32::RED) {
-                                queue.push(bevy_ecs::system::Despawn { entity });
+                                queue.push(bevy_hierarchy::DespawnRecursive { entity });
                             }
                         }
                     }

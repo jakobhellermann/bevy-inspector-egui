@@ -1,4 +1,5 @@
 use bevy_render::{
+    render_asset::RenderAssetUsages,
     render_resource::{Extent3d, TextureDimension, TextureFormat},
     texture::{Image, TextureFormatPixelInfo},
 };
@@ -161,6 +162,7 @@ pub fn from_dynamic(dyn_img: DynamicImage, is_srgb: bool) -> Image {
         TextureDimension::D2,
         data,
         format,
+        RenderAssetUsages::default(),
     )
 }
 

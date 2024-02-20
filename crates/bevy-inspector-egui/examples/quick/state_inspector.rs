@@ -5,7 +5,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::BLACK))
-        .add_state::<AppState>()
+        .init_state::<AppState>()
         .register_type::<AppState>()
         .add_plugins(StateInspectorPlugin::<AppState>::default())
         .add_systems(Startup, setup)
