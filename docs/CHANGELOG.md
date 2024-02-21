@@ -1,6 +1,12 @@
 # Changelog
 
-## Versino 0.22.1
+## Version 0.23
+- bevy `0.13`, egui `0.26`
+- show entityid beside name in restrictedworldview
+- fix change detection in hierarchy UI
+- improve macro path hygiene
+
+## Version 0.22.1
 - add `InspectorEguiImpl` for `PathBuf`
 
 ## Version 0.22
