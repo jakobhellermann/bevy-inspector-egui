@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use bevy_ecs::{
     prelude::*,
-    query::{QueryFilter, ReadOnlyQueryData},
+    query::{QueryFilter},
 };
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::TypeRegistry;
@@ -39,7 +39,7 @@ pub struct Hierarchy<'a, T = ()> {
 }
 
 impl<T> Hierarchy<'_, T> {
-    pub fn show<F: ReadOnlyQueryData + QueryFilter>(&mut self, ui: &mut egui::Ui) -> bool {
+    pub fn show<F: QueryFilter>(&mut self, ui: &mut egui::Ui) -> bool {
         let mut root_query = self.world.query_filtered::<Entity, (Without<Parent>, F)>();
 
         let always_open: HashSet<Entity> = self
