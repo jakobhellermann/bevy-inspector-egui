@@ -38,14 +38,23 @@ const DEFAULT_SIZE: (f32, f32) = (320., 160.);
 ///         .run();
 /// }
 /// ```
-#[derive(Default)]
-pub struct WorldInspectorPlugin {
+pub struct WorldInspectorPlugin<Window = PrimaryWindow> {
     condition: Mutex<Option<BoxedCondition>>,
+    _marker: PhantomData<fn() -> Window>,
 }
 
-impl WorldInspectorPlugin {
+impl Default for WorldInspectorPlugin<PrimaryWindow> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<Window> WorldInspectorPlugin<Window> {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            condition: Mutex::new(None),
+            _marker: PhantomData,
+        }
     }
 
     /// Only show the UI of the specified condition is active
@@ -56,7 +65,7 @@ impl WorldInspectorPlugin {
     }
 }
 
-impl Plugin for WorldInspectorPlugin {
+impl<Window: Component> Plugin for WorldInspectorPlugin<Window> {
     fn build(&self, app: &mut bevy_app::App) {
         check_default_plugins(app, "WorldInspectorPlugin");
 
@@ -68,7 +77,7 @@ impl Plugin for WorldInspectorPlugin {
         }
 
         let condition = self.condition.lock().unwrap().take();
-        let mut system = world_inspector_ui.into_configs();
+        let mut system = world_inspector_ui::<Window>.into_configs();
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
@@ -76,9 +85,9 @@ impl Plugin for WorldInspectorPlugin {
     }
 }
 
-fn world_inspector_ui(world: &mut World) {
+fn world_inspector_ui<Window: Component>(world: &mut World) {
     let egui_context = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<Window>>()
         .get_single(world);
 
     let Ok(egui_context) = egui_context else {
@@ -127,12 +136,12 @@ fn world_inspector_ui(world: &mut World) {
 ///         .run();
 /// }
 /// ```
-pub struct ResourceInspectorPlugin<T> {
+pub struct ResourceInspectorPlugin<T, Window = PrimaryWindow> {
     condition: Mutex<Option<BoxedCondition>>,
-    marker: PhantomData<fn() -> T>,
+    marker: PhantomData<(fn() -> T, fn() -> Window)>,
 }
 
-impl<T> Default for ResourceInspectorPlugin<T> {
+impl<T, Window> Default for ResourceInspectorPlugin<T, Window> {
     fn default() -> Self {
         Self {
             marker: PhantomData,
@@ -141,7 +150,7 @@ impl<T> Default for ResourceInspectorPlugin<T> {
     }
 }
 
-impl<T> ResourceInspectorPlugin<T> {
+impl<T, Window> ResourceInspectorPlugin<T, Window> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -154,7 +163,7 @@ impl<T> ResourceInspectorPlugin<T> {
     }
 }
 
-impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
+impl<T: Resource + Reflect, Window: Component> Plugin for ResourceInspectorPlugin<T, Window> {
     fn build(&self, app: &mut bevy_app::App) {
         check_default_plugins(app, "ResourceInspectorPlugin");
 
@@ -166,7 +175,7 @@ impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
         }
 
         let condition = self.condition.lock().unwrap().take();
-        let mut system = inspector_ui::<T>.into_configs();
+        let mut system = inspector_ui::<T, Window>.into_configs();
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
@@ -174,9 +183,9 @@ impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
     }
 }
 
-fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
+fn inspector_ui<T: Resource + Reflect, Window: Component>(world: &mut World) {
     let egui_context = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<Window>>()
         .get_single(world);
 
     let Ok(egui_context) = egui_context else {
@@ -223,20 +232,20 @@ fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
 ///     C,
 /// }
 /// ```
-pub struct StateInspectorPlugin<T> {
+pub struct StateInspectorPlugin<T, Window = PrimaryWindow> {
     condition: Mutex<Option<BoxedCondition>>,
-    marker: PhantomData<fn() -> T>,
+    marker: PhantomData<(fn() -> T, fn() -> Window)>,
 }
 
-impl<T> Default for StateInspectorPlugin<T> {
+impl<T, Window> Default for StateInspectorPlugin<T, Window> {
     fn default() -> Self {
-        StateInspectorPlugin {
+        StateInspectorPlugin::<T, Window> {
             condition: Mutex::new(None),
             marker: PhantomData,
         }
     }
 }
-impl<T> StateInspectorPlugin<T> {
+impl<T, Window> StateInspectorPlugin<T, Window> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -249,7 +258,7 @@ impl<T> StateInspectorPlugin<T> {
     }
 }
 
-impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
+impl<T: States + Reflect, Window: Component> Plugin for StateInspectorPlugin<T, Window> {
     fn build(&self, app: &mut bevy_app::App) {
         check_default_plugins(app, "StateInspectorPlugin");
 
@@ -261,7 +270,7 @@ impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
         }
 
         let condition = self.condition.lock().unwrap().take();
-        let mut system = state_ui::<T>.into_configs();
+        let mut system = state_ui::<T, Window>.into_configs();
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
@@ -269,9 +278,9 @@ impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
     }
 }
 
-fn state_ui<T: States + Reflect>(world: &mut World) {
+fn state_ui<T: States + Reflect, Window: Component>(world: &mut World) {
     let egui_context = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<Window>>()
         .get_single(world);
 
     let Ok(egui_context) = egui_context else {
@@ -307,12 +316,12 @@ fn state_ui<T: States + Reflect>(world: &mut World) {
 ///         .run();
 /// }
 /// ```
-pub struct AssetInspectorPlugin<A> {
+pub struct AssetInspectorPlugin<A, Window = PrimaryWindow> {
     condition: Mutex<Option<BoxedCondition>>,
-    marker: PhantomData<fn() -> A>,
+    marker: PhantomData<(fn() -> A, fn() -> Window)>,
 }
 
-impl<A> Default for AssetInspectorPlugin<A> {
+impl<A, Window> Default for AssetInspectorPlugin<A, Window> {
     fn default() -> Self {
         Self {
             condition: Mutex::new(None),
@@ -320,7 +329,7 @@ impl<A> Default for AssetInspectorPlugin<A> {
         }
     }
 }
-impl<A> AssetInspectorPlugin<A> {
+impl<A, Window> AssetInspectorPlugin<A, Window> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -333,7 +342,7 @@ impl<A> AssetInspectorPlugin<A> {
     }
 }
 
-impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
+impl<A: Asset + Reflect, Window: Component> Plugin for AssetInspectorPlugin<A, Window> {
     fn build(&self, app: &mut bevy_app::App) {
         check_default_plugins(app, "AssetInspectorPlugin");
 
@@ -345,7 +354,7 @@ impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
         }
 
         let condition = self.condition.lock().unwrap().take();
-        let mut system = asset_inspector_ui::<A>.into_configs();
+        let mut system = asset_inspector_ui::<A, Window>.into_configs();
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
@@ -353,9 +362,9 @@ impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
     }
 }
 
-fn asset_inspector_ui<A: Asset + Reflect>(world: &mut World) {
+fn asset_inspector_ui<A: Asset + Reflect, Window: Component>(world: &mut World) {
     let egui_context = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<Window>>()
         .get_single(world);
 
     let Ok(egui_context) = egui_context else {
@@ -386,20 +395,20 @@ fn asset_inspector_ui<A: Asset + Reflect>(world: &mut World) {
 ///         .run();
 /// }
 /// ```
-pub struct FilterQueryInspectorPlugin<F> {
+pub struct FilterQueryInspectorPlugin<F, Window = PrimaryWindow> {
     condition: Mutex<Option<BoxedCondition>>,
-    marker: PhantomData<fn() -> F>,
+    marker: PhantomData<(fn() -> F, fn() -> Window)>,
 }
 
-impl<F> Default for FilterQueryInspectorPlugin<F> {
+impl<F, Window> Default for FilterQueryInspectorPlugin<F, Window> {
     fn default() -> Self {
         Self {
-            condition: Mutex::new(None),
             marker: PhantomData,
+            condition: Mutex::new(None),
         }
     }
 }
-impl<A> FilterQueryInspectorPlugin<A> {
+impl<A, Window> FilterQueryInspectorPlugin<A, Window> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -412,7 +421,7 @@ impl<A> FilterQueryInspectorPlugin<A> {
     }
 }
 
-impl<F: 'static> Plugin for FilterQueryInspectorPlugin<F>
+impl<F: 'static, Window: Component> Plugin for FilterQueryInspectorPlugin<F, Window>
 where
     F: QueryFilter,
 {
@@ -428,7 +437,7 @@ where
 
         let condition: Option<Box<dyn ReadOnlySystem<In = (), Out = bool>>> =
             self.condition.lock().unwrap().take();
-        let mut system = entity_query_ui::<F>.into_configs();
+        let mut system = entity_query_ui::<F, Window>.into_configs();
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
@@ -436,9 +445,9 @@ where
     }
 }
 
-fn entity_query_ui<F: QueryFilter>(world: &mut World) {
+fn entity_query_ui<F: QueryFilter, Window: Component>(world: &mut World) {
     let egui_context = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<Window>>()
         .get_single(world);
 
     let Ok(egui_context) = egui_context else {

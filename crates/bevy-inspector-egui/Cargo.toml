@@ -52,6 +52,9 @@ bevy = { version = "0.13", default-features = false, features = [
     "bevy_pbr",
     "bevy_sprite",
     "bevy_core_pipeline",
+    "bevy_ui",
+    "bevy_scene",
+    "bevy_gltf",
     "animation",
     "png",
     "zstd",
@@ -95,6 +98,10 @@ path = "examples/quick/world_inspector_assets.rs"
 [[example]]
 name = "state_inspector"
 path = "examples/quick/state_inspector.rs"
+
+[[example]]
+name = "multiple_windows"
+path = "examples/quick/multiple_windows.rs"
 
 [[example]]
 name = "egui_dock"
