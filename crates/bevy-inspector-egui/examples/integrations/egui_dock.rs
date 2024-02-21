@@ -470,7 +470,7 @@ fn setup(
             builder.spawn(PointLightBundle {
                 point_light: PointLight {
                     color: Color::WHITE,
-                    intensity: 25.0,
+                    intensity: 25000.0,
                     ..Default::default()
                 },
                 transform: Transform::from_translation((box_thickness + 0.05) * Vec3::Y),
@@ -480,7 +480,7 @@ fn setup(
     // directional light
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
-            illuminance: 10000.0,
+            illuminance: 2000.0,
             ..default()
         },
         transform: Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::PI / 2.0)),
