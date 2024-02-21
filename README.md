@@ -135,6 +135,7 @@ Ideally this should be runtime-configurable, but it was implemented like this as
 
 | bevy    | bevy-inspector-egui |
 | ------- | ------------------- |
+| 0.13    | 0.23                |
 | 0.12    | 0.22                |
 | 0.12    | 0.21                |
 | 0.11    | 0.19-0.20           |
