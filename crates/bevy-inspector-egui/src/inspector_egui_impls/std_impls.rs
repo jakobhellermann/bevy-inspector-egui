@@ -324,14 +324,8 @@ fn display_range<T: egui::emath::Numeric + InspectorOptionsType>(
 ) -> bool {
     let options = options.downcast_ref::<RangeOptions<T>>();
 
-    let start_options = options
-        .as_deref()
-        .map(|a| &a.start as &dyn Any)
-        .unwrap_or(&());
-    let end_options = options
-        .as_deref()
-        .map(|a| &a.end as &dyn Any)
-        .unwrap_or(&());
+    let start_options = options.map(|a| &a.start as &dyn Any).unwrap_or(&());
+    let end_options = options.map(|a| &a.end as &dyn Any).unwrap_or(&());
 
     let mut changed = false;
     ui.horizontal(|ui| {
@@ -370,14 +364,8 @@ fn display_range_readonly<T: egui::emath::Numeric + InspectorOptionsType>(
 ) {
     let options = options.downcast_ref::<RangeOptions<T>>();
 
-    let start_options = options
-        .as_deref()
-        .map(|a| &a.start as &dyn Any)
-        .unwrap_or(&());
-    let end_options = options
-        .as_deref()
-        .map(|a| &a.end as &dyn Any)
-        .unwrap_or(&());
+    let start_options = options.map(|a| &a.start as &dyn Any).unwrap_or(&());
+    let end_options = options.as_ref().map(|a| &a.end as &dyn Any).unwrap_or(&());
 
     ui.horizontal(|ui| {
         if let Some(start) = start {

@@ -923,7 +923,7 @@ impl InspectorUi<'_, '_> {
     ) -> bool {
         let mut changed = false;
         let map_draft_id = id.with("map_draft");
-        if map.len() == 0 {
+        if map.is_empty() {
             ui.label("(Empty Map)");
             ui.end_row();
         }
