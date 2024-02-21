@@ -104,7 +104,7 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
     {
         insert_options_struct::<bevy_pbr::AmbientLight>(
             type_registry,
-            &[("brightness", &NumberOptions::<f32>::normalized())],
+            &[("brightness", &NumberOptions::<f32>::positive())],
         );
         insert_options_struct::<bevy_pbr::PointLight>(
             type_registry,
