@@ -17,63 +17,61 @@ use crate::{
     reflect_inspector::InspectorUi,
 };
 
+use super::InspectorPrimitive;
+
 mod image_texture_conversion;
 
-pub fn image_handle_ui(
-    value: &mut dyn Any,
-    ui: &mut egui::Ui,
-    options: &dyn Any,
-    id: egui::Id,
-    env: InspectorUi<'_, '_>,
-) -> bool {
-    image_handle_ui_readonly(value, ui, options, id, env);
-    false
-}
-pub fn image_handle_ui_readonly(
-    value: &dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    _: egui::Id,
-    env: InspectorUi<'_, '_>,
-) {
-    let value = value.downcast_ref::<Handle<Image>>().unwrap();
-    let Some(world) = &mut env.context.world else {
-        no_world_in_context(ui, value.reflect_short_type_path());
-        return;
-    };
-    let (mut egui_user_textures, mut images) =
-        match world.get_two_resources_mut::<bevy_egui::EguiUserTextures, Assets<Image>>() {
-            (Ok(a), Ok(b)) => (a, b),
-            (a, b) => {
-                if let Err(e) = a {
-                    show_error(e, ui, &pretty_type_name::<bevy_egui::EguiContext>());
+impl InspectorPrimitive for Handle<Image> {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    ) -> bool {
+        self.ui_readonly(ui, options, id, env);
+        false
+    }
+
+    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, env: InspectorUi<'_, '_>) {
+        let Some(world) = &mut env.context.world else {
+            no_world_in_context(ui, self.reflect_short_type_path());
+            return;
+        };
+        let (mut egui_user_textures, mut images) =
+            match world.get_two_resources_mut::<bevy_egui::EguiUserTextures, Assets<Image>>() {
+                (Ok(a), Ok(b)) => (a, b),
+                (a, b) => {
+                    if let Err(e) = a {
+                        show_error(e, ui, &pretty_type_name::<bevy_egui::EguiContext>());
+                    }
+                    if let Err(e) = b {
+                        show_error(e, ui, &pretty_type_name::<Assets<Image>>());
+                    }
+                    return;
                 }
-                if let Err(e) = b {
-                    show_error(e, ui, &pretty_type_name::<Assets<Image>>());
-                }
+            };
+
+        let mut scaled_down_textures = SCALED_DOWN_TEXTURES.lock().unwrap();
+
+        // todo: read asset events to re-rescale images of they changed
+        let rescaled = rescaled_image(
+            self,
+            &mut scaled_down_textures,
+            &mut images,
+            &mut egui_user_textures,
+        );
+        let (rescaled_handle, texture_id) = match rescaled {
+            Some(it) => it,
+            None => {
+                ui.label("<texture>");
                 return;
             }
         };
 
-    let mut scaled_down_textures = SCALED_DOWN_TEXTURES.lock().unwrap();
-
-    // todo: read asset events to re-rescale images of they changed
-    let rescaled = rescaled_image(
-        value,
-        &mut scaled_down_textures,
-        &mut images,
-        &mut egui_user_textures,
-    );
-    let (rescaled_handle, texture_id) = match rescaled {
-        Some(it) => it,
-        None => {
-            ui.label("<texture>");
-            return;
-        }
-    };
-
-    let rescaled_image = images.get(&rescaled_handle).unwrap();
-    show_image(rescaled_image, texture_id, ui);
+        let rescaled_image = images.get(&rescaled_handle).unwrap();
+        show_image(rescaled_image, texture_id, ui);
+    }
 }
 
 static SCALED_DOWN_TEXTURES: Lazy<Mutex<ScaledDownTextures>> = Lazy::new(Default::default);

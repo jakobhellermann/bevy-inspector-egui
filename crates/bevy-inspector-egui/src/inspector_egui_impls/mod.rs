@@ -1,7 +1,7 @@
-//! UI implementations for leaf types
+//! Custom UI implementations for specific types. Check [`InspectorPrimitive`] for an example.
 
 use crate::reflect_inspector::{errors::no_multiedit, InspectorUi};
-use bevy_reflect::{Reflect, TypeRegistry};
+use bevy_reflect::{FromType, Reflect, TypePath, TypeRegistry};
 use bevy_utils::Instant;
 use std::{
     any::{Any, TypeId},
@@ -27,10 +27,110 @@ type InspectorEguiImplFnMany = for<'a> fn(
     &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
 ) -> bool;
 
+/// Custom UI implementation for a concrete type.
+///
+/// # Example Usage
+/// ```rust,no_run
+/// use bevy::prelude::*;
+/// use bevy_inspector_egui::inspector_egui_impls::{InspectorEguiImpl, InspectorPrimitive};
+/// use bevy_inspector_egui::quick::ResourceInspectorPlugin;
+/// use bevy_inspector_egui::reflect_inspector::InspectorUi;
+///
+/// #[derive(Reflect, Default)]
+/// struct ToggleOption(bool);
+///
+/// impl InspectorPrimitive for ToggleOption {
+///     fn ui(&mut self, ui: &mut egui::Ui, _: &dyn std::any::Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+///         let mut changed = ui.radio_value(&mut self.0, false, "Disabled").changed();
+///         changed |= ui.radio_value(&mut self.0, true, "Enabled").changed();
+///         changed
+///     }
+///
+///     fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn std::any::Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+///         let mut copy = self.0;
+///         ui.add_enabled_ui(false, |ui| {
+///             ui.radio_value(&mut copy, false, "Disabled").changed();
+///             ui.radio_value(&mut copy, true, "Enabled").changed();
+///         });
+///     }
+/// }
+///
+/// fn main() {
+///     App::new()
+///         .add_plugins(DefaultPlugins)
+///         // ...
+///         .register_type_data::<ToggleOption, InspectorEguiImpl>()
+///         .run();
+/// }
+/// ```
+pub trait InspectorPrimitive: Reflect {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    ) -> bool;
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    );
+}
+
+fn ui_many_vtable<T: Reflect + PartialEq + Clone + Default + InspectorPrimitive>(
+    ui: &mut egui::Ui,
+    options: &dyn Any,
+    id: egui::Id,
+    env: InspectorUi<'_, '_>,
+    values: &mut [&mut dyn bevy_reflect::Reflect],
+    projector: &dyn Fn(&mut dyn bevy_reflect::Reflect) -> &mut dyn bevy_reflect::Reflect,
+) -> bool {
+    let same = crate::inspector_egui_impls::iter_all_eq(
+        values
+            .iter_mut()
+            .map(|value| projector(*value).downcast_ref::<T>().unwrap()),
+    );
+
+    let mut temp = same.cloned().unwrap_or_default();
+    if T::ui(&mut temp, ui, options, id, env) {
+        for value in values.iter_mut() {
+            let value = projector(*value).downcast_mut::<T>().unwrap();
+            *value = temp.clone();
+        }
+
+        return true;
+    }
+    false
+}
+
+fn ui_vtable<T: InspectorPrimitive>(
+    val: &mut dyn Any,
+    ui: &mut egui::Ui,
+    options: &dyn Any,
+    id: egui::Id,
+    env: InspectorUi<'_, '_>,
+) -> bool {
+    let val = val.downcast_mut::<T>().unwrap();
+    T::ui(val, ui, options, id, env)
+}
+fn ui_readonly_vtable<T: InspectorPrimitive>(
+    val: &dyn Any,
+    ui: &mut egui::Ui,
+    options: &dyn Any,
+    id: egui::Id,
+    env: InspectorUi<'_, '_>,
+) {
+    let val = val.downcast_ref::<T>().unwrap();
+    T::ui_readonly(val, ui, options, id, env)
+}
+
 /// Function pointers for displaying a concrete type, to be registered in the [`TypeRegistry`].
 ///
 /// This can used for leaf types like `u8` or `String`, as well as people who want to completely customize the way
-/// to display a certain type.
+/// to display a certain type. You can use [`InspectorPrimitive`] to avoid manually writing the function pointers with correct downcasting.
 #[derive(Clone)]
 pub struct InspectorEguiImpl {
     fn_mut: InspectorEguiImplFn,
@@ -38,7 +138,28 @@ pub struct InspectorEguiImpl {
     fn_many: InspectorEguiImplFnMany,
 }
 
+impl<T: InspectorPrimitive> FromType<T> for InspectorEguiImpl {
+    fn from_type() -> Self {
+        InspectorEguiImpl::of_with_many::<T>(many_unimplemented::<T>)
+    }
+}
+
 impl InspectorEguiImpl {
+    pub fn of<T: InspectorPrimitive + PartialEq + Clone + Default>() -> Self {
+        InspectorEguiImpl {
+            fn_mut: ui_vtable::<T>,
+            fn_readonly: ui_readonly_vtable::<T>,
+            fn_many: ui_many_vtable::<T>,
+        }
+    }
+    pub fn of_with_many<T: InspectorPrimitive>(fn_many: InspectorEguiImplFnMany) -> Self {
+        InspectorEguiImpl {
+            fn_mut: ui_vtable::<T>,
+            fn_readonly: ui_readonly_vtable::<T>,
+            fn_many,
+        }
+    }
+
     /// Create a new [`InspectorEguiImpl`] from functions displaying a type
     pub fn new(
         fn_mut: InspectorEguiImplFn,
@@ -97,21 +218,22 @@ fn many_unimplemented<T: Any>(
     false
 }
 
-fn add_no_many<T: 'static>(
+fn add<T: InspectorPrimitive + TypePath + PartialEq + Clone + Default>(
     type_registry: &mut TypeRegistry,
-    fn_mut: InspectorEguiImplFn,
-    fn_readonly: InspectorEguiImplFnReadonly,
+) {
+    type_registry.register_type_data::<T, InspectorEguiImpl>();
+}
+fn add_of_with_many<T: InspectorPrimitive>(
+    type_registry: &mut TypeRegistry,
+    fn_many: InspectorEguiImplFnMany,
 ) {
     type_registry
         .get_mut(TypeId::of::<T>())
         .unwrap_or_else(|| panic!("{} not registered", std::any::type_name::<T>()))
-        .insert(InspectorEguiImpl::new(
-            fn_mut,
-            fn_readonly,
-            many_unimplemented::<T>,
-        ));
+        .insert(InspectorEguiImpl::of_with_many::<T>(fn_many));
 }
-fn add<T: 'static>(
+
+fn add_raw<T: 'static>(
     type_registry: &mut TypeRegistry,
     fn_mut: InspectorEguiImplFn,
     fn_readonly: InspectorEguiImplFnReadonly,
@@ -126,70 +248,69 @@ fn add<T: 'static>(
 /// Register [`InspectorEguiImpl`]s for primitive rust types as well as standard library types
 #[rustfmt::skip]
 pub fn register_std_impls(type_registry: &mut TypeRegistry) {
-    add::<f32>(type_registry, std_impls::number_ui::<f32>, std_impls::number_ui_readonly::<f32>, std_impls::number_ui_many::<f32>);
-    add::<f64>(type_registry, std_impls::number_ui::<f64>, std_impls::number_ui_readonly::<f64>, std_impls::number_ui_many::<f64>);
-    add::<i8>(type_registry, std_impls::number_ui::<i8>, std_impls::number_ui_readonly::<i8>, std_impls::number_ui_many::<i8>);
-    add::<i16>(type_registry, std_impls::number_ui::<i16>, std_impls::number_ui_readonly::<i16>, std_impls::number_ui_many::<i16>);
-    add::<i32>(type_registry, std_impls::number_ui::<i32>, std_impls::number_ui_readonly::<i32>, std_impls::number_ui_many::<i32>);
-    add::<i64>(type_registry, std_impls::number_ui::<i64>, std_impls::number_ui_readonly::<i64>, std_impls::number_ui_many::<i64>);
-    add::<isize>(type_registry, std_impls::number_ui::<isize>, std_impls::number_ui_readonly::<isize>, std_impls::number_ui_many::<isize>);
-    add::<u8>(type_registry, std_impls::number_ui::<u8>, std_impls::number_ui_readonly::<u8>, std_impls::number_ui_many::<u8>);
-    add::<u16>(type_registry, std_impls::number_ui::<u16>, std_impls::number_ui_readonly::<u16>, std_impls::number_ui_many::<u16>);
-    add::<u32>(type_registry, std_impls::number_ui::<u32>, std_impls::number_ui_readonly::<u32>, std_impls::number_ui_many::<u32>);
-    add::<u64>(type_registry, std_impls::number_ui::<u64>, std_impls::number_ui_readonly::<u64>, std_impls::number_ui_many::<u64>);
-    add::<usize>(type_registry, std_impls::number_ui::<usize>, std_impls::number_ui_readonly::<usize>, std_impls::number_ui_many::<usize>);
-    add::<bool>(type_registry, std_impls::bool_ui, std_impls::bool_ui_readonly, std_impls::bool_ui_many);
-    add::<String>(type_registry, std_impls::string_ui, std_impls::string_ui_readonly, std_impls::string_ui_many);
-    add::<Cow<str>>(type_registry, std_impls::cow_str_ui, std_impls::cow_str_ui_readonly, std_impls::cow_str_ui_many);
-    add::<PathBuf>(type_registry, std_impls::pathbuf_ui, std_impls::pathbuf_ui_readonly, std_impls::pathbuf_ui_many);
+    add_of_with_many::<f32>(type_registry, std_impls::number_ui_many::<f32>);
+    add_of_with_many::<f64>(type_registry, std_impls::number_ui_many::<f64>);
+    add_of_with_many::<i8>(type_registry, std_impls::number_ui_many::<i8>);
+    add_of_with_many::<i16>(type_registry, std_impls::number_ui_many::<i16>);
+    add_of_with_many::<i32>(type_registry, std_impls::number_ui_many::<i32>);
+    add_of_with_many::<i64>(type_registry, std_impls::number_ui_many::<i64>);
+    add_of_with_many::<isize>(type_registry, std_impls::number_ui_many::<isize>);
+    add_of_with_many::<u8>(type_registry, std_impls::number_ui_many::<u8>);
+    add_of_with_many::<u16>(type_registry, std_impls::number_ui_many::<u16>);
+    add_of_with_many::<u32>(type_registry, std_impls::number_ui_many::<u32>);
+    add_of_with_many::<u64>(type_registry, std_impls::number_ui_many::<u64>);
+    add_of_with_many::<usize>(type_registry, std_impls::number_ui_many::<usize>);
+    add::<bool>(type_registry);
+    add::<String>(type_registry);
+    add::<Cow<str>>(type_registry);
+    add::<PathBuf>(type_registry);
 
     type_registry.register::<std::ops::Range<f64>>();
+    add::<std::ops::Range<f32>>(type_registry);
+    add::<std::ops::Range<f64>>(type_registry);
 
-    add::<std::ops::Range<f32>>(type_registry, std_impls::range_ui::<f32>, std_impls::range_ui_readonly::<f32>, many_unimplemented::<std::ops::Range<f32>>);
-    add::<std::ops::Range<f64>>(type_registry, std_impls::range_ui::< f64>, std_impls::range_ui_readonly::<f64>, many_unimplemented::<std::ops::Range<f64>>);
-
-    add_no_many::<std::time::Duration>(type_registry, std_impls::duration_ui, std_impls::duration_ui_readonly);
-    add_no_many::<Instant>(type_registry, std_impls::instant_ui, std_impls::instant_ui_readonly);
+    add::<std::time::Duration>(type_registry);
+    add_of_with_many::<Instant>(type_registry, many_unimplemented::<Instant>);
 }
 
 /// Register [`InspectorEguiImpl`]s for [`bevy_math`]/`glam` types
 #[rustfmt::skip]
 pub fn register_glam_impls(type_registry: &mut TypeRegistry) {
-    add::<bevy_math::Vec2>(type_registry, glam_impls::vec2_ui, glam_impls::vec2_ui_readonly, glam_impls::vec2_ui_many);
-    add::<bevy_math::Vec3>(type_registry, glam_impls::vec3_ui, glam_impls::vec3_ui_readonly, glam_impls::vec3_ui_many);
-    add::<bevy_math::Vec3A>(type_registry, glam_impls::vec3a_ui, glam_impls::vec3a_ui_readonly, glam_impls::vec3a_ui_many);
-    add::<bevy_math::Vec4>(type_registry, glam_impls::vec4_ui, glam_impls::vec4_ui_readonly, glam_impls::vec4_ui_many);
-    add::<bevy_math::UVec2>(type_registry, glam_impls::uvec2_ui, glam_impls::uvec2_ui_readonly, glam_impls::uvec2_ui_many);
-    add::<bevy_math::UVec3>(type_registry, glam_impls::uvec3_ui, glam_impls::uvec3_ui_readonly, glam_impls::uvec3_ui_many);
-    add::<bevy_math::UVec4>(type_registry, glam_impls::uvec4_ui, glam_impls::uvec4_ui_readonly, glam_impls::uvec4_ui_many);
-    add::<bevy_math::IVec2>(type_registry, glam_impls::ivec2_ui, glam_impls::ivec2_ui_readonly, glam_impls::ivec2_ui_many);
-    add::<bevy_math::IVec3>(type_registry, glam_impls::ivec3_ui, glam_impls::ivec3_ui_readonly, glam_impls::ivec3_ui_many);
-    add::<bevy_math::IVec4>(type_registry, glam_impls::ivec4_ui, glam_impls::ivec4_ui_readonly, glam_impls::ivec4_ui_many);
-    add::<bevy_math::DVec2>(type_registry, glam_impls::dvec2_ui, glam_impls::dvec2_ui_readonly, glam_impls::dvec2_ui_many);
-    add::<bevy_math::DVec3>(type_registry, glam_impls::dvec3_ui, glam_impls::dvec3_ui_readonly, glam_impls::dvec3_ui_many);
-    add::<bevy_math::DVec4>(type_registry, glam_impls::dvec4_ui, glam_impls::dvec4_ui_readonly, glam_impls::dvec4_ui_many);
-    add_no_many::<bevy_math::BVec2>(type_registry, glam_impls::bvec2_ui, glam_impls::bvec2_ui_readonly);
-    add_no_many::<bevy_math::BVec3>(type_registry, glam_impls::bvec3_ui, glam_impls::bvec3_ui_readonly);
-    add_no_many::<bevy_math::BVec4>(type_registry, glam_impls::bvec4_ui, glam_impls::bvec4_ui_readonly);
-    add_no_many::<bevy_math::Mat2>(type_registry, glam_impls::mat2_ui, glam_impls::mat2_ui_readonly);
-    add_no_many::<bevy_math::Mat3>(type_registry, glam_impls::mat3_ui, glam_impls::mat3_ui_readonly);
-    add_no_many::<bevy_math::Mat3A>(type_registry, glam_impls::mat3a_ui, glam_impls::mat3a_ui_readonly);
-    add_no_many::<bevy_math::Mat4>(type_registry, glam_impls::mat4_ui, glam_impls::mat4_ui_readonly);
-    add_no_many::<bevy_math::DMat2>(type_registry, glam_impls::dmat2_ui, glam_impls::dmat2_ui_readonly);
-    add_no_many::<bevy_math::DMat3>(type_registry, glam_impls::dmat3_ui, glam_impls::dmat3_ui_readonly);
-    add_no_many::<bevy_math::DMat4>(type_registry, glam_impls::dmat4_ui, glam_impls::dmat4_ui_readonly);
+    add_raw::<bevy_math::Vec2>(type_registry, glam_impls::vec2_ui, glam_impls::vec2_ui_readonly, glam_impls::vec2_ui_many);
+    add_raw::<bevy_math::Vec3>(type_registry, glam_impls::vec3_ui, glam_impls::vec3_ui_readonly, glam_impls::vec3_ui_many);
+    add_raw::<bevy_math::Vec3A>(type_registry, glam_impls::vec3a_ui, glam_impls::vec3a_ui_readonly, glam_impls::vec3a_ui_many);
+    add_raw::<bevy_math::Vec4>(type_registry, glam_impls::vec4_ui, glam_impls::vec4_ui_readonly, glam_impls::vec4_ui_many);
+    add_raw::<bevy_math::UVec2>(type_registry, glam_impls::uvec2_ui, glam_impls::uvec2_ui_readonly, glam_impls::uvec2_ui_many);
+    add_raw::<bevy_math::UVec3>(type_registry, glam_impls::uvec3_ui, glam_impls::uvec3_ui_readonly, glam_impls::uvec3_ui_many);
+    add_raw::<bevy_math::UVec4>(type_registry, glam_impls::uvec4_ui, glam_impls::uvec4_ui_readonly, glam_impls::uvec4_ui_many);
+    add_raw::<bevy_math::IVec2>(type_registry, glam_impls::ivec2_ui, glam_impls::ivec2_ui_readonly, glam_impls::ivec2_ui_many);
+    add_raw::<bevy_math::IVec3>(type_registry, glam_impls::ivec3_ui, glam_impls::ivec3_ui_readonly, glam_impls::ivec3_ui_many);
+    add_raw::<bevy_math::IVec4>(type_registry, glam_impls::ivec4_ui, glam_impls::ivec4_ui_readonly, glam_impls::ivec4_ui_many);
+    add_raw::<bevy_math::DVec2>(type_registry, glam_impls::dvec2_ui, glam_impls::dvec2_ui_readonly, glam_impls::dvec2_ui_many);
+    add_raw::<bevy_math::DVec3>(type_registry, glam_impls::dvec3_ui, glam_impls::dvec3_ui_readonly, glam_impls::dvec3_ui_many);
+    add_raw::<bevy_math::DVec4>(type_registry, glam_impls::dvec4_ui, glam_impls::dvec4_ui_readonly, glam_impls::dvec4_ui_many);
+    add_raw::<bevy_math::BVec2>(type_registry, glam_impls::bvec2_ui, glam_impls::bvec2_ui_readonly, many_unimplemented::<bevy_math::BVec2>);
+    add_raw::<bevy_math::BVec3>(type_registry, glam_impls::bvec3_ui, glam_impls::bvec3_ui_readonly, many_unimplemented::<bevy_math::BVec3>);
+    add_raw::<bevy_math::BVec4>(type_registry, glam_impls::bvec4_ui, glam_impls::bvec4_ui_readonly, many_unimplemented::<bevy_math::BVec4>);
+    add_raw::<bevy_math::Mat2>(type_registry, glam_impls::mat2_ui, glam_impls::mat2_ui_readonly, many_unimplemented::<bevy_math::Mat2>);
+    add_raw::<bevy_math::Mat3>(type_registry, glam_impls::mat3_ui, glam_impls::mat3_ui_readonly, many_unimplemented::<bevy_math::Mat3>);
+    add_raw::<bevy_math::Mat3A>(type_registry, glam_impls::mat3a_ui, glam_impls::mat3a_ui_readonly, many_unimplemented::<bevy_math::Mat3A>);
+    add_raw::<bevy_math::Mat4>(type_registry, glam_impls::mat4_ui, glam_impls::mat4_ui_readonly, many_unimplemented::<bevy_math::Mat4>);
+    add_raw::<bevy_math::DMat2>(type_registry, glam_impls::dmat2_ui, glam_impls::dmat2_ui_readonly, many_unimplemented::<bevy_math::DMat2>);
+    add_raw::<bevy_math::DMat3>(type_registry, glam_impls::dmat3_ui, glam_impls::dmat3_ui_readonly, many_unimplemented::<bevy_math::DMat3>);
+    add_raw::<bevy_math::DMat4>(type_registry, glam_impls::dmat4_ui, glam_impls::dmat4_ui_readonly, many_unimplemented::<bevy_math::DMat4>);
 
-    add::<bevy_math::Quat>(type_registry, glam_impls::quat::quat_ui, glam_impls::quat::quat_ui_readonly, glam_impls::quat::quat_ui_many);
+    add_raw::<bevy_math::Quat>(type_registry, glam_impls::quat::quat_ui, glam_impls::quat::quat_ui_readonly, glam_impls::quat::quat_ui_many);
 }
 
 /// Register [`InspectorEguiImpl`]s for `bevy` types
 #[rustfmt::skip]
 pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
-    add_no_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, image::image_handle_ui, image::image_handle_ui_readonly);
-    add_no_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, bevy_impls::mesh_ui, bevy_impls::mesh_ui_readonly);
-    add_no_many::<bevy_ecs::entity::Entity>(type_registry, bevy_impls::entity_ui, bevy_impls::entity_ui_readonly);
-    add::<bevy_render::color::Color>(type_registry, bevy_impls::color_ui, bevy_impls::color_ui_readonly, bevy_impls::color_ui_many);
-    add::<bevy_render::view::RenderLayers>(type_registry, bevy_impls::render_layers_ui, bevy_impls::render_layers_ui_readonly, bevy_impls::render_layers_ui_many);
+    add_of_with_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::texture::Image>>);
+    add_of_with_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::mesh::Mesh>>);
+    add_of_with_many::<bevy_ecs::entity::Entity>(type_registry, many_unimplemented::<bevy_ecs::entity::Entity>);
+    add::<bevy_render::color::Color>(type_registry);
+    add::<bevy_render::view::RenderLayers>(type_registry);
 }
 
 pub(crate) fn change_slider<T>(
@@ -233,7 +354,7 @@ where
     }
 }
 
-pub(crate) fn iter_all_eq<T: Copy + PartialEq>(mut iter: impl Iterator<Item = T>) -> Option<T> {
+pub(crate) fn iter_all_eq<T: PartialEq>(mut iter: impl Iterator<Item = T>) -> Option<T> {
     let first = iter.next()?;
     iter.all(|elem| elem == first).then_some(first)
 }

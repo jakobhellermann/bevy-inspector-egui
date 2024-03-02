@@ -1,15 +1,70 @@
 use std::{borrow::Cow, ops::AddAssign, path::PathBuf, time::Instant};
 
-use bevy_reflect::Reflect;
+use bevy_reflect::{Reflect, TypePath};
 use egui::{DragValue, RichText, TextBuffer};
 
-use super::{change_slider, iter_all_eq, InspectorUi};
+use super::{change_slider, iter_all_eq, InspectorPrimitive, InspectorUi};
 use crate::inspector_options::{
     std_options::{NumberDisplay, NumberOptions, RangeOptions},
     InspectorOptionsType,
 };
-use crate::many_ui;
 use std::{any::Any, time::Duration};
+
+// just for orphan rules
+trait Num: egui::emath::Numeric {}
+
+macro_rules! impl_num {
+    ($($ty:ty),*) => {
+        $(
+            impl Num for $ty {}
+        )*
+    };
+}
+
+impl_num!(f32, f64, i8, u8, i16, u16, i32, u32, i64, u64, isize, usize);
+
+impl<T: Reflect + Num> InspectorPrimitive for T {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        _: egui::Id,
+        _: InspectorUi<'_, '_>,
+    ) -> bool {
+        let options = options
+            .downcast_ref::<NumberOptions<T>>()
+            .cloned()
+            .unwrap_or_default();
+        display_number(self, &options, ui, 0.1)
+    }
+
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        _: egui::Id,
+        _: InspectorUi<'_, '_>,
+    ) {
+        let options = options
+            .downcast_ref::<NumberOptions<T>>()
+            .cloned()
+            .unwrap_or_default();
+        let decimal_range = 0..=1usize;
+        ui.add(
+            egui::Button::new(
+                RichText::new(format!(
+                    "{}{}{}",
+                    options.prefix,
+                    egui::emath::format_with_decimals_in_range(self.to_f64(), decimal_range),
+                    options.suffix
+                ))
+                .monospace(),
+            )
+            .wrap(false)
+            .sense(egui::Sense::hover()),
+        );
+    }
+}
 
 pub fn number_ui<T: egui::emath::Numeric>(
     value: &mut dyn Any,
@@ -140,177 +195,153 @@ where
     })
 }
 
-pub fn bool_ui(
-    value: &mut dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    _: egui::Id,
-    _: InspectorUi<'_, '_>,
-) -> bool {
-    let value = value.downcast_mut::<bool>().unwrap();
-    ui.checkbox(value, "").changed()
-}
-pub fn bool_ui_readonly(
-    value: &dyn Any,
-    ui: &mut egui::Ui,
-    options: &dyn Any,
-    id: egui::Id,
-    env: InspectorUi<'_, '_>,
-) {
-    let mut copy = *value.downcast_ref::<bool>().unwrap();
-    ui.add_enabled_ui(false, |ui| {
-        bool_ui(&mut copy, ui, options, id, env);
-    });
-}
+impl InspectorPrimitive for bool {
+    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+        ui.checkbox(self, "").changed()
+    }
 
-many_ui!(bool_ui_many bool_ui bool);
-
-pub fn string_ui(
-    value: &mut dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    _: egui::Id,
-    _: InspectorUi<'_, '_>,
-) -> bool {
-    let value = value.downcast_mut::<String>().unwrap();
-    if value.contains('\n') {
-        ui.text_edit_multiline(value).changed()
-    } else {
-        ui.text_edit_singleline(value).changed()
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    ) {
+        let mut copy = *self;
+        ui.add_enabled_ui(false, |ui| {
+            copy.ui(ui, options, id, env);
+        });
     }
 }
 
-pub fn string_ui_readonly(
-    value: &dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    _: egui::Id,
-    _: InspectorUi<'_, '_>,
-) {
-    let value = value.downcast_ref::<String>().unwrap();
-    if value.contains('\n') {
-        ui.text_edit_multiline(&mut value.as_str());
-    } else {
-        ui.text_edit_singleline(&mut value.as_str());
+impl InspectorPrimitive for String {
+    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+        if self.contains('\n') {
+            ui.text_edit_multiline(self).changed()
+        } else {
+            ui.text_edit_singleline(self).changed()
+        }
+    }
+
+    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+        if self.contains('\n') {
+            ui.text_edit_multiline(&mut self.as_str());
+        } else {
+            ui.text_edit_singleline(&mut self.as_str());
+        }
     }
 }
 
-many_ui!(string_ui_many string_ui String);
+impl InspectorPrimitive for Cow<'static, str> {
+    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+        let mut clone = self.to_string();
+        let changed = if self.contains('\n') {
+            ui.text_edit_multiline(&mut clone).changed()
+        } else {
+            ui.text_edit_singleline(&mut clone).changed()
+        };
 
-pub fn cow_str_ui(
-    value: &mut dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    _: egui::Id,
-    _: InspectorUi<'_, '_>,
-) -> bool {
-    let value = value.downcast_mut::<Cow<str>>().unwrap();
-    let mut clone = value.to_string();
-    let changed = if value.contains('\n') {
-        ui.text_edit_multiline(&mut clone).changed()
-    } else {
-        ui.text_edit_singleline(&mut clone).changed()
-    };
+        if changed {
+            *self = Cow::Owned(clone);
+        }
 
-    if changed {
-        *value = Cow::Owned(clone);
+        changed
     }
 
-    changed
-}
-
-pub fn cow_str_ui_readonly(
-    value: &dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    _: egui::Id,
-    _: InspectorUi<'_, '_>,
-) {
-    let value = value.downcast_ref::<Cow<str>>().unwrap();
-    if value.contains('\n') {
-        ui.text_edit_multiline(&mut value.as_ref());
-    } else {
-        ui.text_edit_singleline(&mut value.as_ref());
+    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+        if self.contains('\n') {
+            ui.text_edit_multiline(&mut self.as_str());
+        } else {
+            ui.text_edit_singleline(&mut self.as_str());
+        }
     }
 }
 
-many_ui!(cow_str_ui_many cow_str_ui Cow<str>);
+impl InspectorPrimitive for Duration {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        id: egui::Id,
+        mut env: InspectorUi<'_, '_>,
+    ) -> bool {
+        let mut seconds = self.as_secs_f64();
+        let options = NumberOptions {
+            min: Some(0.0f64),
+            suffix: "s".to_string(),
+            ..Default::default()
+        };
 
-pub fn duration_ui(
-    value: &mut dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    id: egui::Id,
-    mut env: InspectorUi<'_, '_>,
-) -> bool {
-    let value = value.downcast_mut::<Duration>().unwrap();
-    let mut seconds = value.as_secs_f64();
-    let options = NumberOptions {
-        min: Some(0.0f64),
-        suffix: "s".to_string(),
-        ..Default::default()
-    };
-
-    let changed = env.ui_for_reflect_with_options(&mut seconds, ui, id, &options);
-    if changed {
-        *value = Duration::from_secs_f64(seconds);
+        let changed = env.ui_for_reflect_with_options(&mut seconds, ui, id, &options);
+        if changed {
+            *self = Duration::from_secs_f64(seconds);
+        }
+        changed
     }
-    changed
-}
-pub fn duration_ui_readonly(
-    value: &dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    id: egui::Id,
-    mut env: InspectorUi<'_, '_>,
-) {
-    let value = value.downcast_ref::<Duration>().unwrap();
-    let seconds = value.as_secs_f64();
-    let options = NumberOptions {
-        min: Some(0.0f64),
-        suffix: "s".to_string(),
-        ..Default::default()
-    };
-    env.ui_for_reflect_readonly_with_options(&seconds, ui, id, &options);
+
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        id: egui::Id,
+        mut env: InspectorUi<'_, '_>,
+    ) {
+        let seconds = self.as_secs_f64();
+        let options = NumberOptions {
+            min: Some(0.0f64),
+            suffix: "s".to_string(),
+            ..Default::default()
+        };
+        env.ui_for_reflect_readonly_with_options(&seconds, ui, id, &options);
+    }
 }
 
-pub fn instant_ui(
-    value: &mut dyn Any,
-    ui: &mut egui::Ui,
-    options: &dyn Any,
-    id: egui::Id,
-    env: InspectorUi<'_, '_>,
-) -> bool {
-    instant_ui_readonly(value, ui, options, id, env);
-    false
+impl InspectorPrimitive for Instant {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    ) -> bool {
+        self.ui_readonly(ui, options, id, env);
+        false
+    }
+
+    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+        let mut secs = self.elapsed().as_secs_f32();
+        ui.horizontal(|ui| {
+            ui.add_enabled(false, DragValue::new(&mut secs));
+            ui.label("seconds ago");
+        });
+    }
 }
 
-pub fn instant_ui_readonly(
-    value: &dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    _: egui::Id,
-    _: InspectorUi<'_, '_>,
-) {
-    let value = value.downcast_ref::<Instant>().unwrap();
-    let mut secs = value.elapsed().as_secs_f32();
-    ui.horizontal(|ui| {
-        ui.add_enabled(false, DragValue::new(&mut secs));
-        ui.label("seconds ago");
-    });
-}
+impl<T: Reflect + TypePath + egui::emath::Numeric + InspectorOptionsType> InspectorPrimitive
+    for std::ops::Range<T>
+{
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    ) -> bool {
+        let std::ops::Range { start, end } = self;
+        display_range::<T>(ui, options, id, env, "..", Some(start), Some(end))
+    }
 
-pub fn range_ui<T: egui::emath::Numeric + InspectorOptionsType>(
-    value: &mut dyn Any,
-    ui: &mut egui::Ui,
-    options: &dyn Any,
-    id: egui::Id,
-    env: InspectorUi<'_, '_>,
-) -> bool {
-    let std::ops::Range { start, end } = value.downcast_mut::<std::ops::Range<T>>().unwrap();
-    display_range::<T>(ui, options, id, env, "..", Some(start), Some(end))
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    ) {
+        let std::ops::Range { start, end } = self;
+        display_range_readonly::<T>(ui, options, id, env, "..", Some(start), Some(end));
+    }
 }
-
 fn display_range<T: egui::emath::Numeric + InspectorOptionsType>(
     ui: &mut egui::Ui,
     options: &dyn Any,
@@ -341,17 +372,6 @@ fn display_range<T: egui::emath::Numeric + InspectorOptionsType>(
     changed
 }
 
-pub fn range_ui_readonly<T: egui::emath::Numeric + InspectorOptionsType>(
-    value: &dyn Any,
-    ui: &mut egui::Ui,
-    options: &dyn Any,
-    id: egui::Id,
-    env: InspectorUi<'_, '_>,
-) {
-    let std::ops::Range { start, end } = value.downcast_ref::<std::ops::Range<T>>().unwrap();
-    display_range_readonly::<T>(ui, options, id, env, "..", Some(start), Some(end));
-}
-
 fn display_range_readonly<T: egui::emath::Numeric + InspectorOptionsType>(
     ui: &mut egui::Ui,
     options: &dyn Any,
@@ -378,33 +398,19 @@ fn display_range_readonly<T: egui::emath::Numeric + InspectorOptionsType>(
     });
 }
 
-pub fn pathbuf_ui(
-    value: &mut dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    _: egui::Id,
-    _: InspectorUi<'_, '_>,
-) -> bool {
-    let value = value.downcast_mut::<PathBuf>().unwrap();
-    let mut str = value.to_string_lossy();
-    let changed = ui.text_edit_singleline(&mut str).changed();
+impl InspectorPrimitive for PathBuf {
+    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+        let mut str = self.to_string_lossy();
+        let changed = ui.text_edit_singleline(&mut str).changed();
 
-    if changed {
-        *value = PathBuf::from(str.as_str());
+        if changed {
+            *self = PathBuf::from(str.as_str());
+        }
+
+        changed
     }
 
-    changed
+    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+        ui.text_edit_singleline(&mut self.to_string_lossy());
+    }
 }
-
-pub fn pathbuf_ui_readonly(
-    value: &dyn Any,
-    ui: &mut egui::Ui,
-    _: &dyn Any,
-    _: egui::Id,
-    _: InspectorUi<'_, '_>,
-) {
-    let value = value.downcast_ref::<PathBuf>().unwrap();
-    ui.text_edit_singleline(&mut value.to_string_lossy());
-}
-
-many_ui!(pathbuf_ui_many pathbuf_ui PathBuf);

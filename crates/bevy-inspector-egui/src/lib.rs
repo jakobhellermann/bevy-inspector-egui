@@ -129,6 +129,10 @@
 //! **Q: What if I just want to display a single value without passing in the whole `&mut World`?**
 //!
 //! **A:** You can use [`ui_for_value`](crate::reflect_inspector::ui_for_value). Note that displaying things like `Handle<StandardMaterial>` won't be able to display the asset's value.
+//!
+//! **Q:** Can I change how exactly my type is displayed?
+//!
+//! **A:** Implement [`InspectorPrimitive`](crate::inspector_egui_impls::InspectorPrimitive) and call `app.register_type_data::<T, InspectorEguiImpl>`.
 
 pub mod bevy_inspector;
 pub mod inspector_egui_impls;

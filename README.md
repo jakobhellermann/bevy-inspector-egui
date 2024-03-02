@@ -125,6 +125,10 @@ Ideally this should be runtime-configurable, but it was implemented like this as
 
 **A:** You can use `reflect_inspector::ui_for_value`. Note that displaying things like `Handle<StandardMaterial>` won't be able to display the asset's value.
 
+**Q:** Can I change how exactly my type is displayed?
+
+**A:** Implement `InspectorPrimitive` and call `app.register_type_data::<T, InspectorEguiImpl>`.
+
 
 [reflect_inspector]: https://docs.rs/bevy-inspector-egui/latest/bevy_inspector_egui/reflect_inspector
 [inspector_options]: https://docs.rs/bevy-inspector-egui/latest/bevy_inspector_egui/inspector_options

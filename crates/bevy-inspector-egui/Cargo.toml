@@ -69,6 +69,10 @@ name = "inspector_options"
 path = "examples/basic/inspector_options.rs"
 
 [[example]]
+name = "custom_type_ui"
+path = "examples/basic/custom_type_ui.rs"
+
+[[example]]
 name = "resource_inspector_manual"
 path = "examples/basic/resource_inspector_manual.rs"
 
