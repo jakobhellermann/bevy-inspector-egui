@@ -1,6 +1,7 @@
-use std::{borrow::Cow, ops::AddAssign, path::PathBuf, time::Instant};
+use std::{borrow::Cow, ops::AddAssign, path::PathBuf};
 
 use bevy_reflect::{Reflect, TypePath};
+use bevy_utils::Instant;
 use egui::{DragValue, RichText, TextBuffer};
 
 use super::{change_slider, iter_all_eq, InspectorPrimitive, InspectorUi};
