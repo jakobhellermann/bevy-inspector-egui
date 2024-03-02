@@ -196,7 +196,7 @@ fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
 }
 
 /// Plugin displaying an egui window for an app state.
-/// Remember to call [`App::add_state`](bevy_app::App::add_state) .
+/// Remember to call [`App::add_state`](bevy_app::App::init_state).
 ///
 /// You can use [`StateInspectorPlugin::run_if`] to control when the window is shown, for example
 /// in combination with `input_toggle_active`.
@@ -291,7 +291,7 @@ fn state_ui<T: States + Reflect>(world: &mut World) {
 }
 
 /// Plugin displaying an egui window for all assets of type `A`.
-/// Remember to call [`App::register_asset_reflect`](bevy_asset::AddAsset::register_asset_reflect).
+/// Remember to call [`App::register_asset_reflect`](bevy_asset::AssetApp::register_asset_reflect).
 ///
 /// You can use [`AssetInspectorPlugin::run_if`] to control when the window is shown, for example
 /// in combination with `input_toggle_active`.
