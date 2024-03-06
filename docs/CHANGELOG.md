@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.23.4
+- fix compilation on wasm32
+
 ## Version 0.23.3
 - add `InspectorPrimitive` trait to make custom UI for a type more convenient (see [example](../crates/bevy-inspector-egui/examples/basic/custom_type_ui.rs))
 
