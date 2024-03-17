@@ -31,7 +31,8 @@ impl InspectorPrimitive for Handle<Image> {
         env: InspectorUi<'_, '_>,
     ) -> bool {
         let Some(world) = &mut env.context.world else {
-            //no_world_in_context(ui, self.reflect_short_type_path());
+            let immutable_self: &Handle<Image> = self;
+            no_world_in_context(ui, immutable_self.reflect_short_type_path());
             return false;
         };
 
