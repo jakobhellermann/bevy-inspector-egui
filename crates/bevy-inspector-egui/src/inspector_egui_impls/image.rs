@@ -14,7 +14,8 @@ use pretty_type_name::pretty_type_name;
 
 use crate::{
     bevy_inspector::errors::{no_world_in_context, show_error},
-    reflect_inspector::InspectorUi, restricted_world_view::RestrictedWorldView,
+    reflect_inspector::InspectorUi,
+    restricted_world_view::RestrictedWorldView,
 };
 
 use super::InspectorPrimitive;
@@ -49,7 +50,7 @@ impl InspectorPrimitive for Handle<Image> {
                     return false;
                 }
             };
-        
+
         // get all loaded image paths
         let mut image_paths = Vec::new();
         for image in images.iter() {
@@ -62,28 +63,30 @@ impl InspectorPrimitive for Handle<Image> {
         let mut selected_path = None;
         let mut image_picker_search_text = String::from("");
         ui.data_mut(|data| {
-            image_picker_search_text = data.get_temp_mut_or_default::<String>(
-                id.with("image_picker_search_text")).clone();
+            image_picker_search_text = data
+                .get_temp_mut_or_default::<String>(id.with("image_picker_search_text"))
+                .clone();
         });
 
         // build and show the dropdown
         let dropdown = egui_dropdown::DropDownBox::from_iter(
-            image_paths.iter(), id.with("image_picker"), 
-            &mut image_picker_search_text, 
+            image_paths.iter(),
+            id.with("image_picker"),
+            &mut image_picker_search_text,
             |ui, path| {
                 let response = ui.selectable_label(false, path);
                 if response.clicked() {
                     selected_path = Some(path.to_string());
                 }
                 response
-            }
+            },
         );
         ui.add(dropdown);
 
         // update the typed search text
         ui.data_mut(|data| {
-            *data.get_temp_mut_or_default::<String>(
-                id.with("image_picker_search_text")) = image_picker_search_text;
+            *data.get_temp_mut_or_default::<String>(id.with("image_picker_search_text")) =
+                image_picker_search_text;
         });
 
         // if the user selected an option, update the image handle
@@ -99,7 +102,7 @@ impl InspectorPrimitive for Handle<Image> {
             no_world_in_context(ui, self.reflect_short_type_path());
             return;
         };
-        
+
         update_and_show_image(self, world, ui);
     }
 }
@@ -109,7 +112,7 @@ static SCALED_DOWN_TEXTURES: Lazy<Mutex<ScaledDownTextures>> = Lazy::new(Default
 fn update_and_show_image(
     image: &Handle<Image>,
     world: &mut RestrictedWorldView,
-    ui: &mut egui::Ui
+    ui: &mut egui::Ui,
 ) {
     let (mut egui_user_textures, mut images) =
         match world.get_two_resources_mut::<bevy_egui::EguiUserTextures, Assets<Image>>() {
