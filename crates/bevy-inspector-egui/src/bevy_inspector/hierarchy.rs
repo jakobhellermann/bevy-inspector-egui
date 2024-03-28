@@ -1,9 +1,6 @@
 use std::collections::HashSet;
 
-use bevy_ecs::{
-    prelude::*,
-    query::{QueryFilter},
-};
+use bevy_ecs::{prelude::*, query::QueryFilter};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::TypeRegistry;
 use egui::{CollapsingHeader, RichText};
