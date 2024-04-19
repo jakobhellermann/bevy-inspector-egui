@@ -47,6 +47,8 @@ smallvec = "1.10"
 
 egui-dropdown = "0.7.0"
 
+fuzzy-matcher = "0.3.7"
+
 [dev-dependencies]
 bevy = { version = "0.13", default-features = false, features = [
     "x11",

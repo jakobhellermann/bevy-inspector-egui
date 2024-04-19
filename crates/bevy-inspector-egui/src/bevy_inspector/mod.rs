@@ -44,6 +44,8 @@ use bevy_ecs::system::CommandQueue;
 use bevy_ecs::{component::ComponentId, prelude::*};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::{Reflect, TypeRegistry};
+use fuzzy_matcher::skim::SkimMatcherV2;
+use fuzzy_matcher::FuzzyMatcher;
 use pretty_type_name::pretty_type_name;
 
 pub(crate) mod errors;
@@ -238,17 +240,83 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
     ui_for_world_entities_filtered::<Without<Parent>>(world, ui, true);
 }
 
+#[derive(Debug, Clone)]
+struct Filter {
+    word: String,
+    is_fuzzy: bool,
+}
+
+impl Filter {
+    fn from_ui(ui: &mut egui::Ui) -> Self {
+        let word = {
+            // filter, using eguis memory and a hardcoded id
+            let filter_id = egui::Id::new("world ui filter word");
+            let mut filter = ui.memory_mut(|mem| {
+                let filter: &mut String = mem.data.get_persisted_mut_or_default(filter_id);
+                filter.clone()
+            });
+            ui.text_edit_singleline(&mut filter);
+            ui.memory_mut(|mem| {
+                *mem.data.get_persisted_mut_or_default(filter_id) = filter.clone();
+            });
+
+            // improves overall matching
+            let filter = filter.to_lowercase();
+
+            filter
+        };
+
+        // filter kind
+        let is_fuzzy = {
+            let filter_kind_id = egui::Id::new("world ui filter fuzzy");
+            let mut is_fuzzy = ui.memory_mut(|mem| {
+                let fuzzy: &mut bool = mem.data.get_persisted_mut_or_default(filter_kind_id);
+                fuzzy.clone()
+            });
+            ui.checkbox(&mut is_fuzzy, "Fuzzy Match");
+            ui.memory_mut(|mem| {
+                *mem.data.get_persisted_mut_or_default(filter_kind_id) = is_fuzzy.clone();
+            });
+            is_fuzzy
+        };
+
+        Filter { word, is_fuzzy }
+    }
+
+    /// empty filter which does nothing
+    fn empty() -> Self {
+        Self {
+            word: String::from(""),
+            is_fuzzy: false,
+        }
+    }
+
+    /// filter entities based on internal state
+    fn filter_entities(&self, world: &mut World, entities: &mut Vec<Entity>) {
+        if self.word.is_empty() {
+            return;
+        }
+
+        entities.retain(|entity| {
+            self_or_children_satisfy_filter(world, *entity, self.word.as_str(), self.is_fuzzy)
+        });
+    }
+}
+
 /// Display all entities matching the given filter
 pub fn ui_for_world_entities_filtered<F: WorldQuery + QueryFilter>(
     world: &mut World,
     ui: &mut egui::Ui,
     with_children: bool,
 ) {
+    let filter = Filter::from_ui(ui);
+
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
     let mut root_entities = world.query_filtered::<Entity, F>();
     let mut entities = root_entities.iter(world).collect::<Vec<_>>();
+    filter.filter_entities(world, &mut entities);
     entities.sort();
 
     let id = egui::Id::new("world ui");
@@ -261,7 +329,14 @@ pub fn ui_for_world_entities_filtered<F: WorldQuery + QueryFilter>(
             .id_source(id)
             .show(ui, |ui| {
                 if with_children {
-                    ui_for_entity_with_children_inner(world, entity, ui, id, &type_registry);
+                    ui_for_entity_with_children_inner(
+                        world,
+                        entity,
+                        ui,
+                        id,
+                        &type_registry,
+                        &filter,
+                    );
                 } else {
                     let mut queue = CommandQueue::default();
                     ui_for_entity_components(
@@ -278,6 +353,32 @@ pub fn ui_for_world_entities_filtered<F: WorldQuery + QueryFilter>(
     }
 }
 
+fn self_or_children_satisfy_filter(
+    world: &mut World,
+    entity: Entity,
+    filter: &str,
+    is_fuzzy: bool,
+) -> bool {
+    let name = guess_entity_name(world, entity);
+    let self_matches = if is_fuzzy {
+        let matcher = SkimMatcherV2::default();
+        matcher.fuzzy_match(name.as_str(), filter).is_some()
+    } else {
+        name.to_lowercase().contains(&filter)
+    };
+    self_matches || {
+        world
+            .query::<&Children>()
+            .get(world, entity)
+            .map(|children| children.to_vec())
+            .is_ok_and(|children| {
+                children
+                    .iter()
+                    .any(|child| self_or_children_satisfy_filter(world, *child, filter, is_fuzzy))
+            })
+    }
+}
+
 /// Display the given entity with all its components and children
 pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
@@ -286,7 +387,14 @@ pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut e
     let entity_name = guess_entity_name(world, entity);
     ui.label(entity_name);
 
-    ui_for_entity_with_children_inner(world, entity, ui, egui::Id::new(entity), &type_registry)
+    ui_for_entity_with_children_inner(
+        world,
+        entity,
+        ui,
+        egui::Id::new(entity),
+        &type_registry,
+        &Filter::empty(),
+    )
 }
 
 fn ui_for_entity_with_children_inner(
@@ -295,6 +403,7 @@ fn ui_for_entity_with_children_inner(
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
+    filter: &Filter,
 ) {
     let mut queue = CommandQueue::default();
     ui_for_entity_components(
@@ -309,8 +418,9 @@ fn ui_for_entity_with_children_inner(
     let children = world
         .get::<Children>(entity)
         .map(|children| children.iter().copied().collect::<Vec<_>>());
-    if let Some(children) = children {
+    if let Some(mut children) = children {
         if !children.is_empty() {
+            filter.filter_entities(world, &mut children);
             ui.label("Children");
             for &child in children.iter() {
                 let id = id.with(child);
@@ -321,7 +431,14 @@ fn ui_for_entity_with_children_inner(
                     .show(ui, |ui| {
                         ui.label(&child_entity_name);
 
-                        ui_for_entity_with_children_inner(world, child, ui, id, type_registry);
+                        ui_for_entity_with_children_inner(
+                            world,
+                            child,
+                            ui,
+                            id,
+                            type_registry,
+                            filter,
+                        );
                     });
             }
         }
