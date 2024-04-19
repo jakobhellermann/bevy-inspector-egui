@@ -292,22 +292,14 @@ impl Filter {
     }
 
     /// filter entities based on internal state
-    fn filter_entities(&self, world: &mut World, entities: Vec<Entity>) -> Vec<Entity> {
+    fn filter_entities(&self, world: &mut World, entities: &mut Vec<Entity>) {
         if self.word.is_empty() {
-            entities
-        } else {
-            entities
-                .into_iter()
-                .filter(|entity| {
-                    self_or_children_satisfy_filter(
-                        world,
-                        *entity,
-                        self.word.as_str(),
-                        self.is_fuzzy,
-                    )
-                })
-                .collect::<Vec<_>>()
+            return;
         }
+
+        entities.retain(|entity| {
+            self_or_children_satisfy_filter(world, *entity, self.word.as_str(), self.is_fuzzy)
+        });
     }
 }
 
@@ -323,8 +315,8 @@ pub fn ui_for_world_entities_filtered<F: WorldQuery + QueryFilter>(
     let type_registry = type_registry.read();
 
     let mut root_entities = world.query_filtered::<Entity, F>();
-    let entities = root_entities.iter(world).collect::<Vec<_>>();
-    let mut entities = filter.filter_entities(world, entities);
+    let mut entities = root_entities.iter(world).collect::<Vec<_>>();
+    filter.filter_entities(world, &mut entities);
     entities.sort();
 
     let id = egui::Id::new("world ui");
@@ -425,9 +417,9 @@ fn ui_for_entity_with_children_inner(
     let children = world
         .get::<Children>(entity)
         .map(|children| children.iter().copied().collect::<Vec<_>>());
-    if let Some(children) = children {
+    if let Some(mut children) = children {
         if !children.is_empty() {
-            let children = filter.filter_entities(world, children);
+            filter.filter_entities(world, &mut children);
             ui.label("Children");
             for &child in children.iter() {
                 let id = id.with(child);
