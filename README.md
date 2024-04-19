@@ -3,6 +3,7 @@
 Examples can be found at [`./crates/bevy-inspector-egui/examples`](./crates/bevy-inspector-egui/examples/).
 
 This crate contains
+
 - general purpose machinery for displaying [`Reflect`](bevy_reflect::Reflect) values in [reflect_inspector],
 - a way of associating arbitrary options with fields and enum variants in [inspector_options]
 - utility functions for displaying bevy resource, entities and assets in [bevy_inspector]
@@ -11,9 +12,11 @@ This crate contains
 The changelog can be found at [`docs/CHANGELOG.md`](./docs/CHANGELOG.md).
 
 # Use case 1: Quick plugins
+
 These plugins can be easily added to your app, but don't allow for customization of the presentation and content.
 
 ## WorldInspectorPlugin
+
 Displays the world's entities, resources and assets.
 
 ![image of the world inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/images/world_inspector.png)
@@ -29,7 +32,9 @@ fn main() {
         .run();
 }
 ```
+
 ## ResourceInspectorPlugin
+
 Display a single resource in a window.
 
 ![image of the resource inspector](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/images/resource_inspector.png)
@@ -65,6 +70,7 @@ fn main() {
 There is also the [`StateInspectorPlugin`](quick::StateInspectorPlugin) and the [`AssetInspectorPlugin`](quick::AssetInspectorPlugin).
 
 # Use case 2: Manual UI
+
 The [quick] plugins don't allow customization of the egui window or its content, but you can easily build your own UI:
 
 ```rust
@@ -111,8 +117,9 @@ Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_
 ![image of the egui_dock example](https://raw.githubusercontent.com/jakobhellermann/bevy-inspector-egui/main/docs/images/egui_dock.png)
 
 ## Cargo features
+
 - `highlight_changes` - highlight changed values every frame.
-Ideally this should be runtime-configurable, but it was implemented like this as a stopgap solution. If you'd like to configure this at runtime, please open an issue to let me know it's more of a priority.
+  Ideally this should be runtime-configurable, but it was implemented like this as a stopgap solution. If you'd like to configure this at runtime, please open an issue to let me know it's more of a priority.
 - `bevy_pbr` (default): register default options for `bevy_pbr` types. You should disable this if you don't use `bevy_pbr` to reduce the dependency footprint.
 
 ## FAQ
@@ -129,7 +136,6 @@ Ideally this should be runtime-configurable, but it was implemented like this as
 
 **A:** Implement `InspectorPrimitive` and call `app.register_type_data::<T, InspectorEguiImpl>`.
 
-
 [reflect_inspector]: https://docs.rs/bevy-inspector-egui/latest/bevy_inspector_egui/reflect_inspector
 [inspector_options]: https://docs.rs/bevy-inspector-egui/latest/bevy_inspector_egui/inspector_options
 [quick]: https://docs.rs/bevy-inspector-egui/latest/bevy_inspector_egui/quick
@@ -137,19 +143,19 @@ Ideally this should be runtime-configurable, but it was implemented like this as
 
 ## Bevy support table
 
-| bevy    | bevy-inspector-egui |
-| ------- | ------------------- |
-| 0.13    | 0.23                |
-| 0.12    | 0.22                |
-| 0.12    | 0.21                |
-| 0.11    | 0.19-0.20           |
-| 0.10    | 0.18                |
-| 0.9     | 0.14-0.17           |
-| 0.8     | 0.12-0.13           |
-| 0.7     | 0.10-0.11           |
-| 0.6     | 0.9                 |
-| 0.6     | 0.8                 |
-| 0.6     | 0.7                 |
-| 0.5     | 0.5-0.6             |
-| 0.5     | 0.4                 |
-| 0.4     | 0.1-0.3             |
+| bevy | bevy-inspector-egui |
+| ---- | ------------------- |
+| 0.13 | 0.23                |
+| 0.12 | 0.22                |
+| 0.12 | 0.21                |
+| 0.11 | 0.19-0.20           |
+| 0.10 | 0.18                |
+| 0.9  | 0.14-0.17           |
+| 0.8  | 0.12-0.13           |
+| 0.7  | 0.10-0.11           |
+| 0.6  | 0.9                 |
+| 0.6  | 0.8                 |
+| 0.6  | 0.7                 |
+| 0.5  | 0.5-0.6             |
+| 0.5  | 0.4                 |
+| 0.4  | 0.1-0.3             |
