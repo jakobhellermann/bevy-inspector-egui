@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.24.0
+
+- update to egui 0.27 and bevy_egui 0.27
+- add dropdown for images handles (thanks to @eupraxia05 https://github.com/jakobhellermann/bevy-inspector-egui/pull/190)
+
 ## Version 0.23.4
 - fix compilation on wasm32
 
