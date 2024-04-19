@@ -360,12 +360,13 @@ fn self_or_children_satisfy_filter(
     is_fuzzy: bool,
 ) -> bool {
     let name = guess_entity_name(world, entity);
-    (if !is_fuzzy {
-        name.to_lowercase().contains(&filter)
-    } else {
+    let self_matches = if is_fuzzy {
         let matcher = SkimMatcherV2::default();
         matcher.fuzzy_match(name.as_str(), filter).is_some()
-    }) || {
+    } else {
+        name.to_lowercase().contains(&filter)
+    };
+    self_matches || {
         world
             .query::<&Children>()
             .get(world, entity)
