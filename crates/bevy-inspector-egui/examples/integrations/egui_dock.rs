@@ -15,7 +15,7 @@ use bevy_reflect::TypeRegistry;
 use bevy_render::camera::{CameraProjection, Viewport};
 use bevy_window::PrimaryWindow;
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
-use egui_gizmo::{Gizmo, GizmoMode, GizmoOrientation};
+use transform_gizmo_egui::GizmoMode;
 
 fn main() {
     App::new()
@@ -255,6 +255,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
     }
 }
 
+#[allow(unused)]
 fn draw_gizmo(
     ui: &mut egui::Ui,
     world: &mut World,
@@ -271,30 +272,33 @@ fn draw_gizmo(
         return;
     }
 
-    for selected in selected_entities.iter() {
+    /*for selected in selected_entities.iter() {
         let Some(transform) = world.get::<Transform>(selected) else {
             continue;
         };
         let model_matrix = transform.compute_matrix();
 
-        let Some(result) = Gizmo::new(selected)
-            .model_matrix(model_matrix.into())
-            .view_matrix(view_matrix.into())
-            .projection_matrix(projection_matrix.into())
-            .orientation(GizmoOrientation::Local)
-            .mode(gizmo_mode)
-            .interact(ui)
+        let mut gizmo = Gizmo::new(GizmoConfig {
+            view_matrix: view_matrix.into(),
+            projection_matrix: projection_matrix.into(),
+            orientation: GizmoOrientation::Local,
+            modes: EnumSet::from(gizmo_mode),
+            ..Default::default()
+        });
+        let Some([result]) = gizmo
+            .interact(ui, model_matrix.into())
+            .map(|(_, res)| res.as_slice())
         else {
             continue;
         };
 
         let mut transform = world.get_mut::<Transform>(selected).unwrap();
-        *transform = Transform {
-            translation: Vec3::from(<[f32; 3]>::from(result.translation)),
-            rotation: Quat::from_array(<[f32; 4]>::from(result.rotation)),
-            scale: Vec3::from(<[f32; 3]>::from(result.scale)),
+        transform = Transform {
+            translation: Vec3::from(<[f64; 3]>::from(result.translation)),
+            rotation: Quat::from_array(<[f64; 4]>::from(result.rotation)),
+            scale: Vec3::from(<[f64; 3]>::from(result.scale)),
         };
-    }
+    }*/
 }
 
 fn select_resource(
