@@ -266,7 +266,7 @@ impl Filter {
             filter
         };
 
-        // filter kind
+        /*/ filter kind
         let is_fuzzy = {
             let filter_kind_id = egui::Id::new("world ui filter fuzzy");
             let mut is_fuzzy = ui.memory_mut(|mem| {
@@ -278,9 +278,9 @@ impl Filter {
                 *mem.data.get_persisted_mut_or_default(filter_kind_id) = is_fuzzy.clone();
             });
             is_fuzzy
-        };
+        };*/
 
-        Filter { word, is_fuzzy }
+        Filter { word, is_fuzzy: true }
     }
 
     /// empty filter which does nothing
