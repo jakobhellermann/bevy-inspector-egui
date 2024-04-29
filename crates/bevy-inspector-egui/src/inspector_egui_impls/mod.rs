@@ -248,6 +248,12 @@ fn add_raw<T: 'static>(
 /// Register [`InspectorEguiImpl`]s for primitive rust types as well as standard library types
 #[rustfmt::skip]
 pub fn register_std_impls(type_registry: &mut TypeRegistry) {
+    //for matter engine
+    type_registry.register::<std::borrow::Cow<str>>();
+    type_registry.register::<std::path::PathBuf>();
+    type_registry.register::<std::ops::Range<f32>>();
+    type_registry.register::<bevy_utils::Duration>();
+
     add_of_with_many::<f32>(type_registry, std_impls::number_ui_many::<f32>);
     add_of_with_many::<f64>(type_registry, std_impls::number_ui_many::<f64>);
     add_of_with_many::<i8>(type_registry, std_impls::number_ui_many::<i8>);
