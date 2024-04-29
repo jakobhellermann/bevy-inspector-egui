@@ -5,7 +5,6 @@ use bevy_reflect::{FromType, Reflect, TypePath, TypeRegistry};
 use bevy_utils::Instant;
 use std::{
     any::{Any, TypeId},
-    borrow::Cow,
     path::PathBuf,
 };
 
@@ -263,7 +262,7 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     add::<bool>(type_registry);
     add::<String>(type_registry);
     //add::<Cow<str>>(type_registry);
-    add::<PathBuf>(type_registry);
+    //add::<PathBuf>(type_registry);
 
     type_registry.register::<std::ops::Range<f64>>();
     add::<std::ops::Range<f32>>(type_registry);
