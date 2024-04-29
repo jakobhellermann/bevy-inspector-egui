@@ -3,10 +3,7 @@
 use crate::reflect_inspector::{errors::no_multiedit, InspectorUi};
 use bevy_reflect::{FromType, Reflect, TypePath, TypeRegistry};
 use bevy_utils::Instant;
-use std::{
-    any::{Any, TypeId},
-    path::PathBuf,
-};
+use std::any::{Any, TypeId};
 
 mod bevy_impls;
 mod glam_impls;
