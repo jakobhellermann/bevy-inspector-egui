@@ -283,6 +283,31 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
 /// Register [`InspectorEguiImpl`]s for [`bevy_math`]/`glam` types
 #[rustfmt::skip]
 pub fn register_glam_impls(type_registry: &mut TypeRegistry) {
+    type_registry.register::<bevy_math::Vec2>();
+    type_registry.register::<bevy_math::Vec3>();
+    type_registry.register::<bevy_math::Vec3A>();
+    type_registry.register::<bevy_math::Vec4>();
+    type_registry.register::<bevy_math::UVec2>();
+    type_registry.register::<bevy_math::UVec3>();
+    type_registry.register::<bevy_math::UVec4>();
+    type_registry.register::<bevy_math::IVec2>();
+    type_registry.register::<bevy_math::IVec3>();
+    type_registry.register::<bevy_math::IVec4>();
+    type_registry.register::<bevy_math::DVec2>();
+    type_registry.register::<bevy_math::DVec3>();
+    type_registry.register::<bevy_math::DVec4>();
+    type_registry.register::<bevy_math::BVec2>();
+    type_registry.register::<bevy_math::BVec3>();
+    type_registry.register::<bevy_math::BVec4>();
+    type_registry.register::<bevy_math::Mat2>();
+    type_registry.register::<bevy_math::Mat3>();
+    type_registry.register::<bevy_math::Mat3A>();
+    type_registry.register::<bevy_math::Mat4>();
+    type_registry.register::<bevy_math::DMat2>();
+    type_registry.register::<bevy_math::DMat3>();
+    type_registry.register::<bevy_math::DMat4>();
+    type_registry.register::<bevy_math::Quat>();
+
     add_raw::<bevy_math::Vec2>(type_registry, glam_impls::vec2_ui, glam_impls::vec2_ui_readonly, glam_impls::vec2_ui_many);
     add_raw::<bevy_math::Vec3>(type_registry, glam_impls::vec3_ui, glam_impls::vec3_ui_readonly, glam_impls::vec3_ui_many);
     add_raw::<bevy_math::Vec3A>(type_registry, glam_impls::vec3a_ui, glam_impls::vec3a_ui_readonly, glam_impls::vec3a_ui_many);
