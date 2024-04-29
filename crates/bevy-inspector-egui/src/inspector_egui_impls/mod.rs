@@ -262,7 +262,7 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     add_of_with_many::<usize>(type_registry, std_impls::number_ui_many::<usize>);
     add::<bool>(type_registry);
     add::<String>(type_registry);
-    add::<Cow<str>>(type_registry);
+    //add::<Cow<str>>(type_registry);
     add::<PathBuf>(type_registry);
 
     type_registry.register::<std::ops::Range<f64>>();
