@@ -4,7 +4,7 @@ use std::{any::Any, collections::HashMap};
 
 use bevy_reflect::{FromType, TypeData};
 
-pub(crate) mod default_options;
+pub mod default_options;
 
 /// Options for dealing with common types such as numbers or quaternions
 pub mod std_options;
