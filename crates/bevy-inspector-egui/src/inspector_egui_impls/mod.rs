@@ -283,6 +283,7 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
 /// Register [`InspectorEguiImpl`]s for [`bevy_math`]/`glam` types
 #[rustfmt::skip]
 pub fn register_glam_impls(type_registry: &mut TypeRegistry) {
+    //for matter engine
     type_registry.register::<bevy_math::Vec2>();
     type_registry.register::<bevy_math::Vec3>();
     type_registry.register::<bevy_math::Vec3A>();
@@ -338,6 +339,13 @@ pub fn register_glam_impls(type_registry: &mut TypeRegistry) {
 /// Register [`InspectorEguiImpl`]s for `bevy` types
 #[rustfmt::skip]
 pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
+    //for matter engine
+    type_registry.register::<bevy_asset::Handle<bevy_render::texture::Image>>();
+    type_registry.register::<bevy_asset::Handle<bevy_render::mesh::Mesh>>();
+    type_registry.register::<bevy_ecs::entity::Entity>();
+    type_registry.register::<bevy_render::color::Color>();
+    type_registry.register::<bevy_render::view::RenderLayers>();
+
     add_of_with_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::texture::Image>>);
     add_of_with_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::mesh::Mesh>>);
     add_of_with_many::<bevy_ecs::entity::Entity>(type_registry, many_unimplemented::<bevy_ecs::entity::Entity>);
