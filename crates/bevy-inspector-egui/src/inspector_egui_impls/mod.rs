@@ -253,6 +253,7 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     type_registry.register::<std::path::PathBuf>();
     type_registry.register::<std::ops::Range<f32>>();
     type_registry.register::<bevy_utils::Duration>();
+    type_registry.register::<Instant>();
 
     add_of_with_many::<f32>(type_registry, std_impls::number_ui_many::<f32>);
     add_of_with_many::<f64>(type_registry, std_impls::number_ui_many::<f64>);
