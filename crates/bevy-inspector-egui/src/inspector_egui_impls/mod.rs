@@ -1,7 +1,7 @@
 //! Custom UI implementations for specific types. Check [`InspectorPrimitive`] for an example.
 
 use crate::reflect_inspector::{errors::no_multiedit, InspectorUi};
-use bevy_reflect::{FromType, Reflect, TypePath, TypeRegistry};
+use bevy_reflect::{FromType, Reflect, ReflectDeserialize, ReflectSerialize, TypePath, TypeRegistry};
 use bevy_utils::Instant;
 use std::{
     any::{Any, TypeId},
@@ -254,6 +254,22 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     type_registry.register::<std::ops::Range<f32>>();
     type_registry.register::<bevy_utils::Duration>();
     type_registry.register::<Instant>();
+    type_registry.register_type_data::<std::ops::Range<f32>, ReflectSerialize>();
+    type_registry.register_type_data::<std::ops::Range<f32>, ReflectDeserialize>();
+    type_registry.register::<String>();
+    type_registry.register::<PathBuf>();
+    type_registry.register::<std::ffi::OsString>();
+    type_registry.register::<bevy_utils::HashSet<String>>();
+    type_registry.register::<Option<String>>();
+    type_registry.register::<Option<bool>>();
+    type_registry.register::<Option<f32>>();
+    type_registry.register::<Option<f64>>();
+    type_registry.register::<Vec<f32>>();
+    type_registry.register::<Cow<'static, str>>();
+    type_registry.register::<Cow<'static, std::path::Path>>();
+    type_registry.register::<bevy_utils::Duration>();
+    type_registry.register::<Instant>();
+    type_registry.register::<bevy_utils::Uuid>();
 
     add_of_with_many::<f32>(type_registry, std_impls::number_ui_many::<f32>);
     add_of_with_many::<f64>(type_registry, std_impls::number_ui_many::<f64>);
@@ -345,6 +361,9 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
     type_registry.register::<bevy_ecs::entity::Entity>();
     type_registry.register::<bevy_render::color::Color>();
     type_registry.register::<bevy_render::view::RenderLayers>();
+    type_registry.register::<bevy_ecs::component::ComponentId>();
+    type_registry.register::<bevy_ecs::component::Tick>();
+    type_registry.register::<bevy_ecs::component::ComponentTicks>();
 
     add_of_with_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::texture::Image>>);
     add_of_with_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::mesh::Mesh>>);
