@@ -143,6 +143,7 @@ pub mod restricted_world_view;
 
 mod egui_utils;
 mod utils;
+pub mod inspector_components;
 
 pub use bevy_egui;
 pub use egui;

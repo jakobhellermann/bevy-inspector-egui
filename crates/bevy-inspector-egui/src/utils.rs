@@ -12,10 +12,9 @@ pub fn mut_untyped_split<'a>(mut mut_untyped: MutUntyped<'a>) -> (PtrMut<'a>, im
 }
 
 pub mod guess_entity_name {
-    use bevy_core::Name;
     use bevy_ecs::{archetype::Archetype, prelude::*, world::unsafe_world_cell::UnsafeWorldCell};
 
-    use crate::restricted_world_view::RestrictedWorldView;
+    use crate::{inspector_components::Name, restricted_world_view::RestrictedWorldView};
 
     /// Guesses an appropriate entity name like `Light (6)` or falls back to `Entity (8)`
     pub fn guess_entity_name(world: &World, entity: Entity) -> String {
