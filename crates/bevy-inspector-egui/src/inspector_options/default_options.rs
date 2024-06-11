@@ -63,21 +63,51 @@ fn insert_options_enum<T: 'static>(
 }
 
 pub fn register_default_options(type_registry: &mut TypeRegistry) {
-    insert_options_enum::<bevy_render::color::Color>(
+    #[rustfmt::skip]
+    insert_options_enum::<bevy_color::Color>(
         type_registry,
         &[
-            ("Rgba", "red", &NumberOptions::<f32>::normalized()),
-            ("Rgba", "green", &NumberOptions::<f32>::normalized()),
-            ("Rgba", "blue", &NumberOptions::<f32>::normalized()),
-            ("Rgba", "alpha", &NumberOptions::<f32>::normalized()),
-            ("RgbaLinear", "red", &NumberOptions::<f32>::normalized()),
-            ("RgbaLinear", "green", &NumberOptions::<f32>::normalized()),
-            ("RgbaLinear", "blue", &NumberOptions::<f32>::normalized()),
-            ("RgbaLinear", "alpha", &NumberOptions::<f32>::normalized()),
+            ("Srgba", "red", &NumberOptions::<f32>::normalized()),
+            ("Srgba", "green", &NumberOptions::<f32>::normalized()),
+            ("Srgba", "blue", &NumberOptions::<f32>::normalized()),
+            ("Srgba", "alpha", &NumberOptions::<f32>::normalized()),
+            ("LinearRgba", "red", &NumberOptions::<f32>::normalized()),
+            ("LinearRgba", "green", &NumberOptions::<f32>::normalized()),
+            ("LinearRgba", "blue", &NumberOptions::<f32>::normalized()),
+            ("LinearRgba", "alpha", &NumberOptions::<f32>::normalized()),
             ("Hsla", "hue", &NumberOptions::<f32>::between(0.0, 360.0)),
             ("Hsla", "saturation", &NumberOptions::<f32>::normalized()),
             ("Hsla", "lightness", &NumberOptions::<f32>::normalized()),
             ("Hsla", "alpha", &NumberOptions::<f32>::normalized()),
+            // TODO
+            // ("Hsva", "hue", f32),
+            // ("Hsva", "saturation", f32),
+            // ("Hsva", "value", f32),
+            // ("Hsva", "alpha", f32),
+            // ("Hwba", "alpha", f32)
+            // ("Hwba", "alpha", f32)
+            // ("Hwba", "alpha", f32)
+            // ("Hwba", "alpha", f32)
+            // ("Laba", "alpha", f32)
+            // ("Laba", "alpha", f32)
+            // ("Laba", "alpha", f32)
+            // ("Laba", "alpha", f32)
+            // ("Lcha", "alpha", f32)
+            // ("Lcha", "alpha", f32)
+            // ("Lcha", "alpha", f32)
+            // ("Lcha", "alpha", f32)
+            // ("Oklaba", "alpha", f32)
+            // ("Oklaba", "alpha", f32)
+            // ("Oklaba", "alpha", f32)
+            // ("Oklaba", "alpha", f32)
+            // ("Oklcha", "alpha", f32)
+            // ("Oklcha", "alpha", f32)
+            // ("Oklcha", "alpha", f32)
+            // ("Oklcha", "alpha", f32)
+            // ("Xyza", "alpha", f32)
+            // ("Xyza", "alpha", f32)
+            // ("Xyza", "alpha", f32)
+            // ("Xyza", "alpha", f32)
         ],
     );
 

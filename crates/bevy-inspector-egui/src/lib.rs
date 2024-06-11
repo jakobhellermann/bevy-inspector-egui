@@ -101,7 +101,7 @@
 //!         egui::ScrollArea::both().show(ui, |ui| {
 //!             // equivalent to `WorldInspectorPlugin`
 //!             bevy_inspector::ui_for_world(world, ui);
-//!             
+//!
 //!             // works with any `Reflect` value, including `Handle`s
 //!             let mut any_reflect_value: i32 = 5;
 //!             bevy_inspector::ui_for_value(&mut any_reflect_value, ui, world);
@@ -151,11 +151,46 @@ pub use egui;
 pub struct DefaultInspectorConfigPlugin;
 impl bevy_app::Plugin for DefaultInspectorConfigPlugin {
     fn build(&self, app: &mut bevy_app::App) {
-        if app.is_plugin_added::<Self>() {
-            return;
-        }
+        // TODO: https://github.com/bevyengine/bevy/issues/13815
+        // if app.is_plugin_added::<Self>() {
+        //     return;
+        // }
 
-        let type_registry = app.world.resource::<bevy_ecs::prelude::AppTypeRegistry>();
+        // Defensively register stuff since bevy only registers glam types used by other structs internally
+        app.register_type::<bevy_math::IVec2>()
+            .register_type::<bevy_math::IVec3>()
+            .register_type::<bevy_math::IVec4>()
+            .register_type::<bevy_math::UVec2>()
+            .register_type::<bevy_math::UVec3>()
+            .register_type::<bevy_math::UVec4>()
+            .register_type::<bevy_math::DVec2>()
+            .register_type::<bevy_math::DVec3>()
+            .register_type::<bevy_math::DVec4>()
+            .register_type::<bevy_math::BVec2>()
+            .register_type::<bevy_math::BVec3>()
+            .register_type::<bevy_math::BVec3A>()
+            .register_type::<bevy_math::BVec4>()
+            .register_type::<bevy_math::BVec4A>()
+            .register_type::<bevy_math::Vec2>()
+            .register_type::<bevy_math::Vec3>()
+            .register_type::<bevy_math::Vec3A>()
+            .register_type::<bevy_math::Vec4>()
+            .register_type::<bevy_math::DAffine2>()
+            .register_type::<bevy_math::DAffine3>()
+            .register_type::<bevy_math::Affine2>()
+            .register_type::<bevy_math::Affine3A>()
+            .register_type::<bevy_math::DMat2>()
+            .register_type::<bevy_math::DMat3>()
+            .register_type::<bevy_math::DMat4>()
+            .register_type::<bevy_math::Mat2>()
+            .register_type::<bevy_math::Mat3>()
+            .register_type::<bevy_math::Mat3A>()
+            .register_type::<bevy_math::Mat4>()
+            .register_type::<bevy_math::DQuat>()
+            .register_type::<bevy_math::Quat>()
+            .register_type::<bevy_math::Rect>();
+
+        let type_registry = app.world().resource::<bevy_ecs::prelude::AppTypeRegistry>();
         let mut type_registry = type_registry.write();
 
         inspector_options::default_options::register_default_options(&mut type_registry);

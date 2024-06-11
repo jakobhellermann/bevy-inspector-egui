@@ -14,6 +14,7 @@ use bevy_core::TypeRegistrationPlugin;
 use bevy_ecs::{prelude::*, query::QueryFilter, schedule::BoxedCondition};
 use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_reflect::Reflect;
+use bevy_state::state::FreelyMutableState;
 use bevy_window::PrimaryWindow;
 use pretty_type_name::pretty_type_name;
 
@@ -249,7 +250,7 @@ impl<T> StateInspectorPlugin<T> {
     }
 }
 
-impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
+impl<T: FreelyMutableState + Reflect> Plugin for StateInspectorPlugin<T> {
     fn build(&self, app: &mut bevy_app::App) {
         check_default_plugins(app, "StateInspectorPlugin");
 
@@ -269,7 +270,7 @@ impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
     }
 }
 
-fn state_ui<T: States + Reflect>(world: &mut World) {
+fn state_ui<T: FreelyMutableState + Reflect>(world: &mut World) {
     let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world);
@@ -338,6 +339,7 @@ impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
         check_default_plugins(app, "AssetInspectorPlugin");
 
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
+            println!("LMAO");
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
         if !app.is_plugin_added::<EguiPlugin>() {

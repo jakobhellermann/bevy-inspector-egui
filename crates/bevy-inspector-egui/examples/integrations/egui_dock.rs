@@ -266,7 +266,7 @@ fn draw_gizmo(
         .query_filtered::<(&GlobalTransform, &Projection), With<MainCamera>>()
         .single(world);
     let view_matrix = Mat4::from(cam_transform.affine().inverse());
-    let projection_matrix = projection.get_projection_matrix();
+    let projection_matrix = projection.get_clip_from_view();
 
     if selected_entities.len() != 1 {
         return;
@@ -387,7 +387,7 @@ fn setup(
         mesh: meshes.add(Cuboid::new(box_size, box_thickness, box_size)),
         transform,
         material: materials.add(StandardMaterial {
-            base_color: Color::rgb(0.63, 0.065, 0.05),
+            base_color: Color::srgb(0.63, 0.065, 0.05),
             ..Default::default()
         }),
         ..Default::default()
@@ -399,7 +399,7 @@ fn setup(
         mesh: meshes.add(Cuboid::new(box_size, box_thickness, box_size)),
         transform,
         material: materials.add(StandardMaterial {
-            base_color: Color::rgb(0.14, 0.45, 0.091),
+            base_color: Color::srgb(0.14, 0.45, 0.091),
             ..Default::default()
         }),
         ..Default::default()
@@ -412,7 +412,7 @@ fn setup(
             box_size,
         )),
         material: materials.add(StandardMaterial {
-            base_color: Color::rgb(0.725, 0.71, 0.68),
+            base_color: Color::srgb(0.725, 0.71, 0.68),
             ..Default::default()
         }),
         ..Default::default()
@@ -427,7 +427,7 @@ fn setup(
         )),
         transform,
         material: materials.add(StandardMaterial {
-            base_color: Color::rgb(0.725, 0.71, 0.68),
+            base_color: Color::srgb(0.725, 0.71, 0.68),
             ..Default::default()
         }),
         ..Default::default()
@@ -443,7 +443,7 @@ fn setup(
         )),
         transform,
         material: materials.add(StandardMaterial {
-            base_color: Color::rgb(0.725, 0.71, 0.68),
+            base_color: Color::srgb(0.725, 0.71, 0.68),
             ..Default::default()
         }),
         ..Default::default()
@@ -465,7 +465,7 @@ fn setup(
             )),
             material: materials.add(StandardMaterial {
                 base_color: Color::WHITE,
-                emissive: Color::WHITE * 100.0,
+                emissive: LinearRgba::WHITE * 100.0,
                 ..Default::default()
             }),
             ..Default::default()
