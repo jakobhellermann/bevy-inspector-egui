@@ -257,12 +257,12 @@ impl InspectorPrimitive for Color {
                     return true;
                 }
             }
-            Color::Hsva(_) => todo!(),
-            Color::Hwba(_) => todo!(),
-            Color::Laba(_) => todo!(),
-            Color::Oklaba(_) => todo!(),
-            Color::Oklcha(_) => todo!(),
-            Color::Xyza(_) => todo!(),
+            Color::Hsva(_)
+            | Color::Hwba(_)
+            | Color::Laba(_)
+            | Color::Oklaba(_)
+            | Color::Oklcha(_)
+            | Color::Xyza(_) => todo!(),
         }
         false
     }

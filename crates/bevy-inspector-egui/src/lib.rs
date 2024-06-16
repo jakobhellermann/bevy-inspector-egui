@@ -151,7 +151,6 @@ pub use egui;
 pub struct DefaultInspectorConfigPlugin;
 impl bevy_app::Plugin for DefaultInspectorConfigPlugin {
     fn build(&self, app: &mut bevy_app::App) {
-        // TODO: https://github.com/bevyengine/bevy/issues/13815
         // if app.is_plugin_added::<Self>() {
         //     return;
         // }

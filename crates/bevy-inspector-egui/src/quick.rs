@@ -339,7 +339,6 @@ impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
         check_default_plugins(app, "AssetInspectorPlugin");
 
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
-            println!("LMAO");
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
         if !app.is_plugin_added::<EguiPlugin>() {

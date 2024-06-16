@@ -63,70 +63,119 @@ fn insert_options_enum<T: 'static>(
 }
 
 pub fn register_default_options(type_registry: &mut TypeRegistry) {
-    #[rustfmt::skip]
-    insert_options_enum::<bevy_color::Color>(
+    insert_options_struct::<bevy_color::Srgba>(
         type_registry,
         &[
-            ("Srgba", "red", &NumberOptions::<f32>::normalized()),
-            ("Srgba", "green", &NumberOptions::<f32>::normalized()),
-            ("Srgba", "blue", &NumberOptions::<f32>::normalized()),
-            ("Srgba", "alpha", &NumberOptions::<f32>::normalized()),
-            ("LinearRgba", "red", &NumberOptions::<f32>::normalized()),
-            ("LinearRgba", "green", &NumberOptions::<f32>::normalized()),
-            ("LinearRgba", "blue", &NumberOptions::<f32>::normalized()),
-            ("LinearRgba", "alpha", &NumberOptions::<f32>::normalized()),
-            ("Hsla", "hue", &NumberOptions::<f32>::between(0.0, 360.0)),
-            ("Hsla", "saturation", &NumberOptions::<f32>::normalized()),
-            ("Hsla", "lightness", &NumberOptions::<f32>::normalized()),
-            ("Hsla", "alpha", &NumberOptions::<f32>::normalized()),
-            // TODO
-            // ("Hsva", "hue", f32),
-            // ("Hsva", "saturation", f32),
-            // ("Hsva", "value", f32),
-            // ("Hsva", "alpha", f32),
-            // ("Hwba", "alpha", f32)
-            // ("Hwba", "alpha", f32)
-            // ("Hwba", "alpha", f32)
-            // ("Hwba", "alpha", f32)
-            // ("Laba", "alpha", f32)
-            // ("Laba", "alpha", f32)
-            // ("Laba", "alpha", f32)
-            // ("Laba", "alpha", f32)
-            // ("Lcha", "alpha", f32)
-            // ("Lcha", "alpha", f32)
-            // ("Lcha", "alpha", f32)
-            // ("Lcha", "alpha", f32)
-            // ("Oklaba", "alpha", f32)
-            // ("Oklaba", "alpha", f32)
-            // ("Oklaba", "alpha", f32)
-            // ("Oklaba", "alpha", f32)
-            // ("Oklcha", "alpha", f32)
-            // ("Oklcha", "alpha", f32)
-            // ("Oklcha", "alpha", f32)
-            // ("Oklcha", "alpha", f32)
-            // ("Xyza", "alpha", f32)
-            // ("Xyza", "alpha", f32)
-            // ("Xyza", "alpha", f32)
-            // ("Xyza", "alpha", f32)
+            ("red", &NumberOptions::<f32>::normalized()),
+            ("green", &NumberOptions::<f32>::normalized()),
+            ("blue", &NumberOptions::<f32>::normalized()),
+            ("alpha", &NumberOptions::<f32>::normalized()),
+        ],
+    );
+    insert_options_struct::<bevy_color::LinearRgba>(
+        type_registry,
+        &[
+            ("red", &NumberOptions::<f32>::normalized()),
+            ("green", &NumberOptions::<f32>::normalized()),
+            ("blue", &NumberOptions::<f32>::normalized()),
+            ("alpha", &NumberOptions::<f32>::normalized()),
+        ],
+    );
+    insert_options_struct::<bevy_color::Hsla>(
+        type_registry,
+        &[
+            ("hue", &NumberOptions::<f32>::between(0.0, 360.0)),
+            ("saturation", &NumberOptions::<f32>::normalized()),
+            ("lightness", &NumberOptions::<f32>::normalized()),
+            ("alpha", &NumberOptions::<f32>::normalized()),
+        ],
+    );
+    insert_options_struct::<bevy_color::Hsva>(
+        type_registry,
+        &[
+            ("hue", &NumberOptions::<f32>::between(0.0, 360.0)),
+            ("saturation", &NumberOptions::<f32>::normalized()),
+            ("value", &NumberOptions::<f32>::normalized()),
+            ("alpha", &NumberOptions::<f32>::normalized()),
+        ],
+    );
+    insert_options_struct::<bevy_color::Hwba>(
+        type_registry,
+        &[
+            ("hue", &NumberOptions::<f32>::between(0.0, 360.0)),
+            ("whiteness", &NumberOptions::<f32>::normalized()),
+            ("blackness", &NumberOptions::<f32>::normalized()),
+            ("alpha", &NumberOptions::<f32>::normalized()),
+        ],
+    );
+    insert_options_struct::<bevy_color::Laba>(
+        type_registry,
+        &[
+            ("lightness", &NumberOptions::<f32>::between(0.0, 1.5)),
+            ("a", &NumberOptions::<f32>::between(-1.5, 1.5)),
+            ("b", &NumberOptions::<f32>::between(-1.5, 1.5)),
+            ("alpha", &NumberOptions::<f32>::normalized()),
+        ],
+    );
+    insert_options_struct::<bevy_color::Lcha>(
+        type_registry,
+        &[
+            ("lightness", &NumberOptions::<f32>::between(0.0, 1.5)),
+            ("chroma", &NumberOptions::<f32>::between(0.0, 1.5)),
+            ("hue", &NumberOptions::<f32>::between(0.0, 360.0)),
+            ("alpha", &NumberOptions::<f32>::normalized()),
+        ],
+    );
+    insert_options_struct::<bevy_color::Oklaba>(
+        type_registry,
+        &[
+            ("lightness", &NumberOptions::<f32>::normalized()),
+            ("a", &NumberOptions::<f32>::between(-1.0, 1.0)),
+            ("b", &NumberOptions::<f32>::between(-1.0, 1.0)),
+            ("alpha", &NumberOptions::<f32>::normalized()),
+        ],
+    );
+    insert_options_struct::<bevy_color::Oklcha>(
+        type_registry,
+        &[
+            ("lightness", &NumberOptions::<f32>::normalized()),
+            ("chroma", &NumberOptions::<f32>::normalized()),
+            ("hue", &NumberOptions::<f32>::between(0.0, 360.0)),
+            ("alpha", &NumberOptions::<f32>::normalized()),
+        ],
+    );
+    insert_options_struct::<bevy_color::Xyza>(
+        type_registry,
+        &[
+            ("x", &NumberOptions::<f32>::normalized()),
+            ("y", &NumberOptions::<f32>::normalized()),
+            ("z", &NumberOptions::<f32>::normalized()),
+            ("alpha", &NumberOptions::<f32>::normalized()),
         ],
     );
 
-    insert_options_struct::<bevy_render::view::ColorGrading>(
+    #[rustfmt::skip]
+    insert_options_struct::<bevy_render::view::ColorGradingSection>(
         type_registry,
         &[
-            (
-                "exposure",
-                &NumberOptions::<f32>::positive().with_speed(0.01),
-            ),
+            ("saturation", &NumberOptions::<f32>::positive().with_speed(0.01)),
+            ("contrast", &NumberOptions::<f32>::positive().with_speed(0.01)),
             ("gamma", &NumberOptions::<f32>::positive().with_speed(0.01)),
-            (
-                "pre_saturation",
-                &NumberOptions::<f32>::positive().with_speed(0.01),
-            ),
-            (
-                "post_saturation",
-                &NumberOptions::<f32>::positive().with_speed(0.01),
-            ),
+            ("gain", &NumberOptions::<f32>::positive().with_speed(0.01)),
+            ("lift", &NumberOptions::<f32>::positive().with_speed(0.01)),
+        ],
+    );
+
+    #[rustfmt::skip]
+    insert_options_struct::<bevy_render::view::ColorGradingGlobal>(
+        type_registry,
+        &[
+            ("exposure", &NumberOptions::<f32>::positive().with_speed(0.01)),
+            ("temperature", &NumberOptions::<f32>::positive().with_speed(0.01)),
+            ("tint", &NumberOptions::<f32>::positive().with_speed(0.01)),
+            ("hue", &NumberOptions::<f32>::positive().with_speed(0.01)),
+            ("post_saturation", &NumberOptions::<f32>::positive().with_speed(0.01)),
+            ("midtones_range", &NumberOptions::<f32>::positive().with_speed(0.01)),
         ],
     );
 
@@ -144,17 +193,20 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
                 ("radius", &NumberOptions::<f32>::positive()),
             ],
         );
+
+        #[rustfmt::skip]
         insert_options_struct::<bevy_pbr::DirectionalLight>(
             type_registry,
-            &[("illuminance", &NumberOptions::<f32>::positive())],
+            &[
+                ("illuminance", &NumberOptions::<f32>::positive())
+            ],
         );
+
+        #[rustfmt::skip]
         insert_options_struct::<bevy_pbr::StandardMaterial>(
             type_registry,
             &[
-                (
-                    "perceptual_roughness",
-                    &NumberOptions::<f32>::between(0.089, 1.0),
-                ),
+                ("perceptual_roughness", &NumberOptions::<f32>::between(0.089, 1.0)),
                 ("metallic", &NumberOptions::<f32>::normalized()),
                 ("reflectance", &NumberOptions::<f32>::normalized()),
                 ("depth_bias", &NumberOptions::<f32>::positive()),
