@@ -205,6 +205,7 @@ fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
 /// ```no_run
 /// use bevy::prelude::*;
 /// use bevy_inspector_egui::quick::StateInspectorPlugin;
+/// use bevy_state::{app::AppExtStates, prelude::States, state::FreelyMutableState};
 ///
 /// fn main() {
 ///     App::new()

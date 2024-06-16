@@ -5,6 +5,7 @@
 //! ```rust
 //! use bevy_inspector_egui::bevy_inspector;
 //! # use bevy_ecs::prelude::*;
+//! # use bevy_state::prelude::States;
 //! # use bevy_reflect::Reflect;
 //! # use bevy_render::prelude::Msaa;
 //! # use bevy_math::Vec3;

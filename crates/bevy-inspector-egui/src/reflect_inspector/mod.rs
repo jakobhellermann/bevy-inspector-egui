@@ -29,7 +29,7 @@
 //! use bevy_inspector_egui::reflect_inspector::{InspectorUi, Context};
 //!
 //! use bevy_ecs::prelude::*;
-//! use bevy_ecs::system::CommandQueue;
+//! use bevy_ecs::world::CommandQueue;
 //! use bevy_asset::Handle;
 //! use bevy_pbr::StandardMaterial;
 //!
