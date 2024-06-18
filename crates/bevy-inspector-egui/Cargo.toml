@@ -16,7 +16,8 @@ categories = [
 ]
 
 [features]
-default = ["bevy_pbr"]
+default = ["bevy_pbr", "bevy_render"]
+bevy_render = ["dep:bevy_render", "dep:bevy_core_pipeline"]
 highlight_changes = []
 
 [dependencies]
@@ -35,9 +36,9 @@ bevy_time = { version = "0.14.0" }
 bevy_utils = { version = "0.14.0" }
 bevy_window = { version = "0.14.0" }
 
-bevy_core_pipeline = { version = "0.14.0" }
-bevy_pbr = { version = "0.14.0", optional = true }
-bevy_render = { version = "0.14.0" }
+bevy_render = { version = "0.14", optional = true }
+bevy_core_pipeline = { version = "0.14", optional = true }
+bevy_pbr = { version = "0.14", optional = true }
 
 egui = "0.28"
 bevy_egui = "0.28"

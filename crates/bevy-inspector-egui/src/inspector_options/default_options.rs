@@ -29,6 +29,7 @@ fn insert_options_struct<T: 'static>(
     }
 }
 
+#[allow(dead_code)]
 fn insert_options_enum<T: 'static>(
     type_registry: &mut TypeRegistry,
     fields: &[(&'static str, &'static str, &dyn TypeData)],
@@ -154,30 +155,33 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         ],
     );
 
-    #[rustfmt::skip]
-    insert_options_struct::<bevy_render::view::ColorGradingSection>(
-        type_registry,
-        &[
-            ("saturation", &NumberOptions::<f32>::positive().with_speed(0.01)),
-            ("contrast", &NumberOptions::<f32>::positive().with_speed(0.01)),
-            ("gamma", &NumberOptions::<f32>::positive().with_speed(0.01)),
-            ("gain", &NumberOptions::<f32>::positive().with_speed(0.01)),
-            ("lift", &NumberOptions::<f32>::positive().with_speed(0.01)),
-        ],
-    );
+    #[cfg(feature = "bevy_render")]
+    {
+        #[rustfmt::skip]
+        insert_options_struct::<bevy_render::view::ColorGradingSection>(
+            type_registry,
+            &[
+                ("saturation", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                ("contrast", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                ("gamma", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                ("gain", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                ("lift", &NumberOptions::<f32>::positive().with_speed(0.01)),
+            ],
+        );
 
-    #[rustfmt::skip]
-    insert_options_struct::<bevy_render::view::ColorGradingGlobal>(
-        type_registry,
-        &[
-            ("exposure", &NumberOptions::<f32>::positive().with_speed(0.01)),
-            ("temperature", &NumberOptions::<f32>::positive().with_speed(0.01)),
-            ("tint", &NumberOptions::<f32>::positive().with_speed(0.01)),
-            ("hue", &NumberOptions::<f32>::positive().with_speed(0.01)),
-            ("post_saturation", &NumberOptions::<f32>::positive().with_speed(0.01)),
-            ("midtones_range", &NumberOptions::<f32>::positive().with_speed(0.01)),
-        ],
-    );
+        #[rustfmt::skip]
+        insert_options_struct::<bevy_render::view::ColorGradingGlobal>(
+            type_registry,
+            &[
+                ("exposure", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                ("temperature", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                ("tint", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                ("hue", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                ("post_saturation", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                ("midtones_range", &NumberOptions::<f32>::positive().with_speed(0.01)),
+            ],
+        );
+    }
 
     #[cfg(feature = "bevy_pbr")]
     {
@@ -228,6 +232,7 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
     }
 
     #[rustfmt::skip]
+    #[cfg(feature = "bevy_render")]
     insert_options_enum::<bevy_core_pipeline::core_3d::Camera3dDepthLoadOp>(
         type_registry,
         &[
