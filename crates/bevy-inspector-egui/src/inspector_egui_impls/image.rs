@@ -64,8 +64,9 @@ impl InspectorPrimitive for Handle<Image> {
         let mut selected_path = None;
         let mut image_picker_search_text = String::from("");
         ui.data_mut(|data| {
-            image_picker_search_text.clone_from(data
-                .get_temp_mut_or_default::<String>(id.with("image_picker_search_text")));
+            image_picker_search_text.clone_from(
+                data.get_temp_mut_or_default::<String>(id.with("image_picker_search_text")),
+            );
         });
 
         // build and show the dropdown

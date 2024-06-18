@@ -137,6 +137,7 @@
 pub mod bevy_inspector;
 pub mod inspector_egui_impls;
 pub mod inspector_options;
+#[cfg(feature = "bevy_render")]
 pub mod quick;
 pub mod reflect_inspector;
 pub mod restricted_world_view;
@@ -144,6 +145,7 @@ pub mod restricted_world_view;
 mod egui_utils;
 mod utils;
 
+#[cfg(feature = "bevy_render")]
 pub use bevy_egui;
 pub use egui;
 

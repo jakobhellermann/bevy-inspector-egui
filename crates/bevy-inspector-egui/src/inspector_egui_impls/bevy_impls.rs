@@ -1,13 +1,20 @@
-use bevy_asset::{Assets, Handle};
 use bevy_ecs::world::World;
 use bevy_ecs::{entity::Entity, system::CommandQueue};
-use bevy_render::mesh::Mesh;
-use bevy_render::{color::Color, view::RenderLayers};
-use egui::{ecolor::Hsva, Color32};
 use std::any::Any;
 
+#[cfg(feature = "bevy_render")]
+use ::{
+    bevy_asset::{Assets, Handle},
+    bevy_render::color::Color,
+    bevy_render::mesh::Mesh,
+    bevy_render::view::RenderLayers,
+    egui::{ecolor::Hsva, Color32},
+};
+
+#[cfg(feature = "bevy_render")]
+use crate::bevy_inspector::errors::{dead_asset_handle, show_error};
 use crate::{
-    bevy_inspector::errors::{dead_asset_handle, no_world_in_context, show_error},
+    bevy_inspector::errors::no_world_in_context,
     egui_utils,
     inspector_options::std_options::{EntityDisplay, EntityOptions},
     reflect_inspector::{Context, InspectorUi},
@@ -78,6 +85,7 @@ impl InspectorPrimitive for Entity {
     }
 }
 
+#[cfg(feature = "bevy_render")]
 impl InspectorPrimitive for Handle<Mesh> {
     fn ui(
         &mut self,
@@ -139,6 +147,7 @@ impl InspectorPrimitive for Handle<Mesh> {
     }
 }
 
+#[cfg(feature = "bevy_render")]
 fn mesh_ui_inner(mesh: &Mesh, ui: &mut egui::Ui) {
     egui::Grid::new("mesh").show(ui, |ui| {
         ui.label("primitive_topology");
@@ -182,6 +191,7 @@ fn mesh_ui_inner(mesh: &Mesh, ui: &mut egui::Ui) {
     });
 }
 
+#[cfg(feature = "bevy_render")]
 impl InspectorPrimitive for Color {
     fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
         match self {
@@ -263,6 +273,7 @@ impl InspectorPrimitive for Color {
     }
 }
 
+#[cfg(feature = "bevy_render")]
 impl InspectorPrimitive for RenderLayers {
     fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, id: egui::Id, _: InspectorUi<'_, '_>) -> bool {
         let mut new_value = None;

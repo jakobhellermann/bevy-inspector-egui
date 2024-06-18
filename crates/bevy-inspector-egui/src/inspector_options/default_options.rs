@@ -63,42 +63,45 @@ fn insert_options_enum<T: 'static>(
 }
 
 pub fn register_default_options(type_registry: &mut TypeRegistry) {
-    insert_options_enum::<bevy_render::color::Color>(
-        type_registry,
-        &[
-            ("Rgba", "red", &NumberOptions::<f32>::normalized()),
-            ("Rgba", "green", &NumberOptions::<f32>::normalized()),
-            ("Rgba", "blue", &NumberOptions::<f32>::normalized()),
-            ("Rgba", "alpha", &NumberOptions::<f32>::normalized()),
-            ("RgbaLinear", "red", &NumberOptions::<f32>::normalized()),
-            ("RgbaLinear", "green", &NumberOptions::<f32>::normalized()),
-            ("RgbaLinear", "blue", &NumberOptions::<f32>::normalized()),
-            ("RgbaLinear", "alpha", &NumberOptions::<f32>::normalized()),
-            ("Hsla", "hue", &NumberOptions::<f32>::between(0.0, 360.0)),
-            ("Hsla", "saturation", &NumberOptions::<f32>::normalized()),
-            ("Hsla", "lightness", &NumberOptions::<f32>::normalized()),
-            ("Hsla", "alpha", &NumberOptions::<f32>::normalized()),
-        ],
-    );
+    #[cfg(feature = "bevy_render")]
+    {
+        insert_options_enum::<bevy_render::color::Color>(
+            type_registry,
+            &[
+                ("Rgba", "red", &NumberOptions::<f32>::normalized()),
+                ("Rgba", "green", &NumberOptions::<f32>::normalized()),
+                ("Rgba", "blue", &NumberOptions::<f32>::normalized()),
+                ("Rgba", "alpha", &NumberOptions::<f32>::normalized()),
+                ("RgbaLinear", "red", &NumberOptions::<f32>::normalized()),
+                ("RgbaLinear", "green", &NumberOptions::<f32>::normalized()),
+                ("RgbaLinear", "blue", &NumberOptions::<f32>::normalized()),
+                ("RgbaLinear", "alpha", &NumberOptions::<f32>::normalized()),
+                ("Hsla", "hue", &NumberOptions::<f32>::between(0.0, 360.0)),
+                ("Hsla", "saturation", &NumberOptions::<f32>::normalized()),
+                ("Hsla", "lightness", &NumberOptions::<f32>::normalized()),
+                ("Hsla", "alpha", &NumberOptions::<f32>::normalized()),
+            ],
+        );
 
-    insert_options_struct::<bevy_render::view::ColorGrading>(
-        type_registry,
-        &[
-            (
-                "exposure",
-                &NumberOptions::<f32>::positive().with_speed(0.01),
-            ),
-            ("gamma", &NumberOptions::<f32>::positive().with_speed(0.01)),
-            (
-                "pre_saturation",
-                &NumberOptions::<f32>::positive().with_speed(0.01),
-            ),
-            (
-                "post_saturation",
-                &NumberOptions::<f32>::positive().with_speed(0.01),
-            ),
-        ],
-    );
+        insert_options_struct::<bevy_render::view::ColorGrading>(
+            type_registry,
+            &[
+                (
+                    "exposure",
+                    &NumberOptions::<f32>::positive().with_speed(0.01),
+                ),
+                ("gamma", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                (
+                    "pre_saturation",
+                    &NumberOptions::<f32>::positive().with_speed(0.01),
+                ),
+                (
+                    "post_saturation",
+                    &NumberOptions::<f32>::positive().with_speed(0.01),
+                ),
+            ],
+        );
+    }
 
     #[cfg(feature = "bevy_pbr")]
     {
@@ -143,10 +146,13 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         );
     }
 
-    insert_options_enum::<bevy_core_pipeline::core_3d::Camera3dDepthLoadOp>(
-        type_registry,
-        &[("Clear", "0", &NumberOptions::<f32>::normalized())],
-    );
+    #[cfg(feature = "bevy_render")]
+    {
+        insert_options_enum::<bevy_core_pipeline::core_3d::Camera3dDepthLoadOp>(
+            type_registry,
+            &[("Clear", "0", &NumberOptions::<f32>::normalized())],
+        );
+    }
 
     type_registry.register::<bevy_time::Virtual>();
 
