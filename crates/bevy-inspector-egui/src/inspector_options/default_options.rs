@@ -181,10 +181,14 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
 
     #[cfg(feature = "bevy_pbr")]
     {
+        #[rustfmt::skip]
         insert_options_struct::<bevy_pbr::AmbientLight>(
             type_registry,
-            &[("brightness", &NumberOptions::<f32>::positive())],
+            &[
+                ("brightness", &NumberOptions::<f32>::positive()),
+            ],
         );
+
         insert_options_struct::<bevy_pbr::PointLight>(
             type_registry,
             &[
@@ -198,7 +202,7 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         insert_options_struct::<bevy_pbr::DirectionalLight>(
             type_registry,
             &[
-                ("illuminance", &NumberOptions::<f32>::positive())
+                ("illuminance", &NumberOptions::<f32>::positive()),
             ],
         );
 
@@ -212,22 +216,23 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
                 ("depth_bias", &NumberOptions::<f32>::positive()),
             ],
         );
+
+        #[rustfmt::skip]
         insert_options_enum::<bevy_pbr::ClusterConfig>(
             type_registry,
             &[
                 ("FixedZ", "z_slices", &NumberOptions::<u32>::at_least(1)),
-                (
-                    "XYZ",
-                    "dimensions",
-                    &NumberOptions::<bevy_math::UVec3>::at_least(bevy_math::UVec3::ONE),
-                ),
+                ("XYZ", "dimensions", &NumberOptions::<bevy_math::UVec3>::at_least(bevy_math::UVec3::ONE)),
             ],
         );
     }
 
+    #[rustfmt::skip]
     insert_options_enum::<bevy_core_pipeline::core_3d::Camera3dDepthLoadOp>(
         type_registry,
-        &[("Clear", "0", &NumberOptions::<f32>::normalized())],
+        &[
+            ("Clear", "0", &NumberOptions::<f32>::normalized()),
+        ],
     );
 
     type_registry.register::<bevy_time::Virtual>();

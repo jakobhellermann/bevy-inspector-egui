@@ -21,23 +21,23 @@ highlight_changes = []
 
 [dependencies]
 bevy-inspector-egui-derive = { version = "0.24.0", path = "../bevy-inspector-egui-derive" }
-bevy_app = { version = "0.14.0-rc.2" }
-bevy_asset = { version = "0.14.0-rc.2" }
-bevy_color = { version = "0.14.0-rc.2" }
-bevy_core = { version = "0.14.0-rc.2" }
-bevy_ecs = { version = "0.14.0-rc.2" }
-bevy_hierarchy = { version = "0.14.0-rc.2" }
-bevy_log = { version = "0.14.0-rc.2" }
-bevy_math = { version = "0.14.0-rc.2" }
-bevy_reflect = { version = "0.14.0-rc.2" }
-bevy_state = { version = "0.14.0-rc.2" }
-bevy_time = { version = "0.14.0-rc.2" }
-bevy_utils = { version = "0.14.0-rc.2" }
-bevy_window = { version = "0.14.0-rc.2" }
+bevy_app = { version = "0.14.0-rc.3" }
+bevy_asset = { version = "0.14.0-rc.3" }
+bevy_color = { version = "0.14.0-rc.3" }
+bevy_core = { version = "0.14.0-rc.3" }
+bevy_ecs = { version = "0.14.0-rc.3" }
+bevy_hierarchy = { version = "0.14.0-rc.3" }
+bevy_log = { version = "0.14.0-rc.3" }
+bevy_math = { version = "0.14.0-rc.3" }
+bevy_reflect = { version = "0.14.0-rc.3" }
+bevy_state = { version = "0.14.0-rc.3" }
+bevy_time = { version = "0.14.0-rc.3" }
+bevy_utils = { version = "0.14.0-rc.3" }
+bevy_window = { version = "0.14.0-rc.3" }
 
-bevy_core_pipeline = { version = "0.14.0-rc.2" }
-bevy_pbr = { version = "0.14.0-rc.2", optional = true }
-bevy_render = { version = "0.14.0-rc.2" }
+bevy_core_pipeline = { version = "0.14.0-rc.3" }
+bevy_pbr = { version = "0.14.0-rc.3", optional = true }
+bevy_render = { version = "0.14.0-rc.3" }
 
 egui = "0.27"
 bevy_egui = "0.27"

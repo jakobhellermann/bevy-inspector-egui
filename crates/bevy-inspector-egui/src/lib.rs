@@ -151,9 +151,9 @@ pub use egui;
 pub struct DefaultInspectorConfigPlugin;
 impl bevy_app::Plugin for DefaultInspectorConfigPlugin {
     fn build(&self, app: &mut bevy_app::App) {
-        // if app.is_plugin_added::<Self>() {
-        //     return;
-        // }
+        if app.is_plugin_added::<Self>() {
+            return;
+        }
 
         // Defensively register stuff since bevy only registers glam types used by other structs internally
         app.register_type::<bevy_math::IVec2>()
