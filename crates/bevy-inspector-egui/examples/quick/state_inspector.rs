@@ -1,5 +1,9 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::StateInspectorPlugin;
+use bevy_state::{
+    app::AppExtStates,
+    state::{OnEnter, States},
+};
 
 fn main() {
     App::new()
@@ -43,5 +47,5 @@ fn setup(mut commands: Commands) {
 fn set_color<const R: u8, const G: u8, const B: u8>(
     mut sprite: Query<&mut Sprite, With<TheSquare>>,
 ) {
-    sprite.single_mut().color = Color::rgb_u8(R, G, B);
+    sprite.single_mut().color = Color::srgb_u8(R, G, B);
 }

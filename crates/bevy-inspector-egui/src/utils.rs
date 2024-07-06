@@ -22,7 +22,7 @@ pub mod guess_entity_name {
         match world.get_entity(entity) {
             Some(entity_ref) => {
                 if let Some(name) = entity_ref.get::<Name>() {
-                    return format!("{} ({:?})", name.as_str(), entity);
+                    return format!("{} ({})", name.as_str(), entity);
                 }
 
                 guess_entity_name_inner(
@@ -44,7 +44,7 @@ pub mod guess_entity_name {
                 if world.allows_access_to_component((entity, std::any::TypeId::of::<Name>())) {
                     // SAFETY: we have access and don't keep reference
                     if let Some(name) = unsafe { cell.get::<Name>() } {
-                        return format!("{} ({:?})", name.as_str(), entity);
+                        return format!("{} ({})", name.as_str(), entity);
                     }
                 }
                 guess_entity_name_inner(world.world(), entity, cell.archetype())
@@ -81,10 +81,10 @@ pub mod guess_entity_name {
                 .iter()
                 .find_map(|&(name, matches)| (component_type == name).then_some(matches))
             {
-                return format!("{name} ({entity:?})");
+                return format!("{name} ({entity})");
             }
         }
 
-        format!("Entity ({entity:?})")
+        format!("Entity ({entity})")
     }
 }

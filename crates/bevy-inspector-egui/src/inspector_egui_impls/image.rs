@@ -14,6 +14,7 @@ use pretty_type_name::pretty_type_name;
 
 use crate::{
     bevy_inspector::errors::{no_world_in_context, show_error},
+    dropdown::DropDownBox,
     reflect_inspector::InspectorUi,
     restricted_world_view::RestrictedWorldView,
 };
@@ -64,12 +65,13 @@ impl InspectorPrimitive for Handle<Image> {
         let mut selected_path = None;
         let mut image_picker_search_text = String::from("");
         ui.data_mut(|data| {
-            image_picker_search_text.clone_from(data
-                .get_temp_mut_or_default::<String>(id.with("image_picker_search_text")));
+            image_picker_search_text.clone_from(
+                data.get_temp_mut_or_default::<String>(id.with("image_picker_search_text")),
+            );
         });
 
         // build and show the dropdown
-        let dropdown = egui_dropdown::DropDownBox::from_iter(
+        let dropdown = DropDownBox::from_iter(
             image_paths.iter(),
             id.with("image_picker"),
             &mut image_picker_search_text,

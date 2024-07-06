@@ -309,7 +309,7 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
     add_of_with_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::texture::Image>>);
     add_of_with_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::mesh::Mesh>>);
     add_of_with_many::<bevy_ecs::entity::Entity>(type_registry, many_unimplemented::<bevy_ecs::entity::Entity>);
-    add::<bevy_render::color::Color>(type_registry);
+    add::<bevy_color::Color>(type_registry);
     add::<bevy_render::view::RenderLayers>(type_registry);
 }
 
