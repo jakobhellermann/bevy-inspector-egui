@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.25.0
+- update to bevy 0.14, egui 0.28
+- make `bevy_render` an optional feature
+- put plugin systems in their own Inspect schedule to avoid ambiguities
+
 ## Version 0.24.0
 
 - update to egui 0.27 and bevy_egui 0.27
