@@ -61,7 +61,7 @@ impl<T: Reflect + Num> InspectorPrimitive for T {
                 ))
                 .monospace(),
             )
-            .wrap(false)
+            .truncate()
             .sense(egui::Sense::hover()),
         );
     }
@@ -104,7 +104,7 @@ pub fn number_ui_readonly<T: egui::emath::Numeric>(
             ))
             .monospace(),
         )
-        .wrap(false)
+        .truncate()
         .sense(egui::Sense::hover()),
     );
 }
@@ -125,9 +125,9 @@ fn display_number<T: egui::emath::Numeric>(
                 widget = widget.suffix(&options.suffix);
             }
             match (options.min, options.max) {
-                (Some(min), Some(max)) => widget = widget.clamp_range(min.to_f64()..=max.to_f64()),
-                (Some(min), None) => widget = widget.clamp_range(min.to_f64()..=f64::MAX),
-                (None, Some(max)) => widget = widget.clamp_range(f64::MIN..=max.to_f64()),
+                (Some(min), Some(max)) => widget = widget.range(min.to_f64()..=max.to_f64()),
+                (Some(min), None) => widget = widget.range(min.to_f64()..=f64::MAX),
+                (None, Some(max)) => widget = widget.range(f64::MIN..=max.to_f64()),
                 (None, None) => {}
             }
             if options.speed != 0.0 {

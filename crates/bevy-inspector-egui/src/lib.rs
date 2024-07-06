@@ -141,6 +141,7 @@ pub mod quick;
 pub mod reflect_inspector;
 pub mod restricted_world_view;
 
+pub mod dropdown;
 mod egui_utils;
 mod utils;
 

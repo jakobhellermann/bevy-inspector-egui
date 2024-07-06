@@ -287,7 +287,7 @@ impl InspectorPrimitive for RenderLayers {
             for layer in self.iter() {
                 let mut layer_copy = layer;
                 if ui
-                    .add(egui::DragValue::new(&mut layer_copy).clamp_range(0..=layer_count - 1))
+                    .add(egui::DragValue::new(&mut layer_copy).range(0..=layer_count - 1))
                     .changed()
                 {
                     new_value = Some(self.clone().without(layer).with(layer_copy));

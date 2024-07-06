@@ -14,6 +14,7 @@ use pretty_type_name::pretty_type_name;
 
 use crate::{
     bevy_inspector::errors::{no_world_in_context, show_error},
+    dropdown::DropDownBox,
     reflect_inspector::InspectorUi,
     restricted_world_view::RestrictedWorldView,
 };
@@ -70,7 +71,7 @@ impl InspectorPrimitive for Handle<Image> {
         });
 
         // build and show the dropdown
-        let dropdown = egui_dropdown::DropDownBox::from_iter(
+        let dropdown = DropDownBox::from_iter(
             image_paths.iter(),
             id.with("image_picker"),
             &mut image_picker_search_text,
