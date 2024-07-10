@@ -158,7 +158,7 @@ impl bevy_app::Plugin for DefaultInspectorConfigPlugin {
             return;
         }
 
-        // Defensively register stuff since bevy only registers glam types used by other structs internally
+        // Defensively register stuff since bevy only registers glam, color types used by other structs internally
         app.register_type::<bevy_math::IVec2>()
             .register_type::<bevy_math::IVec3>()
             .register_type::<bevy_math::IVec4>()
@@ -190,7 +190,9 @@ impl bevy_app::Plugin for DefaultInspectorConfigPlugin {
             .register_type::<bevy_math::Mat4>()
             .register_type::<bevy_math::DQuat>()
             .register_type::<bevy_math::Quat>()
-            .register_type::<bevy_math::Rect>();
+            .register_type::<bevy_math::Rect>()
+            .register_type::<bevy_color::Color>()
+            .register_type::<core::ops::Range<f32>>();
 
         let type_registry = app.world().resource::<bevy_ecs::prelude::AppTypeRegistry>();
         let mut type_registry = type_registry.write();
