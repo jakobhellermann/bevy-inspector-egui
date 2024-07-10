@@ -292,13 +292,9 @@ impl InspectorPrimitive for RenderLayers {
     fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, id: egui::Id, _: InspectorUi<'_, '_>) -> bool {
         let mut new_value = None;
         egui::Grid::new(id).num_columns(2).show(ui, |ui| {
-            let layer_count = self.iter().count();
             for layer in self.iter() {
                 let mut layer_copy = layer;
-                if ui
-                    .add(egui::DragValue::new(&mut layer_copy).range(0..=layer_count - 1))
-                    .changed()
-                {
+                if ui.add(egui::DragValue::new(&mut layer_copy)).changed() {
                     new_value = Some(self.clone().without(layer).with(layer_copy));
                 }
 
