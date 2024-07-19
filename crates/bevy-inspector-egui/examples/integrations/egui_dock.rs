@@ -111,11 +111,24 @@ fn set_camera_viewport(
     let viewport_pos = ui_state.viewport_rect.left_top().to_vec2() * scale_factor;
     let viewport_size = ui_state.viewport_rect.size() * scale_factor;
 
-    cam.viewport = Some(Viewport {
-        physical_position: UVec2::new(viewport_pos.x as u32, viewport_pos.y as u32),
-        physical_size: UVec2::new(viewport_size.x as u32, viewport_size.y as u32),
-        depth: 0.0..1.0,
-    });
+    let physical_position = UVec2::new(viewport_pos.x as u32, viewport_pos.y as u32);
+    let physical_size = UVec2::new(viewport_size.x as u32, viewport_size.y as u32);
+
+    // The desired viewport rectangle at its offset in "physical pixel space"
+    let rect = physical_position + physical_size;
+
+    let window_size = window.physical_size();
+    // wgpu will panic if trying to set a viewport rect which has coordinates extending
+    // past the size of the render target, i.e. the physical window in our case.
+    // Typically this shouldn't happen- but during init and resizing etc. edge cases might occur.
+    // Simply do nothing in those cases.
+    if rect.x <= window_size.x && rect.y <= window_size.y {
+        cam.viewport = Some(Viewport {
+            physical_position,
+            physical_size,
+            depth: 0.0..1.0,
+        });
+    }
 }
 
 fn set_gizmo_mode(input: Res<ButtonInput<KeyCode>>, mut ui_state: ResMut<UiState>) {
