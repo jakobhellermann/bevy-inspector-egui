@@ -76,10 +76,10 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
     insert_options_struct::<bevy_color::LinearRgba>(
         type_registry,
         &[
-            ("red", &NumberOptions::<f32>::normalized()),
-            ("green", &NumberOptions::<f32>::normalized()),
-            ("blue", &NumberOptions::<f32>::normalized()),
-            ("alpha", &NumberOptions::<f32>::normalized()),
+            ("red", &NumberOptions::<f32>::positive()),
+            ("green", &NumberOptions::<f32>::positive()),
+            ("blue", &NumberOptions::<f32>::positive()),
+            ("alpha", &NumberOptions::<f32>::positive()),
         ],
     );
     insert_options_struct::<bevy_color::Hsla>(
