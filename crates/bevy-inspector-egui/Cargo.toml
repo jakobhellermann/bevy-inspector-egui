@@ -16,8 +16,10 @@ categories = [
 ]
 
 [features]
-default = ["bevy_pbr", "bevy_render"]
+default = ["bevy_pbr", "bevy_render", "egui_clipboard", "egui_open_url"]
 bevy_render = ["dep:bevy_render", "dep:bevy_core_pipeline", "bevy_egui/render"]
+egui_clipboard = ["bevy_egui/manage_clipboard"]
+egui_open_url = ["bevy_egui/open_url"]
 highlight_changes = []
 
 [dependencies]
@@ -41,9 +43,7 @@ bevy_core_pipeline = { version = "0.14", optional = true }
 bevy_pbr = { version = "0.14", optional = true }
 
 egui = "0.28"
-bevy_egui = { version = "0.28", default-features = false, features = [
-    "manage_clipboard", "open_url"
-] }
+bevy_egui = { version = "0.28", default-features = false }
 
 bytemuck = "1.16.0"
 image = { version = "0.24", default-features = false }
