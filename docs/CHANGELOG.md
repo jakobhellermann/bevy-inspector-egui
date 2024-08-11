@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 0.25.2
+- introduce features for egui clipboard and open\_url to improve wasm compat
+- re-enable image and mesh inspector impls
+
+## Version 0.25.1
+- don't clamp linearrgba values
+- fix render layer inspector
+- actually make bevy\_egui/render optional
+- put quick.rs plugins in their own schedule to fix system ambiguity
+
 ## Version 0.25.0
 - update to bevy 0.14, egui 0.28
 - make `bevy_render` an optional feature
