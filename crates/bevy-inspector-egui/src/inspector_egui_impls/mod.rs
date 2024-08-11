@@ -312,8 +312,8 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
 
     #[cfg(feature = "bevy_render")] 
     {
-      // add_of_with_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::texture::Image>>);
-      // add_of_with_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::mesh::Mesh>>);
+      add_of_with_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::texture::Image>>);
+      add_of_with_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::mesh::Mesh>>);
       add::<bevy_render::view::RenderLayers>(type_registry);
     }
 }
