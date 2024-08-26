@@ -29,7 +29,7 @@
 //! use bevy_inspector_egui::reflect_inspector::{InspectorUi, Context};
 //!
 //! use bevy_ecs::prelude::*;
-//! use bevy_ecs::system::CommandQueue;
+//! use bevy_ecs::world::CommandQueue;
 //! use bevy_asset::Handle;
 //! use bevy_pbr::StandardMaterial;
 //!
@@ -65,7 +65,7 @@ use crate::{
     inspector_options::{InspectorOptions, ReflectInspectorOptions, Target},
     restricted_world_view::RestrictedWorldView,
 };
-use bevy_ecs::system::CommandQueue;
+use bevy_ecs::world::CommandQueue;
 use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List, ListInfo, Map, Reflect,

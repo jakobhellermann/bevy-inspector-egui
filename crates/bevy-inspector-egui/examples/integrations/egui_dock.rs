@@ -111,11 +111,24 @@ fn set_camera_viewport(
     let viewport_pos = ui_state.viewport_rect.left_top().to_vec2() * scale_factor;
     let viewport_size = ui_state.viewport_rect.size() * scale_factor;
 
-    cam.viewport = Some(Viewport {
-        physical_position: UVec2::new(viewport_pos.x as u32, viewport_pos.y as u32),
-        physical_size: UVec2::new(viewport_size.x as u32, viewport_size.y as u32),
-        depth: 0.0..1.0,
-    });
+    let physical_position = UVec2::new(viewport_pos.x as u32, viewport_pos.y as u32);
+    let physical_size = UVec2::new(viewport_size.x as u32, viewport_size.y as u32);
+
+    // The desired viewport rectangle at its offset in "physical pixel space"
+    let rect = physical_position + physical_size;
+
+    let window_size = window.physical_size();
+    // wgpu will panic if trying to set a viewport rect which has coordinates extending
+    // past the size of the render target, i.e. the physical window in our case.
+    // Typically this shouldn't happen- but during init and resizing etc. edge cases might occur.
+    // Simply do nothing in those cases.
+    if rect.x <= window_size.x && rect.y <= window_size.y {
+        cam.viewport = Some(Viewport {
+            physical_position,
+            physical_size,
+            depth: 0.0..1.0,
+        });
+    }
 }
 
 fn set_gizmo_mode(input: Res<ButtonInput<KeyCode>>, mut ui_state: ResMut<UiState>) {
@@ -266,7 +279,7 @@ fn draw_gizmo(
         .query_filtered::<(&GlobalTransform, &Projection), With<MainCamera>>()
         .single(world);
     let view_matrix = Mat4::from(cam_transform.affine().inverse());
-    let projection_matrix = projection.get_projection_matrix();
+    let projection_matrix = projection.get_clip_from_view();
 
     if selected_entities.len() != 1 {
         return;
@@ -387,7 +400,7 @@ fn setup(
         mesh: meshes.add(Cuboid::new(box_size, box_thickness, box_size)),
         transform,
         material: materials.add(StandardMaterial {
-            base_color: Color::rgb(0.63, 0.065, 0.05),
+            base_color: Color::srgb(0.63, 0.065, 0.05),
             ..Default::default()
         }),
         ..Default::default()
@@ -399,7 +412,7 @@ fn setup(
         mesh: meshes.add(Cuboid::new(box_size, box_thickness, box_size)),
         transform,
         material: materials.add(StandardMaterial {
-            base_color: Color::rgb(0.14, 0.45, 0.091),
+            base_color: Color::srgb(0.14, 0.45, 0.091),
             ..Default::default()
         }),
         ..Default::default()
@@ -412,7 +425,7 @@ fn setup(
             box_size,
         )),
         material: materials.add(StandardMaterial {
-            base_color: Color::rgb(0.725, 0.71, 0.68),
+            base_color: Color::srgb(0.725, 0.71, 0.68),
             ..Default::default()
         }),
         ..Default::default()
@@ -427,7 +440,7 @@ fn setup(
         )),
         transform,
         material: materials.add(StandardMaterial {
-            base_color: Color::rgb(0.725, 0.71, 0.68),
+            base_color: Color::srgb(0.725, 0.71, 0.68),
             ..Default::default()
         }),
         ..Default::default()
@@ -443,7 +456,7 @@ fn setup(
         )),
         transform,
         material: materials.add(StandardMaterial {
-            base_color: Color::rgb(0.725, 0.71, 0.68),
+            base_color: Color::srgb(0.725, 0.71, 0.68),
             ..Default::default()
         }),
         ..Default::default()
@@ -465,7 +478,7 @@ fn setup(
             )),
             material: materials.add(StandardMaterial {
                 base_color: Color::WHITE,
-                emissive: Color::WHITE * 100.0,
+                emissive: LinearRgba::WHITE * 100.0,
                 ..Default::default()
             }),
             ..Default::default()

@@ -11,6 +11,7 @@ use std::{
 
 mod bevy_impls;
 mod glam_impls;
+#[cfg(feature = "bevy_render")]
 mod image;
 mod std_impls;
 
@@ -356,6 +357,7 @@ pub fn register_glam_impls(type_registry: &mut TypeRegistry) {
 /// Register [`InspectorEguiImpl`]s for `bevy` types
 #[rustfmt::skip]
 pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
+
     //for matter engine
     type_registry.register::<bevy_asset::Handle<bevy_render::texture::Image>>();
     type_registry.register::<bevy_asset::Handle<bevy_render::mesh::Mesh>>();
@@ -368,9 +370,16 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
 
     add_of_with_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::texture::Image>>);
     add_of_with_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::mesh::Mesh>>);
+
     add_of_with_many::<bevy_ecs::entity::Entity>(type_registry, many_unimplemented::<bevy_ecs::entity::Entity>);
-    add::<bevy_render::color::Color>(type_registry);
-    add::<bevy_render::view::RenderLayers>(type_registry);
+    add::<bevy_color::Color>(type_registry);
+
+    #[cfg(feature = "bevy_render")] 
+    {
+      add_of_with_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::texture::Image>>);
+      add_of_with_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::mesh::Mesh>>);
+      add::<bevy_render::view::RenderLayers>(type_registry);
+    }
 }
 
 pub(crate) fn change_slider<T>(

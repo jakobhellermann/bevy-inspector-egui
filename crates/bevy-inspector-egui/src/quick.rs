@@ -8,18 +8,37 @@
 
 use std::{marker::PhantomData, sync::Mutex};
 
-use bevy_app::{Plugin, Update};
+use bevy_app::{App, MainScheduleOrder, Plugin, Update};
 use bevy_asset::Asset;
 use bevy_core::TypeRegistrationPlugin;
-use bevy_ecs::{prelude::*, query::QueryFilter, schedule::BoxedCondition};
+use bevy_ecs::{
+    prelude::*,
+    query::QueryFilter,
+    schedule::{BoxedCondition, ScheduleLabel},
+};
 use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_reflect::Reflect;
+use bevy_state::state::FreelyMutableState;
 use bevy_window::PrimaryWindow;
 use pretty_type_name::pretty_type_name;
 
 use crate::{bevy_inspector, DefaultInspectorConfigPlugin};
 
 const DEFAULT_SIZE: (f32, f32) = (320., 160.);
+
+#[derive(ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
+struct Inspect;
+
+struct InspectSchedulePlugin;
+impl Plugin for InspectSchedulePlugin {
+    fn build(&self, app: &mut App) {
+        app.init_schedule(Inspect);
+
+        app.world_mut()
+            .resource_mut::<MainScheduleOrder>()
+            .insert_after(Update, Inspect);
+    }
+}
 
 /// Plugin displaying a egui window with an entity list, resources and assets
 ///
@@ -66,13 +85,16 @@ impl Plugin for WorldInspectorPlugin {
         if !app.is_plugin_added::<EguiPlugin>() {
             app.add_plugins(EguiPlugin);
         }
+        if !app.is_plugin_added::<InspectSchedulePlugin>() {
+            app.add_plugins(InspectSchedulePlugin);
+        }
 
         let condition = self.condition.lock().unwrap().take();
         let mut system = world_inspector_ui.into_configs();
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
-        app.add_systems(Update, system);
+        app.add_systems(Inspect, system);
     }
 }
 
@@ -164,13 +186,16 @@ impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
         if !app.is_plugin_added::<EguiPlugin>() {
             app.add_plugins(EguiPlugin);
         }
+        if !app.is_plugin_added::<InspectSchedulePlugin>() {
+            app.add_plugins(InspectSchedulePlugin);
+        }
 
         let condition = self.condition.lock().unwrap().take();
         let mut system = inspector_ui::<T>.into_configs();
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
-        app.add_systems(Update, system);
+        app.add_systems(Inspect, system);
     }
 }
 
@@ -204,6 +229,7 @@ fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
 /// ```no_run
 /// use bevy::prelude::*;
 /// use bevy_inspector_egui::quick::StateInspectorPlugin;
+/// use bevy_state::{app::AppExtStates, prelude::States, state::FreelyMutableState};
 ///
 /// fn main() {
 ///     App::new()
@@ -249,7 +275,7 @@ impl<T> StateInspectorPlugin<T> {
     }
 }
 
-impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
+impl<T: FreelyMutableState + Reflect> Plugin for StateInspectorPlugin<T> {
     fn build(&self, app: &mut bevy_app::App) {
         check_default_plugins(app, "StateInspectorPlugin");
 
@@ -259,17 +285,20 @@ impl<T: States + Reflect> Plugin for StateInspectorPlugin<T> {
         if !app.is_plugin_added::<EguiPlugin>() {
             app.add_plugins(EguiPlugin);
         }
+        if !app.is_plugin_added::<InspectSchedulePlugin>() {
+            app.add_plugins(InspectSchedulePlugin);
+        }
 
         let condition = self.condition.lock().unwrap().take();
         let mut system = state_ui::<T>.into_configs();
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
-        app.add_systems(Update, system);
+        app.add_systems(Inspect, system);
     }
 }
 
-fn state_ui<T: States + Reflect>(world: &mut World) {
+fn state_ui<T: FreelyMutableState + Reflect>(world: &mut World) {
     let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world);
@@ -343,13 +372,16 @@ impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
         if !app.is_plugin_added::<EguiPlugin>() {
             app.add_plugins(EguiPlugin);
         }
+        if !app.is_plugin_added::<InspectSchedulePlugin>() {
+            app.add_plugins(InspectSchedulePlugin);
+        }
 
         let condition = self.condition.lock().unwrap().take();
         let mut system = asset_inspector_ui::<A>.into_configs();
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
-        app.add_systems(Update, system);
+        app.add_systems(Inspect, system);
     }
 }
 
@@ -425,6 +457,9 @@ where
         if !app.is_plugin_added::<EguiPlugin>() {
             app.add_plugins(EguiPlugin);
         }
+        if !app.is_plugin_added::<InspectSchedulePlugin>() {
+            app.add_plugins(InspectSchedulePlugin);
+        }
 
         let condition: Option<Box<dyn ReadOnlySystem<In = (), Out = bool>>> =
             self.condition.lock().unwrap().take();
@@ -432,7 +467,7 @@ where
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
-        app.add_systems(Update, system);
+        app.add_systems(Inspect, system);
     }
 }
 
