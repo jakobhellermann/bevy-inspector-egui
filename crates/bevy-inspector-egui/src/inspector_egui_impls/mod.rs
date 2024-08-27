@@ -271,7 +271,6 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     type_registry.register::<Cow<'static, std::path::Path>>();
     type_registry.register::<bevy_utils::Duration>();
     type_registry.register::<Instant>();
-    type_registry.register::<bevy_utils::Uuid>();
 
     add_of_with_many::<f32>(type_registry, std_impls::number_ui_many::<f32>);
     add_of_with_many::<f64>(type_registry, std_impls::number_ui_many::<f64>);
@@ -362,7 +361,6 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
     type_registry.register::<bevy_asset::Handle<bevy_render::texture::Image>>();
     type_registry.register::<bevy_asset::Handle<bevy_render::mesh::Mesh>>();
     type_registry.register::<bevy_ecs::entity::Entity>();
-    type_registry.register::<bevy_render::color::Color>();
     type_registry.register::<bevy_render::view::RenderLayers>();
     type_registry.register::<bevy_ecs::component::ComponentId>();
     type_registry.register::<bevy_ecs::component::Tick>();
