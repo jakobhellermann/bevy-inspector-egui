@@ -282,7 +282,10 @@ impl Filter {
             is_fuzzy
         };*/
 
-        Filter { word, is_fuzzy: true }
+        Filter {
+            word,
+            is_fuzzy: true,
+        }
     }
 
     /// empty filter which does nothing
