@@ -399,6 +399,55 @@ fn display_range_readonly<T: egui::emath::Numeric + InspectorOptionsType>(
     });
 }
 
+impl<T: Reflect + TypePath + egui::emath::Numeric + InspectorOptionsType> InspectorPrimitive
+    for std::ops::RangeInclusive<T>
+{
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    ) -> bool {
+        let mut start = *self.start();
+        let mut end = *self.end();
+
+        let changed = display_range::<T>(
+            ui,
+            options,
+            id,
+            env,
+            "..=",
+            Some(&mut start),
+            Some(&mut end),
+        );
+
+        if changed {
+            *self = start..=end;
+        }
+
+        changed
+    }
+
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    ) {
+        display_range_readonly::<T>(
+            ui,
+            options,
+            id,
+            env,
+            "..",
+            Some(self.start()),
+            Some(self.end()),
+        );
+    }
+}
+
 impl InspectorPrimitive for PathBuf {
     fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
         let mut str = self.to_string_lossy();

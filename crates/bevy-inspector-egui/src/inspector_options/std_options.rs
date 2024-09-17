@@ -171,6 +171,14 @@ impl<T: InspectorOptionsType + 'static> InspectorOptionsType for std::ops::Range
         options
     }
 }
+impl<T: InspectorOptionsType + 'static> InspectorOptionsType for std::ops::RangeInclusive<T> {
+    type DeriveOptions = RangeOptions<T>;
+    type Options = RangeOptions<T>;
+
+    fn options_from_derive(options: Self::DeriveOptions) -> Self::Options {
+        options
+    }
+}
 
 #[derive(Default, Clone)]
 #[non_exhaustive]

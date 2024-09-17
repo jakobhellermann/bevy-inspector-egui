@@ -219,9 +219,7 @@ fn many_unimplemented<T: Any>(
     false
 }
 
-fn add<T: InspectorPrimitive + TypePath + PartialEq + Clone + Default>(
-    type_registry: &mut TypeRegistry,
-) {
+fn add<T: InspectorPrimitive + TypePath + PartialEq + Clone>(type_registry: &mut TypeRegistry) {
     type_registry.register_type_data::<T, InspectorEguiImpl>();
 }
 fn add_of_with_many<T: InspectorPrimitive>(
@@ -267,8 +265,12 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     add::<PathBuf>(type_registry);
 
     type_registry.register::<std::ops::Range<f64>>();
+    type_registry.register::<std::ops::RangeInclusive<f32>>();
+    type_registry.register::<std::ops::RangeInclusive<f64>>();
     add::<std::ops::Range<f32>>(type_registry);
     add::<std::ops::Range<f64>>(type_registry);
+    add::<std::ops::RangeInclusive<f32>>(type_registry);
+    add::<std::ops::RangeInclusive<f64>>(type_registry);
 
     add::<std::time::Duration>(type_registry);
     add_of_with_many::<Instant>(type_registry, many_unimplemented::<Instant>);
