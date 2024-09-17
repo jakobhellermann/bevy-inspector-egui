@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.26.0
+- update to `bevy_egui` 0.29
+- make `RangeInclusive<fXX>` inspectable
+
 ## Version 0.25.2
 - introduce features for egui clipboard and open\_url to improve wasm compat
 - re-enable image and mesh inspector impls
