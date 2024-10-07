@@ -54,7 +54,7 @@ impl InspectorPrimitive for Entity {
                 let entity_name =
                     crate::utils::guess_entity_name::guess_entity_name_restricted(world, entity);
                 egui::CollapsingHeader::new(entity_name)
-                    .id_source(id)
+                    .id_salt(id)
                     .show(ui, |ui| {
                         let _queue = CommandQueue::default();
                         crate::bevy_inspector::ui_for_entity_components(
