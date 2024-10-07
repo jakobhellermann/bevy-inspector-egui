@@ -293,7 +293,7 @@ pub mod quat {
                 .get_temp_mut_or_insert_with(id, || T::from_quat(*val))
         });
 
-        let externally_changed = !intermediate.to_quat().abs_diff_eq(*val, std::f32::EPSILON);
+        let externally_changed = !intermediate.to_quat().abs_diff_eq(*val, f32::EPSILON);
         if externally_changed {
             intermediate = T::from_quat(*val);
         }

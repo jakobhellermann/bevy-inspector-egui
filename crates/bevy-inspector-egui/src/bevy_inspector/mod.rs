@@ -263,9 +263,7 @@ impl Filter {
             });
 
             // improves overall matching
-            let filter = filter.to_lowercase();
-
-            filter
+            filter.to_lowercase()
         };
 
         // filter kind
@@ -273,11 +271,11 @@ impl Filter {
             let filter_kind_id = egui::Id::new("world ui filter fuzzy");
             let mut is_fuzzy = ui.memory_mut(|mem| {
                 let fuzzy: &mut bool = mem.data.get_persisted_mut_or_default(filter_kind_id);
-                fuzzy.clone()
+                *fuzzy
             });
             ui.checkbox(&mut is_fuzzy, "Fuzzy Match");
             ui.memory_mut(|mem| {
-                *mem.data.get_persisted_mut_or_default(filter_kind_id) = is_fuzzy.clone();
+                *mem.data.get_persisted_mut_or_default(filter_kind_id) = is_fuzzy;
             });
             is_fuzzy
         };
@@ -366,7 +364,7 @@ fn self_or_children_satisfy_filter(
         let matcher = SkimMatcherV2::default();
         matcher.fuzzy_match(name.as_str(), filter).is_some()
     } else {
-        name.to_lowercase().contains(&filter)
+        name.to_lowercase().contains(filter)
     };
     self_matches || {
         world
