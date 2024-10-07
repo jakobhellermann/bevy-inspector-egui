@@ -15,7 +15,14 @@ use bevy_reflect::TypeRegistry;
 use bevy_render::camera::{CameraProjection, Viewport};
 use bevy_window::PrimaryWindow;
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
+
+#[cfg(feature = "examples-dock-transform-gizmo")]
 use transform_gizmo_egui::GizmoMode;
+
+/// Placeholder type if gizmo is disabled.
+#[cfg(not(feature = "examples-dock-transform-gizmo"))]
+#[derive(Clone, Copy)]
+struct GizmoMode;
 
 fn main() {
     App::new()
@@ -30,6 +37,7 @@ fn main() {
             PostUpdate,
             show_ui_system
                 .before(EguiSet::ProcessOutput)
+                .before(bevy_egui::systems::end_pass_system)
                 .before(bevy::transform::TransformSystem::TransformPropagate),
         )
         .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
@@ -97,7 +105,7 @@ fn show_ui_system(world: &mut World) {
 fn set_camera_viewport(
     ui_state: Res<UiState>,
     primary_window: Query<&mut Window, With<PrimaryWindow>>,
-    egui_settings: Res<bevy_egui::EguiSettings>,
+    egui_settings: Query<&bevy_egui::EguiSettings>,
     mut cameras: Query<&mut Camera, With<MainCamera>>,
 ) {
     let mut cam = cameras.single_mut();
@@ -106,7 +114,7 @@ fn set_camera_viewport(
         return;
     };
 
-    let scale_factor = window.scale_factor() * egui_settings.scale_factor;
+    let scale_factor = window.scale_factor() * egui_settings.single().scale_factor;
 
     let viewport_pos = ui_state.viewport_rect.left_top().to_vec2() * scale_factor;
     let viewport_size = ui_state.viewport_rect.size() * scale_factor;
@@ -132,11 +140,15 @@ fn set_camera_viewport(
 }
 
 fn set_gizmo_mode(input: Res<ButtonInput<KeyCode>>, mut ui_state: ResMut<UiState>) {
-    for (key, mode) in [
+    #[cfg(feature = "examples-dock-transform-gizmo")]
+    let keybinds = [
         (KeyCode::KeyR, GizmoMode::Rotate),
         (KeyCode::KeyT, GizmoMode::Translate),
         (KeyCode::KeyS, GizmoMode::Scale),
-    ] {
+    ];
+    #[cfg(not(feature = "examples-dock-transform-gizmo"))]
+    let keybinds = [];
+    for (key, mode) in keybinds {
         if input.just_pressed(key) {
             ui_state.gizmo_mode = mode;
         }
@@ -174,7 +186,10 @@ impl UiState {
             selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,
             viewport_rect: egui::Rect::NOTHING,
+            #[cfg(feature = "examples-dock-transform-gizmo")]
             gizmo_mode: GizmoMode::Translate,
+            #[cfg(not(feature = "examples-dock-transform-gizmo"))]
+            gizmo_mode: GizmoMode,
         }
     }
 
@@ -282,6 +297,7 @@ fn draw_gizmo(
     let projection_matrix = projection.get_clip_from_view();
 
     if selected_entities.len() != 1 {
+        #[allow(clippy::needless_return)]
         return;
     }
 
