@@ -194,7 +194,7 @@ pub fn ui_for_assets<A: Asset + Reflect>(world: &mut World, ui: &mut egui::Ui) {
         let id = egui::Id::new(handle_id);
 
         egui::CollapsingHeader::new(handle_name(handle_id.untyped(), asset_server.as_ref()))
-            .id_source(id)
+            .id_salt(id)
             .show(ui, |ui| {
                 let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
                 env.ui_for_reflect_with_options(asset, ui, id, &());
@@ -326,7 +326,7 @@ pub fn ui_for_world_entities_filtered<F: WorldQuery + QueryFilter>(
         let entity_name = guess_entity_name(world, entity);
 
         egui::CollapsingHeader::new(&entity_name)
-            .id_source(id)
+            .id_salt(id)
             .show(ui, |ui| {
                 if with_children {
                     ui_for_entity_with_children_inner(
@@ -427,7 +427,7 @@ fn ui_for_entity_with_children_inner(
 
                 let child_entity_name = guess_entity_name(world, child);
                 egui::CollapsingHeader::new(&child_entity_name)
-                    .id_source(id)
+                    .id_salt(id)
                     .show(ui, |ui| {
                         ui.label(&child_entity_name);
 
@@ -484,7 +484,7 @@ pub(crate) fn ui_for_entity_components(
     for (name, component_id, component_type_id, size) in components {
         let id = id.with(component_id);
 
-        let header = egui::CollapsingHeader::new(&name).id_source(id);
+        let header = egui::CollapsingHeader::new(&name).id_salt(id);
 
         let Some(component_type_id) = component_type_id else {
             header.show(ui, |ui| errors::no_type_id(ui, &name));
@@ -616,7 +616,7 @@ pub fn ui_for_entities_shared_components(
     for (name, component_id, component_type_id, size) in components {
         let id = id.with(component_id);
         egui::CollapsingHeader::new(&name)
-            .id_source(id)
+            .id_salt(id)
             .show(ui, |ui| {
                 if size == 0 {
                     return;
@@ -772,7 +772,7 @@ pub mod by_type_id {
             let mut handle = reflect_handle.typed(UntypedHandle::Weak(handle_id));
 
             egui::CollapsingHeader::new(handle_name(handle_id, asset_server.as_ref()))
-                .id_source(id)
+                .id_salt(id)
                 .show(ui, |ui| {
                     let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
                     env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
