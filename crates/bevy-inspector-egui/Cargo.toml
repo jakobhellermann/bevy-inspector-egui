@@ -22,6 +22,9 @@ egui_clipboard = ["bevy_egui/manage_clipboard"]
 egui_open_url = ["bevy_egui/open_url"]
 highlight_changes = []
 
+# Currently broken since transform-gizmo-egui is stuck on egui 0.28
+examples-dock-transform-gizmo = []
+
 [dependencies]
 bevy-inspector-egui-derive = { version = "0.26.0", path = "../bevy-inspector-egui-derive" }
 bevy_app = { version = "0.14.0" }
