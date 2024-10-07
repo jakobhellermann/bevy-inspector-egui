@@ -42,8 +42,8 @@ bevy_render = { version = "0.14", optional = true }
 bevy_core_pipeline = { version = "0.14", optional = true }
 bevy_pbr = { version = "0.14", optional = true }
 
-egui = "0.28"
-bevy_egui = { version = "0.29", default-features = false }
+egui = "0.29"
+bevy_egui = { version = "0.30", default-features = false }
 
 bytemuck = "1.16.0"
 image = { version = "0.24", default-features = false }
@@ -66,7 +66,7 @@ bevy = { version = "0.14.0", default-features = false, features = [
     "tonemapping_luts",
     "ktx2",
 ] }
-egui_dock = "0.13"
+egui_dock = "0.14"
 # transform-gizmo-egui = "0.1"
 # bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
 # bevy_framepace = "0.11"
