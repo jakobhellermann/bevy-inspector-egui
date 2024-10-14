@@ -1,6 +1,7 @@
 use std::{
     any::Any,
     collections::{hash_map::Entry, HashMap, HashSet},
+    sync::LazyLock,
     sync::Mutex,
 };
 
@@ -9,7 +10,6 @@ use bevy_egui::EguiUserTextures;
 use bevy_reflect::DynamicTypePath;
 use bevy_render::texture::Image;
 use egui::load::SizedTexture;
-use once_cell::sync::Lazy;
 use pretty_type_name::pretty_type_name;
 
 use crate::{
@@ -109,7 +109,7 @@ impl InspectorPrimitive for Handle<Image> {
     }
 }
 
-static SCALED_DOWN_TEXTURES: Lazy<Mutex<ScaledDownTextures>> = Lazy::new(Default::default);
+static SCALED_DOWN_TEXTURES: LazyLock<Mutex<ScaledDownTextures>> = LazyLock::new(Default::default);
 
 fn update_and_show_image(
     image: &Handle<Image>,

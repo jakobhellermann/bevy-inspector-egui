@@ -1,5 +1,3 @@
-use std::any::TypeId;
-
 use bevy::prelude::*;
 use bevy_asset::{ReflectAsset, UntypedAssetId};
 use bevy_egui::EguiContext;
@@ -8,6 +6,7 @@ use bevy_inspector_egui::bevy_inspector::{
     self, ui_for_entities_shared_components, ui_for_entity_with_children,
 };
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
+use std::any::TypeId;
 // use bevy_mod_picking::backends::egui::EguiPointer;
 // use bevy_mod_picking::prelude::*;
 use bevy_egui::EguiSet;
