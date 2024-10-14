@@ -79,6 +79,7 @@ use std::borrow::Cow;
 pub(crate) mod errors;
 
 /// Display the value without any [`Context`] or short circuiting behaviour.
+///
 /// This means that for example bevy's `Handle<StandardMaterial>` values cannot be displayed,
 /// as they would need to have access to the `World`.
 ///
@@ -93,6 +94,7 @@ pub fn ui_for_value(
 }
 
 /// Display the readonly value without any [`Context`] or short circuiting behaviour.
+///
 /// This means that for example bevy's `Handle<StandardMaterial>` values cannot be displayed,
 /// as they would need to have access to the `World`.
 ///
