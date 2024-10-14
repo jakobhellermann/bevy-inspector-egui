@@ -15,11 +15,11 @@ use bevy_render::camera::{CameraProjection, Viewport};
 use bevy_window::PrimaryWindow;
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
 
-#[cfg(feature = "examples-dock-transform-gizmo")]
+#[cfg(egui_dock_gizmo)]
 use transform_gizmo_egui::GizmoMode;
 
 /// Placeholder type if gizmo is disabled.
-#[cfg(not(feature = "examples-dock-transform-gizmo"))]
+#[cfg(not(egui_dock_gizmo))]
 #[derive(Clone, Copy)]
 struct GizmoMode;
 
@@ -139,13 +139,13 @@ fn set_camera_viewport(
 }
 
 fn set_gizmo_mode(input: Res<ButtonInput<KeyCode>>, mut ui_state: ResMut<UiState>) {
-    #[cfg(feature = "examples-dock-transform-gizmo")]
+    #[cfg(egui_dock_gizmo)]
     let keybinds = [
         (KeyCode::KeyR, GizmoMode::Rotate),
         (KeyCode::KeyT, GizmoMode::Translate),
         (KeyCode::KeyS, GizmoMode::Scale),
     ];
-    #[cfg(not(feature = "examples-dock-transform-gizmo"))]
+    #[cfg(not(egui_dock_gizmo))]
     let keybinds = [];
     for (key, mode) in keybinds {
         if input.just_pressed(key) {
@@ -185,9 +185,9 @@ impl UiState {
             selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,
             viewport_rect: egui::Rect::NOTHING,
-            #[cfg(feature = "examples-dock-transform-gizmo")]
+            #[cfg(egui_dock_gizmo)]
             gizmo_mode: GizmoMode::Translate,
-            #[cfg(not(feature = "examples-dock-transform-gizmo"))]
+            #[cfg(not(egui_dock_gizmo))]
             gizmo_mode: GizmoMode,
         }
     }
