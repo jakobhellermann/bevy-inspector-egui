@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.27.0
+- upgrade to `bevy_egui 0.30` / `egui 0.29`
+- update `image` to 0.25
+
 ## Version 0.26.0
 - update to `bevy_egui` 0.29
 - make `RangeInclusive<fXX>` inspectable
