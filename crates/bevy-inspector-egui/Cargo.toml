@@ -22,7 +22,12 @@ egui_clipboard = ["bevy_egui/manage_clipboard"]
 egui_open_url = ["bevy_egui/open_url"]
 highlight_changes = []
 
+[package.metadata.docs.rs]
+features = ["winit/x11"]
+
 [dependencies]
+winit = { version = "0.30.0", default-features = false }
+
 bevy-inspector-egui-derive = { version = "0.27.0", path = "../bevy-inspector-egui-derive" }
 bevy_app = { version = "0.14.0" }
 bevy_asset = { version = "0.14.0" }
