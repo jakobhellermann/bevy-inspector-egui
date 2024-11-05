@@ -1,10 +1,11 @@
 use std::any::Any;
 
 use bevy_math::{prelude::*, DMat2, DMat3, DMat4, DVec2, DVec3, DVec4, Mat3A, Vec3A};
-use bevy_reflect::Reflect;
+use bevy_reflect::PartialReflect;
 
 use crate::inspector_options::std_options::NumberOptions;
 use crate::reflect_inspector::InspectorUi;
+use crate::reflect_inspector::ProjectorReflect;
 
 macro_rules! vec_ui_many {
     ($name_many:ident $ty:ty>$elem_ty:ty: $count:literal $($component:ident)*) => {
@@ -13,8 +14,8 @@ macro_rules! vec_ui_many {
             _: &dyn Any,
             id: egui::Id,
             _env: InspectorUi<'_, '_>,
-            values: &mut [&mut dyn Reflect],
-            projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+            values: &mut [&mut dyn PartialReflect],
+            projector: &dyn ProjectorReflect,
         ) -> bool {
             let mut changed = false;
             ui.scope(|ui| {
@@ -25,14 +26,15 @@ macro_rules! vec_ui_many {
                         $(
 
                             let same = super::iter_all_eq(values.iter_mut().map(|value| {
-                                projector(*value).downcast_ref::<$ty>().unwrap().$component
+                                // FIXME: scary to change a macro
+                                projector(*value).try_downcast_ref::<$ty>().unwrap().$component
                             }));
 
                             let id = id.with(stringify!($component));
                             changed |= crate::inspector_egui_impls::change_slider($component, id, same, |change, overwrite| {
                                 for value in values.iter_mut() {
                                     let value = projector(*value);
-                                    let value = value.downcast_mut::<$ty>().unwrap();
+                                    let value = value.try_downcast_mut::<$ty>().unwrap();
 
                                     if false { value.$component = change };
                                     if overwrite {

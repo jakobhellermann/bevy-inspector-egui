@@ -66,17 +66,21 @@ use crate::{
     restricted_world_view::RestrictedWorldView,
 };
 use bevy_ecs::world::CommandQueue;
-use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
+use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct, OpaqueInfo, PartialReflect};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List, ListInfo, Map, Reflect,
     ReflectMut, ReflectRef, Struct, StructInfo, Tuple, TupleInfo, TupleStruct, TupleStructInfo,
-    TypeInfo, TypeRegistry, ValueInfo, VariantInfo, VariantType,
+    TypeInfo, TypeRegistry, VariantInfo, VariantType,
 };
 use egui::{Grid, WidgetText};
 use std::any::{Any, TypeId};
 use std::borrow::Cow;
 
 pub(crate) mod errors;
+
+pub trait ProjectorReflect: Fn(&mut dyn PartialReflect) -> &mut dyn PartialReflect {}
+
+impl<T> ProjectorReflect for T where T: Fn(&mut dyn PartialReflect) -> &mut dyn PartialReflect {}
 
 /// Display the value without any [`Context`] or short circuiting behaviour.
 ///
@@ -90,7 +94,7 @@ pub fn ui_for_value(
     type_registry: &TypeRegistry,
 ) -> bool {
     InspectorUi::new_no_short_circuit(type_registry, &mut Context::default())
-        .ui_for_reflect(value, ui)
+        .ui_for_reflect(value.as_partial_reflect_mut(), ui)
 }
 
 /// Display the readonly value without any [`Context`] or short circuiting behaviour.
@@ -101,7 +105,7 @@ pub fn ui_for_value(
 /// Use [`InspectorUi::new`] instead to provide context or use one of the methods in [`bevy_inspector`](crate::bevy_inspector).
 pub fn ui_for_value_readonly(value: &dyn Reflect, ui: &mut egui::Ui, type_registry: &TypeRegistry) {
     InspectorUi::new_no_short_circuit(type_registry, &mut Context::default())
-        .ui_for_reflect_readonly(value, ui);
+        .ui_for_reflect_readonly(value.as_partial_reflect(), ui);
 }
 
 #[derive(Default)]
@@ -117,7 +121,7 @@ pub struct Context<'a> {
 /// and changed if the boolean is true.
 pub type ShortCircuitFn = fn(
     &mut InspectorUi<'_, '_>,
-    value: &mut dyn Reflect,
+    value: &mut dyn PartialReflect,
     ui: &mut egui::Ui,
     id: egui::Id,
     options: &dyn Any,
@@ -129,7 +133,7 @@ pub type ShortCircuitFn = fn(
 /// and changed if the boolean is true.
 pub type ShortCircuitFnReadonly = fn(
     &mut InspectorUi<'_, '_>,
-    value: &dyn Reflect,
+    value: &dyn PartialReflect,
     ui: &mut egui::Ui,
     id: egui::Id,
     options: &dyn Any,
@@ -146,8 +150,8 @@ pub type ShortCircuitFnMany = fn(
     ui: &mut egui::Ui,
     id: egui::Id,
     options: &dyn Any,
-    values: &mut [&mut dyn Reflect],
-    projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+    values: &mut [&mut dyn PartialReflect],
+    projector: &dyn ProjectorReflect,
 ) -> Option<bool>;
 
 pub struct InspectorUi<'a, 'c> {
@@ -191,12 +195,12 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
 
 impl InspectorUi<'_, '_> {
     /// Draws the inspector UI for the given value.
-    pub fn ui_for_reflect(&mut self, value: &mut dyn Reflect, ui: &mut egui::Ui) -> bool {
+    pub fn ui_for_reflect(&mut self, value: &mut dyn PartialReflect, ui: &mut egui::Ui) -> bool {
         self.ui_for_reflect_with_options(value, ui, egui::Id::NULL, &())
     }
 
     /// Draws the inspector UI for the given value in a read-only way.
-    pub fn ui_for_reflect_readonly(&mut self, value: &dyn Reflect, ui: &mut egui::Ui) {
+    pub fn ui_for_reflect_readonly(&mut self, value: &dyn PartialReflect, ui: &mut egui::Ui) {
         self.ui_for_reflect_readonly_with_options(value, ui, egui::Id::NULL, &());
     }
 
@@ -207,7 +211,7 @@ impl InspectorUi<'_, '_> {
     /// by leaf types like `f32` or `Vec3`,
     pub fn ui_for_reflect_with_options(
         &mut self,
-        value: &mut dyn Reflect,
+        value: &mut dyn PartialReflect,
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
@@ -226,7 +230,9 @@ impl InspectorUi<'_, '_> {
             .type_registry
             .get_type_data::<InspectorEguiImpl>(Any::type_id(value))
         {
-            return s.execute(value.as_any_mut(), ui, options, id, self.reborrow());
+            if let Some(value) = value.try_as_reflect_mut() {
+                return s.execute(value.as_any_mut(), ui, options, id, self.reborrow());
+            }
         }
 
         if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
@@ -241,7 +247,15 @@ impl InspectorUi<'_, '_> {
             ReflectMut::Array(value) => self.ui_for_array(value, ui, id, options),
             ReflectMut::Map(value) => self.ui_for_reflect_map(value, ui, id, options),
             ReflectMut::Enum(value) => self.ui_for_enum(value, ui, id, options),
-            ReflectMut::Value(value) => self.ui_for_value(value, ui, id, options),
+            ReflectMut::Opaque(value) => {
+                if let Some(mutable) = value.try_as_reflect_mut() {
+                    self.ui_for_value(mutable, ui, id, options)
+                } else {
+                    self.ui_for_value_readonly(value, ui, id, options);
+                    false
+                }
+            }
+            ReflectMut::Set(_) => todo!(),
         }
     }
 
@@ -252,7 +266,7 @@ impl InspectorUi<'_, '_> {
     /// by leaf types like `f32` or `Vec3`,
     pub fn ui_for_reflect_readonly_with_options(
         &mut self,
-        value: &dyn Reflect,
+        value: &dyn PartialReflect,
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
@@ -271,8 +285,10 @@ impl InspectorUi<'_, '_> {
             .type_registry
             .get_type_data::<InspectorEguiImpl>(Any::type_id(value))
         {
-            s.execute_readonly(value.as_any(), ui, options, id, self.reborrow());
-            return;
+            if let Some(value) = value.try_as_reflect() {
+                s.execute_readonly(value.as_any(), ui, options, id, self.reborrow());
+                return;
+            }
         }
 
         if let Some(()) = (self.short_circuit_readonly)(self, value, ui, id, options) {
@@ -289,7 +305,8 @@ impl InspectorUi<'_, '_> {
             ReflectRef::Array(value) => self.ui_for_array_readonly(value, ui, id, options),
             ReflectRef::Map(value) => self.ui_for_reflect_map_readonly(value, ui, id, options),
             ReflectRef::Enum(value) => self.ui_for_enum_readonly(value, ui, id, options),
-            ReflectRef::Value(value) => self.ui_for_value_readonly(value, ui, id, options),
+            ReflectRef::Opaque(value) => self.ui_for_value_readonly(value, ui, id, options),
+            ReflectRef::Set(_) => todo!(),
         }
     }
 
@@ -299,8 +316,8 @@ impl InspectorUi<'_, '_> {
         name: &str,
         ui: &mut egui::Ui,
         id: egui::Id,
-        values: &mut [&mut dyn Reflect],
-        projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+        values: &mut [&mut dyn PartialReflect],
+        projector: &dyn ProjectorReflect,
     ) -> bool {
         self.ui_for_reflect_many_with_options(type_id, name, ui, id, &(), values, projector)
     }
@@ -312,8 +329,8 @@ impl InspectorUi<'_, '_> {
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
-        values: &mut [&mut dyn Reflect],
-        projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+        values: &mut [&mut dyn PartialReflect],
+        projector: &dyn ProjectorReflect,
     ) -> bool {
         let Some(registration) = self.type_registry.get(type_id) else {
             errors::not_in_type_registry(ui, name);
@@ -370,7 +387,8 @@ impl InspectorUi<'_, '_> {
                 false
             }
             TypeInfo::Enum(info) => self.ui_for_enum_many(info, ui, id, options, values, projector),
-            TypeInfo::Value(info) => self.ui_for_value_many(info, ui, id, options),
+            TypeInfo::Opaque(info) => self.ui_for_value_many(info, ui, id, options),
+            TypeInfo::Set(set_info) => todo!(),
         }
     }
 }
@@ -424,8 +442,8 @@ fn ui_for_list_controls(ui: &mut egui::Ui, index: usize, len: usize) -> Option<L
 }
 
 struct MapDraftElement {
-    key: Box<dyn Reflect>,
-    value: Box<dyn Reflect>,
+    key: Box<dyn PartialReflect>,
+    value: Box<dyn PartialReflect>,
 }
 impl Clone for MapDraftElement {
     fn clone(&self) -> Self {
@@ -489,8 +507,8 @@ impl InspectorUi<'_, '_> {
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
-        values: &mut [&mut dyn Reflect],
-        projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+        values: &mut [&mut dyn PartialReflect],
+        projector: impl ProjectorReflect,
     ) -> bool {
         let mut changed = false;
         Grid::new(id).show(ui, |ui| {
@@ -571,8 +589,8 @@ impl InspectorUi<'_, '_> {
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
-        values: &mut [&mut dyn Reflect],
-        projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+        values: &mut [&mut dyn PartialReflect],
+        projector: impl ProjectorReflect,
     ) -> bool {
         maybe_grid(info.field_len(), ui, id, |ui, label| {
             info.iter()
@@ -657,8 +675,8 @@ impl InspectorUi<'_, '_> {
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
-        values: &mut [&mut dyn Reflect],
-        projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+        values: &mut [&mut dyn PartialReflect],
+        projector: impl ProjectorReflect,
     ) -> bool {
         maybe_grid(info.field_len(), ui, id, |ui, label| {
             info.iter()
@@ -705,8 +723,9 @@ impl InspectorUi<'_, '_> {
             match op {
                 AddElement(i) => {
                     let default = self
-                        .get_default_value_for(info.item_type_id())
-                        .or_else(|| list.get(i).map(Reflect::clone_value));
+                        .get_default_value_for(info.item_ty().id())
+                        .map(|def| def.into_partial_reflect())
+                        .or_else(|| list.get(i).map(|v| v.clone_value()));
                     if let Some(new_value) = default {
                         list.insert(i, new_value);
                     } else {
@@ -832,8 +851,8 @@ impl InspectorUi<'_, '_> {
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
-        values: &mut [&mut dyn Reflect],
-        projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+        values: &mut [&mut dyn PartialReflect],
+        projector: impl ProjectorReflect,
     ) -> bool {
         use ListOp::*;
         let mut changed = false;
@@ -861,7 +880,7 @@ impl InspectorUi<'_, '_> {
             }
 
             for i in 0..len {
-                let mut items_at_i: Vec<&mut dyn Reflect> = values
+                let mut items_at_i: Vec<&mut dyn PartialReflect> = values
                     .iter_mut()
                     .map(|value| match projector(*value).reflect_mut() {
                         ReflectMut::List(list) => list.get_mut(i).unwrap(),
@@ -873,7 +892,7 @@ impl InspectorUi<'_, '_> {
                     ui.label(i.to_string());
                     ui.horizontal_top(|ui| {
                         changed |= self.ui_for_reflect_many_with_options(
-                            info.item_type_id(),
+                            info.item_ty().id(),
                             info.type_path(),
                             ui,
                             id.with(i),
@@ -956,10 +975,13 @@ impl InspectorUi<'_, '_> {
                         // Insert a temporary 'draft' key-value pair into UI state.
                         if let Some(TypeInfo::Map(map_info)) = map.get_represented_type_info() {
                             let op = Option::zip(
-                                self.get_default_value_for(map_info.key_type_id()),
-                                self.get_default_value_for(map_info.value_type_id()),
+                                self.get_default_value_for(map_info.key_ty().id()),
+                                self.get_default_value_for(map_info.value_ty().id()),
                             )
-                            .map(|(k, v)| MapDraftElement { key: k, value: v });
+                            .map(|(k, v)| MapDraftElement {
+                                key: k.into_partial_reflect(),
+                                value: v.into_partial_reflect(),
+                            });
                             if op.is_some() {
                                 ui.data_mut(|data| data.insert_temp(map_draft_id, op));
                             }
@@ -1140,8 +1162,8 @@ impl InspectorUi<'_, '_> {
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
-        values: &mut [&mut dyn Reflect],
-        projector: impl Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+        values: &mut [&mut dyn PartialReflect],
+        projector: &dyn ProjectorReflect,
     ) -> bool {
         let mut changed = false;
 
@@ -1184,7 +1206,7 @@ impl InspectorUi<'_, '_> {
                                 ui.label(field_name);
                             }
 
-                            let mut variants_across: Vec<&mut dyn Reflect> = values
+                            let mut variants_across: Vec<&mut dyn PartialReflect> = values
                                 .iter_mut()
                                 .map(|value| match projector(*value).reflect_mut() {
                                     ReflectMut::Enum(value) => {
@@ -1372,7 +1394,7 @@ impl InspectorUi<'_, '_> {
 
     fn ui_for_value_readonly(
         &mut self,
-        value: &dyn Reflect,
+        value: &dyn PartialReflect,
         ui: &mut egui::Ui,
         _id: egui::Id,
         _options: &dyn Any,
@@ -1382,7 +1404,7 @@ impl InspectorUi<'_, '_> {
 
     fn ui_for_value_many(
         &mut self,
-        info: &ValueInfo,
+        info: &OpaqueInfo,
         ui: &mut egui::Ui,
         _id: egui::Id,
         _options: &dyn Any,
@@ -1427,7 +1449,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                             return Err(());
                         }
                     };
-                    dynamic_struct.insert_boxed(field.name(), field_default_value);
+                    dynamic_struct.insert_boxed(field.name(), field_default_value.clone_value());
                 }
                 DynamicVariant::Struct(dynamic_struct)
             }
@@ -1441,7 +1463,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                             return Err(());
                         }
                     };
-                    dynamic_tuple.insert_boxed(field_default_value);
+                    dynamic_tuple.insert_boxed(field_default_value.clone_value());
                 }
                 DynamicVariant::Tuple(dynamic_tuple)
             }

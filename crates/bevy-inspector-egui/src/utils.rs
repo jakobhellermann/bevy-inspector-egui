@@ -20,7 +20,7 @@ pub mod guess_entity_name {
     /// Guesses an appropriate entity name like `Light (6)` or falls back to `Entity (8)`
     pub fn guess_entity_name(world: &World, entity: Entity) -> String {
         match world.get_entity(entity) {
-            Some(entity_ref) => {
+            Ok(entity_ref) => {
                 if let Some(name) = entity_ref.get::<Name>() {
                     return format!("{} ({})", name.as_str(), entity);
                 }
@@ -31,7 +31,7 @@ pub mod guess_entity_name {
                     entity_ref.archetype(),
                 )
             }
-            None => format!("Entity {} (inexistent)", entity.index()),
+            Err(entity) => format!("Entity {} (inexistent)", entity.index()),
         }
     }
 
