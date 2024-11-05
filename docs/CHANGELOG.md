@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.28.0
+- upgrade to `bevy_egui 0.31`
+- update `bevy` to 0.15
+- 
 ## Version 0.27.0
 - upgrade to `bevy_egui 0.30` / `egui 0.29`
 - update `image` to 0.25

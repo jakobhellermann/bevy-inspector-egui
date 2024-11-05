@@ -75,7 +75,7 @@ pub fn ui_for_value(value: &mut dyn Reflect, ui: &mut egui::Ui, world: &mut Worl
         queue: Some(&mut queue),
     };
     let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
-    let changed = env.ui_for_reflect(value, ui);
+    let changed = env.ui_for_reflect(value.as_partial_reflect_mut(), ui);
     queue.apply(world);
     changed
 }
@@ -367,15 +367,17 @@ fn self_or_children_satisfy_filter(
         name.to_lowercase().contains(filter)
     };
     self_matches || {
-        world
+        let Ok(children) = world
             .query::<&Children>()
             .get(world, entity)
             .map(|children| children.to_vec())
-            .is_ok_and(|children| {
-                children
-                    .iter()
-                    .any(|child| self_or_children_satisfy_filter(world, *child, filter, is_fuzzy))
-            })
+        else {
+            return false;
+        };
+
+        children
+            .iter()
+            .any(|child| self_or_children_satisfy_filter(world, *child, filter, is_fuzzy))
     }
 }
 
@@ -525,7 +527,12 @@ pub(crate) fn ui_for_entity_components(
             ui.reset_style();
 
             let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
-                .ui_for_reflect_with_options(value, ui, id.with(component_id), &());
+                .ui_for_reflect_with_options(
+                    value.as_partial_reflect_mut(),
+                    ui,
+                    id.with(component_id),
+                    &(),
+                );
 
             if inspector_changed {
                 set_changed();
@@ -643,7 +650,7 @@ pub fn ui_for_entities_shared_components(
                         )
                     } {
                         Ok((value, mark_changed)) => {
-                            values.push(value);
+                            values.push(value.as_partial_reflect_mut());
                             mark_changeds.push(mark_changed);
                         }
                         Err(error) => {
@@ -715,7 +722,7 @@ pub mod by_type_id {
                 Err(err) => return errors::show_error(err, ui, name_of_type),
             };
 
-            let changed = env.ui_for_reflect(resource, ui);
+            let changed = env.ui_for_reflect(resource.as_partial_reflect_mut(), ui);
             if changed {
                 set_changed();
             }
@@ -769,7 +776,9 @@ pub mod by_type_id {
 
         for handle_id in ids {
             let id = egui::Id::new(handle_id);
-            let mut handle = reflect_handle.typed(UntypedHandle::Weak(handle_id));
+            let mut handle = reflect_handle
+                .typed(UntypedHandle::Weak(handle_id))
+                .into_partial_reflect();
 
             egui::CollapsingHeader::new(handle_name(handle_id, asset_server.as_ref()))
                 .id_salt(id)
@@ -828,7 +837,9 @@ pub mod by_type_id {
         };
 
         let id = egui::Id::new(handle);
-        let mut handle = reflect_handle.typed(UntypedHandle::Weak(handle));
+        let mut handle = reflect_handle
+            .typed(UntypedHandle::Weak(handle))
+            .into_partial_reflect();
 
         let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
         let changed = env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
@@ -878,19 +889,24 @@ pub mod short_circuit {
     use std::any::{Any, TypeId};
 
     use bevy_asset::ReflectAsset;
-    use bevy_reflect::Reflect;
+    use bevy_reflect::PartialReflect;
 
-    use crate::reflect_inspector::{Context, InspectorUi};
+    use crate::reflect_inspector::{Context, InspectorUi, ProjectorReflect};
 
     use super::errors::{self, name_of_type};
 
     pub fn short_circuit(
         env: &mut InspectorUi,
-        value: &mut dyn Reflect,
+        value: &mut dyn PartialReflect,
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
     ) -> Option<bool> {
+        let Some(value) = value.try_as_reflect() else {
+            // TODO: display error ? Is entering here even possible ?
+            return Some(false);
+        };
+
         if let Some(reflect_handle) = env
             .type_registry
             .get_type_data::<bevy_asset::ReflectHandle>(Any::type_id(value))
@@ -950,7 +966,7 @@ pub mod short_circuit {
                 short_circuit_many: env.short_circuit_many,
             };
             return Some(restricted_env.ui_for_reflect_with_options(
-                asset_value,
+                asset_value.as_partial_reflect_mut(),
                 ui,
                 id.with("asset"),
                 options,
@@ -967,8 +983,8 @@ pub mod short_circuit {
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
-        values: &mut [&mut dyn Reflect],
-        projector: &dyn Fn(&mut dyn Reflect) -> &mut dyn Reflect,
+        values: &mut [&mut dyn PartialReflect],
+        projector: &dyn ProjectorReflect,
     ) -> Option<bool> {
         if let Some(reflect_handle) = env
             .type_registry
@@ -1003,6 +1019,10 @@ pub mod short_circuit {
 
             for value in values {
                 let handle = projector(*value);
+                let Some(handle) = handle.try_as_reflect() else {
+                    // TODO: display error ? Is entering here even possible ?
+                    continue;
+                };
                 let handle = reflect_handle
                     .downcast_handle_untyped(handle.as_any())
                     .unwrap();
@@ -1028,7 +1048,7 @@ pub mod short_circuit {
                     }
                 };
 
-                new_values.push(asset_value);
+                new_values.push(asset_value.as_partial_reflect_mut());
             }
 
             let mut restricted_env = InspectorUi {
@@ -1057,11 +1077,15 @@ pub mod short_circuit {
 
     pub fn short_circuit_readonly(
         env: &mut InspectorUi,
-        value: &dyn Reflect,
+        value: &dyn PartialReflect,
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
     ) -> Option<()> {
+        let Some(value) = value.try_as_reflect() else {
+            // TODO: display error ? Is entering here even possible ?
+            return Some(());
+        };
         if let Some(reflect_handle) = env
             .type_registry
             .get_type_data::<bevy_asset::ReflectHandle>(Any::type_id(value))
@@ -1108,7 +1132,8 @@ pub mod short_circuit {
                         return Some(());
                     }
                 }
-            };
+            }
+            .as_partial_reflect();
 
             let mut restricted_env = InspectorUi {
                 type_registry: env.type_registry,
