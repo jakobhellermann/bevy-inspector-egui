@@ -29,23 +29,23 @@ features = ["winit/x11"]
 winit = { version = "0.30.0", default-features = false }
 
 bevy-inspector-egui-derive = { version = "0.27.0", path = "../bevy-inspector-egui-derive" }
-bevy_app = { version = "0.15.0-rc.2" }
-bevy_asset = { version = "0.15.0-rc.2" }
-bevy_color = { version = "0.15.0-rc.2" }
-bevy_core = { version = "0.15.0-rc.2" }
-bevy_ecs = { version = "0.15.0-rc.2" }
-bevy_hierarchy = { version = "0.15.0-rc.2" }
-bevy_log = { version = "0.15.0-rc.2" }
-bevy_math = { version = "0.15.0-rc.2" }
-bevy_reflect = { version = "0.15.0-rc.2" }
-bevy_state = { version = "0.15.0-rc.2" }
-bevy_time = { version = "0.15.0-rc.2" }
-bevy_utils = { version = "0.15.0-rc.2" }
-bevy_window = { version = "0.15.0-rc.2" }
+bevy_app = { version = "0.15.0-rc.3" }
+bevy_asset = { version = "0.15.0-rc.3" }
+bevy_color = { version = "0.15.0-rc.3" }
+bevy_core = { version = "0.15.0-rc.3" }
+bevy_ecs = { version = "0.15.0-rc.3" }
+bevy_hierarchy = { version = "0.15.0-rc.3" }
+bevy_log = { version = "0.15.0-rc.3" }
+bevy_math = { version = "0.15.0-rc.3" }
+bevy_reflect = { version = "0.15.0-rc.3" }
+bevy_state = { version = "0.15.0-rc.3" }
+bevy_time = { version = "0.15.0-rc.3" }
+bevy_utils = { version = "0.15.0-rc.3" }
+bevy_window = { version = "0.15.0-rc.3" }
 
-bevy_render = { version = "0.15.0-rc.2", optional = true }
-bevy_core_pipeline = { version = "0.15.0-rc.2", optional = true }
-bevy_pbr = { version = "0.15.0-rc.2", optional = true }
+bevy_render = { version = "0.15.0-rc.3", optional = true }
+bevy_core_pipeline = { version = "0.15.0-rc.3", optional = true }
+bevy_pbr = { version = "0.15.0-rc.3", optional = true }
 
 egui = "0.29"
 bevy_egui = { version = "0.30", default-features = false }
@@ -58,7 +58,7 @@ smallvec = "1.10"
 fuzzy-matcher = "0.3.7"
 
 [dev-dependencies]
-bevy = { version = "0.15.0-rc.2", default-features = false, features = [
+bevy = { version = "0.15.0-rc.3", default-features = false, features = [
     "x11",
     "bevy_winit",
     "bevy_pbr",

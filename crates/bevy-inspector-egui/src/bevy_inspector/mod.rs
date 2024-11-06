@@ -7,7 +7,7 @@
 //! # use bevy_ecs::prelude::*;
 //! # use bevy_state::prelude::States;
 //! # use bevy_reflect::Reflect;
-//! # use bevy_render::prelude::Msaa;
+//! # use bevy_time::Time;
 //! # use bevy_math::Vec3;
 //!
 //! #[derive(States, Debug, Clone, Eq, PartialEq, Hash, Reflect, Default)]
@@ -17,8 +17,8 @@
 //!     let mut any_reflect_value = Vec3::new(1.0, 2.0, 3.0);
 //!     bevy_inspector::ui_for_value(&mut any_reflect_value, ui, world);
 //!
-//!     ui.heading("Msaa resource");
-//!     bevy_inspector::ui_for_resource::<Msaa>(world, ui);
+//!     ui.heading("Time resource");
+//!     bevy_inspector::ui_for_resource::<Time>(world, ui);
 //!
 //!     ui.heading("App State");
 //!     bevy_inspector::ui_for_state::<AppState>(world, ui);
