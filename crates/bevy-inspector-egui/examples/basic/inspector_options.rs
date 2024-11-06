@@ -79,7 +79,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands, mut ui_data: ResMut<UiData>) {
-    let entity = commands.spawn(PbrBundle::default()).id();
+    let entity = commands.spawn(Mesh3d::default()).id();
     ui_data.entity = Some(entity);
 }
 

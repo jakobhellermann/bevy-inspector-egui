@@ -31,17 +31,15 @@ enum AppState {
 struct TheSquare;
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d::default());
 
-    commands
-        .spawn(SpriteBundle {
-            sprite: Sprite {
-                custom_size: Some(Vec2::splat(100.)),
-                ..default()
-            },
+    commands.spawn((
+        Sprite {
+            custom_size: Some(Vec2::splat(100.)),
             ..default()
-        })
-        .insert(TheSquare);
+        },
+        TheSquare,
+    ));
 }
 
 fn set_color<const R: u8, const G: u8, const B: u8>(
