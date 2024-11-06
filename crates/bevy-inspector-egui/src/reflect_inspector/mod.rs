@@ -226,17 +226,15 @@ impl InspectorUi<'_, '_> {
             }
         }
 
-        if let Some(s) = self
-            .type_registry
-            .get_type_data::<InspectorEguiImpl>(Any::type_id(value))
-        {
-            if let Some(value) = value.try_as_reflect_mut() {
-                return s.execute(value.as_any_mut(), ui, options, id, self.reborrow());
+        if let Some(reflected) = value.try_as_reflect_mut() {
+            if let Some(s) = self
+                .type_registry
+                .get_type_data::<InspectorEguiImpl>(reflected.reflect_type_info().type_id())
+            {
+                if let Some(value) = value.try_as_reflect_mut() {
+                    return s.execute(value.as_any_mut(), ui, options, id, self.reborrow());
+                }
             }
-        }
-
-        if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
-            return changed;
         }
 
         match value.reflect_mut() {
@@ -273,21 +271,25 @@ impl InspectorUi<'_, '_> {
     ) {
         let mut options = options;
         if options.is::<()>() {
-            if let Some(data) = self
-                .type_registry
-                .get_type_data::<ReflectInspectorOptions>(Any::type_id(value))
-            {
-                options = &data.0;
+            if let Some(value_reflect) = value.try_as_reflect() {
+                if let Some(data) = self
+                    .type_registry
+                    .get_type_data::<ReflectInspectorOptions>(value_reflect.type_id())
+                {
+                    options = &data.0;
+                }
             }
         }
 
-        if let Some(s) = self
-            .type_registry
-            .get_type_data::<InspectorEguiImpl>(Any::type_id(value))
-        {
-            if let Some(value) = value.try_as_reflect() {
-                s.execute_readonly(value.as_any(), ui, options, id, self.reborrow());
-                return;
+        if let Some(value_reflect) = value.try_as_reflect() {
+            if let Some(s) = self
+                .type_registry
+                .get_type_data::<InspectorEguiImpl>(value_reflect.type_id())
+            {
+                if let Some(value) = value.try_as_reflect() {
+                    s.execute_readonly(value.as_any(), ui, options, id, self.reborrow());
+                    return;
+                }
             }
         }
 
