@@ -92,13 +92,17 @@ fn ui_many_vtable<T: Reflect + PartialEq + Clone + Default + InspectorPrimitive>
 ) -> bool {
     let same = crate::inspector_egui_impls::iter_all_eq(values.iter_mut().map(|value| {
         // FIXME: Is that correct? T implements Reflect so I assume yes.
-        projector(*value).try_downcast_mut::<T>().unwrap()
+        projector(*value)
+            .try_downcast_mut::<T>()
+            .expect("non-fully-reflected value passed to ui_many_vtable")
     }));
 
     let mut temp = same.cloned().unwrap_or_default();
     if T::ui(&mut temp, ui, options, id, env) {
         for value in values.iter_mut() {
-            let value = projector(*value).try_downcast_mut::<T>().unwrap();
+            let value = projector(*value)
+                .try_downcast_mut::<T>()
+                .expect("non-fully-reflected value passed to ui_many_vtable");
             *value = temp.clone();
         }
 
@@ -226,13 +230,6 @@ fn add_of_with_many<T: InspectorPrimitive>(
     type_registry: &mut TypeRegistry,
     fn_many: InspectorEguiImplFnMany,
 ) {
-    // Despite this running for f32 ; we then fail to retrieve it.
-    // TODO: check if their type id is similar, if not investigate why.
-    info!(
-        "registering InspectorEguiImpl for {} ({:?}",
-        std::any::type_name::<T>(),
-        TypeId::of::<T>()
-    );
     type_registry
         .get_mut(TypeId::of::<T>())
         .unwrap_or_else(|| panic!("{} not registered", std::any::type_name::<T>()))

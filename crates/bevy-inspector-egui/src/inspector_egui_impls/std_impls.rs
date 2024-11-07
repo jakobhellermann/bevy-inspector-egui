@@ -188,7 +188,9 @@ where
 
     change_slider(ui, id, same, |change, overwrite| {
         for value in values.iter_mut() {
-            let value = projector(*value).try_downcast_mut::<T>().unwrap();
+            let value = projector(*value)
+                .try_downcast_mut::<T>()
+                .expect("non-fully-reflected value passed to number_ui_many");
             let change = T::from_f64(change);
             if overwrite {
                 *value = change;

@@ -903,8 +903,7 @@ pub mod short_circuit {
         options: &dyn Any,
     ) -> Option<bool> {
         let Some(value) = value.try_as_reflect() else {
-            // TODO: display error ? Is entering here even possible ?
-            return Some(false);
+            return None;
         };
 
         if let Some(reflect_handle) = env
@@ -1020,8 +1019,9 @@ pub mod short_circuit {
             for value in values {
                 let handle = projector(*value);
                 let Some(handle) = handle.try_as_reflect() else {
-                    // TODO: display error ? Is entering here even possible ?
-                    continue;
+                    // Edge case, continue as normal:
+                    // this for loop should only work if we're multi-editing a bunch of Handles
+                    return None;
                 };
                 let handle = reflect_handle
                     .downcast_handle_untyped(handle.as_any())
@@ -1083,8 +1083,7 @@ pub mod short_circuit {
         options: &dyn Any,
     ) -> Option<()> {
         let Some(value) = value.try_as_reflect() else {
-            // TODO: display error ? Is entering here even possible ?
-            return Some(());
+            return None;
         };
         if let Some(reflect_handle) = env
             .type_registry
