@@ -12,6 +12,7 @@ fn insert_options_struct<T: 'static>(
     fields: &[(&'static str, &dyn TypeData)],
 ) {
     let Some(registration) = type_registry.get_mut(std::any::TypeId::of::<T>()) else {
+        bevy_log::warn!("Attempting to set default inspector options for {}, but it wasn't registered in the type registry.", std::any::type_name::<T>());
         return;
     };
     if registration.data::<ReflectInspectorOptions>().is_none() {
@@ -34,6 +35,7 @@ fn insert_options_enum<T: 'static>(
     fields: &[(&'static str, &'static str, &dyn TypeData)],
 ) {
     let Some(registration) = type_registry.get_mut(std::any::TypeId::of::<T>()) else {
+        bevy_log::warn!("Attempting to set default inspector options for {}, but it wasn't registered in the type registry.", std::any::type_name::<T>());
         return;
     };
     if registration.data::<ReflectInspectorOptions>().is_none() {
