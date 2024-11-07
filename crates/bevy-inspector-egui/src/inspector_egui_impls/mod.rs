@@ -1,7 +1,6 @@
 //! Custom UI implementations for specific types. Check [`InspectorPrimitive`] for an example.
 
 use crate::reflect_inspector::{errors::no_multiedit, InspectorUi, ProjectorReflect};
-use bevy_log::info;
 use bevy_reflect::{FromType, PartialReflect, Reflect, TypePath, TypeRegistry};
 use bevy_utils::Instant;
 use std::{

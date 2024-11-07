@@ -2,6 +2,7 @@ use bevy::input::common_conditions::input_toggle_active;
 use bevy::prelude::*;
 use bevy_inspector_egui::prelude::*;
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
+use bevy_utils::hashbrown::HashSet;
 
 #[derive(Reflect, Resource, Default, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]
@@ -9,6 +10,7 @@ struct Configuration {
     name: String,
     #[inspector(min = 0.0, max = 1.0)]
     option: f32,
+    set: HashSet<String>,
 }
 
 fn main() {
@@ -18,7 +20,15 @@ fn main() {
             ResourceInspectorPlugin::<Configuration>::default()
                 .run_if(input_toggle_active(true, KeyCode::Escape)),
         )
-        .init_resource::<Configuration>()
+        //.init_resource::<Configuration>()
+        .insert_resource(Configuration {
+            set: HashSet::from([
+                "Einar".to_string(),
+                "Olaf".to_string(),
+                "Harald".to_string(),
+            ]),
+            ..default()
+        })
         .register_type::<Configuration>()
         .add_systems(Startup, setup)
         .run();
