@@ -1321,7 +1321,8 @@ impl InspectorUi<'_, '_> {
                             self.ui_for_reflect_readonly_with_options(
                                 value_to_check.borrow(),
                                 ui,
-                                id,
+                                // FIXME: is the id passed here correct?
+                                id.with(i),
                                 options,
                             );
                         });
