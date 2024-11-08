@@ -1138,7 +1138,8 @@ impl InspectorUi<'_, '_> {
                 return;
             };
             let value_type = set_info.value_ty();
-            let (new_op, new_changed) = self.ui_to_insert_set_element(value_type, ui, id);
+            let (new_op, new_changed) =
+                self.ui_to_insert_set_element_with_options(value_type, ui, id, options);
             if new_op.is_some() {
                 op = new_op;
             }
@@ -1166,11 +1167,12 @@ impl InspectorUi<'_, '_> {
     }
 
     #[must_use]
-    fn ui_to_insert_set_element<'a>(
+    fn ui_to_insert_set_element_with_options<'a>(
         &mut self,
         value_type: bevy_reflect::Type,
         ui: &mut egui::Ui,
         id: egui::Id,
+        options: &dyn Any,
     ) -> (Option<SetOp>, bool) {
         let mut changed = false;
         let mut op = None;
@@ -1199,7 +1201,9 @@ impl InspectorUi<'_, '_> {
                 Some(SetDraftElement(mut v)) => {
                     ui.end_row();
                     // Show controls for editing our draft element.
-                    let value_changed = self.ui_for_reflect_with_options(v.as_mut(), ui, id, &());
+                    // FIXME: is the id passed here correct?
+                    let value_changed =
+                        self.ui_for_reflect_with_options(v.as_mut(), ui, id, options);
                     // If the clone changed, update the data in UI state.
                     if value_changed {
                         let next_draft = SetDraftElement(v);
@@ -1295,8 +1299,8 @@ impl InspectorUi<'_, '_> {
                 set0.iter().map(|v| v.clone_value()).collect();
 
             for (i, value_to_check) in reflected_values.iter().enumerate() {
-                let id = value_to_check.type_id();
-                egui::Grid::new((id, i)).show(ui, |ui| {
+                let value_type_id = value_to_check.type_id();
+                egui::Grid::new((value_type_id, i)).show(ui, |ui| {
                     // Do all sets contain this value ?
                     if len == 1
                         || values[1..].iter_mut().all(|set_to_compare| {
@@ -1314,7 +1318,12 @@ impl InspectorUi<'_, '_> {
                     {
                         // All sets contain this value: Show value
                         ui.horizontal_top(|ui| {
-                            self.ui_for_reflect_readonly(value_to_check.borrow(), ui);
+                            self.ui_for_reflect_readonly_with_options(
+                                value_to_check.borrow(),
+                                ui,
+                                id,
+                                options,
+                            );
                         });
                         ui.horizontal_top(|ui| {
                             if remove_button(ui).on_hover_text("Remove element").clicked() {
@@ -1332,7 +1341,8 @@ impl InspectorUi<'_, '_> {
                     ui.separator();
                 }
             }
-            let (op, new_changed) = self.ui_to_insert_set_element(value_type, ui, id);
+            let (op, new_changed) =
+                self.ui_to_insert_set_element_with_options(value_type, ui, id, options);
             changed |= new_changed;
 
             ui.end_row();

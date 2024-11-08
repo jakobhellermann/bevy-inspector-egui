@@ -90,7 +90,6 @@ fn ui_many_vtable<T: Reflect + PartialEq + Clone + Default + InspectorPrimitive>
     projector: &dyn ProjectorReflect,
 ) -> bool {
     let same = crate::inspector_egui_impls::iter_all_eq(values.iter_mut().map(|value| {
-        // FIXME: Is that correct? T implements Reflect so I assume yes.
         projector(*value)
             .try_downcast_mut::<T>()
             .expect("non-fully-reflected value passed to ui_many_vtable")
