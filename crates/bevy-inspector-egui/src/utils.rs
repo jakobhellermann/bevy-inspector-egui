@@ -69,6 +69,7 @@ pub mod guess_entity_name {
             ("bevy_ui::ui_node::Node", "Node"),
             ("bevy_asset::handle::Handle<bevy_pbr::pbr_material::StandardMaterial>", "Pbr Mesh"),
             ("bevy_window::window::Window", "Window"),
+            ("bevy_ecs::observer::runner::ObserverState", "Observer"),
         ];
 
         let type_names = archetype.components().filter_map(|id| {
