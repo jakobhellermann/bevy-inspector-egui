@@ -1,6 +1,3 @@
 [workspace]
 resolver = "2"
 members = ["crates/*"]
-
-[patch.crates-io]
-bevy_egui = { git = "https://github.com/Vrixyz/bevy_egui", branch = "bevy_main" }

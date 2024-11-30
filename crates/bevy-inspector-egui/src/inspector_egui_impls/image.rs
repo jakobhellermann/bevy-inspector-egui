@@ -7,8 +7,8 @@ use std::{
 
 use bevy_asset::{Assets, Handle};
 use bevy_egui::EguiUserTextures;
+use bevy_image::Image;
 use bevy_reflect::DynamicTypePath;
-use bevy_render::texture::Image;
 use egui::load::SizedTexture;
 use pretty_type_name::pretty_type_name;
 
