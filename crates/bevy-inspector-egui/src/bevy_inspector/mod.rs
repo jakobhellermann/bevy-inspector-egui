@@ -39,6 +39,7 @@
 
 use std::any::TypeId;
 
+use crate::utils::{pretty_type_name, pretty_type_name_str};
 use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
 use bevy_ecs::query::{QueryFilter, WorldQuery};
 use bevy_ecs::world::CommandQueue;
@@ -48,7 +49,6 @@ use bevy_reflect::{Reflect, TypeRegistry};
 use bevy_state::state::{FreelyMutableState, NextState, State};
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
-use pretty_type_name::pretty_type_name;
 
 pub(crate) mod errors;
 
@@ -577,7 +577,7 @@ fn components_of_entity(
         .components()
         .map(|component_id| {
             let info = world.world().components().get_info(component_id).unwrap();
-            let name = pretty_type_name::pretty_type_name_str(info.name());
+            let name = pretty_type_name_str(info.name());
 
             (name, component_id, info.type_id(), info.layout().size())
         })

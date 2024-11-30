@@ -1,3 +1,10 @@
+pub fn pretty_type_name<T>() -> String {
+    format!("{:?}", disqualified::ShortName::of::<T>())
+}
+pub fn pretty_type_name_str(val: &str) -> String {
+    format!("{:?}", disqualified::ShortName(val))
+}
+
 pub mod guess_entity_name {
     use bevy_core::Name;
     use bevy_ecs::{archetype::Archetype, prelude::*, world::unsafe_world_cell::UnsafeWorldCell};

@@ -5,12 +5,12 @@ use std::{
     sync::Mutex,
 };
 
+use crate::utils::pretty_type_name;
 use bevy_asset::{Assets, Handle};
 use bevy_egui::EguiUserTextures;
 use bevy_image::Image;
 use bevy_reflect::DynamicTypePath;
 use egui::load::SizedTexture;
-use pretty_type_name::pretty_type_name;
 
 use crate::{
     bevy_inspector::errors::{no_world_in_context, show_error},

@@ -1,6 +1,6 @@
 use egui::FontId;
 
-use crate::egui_utils::layout_job;
+use crate::{egui_utils::layout_job, utils::pretty_type_name_str};
 
 pub fn reflect_value_no_impl(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
@@ -15,10 +15,7 @@ pub fn reflect_value_no_impl(ui: &mut egui::Ui, type_name: &str) {
         (FontId::proportional(13.0), "Try calling "),
         (
             FontId::monospace(12.0),
-            &format!(
-                ".register_type::<{}>",
-                pretty_type_name::pretty_type_name_str(type_name)
-            ),
+            &format!(".register_type::<{}>", pretty_type_name_str(type_name)),
         ),
         (FontId::proportional(13.0), " or add the "),
         (FontId::monospace(12.0), "DefaultInspectorConfigPlugin"),
@@ -49,11 +46,7 @@ pub fn unconstructable_variant(
 ) {
     let mut vec = Vec::with_capacity(2 + unconstructable_field_types.len() * 2 + 4);
 
-    let qualified_variant = format!(
-        "{}::{}",
-        pretty_type_name::pretty_type_name_str(type_name),
-        variant
-    );
+    let qualified_variant = format!("{}::{}", pretty_type_name_str(type_name), variant);
     vec.extend([
         (FontId::monospace(12.0), qualified_variant.as_str()),
         (

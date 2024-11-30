@@ -64,6 +64,7 @@ use crate::{
     inspector_egui_impls::{iter_all_eq, InspectorEguiImpl},
     inspector_options::{InspectorOptions, ReflectInspectorOptions, Target},
     restricted_world_view::RestrictedWorldView,
+    utils::pretty_type_name_str,
 };
 use bevy_ecs::world::CommandQueue;
 use bevy_reflect::{
@@ -377,17 +378,11 @@ impl InspectorUi<'_, '_> {
             }
             TypeInfo::List(info) => self.ui_for_list_many(info, ui, id, options, values, projector),
             TypeInfo::Array(info) => {
-                errors::no_multiedit(
-                    ui,
-                    &pretty_type_name::pretty_type_name_str(info.type_path()),
-                );
+                errors::no_multiedit(ui, &pretty_type_name_str(info.type_path()));
                 false
             }
             TypeInfo::Map(info) => {
-                errors::no_multiedit(
-                    ui,
-                    &pretty_type_name::pretty_type_name_str(info.type_path()),
-                );
+                errors::no_multiedit(ui, &pretty_type_name_str(info.type_path()));
                 false
             }
             TypeInfo::Enum(info) => self.ui_for_enum_many(info, ui, id, options, values, projector),

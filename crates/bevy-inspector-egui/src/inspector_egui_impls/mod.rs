@@ -1,6 +1,9 @@
 //! Custom UI implementations for specific types. Check [`InspectorPrimitive`] for an example.
 
-use crate::reflect_inspector::{errors::no_multiedit, InspectorUi, ProjectorReflect};
+use crate::{
+    reflect_inspector::{errors::no_multiedit, InspectorUi, ProjectorReflect},
+    utils::pretty_type_name,
+};
 use bevy_reflect::{FromType, PartialReflect, Reflect, TypePath, TypeRegistry};
 use bevy_utils::Instant;
 use std::{
@@ -217,7 +220,7 @@ fn many_unimplemented<T: Any>(
     _values: &mut [&mut dyn PartialReflect],
     _projector: &dyn ProjectorReflect,
 ) -> bool {
-    no_multiedit(ui, &pretty_type_name::pretty_type_name::<T>());
+    no_multiedit(ui, &pretty_type_name::<T>());
     false
 }
 

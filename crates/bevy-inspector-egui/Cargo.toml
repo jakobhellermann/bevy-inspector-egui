@@ -59,10 +59,10 @@ bevy_egui = { version = "0.31", default-features = false }
 
 bytemuck = "1.16.0"
 image = { version = "0.25", default-features = false }
-pretty-type-name = "1.0"
 smallvec = "1.10"
 
 fuzzy-matcher = "0.3.7"
+disqualified = "1.0.0"
 
 [dev-dependencies]
 bevy = { version = "0.15.0", default-features = false, features = [

@@ -8,6 +8,7 @@
 
 use std::{marker::PhantomData, sync::Mutex};
 
+use crate::utils::pretty_type_name;
 use bevy_app::{App, MainScheduleOrder, Plugin, Update};
 use bevy_asset::Asset;
 use bevy_core::TypeRegistrationPlugin;
@@ -20,7 +21,6 @@ use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_reflect::Reflect;
 use bevy_state::state::FreelyMutableState;
 use bevy_window::PrimaryWindow;
-use pretty_type_name::pretty_type_name;
 
 use crate::{bevy_inspector, DefaultInspectorConfigPlugin};
 
