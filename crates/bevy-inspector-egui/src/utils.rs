@@ -70,6 +70,8 @@ pub mod guess_entity_name {
             ("bevy_asset::handle::Handle<bevy_pbr::pbr_material::StandardMaterial>", "Pbr Mesh"),
             ("bevy_window::window::Window", "Window"),
             ("bevy_ecs::observer::runner::ObserverState", "Observer"),
+            ("bevy_window::monitor::Monitor", "Monitor"),
+            ("bevy_picking::pointer::PointerId", "Pointer"),
         ];
 
         let type_names = archetype.components().filter_map(|id| {
