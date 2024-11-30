@@ -1,16 +1,3 @@
-use bevy_ecs::change_detection::{DetectChangesMut, MutUntyped};
-use bevy_ecs::ptr::PtrMut;
-
-// workaround for https://github.com/bevyengine/bevy/pull/6430
-pub fn mut_untyped_split<'a>(mut mut_untyped: MutUntyped<'a>) -> (PtrMut<'a>, impl FnOnce() + 'a) {
-    // bypass_change_detection returns a `&mut PtrMut` which is basically useless, because all its methods take `self`
-    let ptr = mut_untyped.bypass_change_detection();
-    // SAFETY: this is exactly the same PtrMut, just not in a `&mut`. The old one is no longer accessible
-    let ptr = unsafe { PtrMut::new(std::ptr::NonNull::new_unchecked(ptr.as_ptr())) };
-
-    (ptr, move || mut_untyped.set_changed())
-}
-
 pub mod guess_entity_name {
     use bevy_core::Name;
     use bevy_ecs::{archetype::Archetype, prelude::*, world::unsafe_world_cell::UnsafeWorldCell};
