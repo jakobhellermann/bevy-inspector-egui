@@ -506,7 +506,7 @@ pub(crate) fn ui_for_entity_components(
             queue: queue.as_deref_mut(),
         };
 
-        let (value, is_changed, set_changed) = match component_view.get_entity_component_reflect(
+        let mut value = match component_view.get_entity_component_reflect(
             entity,
             component_type_id,
             type_registry,
@@ -518,7 +518,7 @@ pub(crate) fn ui_for_entity_components(
             }
         };
 
-        if is_changed {
+        if value.is_changed() {
             #[cfg(feature = "highlight_changes")]
             set_highlight_style(ui);
         }
@@ -528,14 +528,14 @@ pub(crate) fn ui_for_entity_components(
 
             let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
                 .ui_for_reflect_with_options(
-                    value.as_partial_reflect_mut(),
+                    value.bypass_change_detection().as_partial_reflect_mut(),
                     ui,
                     id.with(component_id),
                     &(),
                 );
 
             if inspector_changed {
-                set_changed();
+                value.set_changed();
             }
         });
         ui.reset_style();
@@ -633,7 +633,6 @@ pub fn ui_for_entities_shared_components(
                 };
 
                 let mut values = Vec::with_capacity(entities.len());
-                let mut mark_changeds = Vec::with_capacity(entities.len());
 
                 for (i, &entity) in entities.iter().enumerate() {
                     // skip duplicate entities
@@ -649,9 +648,8 @@ pub fn ui_for_entities_shared_components(
                             &type_registry,
                         )
                     } {
-                        Ok((value, mark_changed)) => {
-                            values.push(value.as_partial_reflect_mut());
-                            mark_changeds.push(mark_changed);
+                        Ok(value) => {
+                            values.push(value);
                         }
                         Err(error) => {
                             errors::show_error(error, ui, &name);
@@ -660,17 +658,23 @@ pub fn ui_for_entities_shared_components(
                     }
                 }
 
+                let mut values_reflect: Vec<_> = values
+                    .iter_mut()
+                    .map(|value| value.bypass_change_detection().as_partial_reflect_mut())
+                    .collect();
                 let changed = env.ui_for_reflect_many_with_options(
                     component_type_id,
                     &name,
                     ui,
                     id.with(component_id),
                     &(),
-                    values.as_mut_slice(),
+                    values_reflect.as_mut_slice(),
                     &|a| a,
                 );
                 if changed {
-                    mark_changeds.into_iter().for_each(|f| f());
+                    for value in values.iter_mut() {
+                        value.set_changed();
+                    }
                 }
             });
     }
@@ -715,16 +719,19 @@ pub mod by_type_id {
             };
             let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
 
-            let (resource, set_changed) = match resource_view
+            let mut resource = match resource_view
                 .get_resource_reflect_mut_by_id(resource_type_id, type_registry)
             {
                 Ok(resource) => resource,
                 Err(err) => return errors::show_error(err, ui, name_of_type),
             };
 
-            let changed = env.ui_for_reflect(resource.as_partial_reflect_mut(), ui);
+            let changed = env.ui_for_reflect(
+                resource.bypass_change_detection().as_partial_reflect_mut(),
+                ui,
+            );
             if changed {
-                set_changed();
+                resource.set_changed();
             }
         }
 

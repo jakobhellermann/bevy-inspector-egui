@@ -316,7 +316,7 @@ impl<'w> RestrictedWorldView<'w> {
         &mut self,
         type_id: TypeId,
         type_registry: &TypeRegistry,
-    ) -> Result<(&'_ mut dyn Reflect, impl FnOnce() + '_), Error> {
+    ) -> Result<Mut<'_, dyn Reflect>, Error> {
         if !self.allows_access_to_resource(type_id) {
             return Err(Error::NoAccessToResource(type_id));
         }
@@ -350,7 +350,7 @@ impl<'w> RestrictedWorldView<'w> {
         entity: Entity,
         component: TypeId,
         type_registry: &TypeRegistry,
-    ) -> Result<(&'_ mut dyn Reflect, bool, impl FnOnce() + '_), Error> {
+    ) -> Result<Mut<'_, dyn Reflect>, Error> {
         if !self.allows_access_to_component((entity, component)) {
             return Err(Error::NoAccessToComponent((entity, component)));
         }
@@ -370,12 +370,10 @@ impl<'w> RestrictedWorldView<'w> {
                 .get_mut_by_id(component_id)
                 .ok_or(Error::ComponentDoesNotExist((entity, component)))?
         };
-        let changed = value.is_changed();
 
-        let (value, set_changed) =
-            // SAFETY: value is of type component
-            unsafe { mut_untyped_to_reflect(value, type_registry, component) }?;
-        Ok((value, changed, set_changed))
+        // SAFETY: value is of type component
+        let value = unsafe { mut_untyped_to_reflect(value, type_registry, component) }?;
+        Ok(value)
     }
 
     // SAFETY: must ensure distinct access
@@ -384,7 +382,7 @@ impl<'w> RestrictedWorldView<'w> {
         entity: Entity,
         component: TypeId,
         type_registry: &TypeRegistry,
-    ) -> Result<(&'_ mut dyn Reflect, impl FnOnce() + '_), Error> {
+    ) -> Result<Mut<'_, dyn Reflect>, Error> {
         if !self.allows_access_to_component((entity, component)) {
             return Err(Error::NoAccessToComponent((entity, component)));
         }
@@ -415,7 +413,7 @@ unsafe fn mut_untyped_to_reflect<'a>(
     value: MutUntyped<'a>,
     type_registry: &TypeRegistry,
     type_id: TypeId,
-) -> Result<(&'a mut dyn Reflect, impl FnOnce() + 'a), Error> {
+) -> Result<Mut<'a, dyn Reflect>, Error> {
     let registration = type_registry
         .get(type_id)
         .ok_or(Error::NoTypeRegistration(type_id))?;
@@ -423,12 +421,14 @@ unsafe fn mut_untyped_to_reflect<'a>(
         .data::<ReflectFromPtr>()
         .ok_or(Error::NoTypeData(type_id, "ReflectFromPtr"))?;
 
-    let (ptr, set_changed) = crate::utils::mut_untyped_split(value);
     assert_eq!(reflect_from_ptr.type_id(), type_id);
-    // SAFETY: ptr is of type type_id as required in safety contract, type_id was checked above
-    let value = unsafe { reflect_from_ptr.as_reflect_mut(ptr) };
 
-    Ok((value, set_changed))
+    let value = value.map_unchanged(|ptr| {
+        // SAFETY: ptr is of type type_id as required in safety contract, type_id was checked above
+        unsafe { reflect_from_ptr.as_reflect_mut(ptr) }
+    });
+
+    Ok(value)
 }
 
 #[cfg(test)]
@@ -476,12 +476,12 @@ mod tests {
 
         let mut type_registry = TypeRegistry::empty();
         type_registry.register::<B>();
-        let b = world
+        let mut b = world
             .get_resource_reflect_mut_by_id(TypeId::of::<B>(), &type_registry)
             .unwrap();
 
         a.0.clear();
-        b.0.downcast_mut::<B>().unwrap().0.clear();
+        b.downcast_mut::<B>().unwrap().0.clear();
     }
 
     #[test]
@@ -531,12 +531,12 @@ mod tests {
 
         let (mut component_view, mut world) =
             world.split_off_component((entity, TypeId::of::<ComponentA>()));
-        let component = component_view
+        let mut component = component_view
             .get_entity_component_reflect(entity, TypeId::of::<ComponentA>(), &type_registry)
             .unwrap();
         let mut resource = world.get_resource_mut::<A>().unwrap();
 
-        component.0.downcast_mut::<ComponentA>().unwrap().0.clear();
+        component.downcast_mut::<ComponentA>().unwrap().0.clear();
         resource.0.clear();
     }
 }
