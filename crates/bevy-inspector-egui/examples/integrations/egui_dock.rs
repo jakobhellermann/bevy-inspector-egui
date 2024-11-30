@@ -12,7 +12,7 @@ use std::any::TypeId;
 use bevy_egui::EguiSet;
 use bevy_reflect::TypeRegistry;
 use bevy_render::camera::{CameraProjection, Viewport};
-use bevy_window::PrimaryWindow;
+use bevy_window::{PrimaryWindow, Window};
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
 
 #[cfg(egui_dock_gizmo)]

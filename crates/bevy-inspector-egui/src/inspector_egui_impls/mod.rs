@@ -11,7 +11,7 @@ use std::{
 
 mod bevy_impls;
 mod glam_impls;
-#[cfg(feature = "bevy_render")]
+#[cfg(feature = "bevy_image")]
 mod image;
 mod std_impls;
 
@@ -264,6 +264,7 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     add::<bool>(type_registry);
     add::<String>(type_registry);
     add::<Cow<str>>(type_registry);
+    type_registry.register::<PathBuf>();
     add::<PathBuf>(type_registry);
 
     type_registry.register::<std::ops::Range<f64>>();
@@ -316,9 +317,12 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
 
     #[cfg(feature = "bevy_render")] 
     {
-      add_of_with_many::<bevy_asset::Handle<bevy_render::texture::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::texture::Image>>);
       add_of_with_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::mesh::Mesh>>);
       add::<bevy_render::view::RenderLayers>(type_registry);
+    }
+    #[cfg(feature = "bevy_image")]
+    {
+      add_of_with_many::<bevy_asset::Handle<bevy_image::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_image::Image>>);
     }
 }
 

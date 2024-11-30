@@ -1,7 +1,7 @@
+use bevy_image::{Image, TextureFormatPixelInfo};
 use bevy_render::{
     render_asset::RenderAssetUsages,
     render_resource::{Extent3d, TextureDimension, TextureFormat},
-    texture::{Image, TextureFormatPixelInfo},
 };
 use bytemuck::cast_slice;
 use image::{DynamicImage, ImageBuffer};
