@@ -63,12 +63,13 @@ pub mod guess_entity_name {
             ("bevy_window::window::PrimaryWindow", "Primary Window"),
             ("bevy_core_pipeline::core_3d::camera_3d::Camera3d", "Camera3d"),
             ("bevy_core_pipeline::core_2d::camera_2d::Camera2d", "Camera2d"),
-            ("bevy_pbr::light::PointLight", "PointLight"),
-            ("bevy_pbr::light::DirectionalLight", "DirectionalLight"),
+            ("bevy_pbr::light::point_light::PointLight", "PointLight"),
+            ("bevy_pbr::light::directional_light::DirectionalLight", "DirectionalLight"),
             ("bevy_text::text::Text", "Text"),
             ("bevy_ui::ui_node::Node", "Node"),
             ("bevy_asset::handle::Handle<bevy_pbr::pbr_material::StandardMaterial>", "Pbr Mesh"),
             ("bevy_window::window::Window", "Window"),
+            ("bevy_ecs::observer::runner::ObserverState", "Observer"),
         ];
 
         let type_names = archetype.components().filter_map(|id| {
