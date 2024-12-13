@@ -12,6 +12,13 @@ use bevy_egui::EguiContext;
 use bevy_reflect::Reflect;
 use trie_rs::map::Trie;
 
+mod resource_inspector;
+pub use resource_inspector::*;
+mod asset_inspector;
+pub use asset_inspector::*;
+mod state_inspector;
+pub use state_inspector::*;
+
 /// Is the prompt visible?
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States, Reflect)]
 pub enum WorldInspectorState {
@@ -89,9 +96,6 @@ fn resource_inspector_plugin<R: Resource + Reflect>(index: usize) -> impl Fn(&mu
     }
 }
 
-impl InspectorActs {
-}
-
 impl ActsPlugin for InspectorActs {
     fn acts(&self) -> &Acts {
         &self.acts
@@ -113,28 +117,11 @@ fn world_inspector(state: Res<State<WorldInspectorState>>,
     minibuffer.message(msg);
 }
 
-fn resource_inspector(resources: Option<Res<ResourceInspectors>>,
-                      mut minibuffer: Minibuffer) {
-    if let Some(ref resources) = resources {
-        minibuffer.prompt_map("resource: ", resources.names.clone())
-            .observe(|mut trigger: Trigger<Completed<usize>>,
-                     mut resources: ResMut<ResourceInspectors>,
-                     mut minibuffer: Minibuffer| {
-                         if let Ok(index) = trigger.event_mut().take_result().unwrap() {
-                             resources.visible[index] = !resources.visible[index];
-                         }
-            });
-    } else {
-        minibuffer.message("No resource inspectors available.");
-    }
-}
-
 impl Default for InspectorActs {
     fn default() -> Self {
         Self {
             acts: Acts::new([
                 Act::new(world_inspector),
-                Act::new(resource_inspector)
                 ]),
         }
     }
@@ -142,10 +129,8 @@ impl Default for InspectorActs {
 
 impl Plugin for InspectorActs {
     fn build(&self, app: &mut App) {
-
         app.add_plugins(WorldInspectorPlugin::default().run_if(in_state(PromptState::Visible).and(in_state(WorldInspectorState::Visible))))
-            .init_state::<WorldInspectorState>()
-            ;
+            .init_state::<WorldInspectorState>();
         self.warn_on_unused_acts();
     }
 }
