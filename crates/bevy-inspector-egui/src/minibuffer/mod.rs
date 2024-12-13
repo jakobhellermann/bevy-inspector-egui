@@ -12,14 +12,16 @@ use bevy_egui::EguiContext;
 use bevy_reflect::Reflect;
 use trie_rs::map::Trie;
 
+mod inspector_plugins;
+pub use inspector_plugins::*;
 mod resource_inspector;
 pub use resource_inspector::*;
 mod asset_inspector;
 pub use asset_inspector::*;
 mod state_inspector;
 pub use state_inspector::*;
-mod inspector_plugins;
-pub use inspector_plugins::*;
+mod filter_query_inspector;
+pub use filter_query_inspector::*;
 
 /// Is the prompt visible?
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States, Reflect)]

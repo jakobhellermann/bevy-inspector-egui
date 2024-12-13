@@ -46,6 +46,10 @@ fn main() {
                    .add::<AppState>(),
                    minibuffer::AssetInspectorActs::default()
                    .add::<StandardMaterial>(),
+                   minibuffer::FilterQueryInspectorActs::default()
+                   .add::<With<Transform>>()
+                   .add::<With<Mesh3d>>()
+                   ,
         ))
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::A), set_color(Srgba::hex("8ecae6").unwrap()))
