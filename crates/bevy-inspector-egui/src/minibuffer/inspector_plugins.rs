@@ -55,18 +55,18 @@ impl<M: Send + Sync + 'static> InspectorPlugins<M> {
         let none_msg = none_msg.into();
         move |inspectors: Res<Inspectors<M>>,
         mut minibuffer: Minibuffer| {
-        if !inspectors.visible.is_empty() {
-            minibuffer.prompt_map(prompt.clone(), inspectors.names.clone())
-                .observe(|mut trigger: Trigger<Completed<usize>>,
-                        mut inspectors: ResMut<Inspectors<M>>,
-                        mut minibuffer: Minibuffer| {
-                            if let Ok(index) = trigger.event_mut().take_result().unwrap() {
-                                inspectors.visible[index] = !inspectors.visible[index];
-                            }
-                });
-        } else {
-            minibuffer.message(none_msg.clone());
-        }
+            if !inspectors.visible.is_empty() {
+                minibuffer.prompt_map(prompt.clone(), inspectors.names.clone())
+                          .observe(|mut trigger: Trigger<Completed<usize>>,
+                                   mut inspectors: ResMut<Inspectors<M>>,
+                                   mut minibuffer: Minibuffer| {
+                                       if let Ok(index) = trigger.event_mut().take_result().unwrap() {
+                                           inspectors.visible[index] = !inspectors.visible[index];
+                                       }
+                                   });
+            } else {
+                minibuffer.message(none_msg.clone());
+            }
         }
     }
 }
