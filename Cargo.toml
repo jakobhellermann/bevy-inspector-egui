@@ -3,4 +3,4 @@ resolver = "2"
 members = ["crates/*"]
 
 [patch.crates-io]
-bevy_minibuffer = { path = "../bevy_minibuffer" }
+bevy_minibuffer = { git = "https://github.com/shanecelis/bevy_minibuffer.git" }
