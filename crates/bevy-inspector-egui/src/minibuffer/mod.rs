@@ -18,6 +18,8 @@ mod asset_inspector;
 pub use asset_inspector::*;
 mod state_inspector;
 pub use state_inspector::*;
+mod inspector_plugins;
+pub use inspector_plugins::*;
 
 /// Is the prompt visible?
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States, Reflect)]
