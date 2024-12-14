@@ -98,7 +98,7 @@ path = "examples/basic/custom_type_ui.rs"
 
 [[example]]
 name = "resource_inspector_manual"
-path = "examples/integrations/resource_inspector_manual.rs"
+path = "examples/basic/resource_inspector_manual.rs"
 
 [[example]]
 name = "resource_inspector"
