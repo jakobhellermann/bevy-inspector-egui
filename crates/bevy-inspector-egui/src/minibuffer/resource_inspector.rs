@@ -1,3 +1,26 @@
+//! # resource_inspector act
+//!
+//! ## Usage
+//!
+//! ```no_run
+//! use bevy::prelude::*;
+//! use bevy_minibuffer::prelude::*;
+//! use bevy_inspector_egui::minibuffer;
+//! #[derive(Resource, Reflect)]
+//! struct R1;
+//! #[derive(Resource, Reflect)]
+//! struct R2;
+//! fn plugin(app: &mut App) {
+//!     app
+//!         .add_plugins(MinibufferPlugins)
+//!         .add_acts((
+//!             BasicActs::default(),
+//!             minibuffer::ResourceInspectorActs::default()
+//!                 .add::<R1>()
+//!                 .add::<R2>()
+//!         ));
+//! }
+//! ```
 use crate::{
     minibuffer::{InspectorPlugins, Inspectors},
     quick::ResourceInspectorPlugin,
@@ -12,6 +35,8 @@ use bevy_minibuffer::{prelude::*, prompt::PromptState};
 use bevy_reflect::Reflect;
 use bevy_state::prelude::in_state;
 
+/// Adds the 'resource_inspector' act which toggles the visibility of resource
+/// inspectors that were added.
 pub struct ResourceInspectorActs {
     plugins: InspectorPlugins<Self>,
     acts: Acts,
@@ -28,6 +53,7 @@ impl ActsPluginGroup for ResourceInspectorActs {
 }
 
 impl ResourceInspectorActs {
+    /// Add a resource to the list of resources when prompted.
     pub fn add<R: Resource + Reflect>(mut self) -> Self {
         self.plugins.add_inspector(
             pretty_type_name::<R>(),

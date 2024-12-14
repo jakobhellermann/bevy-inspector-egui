@@ -1,3 +1,21 @@
+//! # asset_inspector act
+//!
+//! ## Usage
+//!
+//! ```no_run
+//! use bevy::prelude::*;
+//! use bevy_minibuffer::prelude::*;
+//! use bevy_inspector_egui::minibuffer;
+//! fn plugin(app: &mut App) {
+//!     app
+//!         .add_plugins(MinibufferPlugins)
+//!         .add_acts((
+//!             BasicActs::default(),
+//!             minibuffer::AssetInspectorActs::default()
+//!                 .add::<StandardMaterial>()
+//!         ));
+//! }
+//! ```
 use crate::{
     minibuffer::{InspectorPlugins, Inspectors},
     quick::AssetInspectorPlugin,
@@ -13,6 +31,7 @@ use bevy_minibuffer::{prelude::*, prompt::PromptState};
 use bevy_reflect::Reflect;
 use bevy_state::prelude::in_state;
 
+/// Add 'asset_inspector' act which toggles the visibility of added asset inspectors.
 pub struct AssetInspectorActs {
     plugins: InspectorPlugins<Self>,
     acts: Acts,
@@ -29,6 +48,7 @@ impl ActsPluginGroup for AssetInspectorActs {
 }
 
 impl AssetInspectorActs {
+    /// Add an asset to be shown when prompted.
     pub fn add<A: Asset + Reflect>(mut self) -> Self {
         self.plugins
             .add_inspector(pretty_type_name::<A>(), Self::asset_inspector_plugin::<A>);

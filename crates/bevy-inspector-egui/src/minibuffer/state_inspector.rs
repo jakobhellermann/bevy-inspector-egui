@@ -1,3 +1,28 @@
+//! # state_inspector act
+//!
+//! ## Usage
+//!
+//! ```no_run
+//! use bevy::prelude::*;
+//! use bevy_minibuffer::prelude::*;
+//! use bevy_inspector_egui::minibuffer;
+//! #[derive(States, Default, Debug, Clone, Eq, PartialEq, Hash, Reflect)]
+//! enum AppState {
+//!     #[default]
+//!     A,
+//!     B,
+//!     C,
+//! }
+//! fn plugin(app: &mut App) {
+//!     app
+//!         .add_plugins(MinibufferPlugins)
+//!         .add_acts((
+//!             BasicActs::default(),
+//!             minibuffer::StateInspectorActs::default()
+//!                 .add::<AppState>()
+//!         ));
+//! }
+//! ```
 use crate::{
     minibuffer::{InspectorPlugins, Inspectors},
     quick::StateInspectorPlugin,
@@ -12,6 +37,7 @@ use bevy_minibuffer::{prelude::*, prompt::PromptState};
 use bevy_reflect::Reflect;
 use bevy_state::{prelude::in_state, state::FreelyMutableState};
 
+/// Adds the 'state_inspector' act which toggles the visibility of registered state inspectors.
 pub struct StateInspectorActs {
     plugins: InspectorPlugins<Self>,
     acts: Acts,
@@ -35,6 +61,7 @@ impl ActsPluginGroup for StateInspectorActs {
 }
 
 impl StateInspectorActs {
+    /// Add a state to the list of inspectors when prompted.
     pub fn add<S: FreelyMutableState + Reflect>(mut self) -> Self {
         self.plugins
             .add_inspector(pretty_type_name::<S>(), Self::add_plugin::<S>);

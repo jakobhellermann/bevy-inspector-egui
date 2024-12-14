@@ -1,3 +1,14 @@
+//! Demo of bevy_minibuffer integration with bevy-inspector-egui.
+//!
+//! This composite demo synthesizes several bevy-inspector-egui demos to show
+//! how the various inspectors can be made available via minibuffer.
+//!
+//! The inspector commands are:
+//! - world_inspector
+//! - resource_inspector
+//! - asset_inspector
+//! - state_inspector
+//! - filter_query_inspector
 use bevy::prelude::*;
 use bevy_inspector_egui::minibuffer;
 use bevy_inspector_egui::prelude::*;
@@ -29,32 +40,40 @@ struct Settings {
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins,
-                      MinibufferPlugins))
+        .add_plugins((DefaultPlugins, MinibufferPlugins))
         .init_state::<AppState>()
         .register_type::<AppState>()
         .init_resource::<Configuration>()
         .register_type::<Configuration>()
         .init_resource::<Settings>()
         .register_type::<Settings>()
-        .add_acts((BasicActs::default(),
-                   minibuffer::WorldInspectorActs::default(),
-                   minibuffer::ResourceInspectorActs::default()
-                    .add::<Configuration>()
-                    .add::<Settings>(),
-                   minibuffer::StateInspectorActs::default()
-                   .add::<AppState>(),
-                   minibuffer::AssetInspectorActs::default()
-                   .add::<StandardMaterial>(),
-                   minibuffer::FilterQueryInspectorActs::default()
-                   .add::<With<Transform>>()
-                   .add::<With<Mesh3d>>()
-                   ,
+        .add_acts((
+            BasicActs::default(),
+            minibuffer::WorldInspectorActs::default(),
+            minibuffer::ResourceInspectorActs::default()
+                .add::<Configuration>()
+                .add::<Settings>(),
+            minibuffer::StateInspectorActs::default()
+                .add::<AppState>(),
+            minibuffer::AssetInspectorActs::default()
+                .add::<StandardMaterial>(),
+            minibuffer::FilterQueryInspectorActs::default()
+                .add::<With<Transform>>()
+                .add::<With<Mesh3d>>(),
         ))
         .add_systems(Startup, setup)
-        .add_systems(OnEnter(AppState::A), set_color(Srgba::hex("8ecae6").unwrap()))
-        .add_systems(OnEnter(AppState::B), set_color(Srgba::hex("d5a220").unwrap()))
-        .add_systems(OnEnter(AppState::C), set_color(Srgba::hex("d2660f").unwrap()))
+        .add_systems(
+            OnEnter(AppState::A),
+            set_color(Srgba::hex("8ecae6").unwrap()),
+        )
+        .add_systems(
+            OnEnter(AppState::B),
+            set_color(Srgba::hex("d5a220").unwrap()),
+        )
+        .add_systems(
+            OnEnter(AppState::C),
+            set_color(Srgba::hex("d2660f").unwrap()),
+        )
         .run();
 }
 
@@ -63,6 +82,7 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut minibuffer: Minibuffer,
 ) {
     // plane
     commands.spawn((
@@ -90,11 +110,12 @@ fn setup(
         Camera3d::default(),
         Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
+
+    minibuffer.message("Type ':world Tab Return' to see the world inspector. Then type ': Tab' to see the other inspectors.");
+    minibuffer.set_visible(true);
 }
 
 fn set_color(color: impl Into<Color>) -> impl Fn(Commands) {
     let color = color.into();
-    move |mut commands: Commands| {
-        commands.insert_resource(ClearColor(color))
-    }
+    move |mut commands: Commands| commands.insert_resource(ClearColor(color))
 }
