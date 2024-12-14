@@ -15,6 +15,26 @@
 //!
 //! They may be used _a la carte_.
 //!
+//! ## Key Bindings
+//!
+//! No key bindings have been defined. Users are welcome to add them.
+//!
+//! ```no_run
+//! use bevy_minibuffer::prelude::*;
+//! use bevy_inspector_egui::minibuffer;
+//! let mut inspector_acts = minibuffer::WorldInspectorActs::default();
+//! inspector_acts.acts_mut().configure("world_inspector", |mut act| {
+//!    act.bind(keyseq! { I W });
+//! });
+//! ```
+//!
+//! But I do wonder if maybe some bindings like this would work:
+//! - world_inspector, I W
+//! - resource_inspector, I R
+//! - asset_inspector, I A
+//! - state_inspector, I S
+//! - filter_query_inspector, I F
+//!
 //! ## Interaction
 //!
 //! Here is what interaction for 'world_insepctor' might look like:
@@ -46,9 +66,10 @@
 //!
 //! ### Type Registration
 //!
-//! Each of the other acts do require type registration. For instance, the
-//! `AssetInspectorActs` provides 'asset_inspector' but requires registration of
-//! what assets it should prompt for when the act is invoked.
+//! Each of the other acts do expect type registrations. For instance, the
+//! `AssetInspectorActs` provides 'asset_inspector' but expects registration of
+//! what assets it should prompt for when the act is invoked. A warning will be
+//! emitted if no types have been registered.
 //!
 //! ```no_run
 //! use bevy::prelude::*;
@@ -65,9 +86,10 @@
 //! }
 //! ```
 //!
-//! There may be ways to automatically register various assets, resources, but I
-//! would actually decline to do that. It can quickly make a mess, become
-//! overwhelming, and takes control out of the user's hands.
+//! DESIGN NOTE: There may be ways to automatically register various assets,
+//! resources, and other types but I would actually decline to do that. It can
+//! quickly make a mess, become overwhelming, and takes control out of the
+//! user's hands.
 //!
 //! ## Visibility
 //!
@@ -75,8 +97,9 @@
 //! visibility is tied to minibuffer's visibility. When minibuffer is invisible
 //! so are its inspectors and vice versa.
 //!
-//! NOTE: Any inspectors configured without this module are independent of
-//! minibuffer's influence, so that's one escape hatch to this behavior.
+//! NOTE: Any inspectors configured without the minibuffer module are
+//! independent of minibuffer's influence, so that's one escape hatch to this
+//! behavior.
 
 mod inspector_plugins;
 pub(crate) use inspector_plugins::*;

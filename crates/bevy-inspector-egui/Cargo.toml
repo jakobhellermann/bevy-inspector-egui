@@ -27,7 +27,7 @@ bevy_render = ["dep:bevy_render", "dep:bevy_core_pipeline", "bevy_egui/render"]
 egui_clipboard = ["bevy_egui/manage_clipboard"]
 egui_open_url = ["bevy_egui/open_url"]
 highlight_changes = []
-minibuffer = ["dep:bevy_minibuffer", "dep:trie-rs"]
+minibuffer = ["dep:bevy_minibuffer", "dep:trie-rs", "dep:keyseq"]
 
 [package.metadata.docs.rs]
 features = ["winit/x11"]
@@ -66,6 +66,7 @@ fuzzy-matcher = "0.3.7"
 disqualified = "1.0.0"
 bevy_minibuffer = { version = "0.2.0", optional = true }
 trie-rs = { version = "0.4.2", optional = true }
+keyseq = { version = "0.5.0", optional = true, features = [ "bevy" ] }
 
 [dev-dependencies]
 bevy = { version = "0.15.0", default-features = false, features = [
