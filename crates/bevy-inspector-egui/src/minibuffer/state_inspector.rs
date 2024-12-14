@@ -47,7 +47,8 @@ pub struct StateInspectorActs {
 impl PluginGroup for StateInspectorActs {
     fn build(self) -> PluginGroupBuilder {
         self.warn_on_unused_acts();
-        self.plugins.warn_on_empty("No states registered with `StateInspectorActs`; consider adding some.");
+        self.plugins
+            .warn_on_empty("No states registered with `StateInspectorActs`; consider adding some.");
         self.plugins.build()
     }
 }

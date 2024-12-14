@@ -101,7 +101,9 @@ fn filter_query_inspector(
 impl PluginGroup for FilterQueryInspectorActs {
     fn build(self) -> PluginGroupBuilder {
         self.warn_on_unused_acts();
-        self.plugins.warn_on_empty("No filter queries registered with `FilterQueryInspectorActs`; consider adding some.");
+        self.plugins.warn_on_empty(
+            "No filter queries registered with `FilterQueryInspectorActs`; consider adding some.",
+        );
         self.plugins.build()
     }
 }

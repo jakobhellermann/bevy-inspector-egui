@@ -97,7 +97,8 @@ fn asset_inspector(assets: Res<Inspectors<AssetInspectorActs>>, mut minibuffer: 
 impl PluginGroup for AssetInspectorActs {
     fn build(self) -> PluginGroupBuilder {
         self.warn_on_unused_acts();
-        self.plugins.warn_on_empty("No assets registered with `AssetInspectorActs`; consider adding some.");
+        self.plugins
+            .warn_on_empty("No assets registered with `AssetInspectorActs`; consider adding some.");
         self.plugins.build()
     }
 }

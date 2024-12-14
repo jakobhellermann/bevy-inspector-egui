@@ -106,7 +106,9 @@ fn resource_inspector(
 impl PluginGroup for ResourceInspectorActs {
     fn build(self) -> PluginGroupBuilder {
         self.warn_on_unused_acts();
-        self.plugins.warn_on_empty("No resources registered with `ResourceInspectorActs`; consider adding some.");
+        self.plugins.warn_on_empty(
+            "No resources registered with `ResourceInspectorActs`; consider adding some.",
+        );
         self.plugins.build()
     }
 }

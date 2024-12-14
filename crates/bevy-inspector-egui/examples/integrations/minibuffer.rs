@@ -53,10 +53,8 @@ fn main() {
             minibuffer::ResourceInspectorActs::default()
                 .add::<Configuration>()
                 .add::<Settings>(),
-            minibuffer::StateInspectorActs::default()
-                .add::<AppState>(),
-            minibuffer::AssetInspectorActs::default()
-                .add::<StandardMaterial>(),
+            minibuffer::StateInspectorActs::default().add::<AppState>(),
+            minibuffer::AssetInspectorActs::default().add::<StandardMaterial>(),
             minibuffer::FilterQueryInspectorActs::default()
                 .add::<With<Transform>>()
                 .add::<With<Mesh3d>>(),
