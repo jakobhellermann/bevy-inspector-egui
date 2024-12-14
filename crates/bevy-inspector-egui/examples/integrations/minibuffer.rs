@@ -38,7 +38,7 @@ fn main() {
         .init_resource::<Settings>()
         .register_type::<Settings>()
         .add_acts((BasicActs::default(),
-                   minibuffer::InspectorActs::default(),
+                   minibuffer::WorldInspectorActs::default(),
                    minibuffer::ResourceInspectorActs::default()
                     .add::<Configuration>()
                     .add::<Settings>(),
