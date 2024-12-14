@@ -1,26 +1,3 @@
-//! # resource_inspector act
-//!
-//! ## Usage
-//!
-//! ```no_run
-//! use bevy::prelude::*;
-//! use bevy_minibuffer::prelude::*;
-//! use bevy_inspector_egui::minibuffer;
-//! #[derive(Resource, Reflect)]
-//! struct R1;
-//! #[derive(Resource, Reflect)]
-//! struct R2;
-//! fn plugin(app: &mut App) {
-//!     app
-//!         .add_plugins(MinibufferPlugins)
-//!         .add_acts((
-//!             BasicActs::default(),
-//!             minibuffer::ResourceInspectorActs::default()
-//!                 .add::<R1>()
-//!                 .add::<R2>()
-//!         ));
-//! }
-//! ```
 use crate::{
     minibuffer::{InspectorPlugins, Inspectors},
     quick::ResourceInspectorPlugin,
@@ -35,8 +12,31 @@ use bevy_minibuffer::{prelude::*, prompt::PromptState};
 use bevy_reflect::Reflect;
 use bevy_state::prelude::in_state;
 
-/// Adds the 'resource_inspector' act which toggles the visibility of resource
-/// inspectors that were added.
+/// ## Adds the 'resource_inspector' act
+///
+/// This act toggles the visibility of resource inspectors that were added.
+///
+/// ## Usage
+///
+/// ```no_run
+/// use bevy::prelude::*;
+/// use bevy_minibuffer::prelude::*;
+/// use bevy_inspector_egui::minibuffer;
+/// #[derive(Resource, Reflect)]
+/// struct R1;
+/// #[derive(Resource, Reflect)]
+/// struct R2;
+/// fn plugin(app: &mut App) {
+///     app
+///         .add_plugins(MinibufferPlugins)
+///         .add_acts((
+///             BasicActs::default(),
+///             minibuffer::ResourceInspectorActs::default()
+///                 .add::<R1>()
+///                 .add::<R2>()
+///         ));
+/// }
+/// ```
 pub struct ResourceInspectorActs {
     plugins: InspectorPlugins<Self>,
     acts: Acts,
@@ -106,6 +106,7 @@ fn resource_inspector(
 impl PluginGroup for ResourceInspectorActs {
     fn build(self) -> PluginGroupBuilder {
         self.warn_on_unused_acts();
+        self.plugins.warn_on_empty("No resources registered with `ResourceInspectorActs`; consider adding some.");
         self.plugins.build()
     }
 }

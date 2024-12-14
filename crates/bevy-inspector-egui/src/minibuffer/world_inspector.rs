@@ -1,20 +1,3 @@
-//! # world_inspector act
-//!
-//! ## Usage
-//!
-//! ```no_run
-//! use bevy::prelude::*;
-//! use bevy_minibuffer::prelude::*;
-//! use bevy_inspector_egui::minibuffer;
-//! fn plugin(app: &mut App) {
-//!     app
-//!         .add_plugins(MinibufferPlugins)
-//!         .add_acts((
-//!             BasicActs::default(),
-//!             minibuffer::WorldInspectorActs::default(),
-//!         ));
-//! }
-//! ```
 use crate::quick::WorldInspectorPlugin;
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
@@ -37,8 +20,25 @@ enum WorldInspectorState {
     Visible,
 }
 
-/// Provides the 'world_inspector' act that toggles the visibility of the world
-/// inspector.
+/// ## Adds the 'world_inspector' act
+///
+/// This act toggles the visibility of the world inspector.
+///
+/// ## Usage
+///
+/// ```no_run
+/// use bevy::prelude::*;
+/// use bevy_minibuffer::prelude::*;
+/// use bevy_inspector_egui::minibuffer;
+/// fn plugin(app: &mut App) {
+///     app
+///         .add_plugins(MinibufferPlugins)
+///         .add_acts((
+///             BasicActs::default(),
+///             minibuffer::WorldInspectorActs::default(),
+///         ));
+/// }
+/// ```
 pub struct WorldInspectorActs {
     acts: Acts,
 }

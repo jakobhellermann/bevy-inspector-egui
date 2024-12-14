@@ -1,5 +1,6 @@
 use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder};
 use bevy_ecs::prelude::{Res, ResMut, Resource, Trigger};
+use bevy_log::warn;
 use bevy_minibuffer::prelude::*;
 use std::borrow::Cow;
 use std::marker::PhantomData;
@@ -70,6 +71,13 @@ impl<M: Send + Sync + 'static> InspectorPlugins<M> {
             } else {
                 minibuffer.message(none_msg.clone());
             }
+        }
+    }
+
+    pub(crate) fn warn_on_empty(&self, msg: impl Into<Cow<'static, str>>) {
+        if self.names.is_empty() {
+            let msg = msg.into();
+            warn!("{}", msg);
         }
     }
 }

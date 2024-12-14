@@ -1,22 +1,3 @@
-//! # filter_query_inspector act
-//!
-//! ## Usage
-//!
-//! ```no_run
-//! use bevy::prelude::*;
-//! use bevy_minibuffer::prelude::*;
-//! use bevy_inspector_egui::minibuffer;
-//! fn plugin(app: &mut App) {
-//!     app
-//!         .add_plugins(MinibufferPlugins)
-//!         .add_acts((
-//!             BasicActs::default(),
-//!             minibuffer::FilterQueryInspectorActs::default()
-//!                 .add::<With<Transform>>()
-//!                 .add::<With<Mesh3d>>()
-//!         ));
-//! }
-//! ```
 use crate::{
     minibuffer::{InspectorPlugins, Inspectors},
     quick::FilterQueryInspectorPlugin,
@@ -31,8 +12,27 @@ use bevy_ecs::{
 use bevy_minibuffer::{prelude::*, prompt::PromptState};
 use bevy_state::prelude::in_state;
 
-/// Adds the 'filter_query_inspector' act which toggles the visibility of the
-/// added filter query inspectors.
+/// ## Adds the 'filter_query_inspector' act
+///
+/// This act toggles the visibility of the added filter query inspectors.
+///
+/// ## Usage
+///
+/// ```no_run
+/// use bevy::prelude::*;
+/// use bevy_minibuffer::prelude::*;
+/// use bevy_inspector_egui::minibuffer;
+/// fn plugin(app: &mut App) {
+///     app
+///         .add_plugins(MinibufferPlugins)
+///         .add_acts((
+///             BasicActs::default(),
+///             minibuffer::FilterQueryInspectorActs::default()
+///                 .add::<With<Transform>>()
+///                 .add::<With<Mesh3d>>()
+///         ));
+/// }
+/// ```
 pub struct FilterQueryInspectorActs {
     plugins: InspectorPlugins<Self>,
     acts: Acts,
@@ -101,6 +101,7 @@ fn filter_query_inspector(
 impl PluginGroup for FilterQueryInspectorActs {
     fn build(self) -> PluginGroupBuilder {
         self.warn_on_unused_acts();
+        self.plugins.warn_on_empty("No filter queries registered with `FilterQueryInspectorActs`; consider adding some.");
         self.plugins.build()
     }
 }

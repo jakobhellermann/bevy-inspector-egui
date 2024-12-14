@@ -1,28 +1,3 @@
-//! # state_inspector act
-//!
-//! ## Usage
-//!
-//! ```no_run
-//! use bevy::prelude::*;
-//! use bevy_minibuffer::prelude::*;
-//! use bevy_inspector_egui::minibuffer;
-//! #[derive(States, Default, Debug, Clone, Eq, PartialEq, Hash, Reflect)]
-//! enum AppState {
-//!     #[default]
-//!     A,
-//!     B,
-//!     C,
-//! }
-//! fn plugin(app: &mut App) {
-//!     app
-//!         .add_plugins(MinibufferPlugins)
-//!         .add_acts((
-//!             BasicActs::default(),
-//!             minibuffer::StateInspectorActs::default()
-//!                 .add::<AppState>()
-//!         ));
-//! }
-//! ```
 use crate::{
     minibuffer::{InspectorPlugins, Inspectors},
     quick::StateInspectorPlugin,
@@ -37,7 +12,33 @@ use bevy_minibuffer::{prelude::*, prompt::PromptState};
 use bevy_reflect::Reflect;
 use bevy_state::{prelude::in_state, state::FreelyMutableState};
 
-/// Adds the 'state_inspector' act which toggles the visibility of registered state inspectors.
+/// ## Adds the 'state_inspector' act
+///
+/// This act toggles the visibility of registered state inspectors.
+///
+/// ## Usage
+///
+/// ```no_run
+/// use bevy::prelude::*;
+/// use bevy_minibuffer::prelude::*;
+/// use bevy_inspector_egui::minibuffer;
+/// #[derive(States, Default, Debug, Clone, Eq, PartialEq, Hash, Reflect)]
+/// enum AppState {
+///     #[default]
+///     A,
+///     B,
+///     C,
+/// }
+/// fn plugin(app: &mut App) {
+///     app
+///         .add_plugins(MinibufferPlugins)
+///         .add_acts((
+///             BasicActs::default(),
+///             minibuffer::StateInspectorActs::default()
+///                 .add::<AppState>()
+///         ));
+/// }
+/// ```
 pub struct StateInspectorActs {
     plugins: InspectorPlugins<Self>,
     acts: Acts,
@@ -46,6 +47,7 @@ pub struct StateInspectorActs {
 impl PluginGroup for StateInspectorActs {
     fn build(self) -> PluginGroupBuilder {
         self.warn_on_unused_acts();
+        self.plugins.warn_on_empty("No states registered with `StateInspectorActs`; consider adding some.");
         self.plugins.build()
     }
 }
@@ -101,8 +103,9 @@ impl Default for StateInspectorActs {
     fn default() -> Self {
         Self {
             plugins: InspectorPlugins::default(),
-            acts: Acts::new([Act::new(state_inspector)]), // acts: Acts::new([Act::new(InspectorPlugins::<StateInspectorActs>::inspector("state: ", "No states registered"))
-                                                          // .named("state_inspector")])
+            acts: Acts::new([Act::new(state_inspector)]),
+            // acts: Acts::new([Act::new(InspectorPlugins::<StateInspectorActs>::inspector("state: ", "No states registered"))
+            // .named("state_inspector")])
         }
     }
 }

@@ -46,10 +46,9 @@
 //!
 //! ### Type Registration
 //!
-//! Each of the other acts do require configuration in the form of type
-//! registration. For instance, the `AssetInspectorActs` provides
-//! 'asset_inspector' but requires registration of what assets it should prompt
-//! for when the act is invoked.
+//! Each of the other acts do require type registration. For instance, the
+//! `AssetInspectorActs` provides 'asset_inspector' but requires registration of
+//! what assets it should prompt for when the act is invoked.
 //!
 //! ```no_run
 //! use bevy::prelude::*;

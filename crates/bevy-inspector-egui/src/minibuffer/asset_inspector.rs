@@ -1,21 +1,3 @@
-//! # asset_inspector act
-//!
-//! ## Usage
-//!
-//! ```no_run
-//! use bevy::prelude::*;
-//! use bevy_minibuffer::prelude::*;
-//! use bevy_inspector_egui::minibuffer;
-//! fn plugin(app: &mut App) {
-//!     app
-//!         .add_plugins(MinibufferPlugins)
-//!         .add_acts((
-//!             BasicActs::default(),
-//!             minibuffer::AssetInspectorActs::default()
-//!                 .add::<StandardMaterial>()
-//!         ));
-//! }
-//! ```
 use crate::{
     minibuffer::{InspectorPlugins, Inspectors},
     quick::AssetInspectorPlugin,
@@ -31,7 +13,26 @@ use bevy_minibuffer::{prelude::*, prompt::PromptState};
 use bevy_reflect::Reflect;
 use bevy_state::prelude::in_state;
 
-/// Add 'asset_inspector' act which toggles the visibility of added asset inspectors.
+/// ## Adds the 'asset_inspector' act
+///
+/// This act toggles the visibility of added asset inspectors.
+///
+/// ## Usage
+///
+/// ```no_run
+/// use bevy::prelude::*;
+/// use bevy_minibuffer::prelude::*;
+/// use bevy_inspector_egui::minibuffer;
+/// fn plugin(app: &mut App) {
+///     app
+///         .add_plugins(MinibufferPlugins)
+///         .add_acts((
+///             BasicActs::default(),
+///             minibuffer::AssetInspectorActs::default()
+///                 .add::<StandardMaterial>()
+///         ));
+/// }
+/// ```
 pub struct AssetInspectorActs {
     plugins: InspectorPlugins<Self>,
     acts: Acts,
@@ -96,6 +97,7 @@ fn asset_inspector(assets: Res<Inspectors<AssetInspectorActs>>, mut minibuffer: 
 impl PluginGroup for AssetInspectorActs {
     fn build(self) -> PluginGroupBuilder {
         self.warn_on_unused_acts();
+        self.plugins.warn_on_empty("No assets registered with `AssetInspectorActs`; consider adding some.");
         self.plugins.build()
     }
 }
