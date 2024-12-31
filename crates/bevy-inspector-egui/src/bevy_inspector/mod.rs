@@ -249,7 +249,7 @@ pub trait EntityFilter {
     fn is_empty(&self) -> bool {
         false
     }
-    /// Returns [`FilteredEntities`]
+    /// Returns [`Vec<Entity>`] filtered by the filter term
     fn filtered_entities(
         &self,
         world: &mut World,
