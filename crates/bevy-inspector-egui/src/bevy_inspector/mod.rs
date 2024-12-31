@@ -270,7 +270,7 @@ pub trait EntityFilter {
     fn filter_entity(
         &self,
         world: &mut World,
-        entities: Entity,
+        entity: Entity,
     ) -> bool;
 }
 
