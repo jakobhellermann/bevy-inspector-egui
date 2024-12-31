@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::bevy_inspector::{EntityFilter, Filter};
+use crate::bevy_inspector::{EntityFilter, Filter, FilterFromUiId};
 use crate::utils::guess_entity_name;
 use bevy_ecs::{prelude::*, query::QueryFilter};
 use bevy_hierarchy::{Children, Parent};
@@ -46,7 +46,10 @@ impl<T> Hierarchy<'_, T> {
     where
         QF: QueryFilter,
     {
-        let filter = Filter::from_ui(ui);
+        let filter = Filter::from_ui(ui, FilterFromUiId {
+            filter_string_id: "hierarchy_filter_string_id".into(),
+            is_fuzzy_id: "hierarchy_is_fuzzy_id".into(),
+        });
         self._show::<QF, _>(ui, filter)
     }
     pub fn show_with_filter<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool
