@@ -389,7 +389,7 @@ pub fn ui_for_world_entities_with_filter<QF, F>(
     filter: &F,
 ) where
     QF: WorldQuery + QueryFilter,
-    F: EntityFilter + Clone,
+    F: EntityFilter,
 {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
@@ -489,7 +489,7 @@ fn ui_for_entity_with_children_inner<F>(
     type_registry: &TypeRegistry,
     filter: &F,
 ) where
-    F: EntityFilter + Clone,
+    F: EntityFilter,
 {
     let mut queue = CommandQueue::default();
     ui_for_entity_components(

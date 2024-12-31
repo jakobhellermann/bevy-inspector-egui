@@ -55,14 +55,14 @@ impl<T> Hierarchy<'_, T> {
     pub fn show_with_filter<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool
     where
         QF: QueryFilter,
-        F: EntityFilter + Clone,
+        F: EntityFilter,
     {
         self._show::<QF, F>(ui, filter)
     }
     fn _show<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool
     where
         QF: QueryFilter,
-        F: EntityFilter + Clone,
+        F: EntityFilter,
     {
         let mut root_query = self.world.query_filtered::<Entity, (Without<Parent>, QF)>();
 
@@ -97,7 +97,7 @@ impl<T> Hierarchy<'_, T> {
         filter: &F,
     ) -> bool
     where
-        F: EntityFilter + Clone,
+        F: EntityFilter,
     {
         self._entity_ui(ui, entity, always_open, at_same_level, filter)
     }
@@ -111,7 +111,7 @@ impl<T> Hierarchy<'_, T> {
         filter: &F,
     ) -> bool
     where
-        F: EntityFilter + Clone,
+        F: EntityFilter,
     {
         let mut new_selection = false;
         let selected = self.selected.contains(entity);
