@@ -255,11 +255,7 @@ pub trait EntityFilter {
     /// Filters entities in place
     ///
     /// default impl using [`EntityFilter::filter_entity`] to mark what entities to retain
-    fn filter_entities(
-        &self,
-        world: &mut World,
-        entities: &mut Vec<Entity>,
-    ) {
+    fn filter_entities(&self, world: &mut World, entities: &mut Vec<Entity>) {
         if self.is_empty() && Self::EMPTY_IS_NOOP {
             return;
         }
@@ -267,11 +263,7 @@ pub trait EntityFilter {
     }
 
     /// Returns true if entity matches the filter term
-    fn filter_entity(
-        &self,
-        world: &mut World,
-        entity: Entity,
-    ) -> bool;
+    fn filter_entity(&self, world: &mut World, entity: Entity) -> bool;
 }
 
 /// Helps [`Filter::from_ui`] determine what global egui id's to use for its ui state.
@@ -301,12 +293,16 @@ impl Filter {
         let word = {
             // filter, using eguis memory and provided id
             let mut filter_string = ui.memory_mut(|mem| {
-                let filter: &mut String = mem.data.get_persisted_mut_or_default(filter_from_ui_id.filter_string_id);
+                let filter: &mut String = mem
+                    .data
+                    .get_persisted_mut_or_default(filter_from_ui_id.filter_string_id);
                 filter.clone()
             });
             ui.text_edit_singleline(&mut filter_string);
             ui.memory_mut(|mem| {
-                *mem.data.get_persisted_mut_or_default(filter_from_ui_id.filter_string_id) = filter_string.clone();
+                *mem.data
+                    .get_persisted_mut_or_default(filter_from_ui_id.filter_string_id) =
+                    filter_string.clone();
             });
 
             // improves overall matching
@@ -344,17 +340,8 @@ impl EntityFilter for Filter {
         self.word.is_empty()
     }
 
-    fn filter_entity(
-        &self,
-        world: &mut World,
-        entity: Entity,
-    ) -> bool {
-        self_or_children_satisfy_filter(
-            world,
-            entity,
-            self.word.as_str(),
-            self.is_fuzzy,
-        )
+    fn filter_entity(&self, world: &mut World, entity: Entity) -> bool {
+        self_or_children_satisfy_filter(world, entity, self.word.as_str(), self.is_fuzzy)
     }
 }
 
