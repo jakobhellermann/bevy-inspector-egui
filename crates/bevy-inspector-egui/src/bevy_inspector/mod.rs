@@ -242,6 +242,21 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
     ui_for_world_entities_filtered::<Without<Parent>>(world, ui, true);
 }
 
+pub trait EntityFilter {
+    /// Returns true if the filter term is currently empty
+    ///
+    /// default impl is false
+    fn is_empty(&self) -> bool {
+        false
+    }
+    /// Returns [`FilteredEntities`]
+    fn filtered_entities(
+        &self,
+        world: &mut World,
+        entities: impl IntoIterator<Item = Entity>,
+    ) -> Vec<Entity>;
+}
+
 #[derive(Debug, Clone)]
 pub struct Filter {
     pub word: String,
