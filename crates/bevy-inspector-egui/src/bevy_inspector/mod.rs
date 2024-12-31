@@ -239,7 +239,7 @@ pub fn ui_for_state<T: FreelyMutableState + Reflect>(world: &mut World, ui: &mut
 
 /// Display all entities and their components
 pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
-    ui_for_world_entities_filtered::<Without<Parent>>(world, ui, true);
+    ui_for_world_entities_filtered_from_ui::<Without<Parent>>(world, ui, true);
 }
 
 pub trait EntityFilter {
@@ -307,31 +307,83 @@ impl Filter {
     }
 
     /// filter entities based on internal state
-    fn filter_entities(&self, world: &mut World, entities: &mut Vec<Entity>) {
-        if self.word.is_empty() {
-            return;
+    fn _filtered_entities(
+        &self,
+        world: &mut World,
+        entities: impl IntoIterator<Item = Entity>,
+    ) -> Vec<Entity> {
+        let entities = entities.into_iter();
+        if self.is_empty() {
+            entities.collect()
+        } else {
+            entities
+                .filter(|&entity| {
+                    self_or_children_satisfy_filter(
+                        world,
+                        entity,
+                        self.word.as_str(),
+                        self.is_fuzzy,
+                    )
+                })
+                .collect()
         }
-
-        entities.retain(|entity| {
-            self_or_children_satisfy_filter(world, *entity, self.word.as_str(), self.is_fuzzy)
-        });
     }
 }
 
-/// Display all entities matching the given filter
-pub fn ui_for_world_entities_filtered<F: WorldQuery + QueryFilter>(
+impl EntityFilter for Filter {
+    fn is_empty(&self) -> bool {
+        self.word.is_empty()
+    }
+    fn filtered_entities(
+        &self,
+        world: &mut World,
+        entities: impl IntoIterator<Item = Entity>,
+    ) -> Vec<Entity> {
+        self._filtered_entities(world, entities)
+    }
+}
+
+/// Display all entities matching the inner managed filter ui
+#[deprecated(
+    since = "0.28.1",
+    note = "use ui_for_world_entities_filtered_from_ui or ui_for_world_entities_with_filter instead"
+)]
+pub fn ui_for_world_entities_filtered<QF: WorldQuery + QueryFilter>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    with_children: bool,
+) {
+    ui_for_world_entities_filtered_from_ui::<QF>(world, ui, with_children);
+}
+
+/// Display all entities matching the inner managed filter ui
+pub fn ui_for_world_entities_filtered_from_ui<QF: WorldQuery + QueryFilter>(
     world: &mut World,
     ui: &mut egui::Ui,
     with_children: bool,
 ) {
     let filter = Filter::from_ui(ui);
+    ui_for_world_entities_with_filter::<QF, _>(world, ui, with_children, &filter);
+}
 
+/// Display all entities matching the given filter
+pub fn ui_for_world_entities_with_filter<QF, F>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    with_children: bool,
+    filter: &F,
+) where
+    QF: WorldQuery + QueryFilter,
+    F: EntityFilter + Clone,
+{
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
-    let mut root_entities = world.query_filtered::<Entity, F>();
-    let mut entities = root_entities.iter(world).collect::<Vec<_>>();
-    filter.filter_entities(world, &mut entities);
+    let mut root_entities = world.query_filtered::<Entity, QF>();
+    let entities = root_entities.iter(world).collect::<Vec<_>>();
+
+    let mut entities = filter.filtered_entities(world, entities);
+
     entities.sort();
 
     let id = egui::Id::new("world ui");
@@ -350,7 +402,7 @@ pub fn ui_for_world_entities_filtered<F: WorldQuery + QueryFilter>(
                         ui,
                         id,
                         &type_registry,
-                        &filter,
+                        filter,
                     );
                 } else {
                     let mut queue = CommandQueue::default();
@@ -414,14 +466,16 @@ pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut e
     )
 }
 
-fn ui_for_entity_with_children_inner(
+fn ui_for_entity_with_children_inner<F>(
     world: &mut World,
     entity: Entity,
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
-    filter: &Filter,
-) {
+    filter: &F,
+) where
+    F: EntityFilter + Clone,
+{
     let mut queue = CommandQueue::default();
     ui_for_entity_components(
         &mut world.into(),
@@ -435,9 +489,9 @@ fn ui_for_entity_with_children_inner(
     let children = world
         .get::<Children>(entity)
         .map(|children| children.iter().copied().collect::<Vec<_>>());
-    if let Some(mut children) = children {
+    if let Some(children) = children {
         if !children.is_empty() {
-            filter.filter_entities(world, &mut children);
+            let children = filter.filtered_entities(world, children);
             ui.label("Children");
             for &child in children.iter() {
                 let id = id.with(child);
