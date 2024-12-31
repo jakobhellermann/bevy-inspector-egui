@@ -243,9 +243,9 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
 }
 
 #[derive(Debug, Clone)]
-struct Filter {
-    word: String,
-    is_fuzzy: bool,
+pub struct Filter {
+    pub word: String,
+    pub is_fuzzy: bool,
 }
 
 impl Filter {
