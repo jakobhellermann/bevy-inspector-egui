@@ -56,7 +56,7 @@ impl<T> Hierarchy<'_, T> {
     {
         self._show::<QF, F>(ui, filter)
     }
-    pub fn _show<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool
+    fn _show<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool
     where
         QF: QueryFilter,
         F: EntityFilter + Clone,
