@@ -84,9 +84,6 @@ impl<T> Hierarchy<'_, T> {
         }
         selected
     }
-    fn is_selected(&self, entity: Entity) -> bool {
-        self.selected.contains(entity)
-    }
 
     fn entity_ui_with_filter<F>(
         &mut self,
@@ -114,7 +111,7 @@ impl<T> Hierarchy<'_, T> {
         F: EntityFilter + Clone,
     {
         let mut new_selection = false;
-        let selected = self.is_selected(entity);
+        let selected = self.selected.contains(entity);
 
         let entity_name = guess_entity_name::guess_entity_name(self.world, entity);
         let mut name = RichText::new(entity_name);
