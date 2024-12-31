@@ -243,18 +243,35 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
 }
 
 pub trait EntityFilter {
+    const EMPTY_IS_NOOP: bool = true;
+
     /// Returns true if the filter term is currently empty
     ///
     /// default impl is false
     fn is_empty(&self) -> bool {
         false
     }
-    /// Returns [`Vec<Entity>`] filtered by the filter term
-    fn filtered_entities(
+
+    /// Filters entities in place
+    ///
+    /// default impl using [`EntityFilter::filter_entity`] to mark what entities to retain
+    fn filter_entities(
         &self,
         world: &mut World,
-        entities: impl IntoIterator<Item = Entity>,
-    ) -> Vec<Entity>;
+        entities: &mut Vec<Entity>,
+    ) {
+        if self.is_empty() && Self::EMPTY_IS_NOOP {
+            return;
+        }
+        entities.retain(|&entity| self.filter_entity(world, entity));
+    }
+
+    /// Returns true if entity matches the filter term
+    fn filter_entity(
+        &self,
+        world: &mut World,
+        entities: Entity,
+    ) -> bool;
 }
 
 #[derive(Debug, Clone)]
@@ -305,41 +322,24 @@ impl Filter {
             is_fuzzy: false,
         }
     }
-
-    /// filter entities based on internal state
-    fn _filtered_entities(
-        &self,
-        world: &mut World,
-        entities: impl IntoIterator<Item = Entity>,
-    ) -> Vec<Entity> {
-        let entities = entities.into_iter();
-        if self.is_empty() {
-            entities.collect()
-        } else {
-            entities
-                .filter(|&entity| {
-                    self_or_children_satisfy_filter(
-                        world,
-                        entity,
-                        self.word.as_str(),
-                        self.is_fuzzy,
-                    )
-                })
-                .collect()
-        }
-    }
 }
 
 impl EntityFilter for Filter {
     fn is_empty(&self) -> bool {
         self.word.is_empty()
     }
-    fn filtered_entities(
+
+    fn filter_entity(
         &self,
         world: &mut World,
-        entities: impl IntoIterator<Item = Entity>,
-    ) -> Vec<Entity> {
-        self._filtered_entities(world, entities)
+        entity: Entity,
+    ) -> bool {
+        self_or_children_satisfy_filter(
+            world,
+            entity,
+            self.word.as_str(),
+            self.is_fuzzy,
+        )
     }
 }
 
@@ -380,9 +380,9 @@ pub fn ui_for_world_entities_with_filter<QF, F>(
     let type_registry = type_registry.read();
 
     let mut root_entities = world.query_filtered::<Entity, QF>();
-    let entities = root_entities.iter(world).collect::<Vec<_>>();
+    let mut entities = root_entities.iter(world).collect::<Vec<_>>();
 
-    let mut entities = filter.filtered_entities(world, entities);
+    filter.filter_entities(world, &mut entities);
 
     entities.sort();
 
@@ -489,11 +489,11 @@ fn ui_for_entity_with_children_inner<F>(
     let children = world
         .get::<Children>(entity)
         .map(|children| children.iter().copied().collect::<Vec<_>>());
-    if let Some(children) = children {
+    if let Some(mut children) = children {
         if !children.is_empty() {
-            let children = filter.filtered_entities(world, children);
+            filter.filter_entities(world, &mut children);
             ui.label("Children");
-            for &child in children.iter() {
+            for child in children {
                 let id = id.with(child);
 
                 let child_entity_name = guess_entity_name(world, child);

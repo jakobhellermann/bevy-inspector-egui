@@ -74,8 +74,8 @@ impl<T> Hierarchy<'_, T> {
             })
             .collect();
 
-        let entities: Vec<_> = root_query.iter(self.world).collect();
-        let mut entities = filter.filtered_entities(self.world, entities);
+        let mut entities: Vec<_> = root_query.iter(self.world).collect();
+        filter.filter_entities(self.world, &mut entities);
         entities.sort();
 
         let mut selected = false;
@@ -151,9 +151,9 @@ impl<T> Hierarchy<'_, T> {
             .show(ui, |ui| {
                 let children = self.world.get::<Children>(entity);
                 if let Some(children) = children {
-                    let children = children.to_vec();
-                    let children = filter.filtered_entities(self.world, children);
-                    for &child in children.iter() {
+                    let mut children = children.to_vec();
+                    filter.filter_entities(self.world, &mut children);
+                    for &child in &children {
                         new_selection |=
                             self.entity_ui_with_filter(ui, child, always_open, &children, filter);
                     }
