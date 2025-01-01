@@ -247,6 +247,10 @@ impl InspectorUi<'_, '_> {
             }
         }
 
+        if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
+            return changed;
+        }
+
         match value.reflect_mut() {
             ReflectMut::Struct(value) => self.ui_for_struct(value, ui, id, options),
             ReflectMut::TupleStruct(value) => self.ui_for_tuple_struct(value, ui, id, options),
