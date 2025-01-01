@@ -16,13 +16,7 @@ categories = [
 ]
 
 [features]
-default = [
-    "bevy_pbr",
-    "bevy_image",
-    "bevy_render",
-    "egui_clipboard",
-    "egui_open_url",
-]
+default = ["bevy_pbr", "bevy_image", "bevy_render", "egui_clipboard"]
 bevy_render = ["dep:bevy_render", "dep:bevy_core_pipeline", "bevy_egui/render"]
 egui_clipboard = ["bevy_egui/manage_clipboard"]
 egui_open_url = ["bevy_egui/open_url"]
