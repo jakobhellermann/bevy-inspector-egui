@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.28.1
+- fix inspector options not being respected
+- fix handle short circuiting not working
+- remove `egui_open_url` from default features as it is rarely used and pulls a lot of dependencies
+
 ## Version 0.28.0
 - upgrade to `bevy_egui 0.31`
 - update `bevy` to 0.15
