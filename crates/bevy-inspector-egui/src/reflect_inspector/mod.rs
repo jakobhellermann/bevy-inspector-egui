@@ -228,10 +228,10 @@ impl InspectorUi<'_, '_> {
     ) -> bool {
         let mut options = options;
         if options.is::<()>() {
-            if let Some(data) = self
-                .type_registry
-                .get_type_data::<ReflectInspectorOptions>(Any::type_id(value))
-            {
+            if let Some(data) = value.try_as_reflect().and_then(|val| {
+                self.type_registry
+                    .get_type_data::<ReflectInspectorOptions>(val.type_id())
+            }) {
                 options = &data.0;
             }
         }
