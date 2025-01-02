@@ -238,6 +238,8 @@ pub fn ui_for_state<T: FreelyMutableState + Reflect>(world: &mut World, ui: &mut
 }
 
 /// Display all entities matching [`Without<Parent>`] and their components
+///
+/// Includes basic [`EntityFilter`]
 #[deprecated(
     since = "0.28.1",
     note = "use ui_for_entities instead"
@@ -247,10 +249,11 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
 }
 
 /// Display all entities matching [`Without<Parent>`] and their components
+///
+/// Includes basic [`EntityFilter`]
 pub fn ui_for_entities(world: &mut World, ui: &mut egui::Ui) {
     ui_for_entities_filtered_with_default_filter::<Without<Parent>>(world, ui, true);
 }
-
 
 /// Display all entities matching the static [`QueryFilter`]
 #[deprecated(
@@ -274,16 +277,19 @@ pub fn ui_for_entities_filtered<QF: WorldQuery + QueryFilter>(
     ui_for_entities_filtered_with_filter::<QF, _>(world, ui, with_children, &Filter::empty());
 }
 
-/// Display all entities matching the static [`QueryFilter`]
+/// Display all entities matching [`Without<Parent>`] and the provided [`EntityFilter`]
 pub fn ui_for_entities_with_filter<F: EntityFilter>(
     world: &mut World,
     ui: &mut egui::Ui,
     with_children: bool,
+    filter: &F,
 ) {
-    ui_for_entities_filtered_with_filter::<Without<Parent>, F>(world, ui, with_children, &Filter::empty());
+    ui_for_entities_filtered_with_filter::<Without<Parent>, F>(world, ui, with_children, &filter);
 }
 
-/// Display all entities matching the inner managed filter ui
+/// Display all entities matching the static [`QueryFilter`]
+///
+/// Includes basic [`EntityFilter`]
 pub fn ui_for_entities_filtered_with_default_filter<QF: WorldQuery + QueryFilter>(
     world: &mut World,
     ui: &mut egui::Ui,
