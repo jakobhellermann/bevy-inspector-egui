@@ -268,22 +268,6 @@ pub trait EntityFilter {
     fn filter_entity(&self, world: &mut World, entity: Entity) -> bool;
 }
 
-/// Helps [`Filter::from_ui`] determine what global egui id's to use for its ui state.
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
-pub struct FilterFromUiId {
-    pub filter_string_id: egui::Id,
-    pub is_fuzzy_id: egui::Id,
-}
-
-impl Default for FilterFromUiId {
-    fn default() -> Self {
-        Self {
-            filter_string_id: "default_filter_string_id".into(),
-            is_fuzzy_id: "default_is_fuzzy_id".into(),
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct Filter {
     pub word: String,
@@ -291,19 +275,20 @@ pub struct Filter {
 }
 
 impl Filter {
-    pub fn from_ui(ui: &mut egui::Ui, filter_from_ui_id: FilterFromUiId) -> Self {
+    pub fn from_ui(ui: &mut egui::Ui, id: egui::Id) -> Self {
         let word = {
+            let id = id.with("word");
             // filter, using eguis memory and provided id
             let mut filter_string = ui.memory_mut(|mem| {
                 let filter: &mut String = mem
                     .data
-                    .get_persisted_mut_or_default(filter_from_ui_id.filter_string_id);
+                    .get_persisted_mut_or_default(id);
                 filter.clone()
             });
             ui.text_edit_singleline(&mut filter_string);
             ui.memory_mut(|mem| {
                 *mem.data
-                    .get_persisted_mut_or_default(filter_from_ui_id.filter_string_id) =
+                    .get_persisted_mut_or_default(id) =
                     filter_string.clone();
             });
 
@@ -313,14 +298,14 @@ impl Filter {
 
         // filter kind
         let is_fuzzy = {
-            let filter_kind_id = egui::Id::new(filter_from_ui_id.is_fuzzy_id);
+            let id = id.with("is_fuzzy");
             let mut is_fuzzy = ui.memory_mut(|mem| {
-                let fuzzy: &mut bool = mem.data.get_persisted_mut_or_default(filter_kind_id);
+                let fuzzy: &mut bool = mem.data.get_persisted_mut_or_default(id);
                 *fuzzy
             });
             ui.checkbox(&mut is_fuzzy, "Fuzzy Match");
             ui.memory_mut(|mem| {
-                *mem.data.get_persisted_mut_or_default(filter_kind_id) = is_fuzzy;
+                *mem.data.get_persisted_mut_or_default(id) = is_fuzzy;
             });
             is_fuzzy
         };
@@ -366,7 +351,7 @@ pub fn ui_for_world_entities_filtered_from_ui<QF: WorldQuery + QueryFilter>(
     ui: &mut egui::Ui,
     with_children: bool,
 ) {
-    let filter = Filter::from_ui(ui, FilterFromUiId::default());
+    let filter = Filter::from_ui(ui, egui::Id::new("default_world_entities_filter"));
     ui_for_world_entities_with_filter::<QF, _>(world, ui, with_children, &filter);
 }
 
