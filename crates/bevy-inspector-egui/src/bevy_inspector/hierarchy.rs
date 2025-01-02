@@ -46,10 +46,7 @@ impl<T> Hierarchy<'_, T> {
     where
         QF: QueryFilter,
     {
-        let filter = Filter::from_ui(
-            ui,
-            egui::Id::new("default_hierarchy_filter"),
-        );
+        let filter = Filter::from_ui(ui, egui::Id::new("default_hierarchy_filter"));
         self._show::<QF, _>(ui, filter)
     }
     pub fn show_with_filter<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool
@@ -143,8 +140,7 @@ impl<T> Hierarchy<'_, T> {
                     let mut children = children.to_vec();
                     filter.filter_entities(self.world, &mut children);
                     for &child in &children {
-                        new_selection |=
-                            self.entity_ui(ui, child, always_open, &children, filter);
+                        new_selection |= self.entity_ui(ui, child, always_open, &children, filter);
                     }
                 } else {
                     ui.label("No children");

@@ -240,10 +240,7 @@ pub fn ui_for_state<T: FreelyMutableState + Reflect>(world: &mut World, ui: &mut
 /// Display all entities matching [`Without<Parent>`] and their components
 ///
 /// Includes basic [`EntityFilter`]
-#[deprecated(
-    since = "0.28.1",
-    note = "use ui_for_entities instead"
-)]
+#[deprecated(since = "0.28.1", note = "use ui_for_entities instead")]
 pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
     ui_for_entities(world, ui);
 }
@@ -256,10 +253,7 @@ pub fn ui_for_entities(world: &mut World, ui: &mut egui::Ui) {
 }
 
 /// Display all entities matching the static [`QueryFilter`]
-#[deprecated(
-    since = "0.28.1",
-    note = "use ui_for_entities_filtered instead"
-)]
+#[deprecated(since = "0.28.1", note = "use ui_for_entities_filtered instead")]
 pub fn ui_for_world_entities_filtered<QF: WorldQuery + QueryFilter>(
     world: &mut World,
     ui: &mut egui::Ui,
@@ -391,16 +385,12 @@ impl Filter {
             let id = id.with("word");
             // filter, using eguis memory and provided id
             let mut filter_string = ui.memory_mut(|mem| {
-                let filter: &mut String = mem
-                    .data
-                    .get_persisted_mut_or_default(id);
+                let filter: &mut String = mem.data.get_persisted_mut_or_default(id);
                 filter.clone()
             });
             ui.text_edit_singleline(&mut filter_string);
             ui.memory_mut(|mem| {
-                *mem.data
-                    .get_persisted_mut_or_default(id) =
-                    filter_string.clone();
+                *mem.data.get_persisted_mut_or_default(id) = filter_string.clone();
             });
 
             // improves overall matching
