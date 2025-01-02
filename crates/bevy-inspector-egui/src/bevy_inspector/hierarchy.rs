@@ -86,26 +86,12 @@ impl<T> Hierarchy<'_, T> {
 
         let mut selected = false;
         for &entity in &entities {
-            selected |= self.entity_ui_with_filter(ui, entity, &always_open, &entities, &filter);
+            selected |= self.entity_ui(ui, entity, &always_open, &entities, &filter);
         }
         selected
     }
 
-    fn entity_ui_with_filter<F>(
-        &mut self,
-        ui: &mut egui::Ui,
-        entity: Entity,
-        always_open: &HashSet<Entity>,
-        at_same_level: &[Entity],
-        filter: &F,
-    ) -> bool
-    where
-        F: EntityFilter,
-    {
-        self._entity_ui(ui, entity, always_open, at_same_level, filter)
-    }
-
-    fn _entity_ui<F>(
+    fn entity_ui<F>(
         &mut self,
         ui: &mut egui::Ui,
         entity: Entity,
@@ -161,7 +147,7 @@ impl<T> Hierarchy<'_, T> {
                     filter.filter_entities(self.world, &mut children);
                     for &child in &children {
                         new_selection |=
-                            self.entity_ui_with_filter(ui, child, always_open, &children, filter);
+                            self.entity_ui(ui, child, always_open, &children, filter);
                     }
                 } else {
                     ui.label("No children");
