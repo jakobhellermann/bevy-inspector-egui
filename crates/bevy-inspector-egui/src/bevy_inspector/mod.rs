@@ -243,20 +243,22 @@ pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
 }
 
 pub trait EntityFilter {
-    const EMPTY_IS_NOOP: bool = true;
-
-    /// Returns true if the filter term is currently empty
+    /// Returns true if the filter term is currently active
     ///
-    /// default impl is false
-    fn is_empty(&self) -> bool {
-        false
+    /// Used in the default impl of [`EntityFilter::filter_entities`] to skip filtering if false
+    ///
+    /// default impl is true
+    fn is_active(&self) -> bool {
+        true
     }
 
     /// Filters entities in place
     ///
-    /// default impl using [`EntityFilter::filter_entity`] to mark what entities to retain
+    /// default impl:
+    /// - uses [`EntityFilter::filter_entity`] to mark what entities to retain
+    /// - skips filtering if [`EntityFilter::is_active`] returns false
     fn filter_entities(&self, world: &mut World, entities: &mut Vec<Entity>) {
-        if self.is_empty() && Self::EMPTY_IS_NOOP {
+        if !self.is_active() {
             return;
         }
         entities.retain(|&entity| self.filter_entity(world, entity));
@@ -336,8 +338,8 @@ impl Filter {
 }
 
 impl EntityFilter for Filter {
-    fn is_empty(&self) -> bool {
-        self.word.is_empty()
+    fn is_active(&self) -> bool {
+        !self.word.is_empty()
     }
 
     fn filter_entity(&self, world: &mut World, entity: Entity) -> bool {
