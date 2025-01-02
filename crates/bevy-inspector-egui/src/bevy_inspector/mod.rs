@@ -26,7 +26,7 @@
 //!     egui::CollapsingHeader::new("Entities")
 //!         .default_open(true)
 //!         .show(ui, |ui| {
-//!             bevy_inspector::ui_for_world_entities(world, ui);
+//!             bevy_inspector::ui_for_entities(world, ui);
 //!         });
 //!     egui::CollapsingHeader::new("Resources").show(ui, |ui| {
 //!         bevy_inspector::ui_for_resources(world, ui);

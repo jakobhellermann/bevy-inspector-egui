@@ -111,7 +111,7 @@
 //!             });
 //!
 //!             ui.heading("Entities");
-//!             bevy_inspector::ui_for_world_entities(world, ui);
+//!             bevy_inspector::ui_for_entities(world, ui);
 //!         });
 //!     });
 //! }
