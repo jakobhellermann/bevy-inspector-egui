@@ -42,7 +42,7 @@ impl<T> Hierarchy<'_, T> {
     {
         self._show::<QF, _>(ui, Filter::empty())
     }
-    pub fn show_with_filter_from_ui<QF>(&mut self, ui: &mut egui::Ui) -> bool
+    pub fn show_with_default_filter<QF>(&mut self, ui: &mut egui::Ui) -> bool
     where
         QF: QueryFilter,
     {
