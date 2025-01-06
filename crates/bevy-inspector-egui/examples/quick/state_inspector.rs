@@ -12,7 +12,6 @@ fn main() {
         .init_state::<AppState>()
         .register_type::<AppState>()
         .add_plugins(StateInspectorPlugin::<AppState>::default())
-        .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::A), set_color::<158, 228, 147>)
         .add_systems(OnEnter(AppState::B), set_color::<172, 200, 192>)
         .add_systems(OnEnter(AppState::C), set_color::<194, 148, 138>)
@@ -30,20 +29,23 @@ enum AppState {
 #[derive(Component)]
 struct TheSquare;
 
-fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d::default());
-
-    commands.spawn((
-        Sprite {
-            custom_size: Some(Vec2::splat(100.)),
-            ..default()
-        },
-        TheSquare,
-    ));
-}
-
 fn set_color<const R: u8, const G: u8, const B: u8>(
     mut sprite: Query<&mut Sprite, With<TheSquare>>,
+    mut commands: Commands,
 ) {
-    sprite.single_mut().color = Color::srgb_u8(R, G, B);
+    let color = Color::srgb_u8(R, G, B);
+    if let Ok(mut sprite) = sprite.get_single_mut() {
+        sprite.color = color;
+    } else {
+        commands.spawn(Camera2d);
+
+        commands.spawn((
+            Sprite {
+                custom_size: Some(Vec2::splat(100.)),
+                color,
+                ..default()
+            },
+            TheSquare,
+        ));
+    }
 }
