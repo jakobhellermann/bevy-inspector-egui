@@ -327,6 +327,8 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
     {
       add_of_with_many::<bevy_asset::Handle<bevy_image::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_image::Image>>);
     }
+
+    add::<uuid::Uuid>(type_registry);
 }
 
 pub(crate) fn change_slider<T>(
