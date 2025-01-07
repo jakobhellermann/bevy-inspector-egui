@@ -57,6 +57,7 @@ smallvec = "1.10"
 
 fuzzy-matcher = "0.3.7"
 disqualified = "1.0.0"
+uuid = "1.11.0"
 
 [dev-dependencies]
 bevy = { version = "0.15.0", default-features = false, features = [

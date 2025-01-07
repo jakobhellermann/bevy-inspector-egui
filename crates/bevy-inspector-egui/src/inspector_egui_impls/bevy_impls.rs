@@ -22,6 +22,16 @@ use crate::{
 
 use super::InspectorPrimitive;
 
+impl InspectorPrimitive for uuid::Uuid {
+    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+        ui.label(self.to_string());
+        false
+    }
+    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+        ui.label(self.to_string());
+    }
+}
+
 impl InspectorPrimitive for Entity {
     fn ui(
         &mut self,
