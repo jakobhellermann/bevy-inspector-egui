@@ -200,14 +200,14 @@ impl InspectorPrimitive for Color {
                 blue,
                 alpha,
             }) => {
-                let mut color = Color32::from_rgba_premultiplied(
+                let mut color = Color32::from_rgba_unmultiplied(
                     (*red * 255.) as u8,
                     (*green * 255.) as u8,
                     (*blue * 255.) as u8,
                     (*alpha * 255.) as u8,
                 );
                 if ui.color_edit_button_srgba(&mut color).changed() {
-                    let [r, g, b, a] = color.to_array();
+                    let [r, g, b, a] = color.to_srgba_unmultiplied();
                     *red = r as f32 / 255.;
                     *green = g as f32 / 255.;
                     *blue = b as f32 / 255.;
