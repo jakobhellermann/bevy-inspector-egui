@@ -1,11 +1,11 @@
 use std::collections::HashSet;
 
+use crate::bevy_inspector::{EntityFilter, Filter};
+use crate::utils::guess_entity_name;
 use bevy_ecs::{prelude::*, query::QueryFilter};
 use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::TypeRegistry;
 use egui::{CollapsingHeader, RichText};
-
-use crate::utils::guess_entity_name;
 
 /// Display UI of the entity hierarchy.
 ///
@@ -36,8 +36,33 @@ pub struct Hierarchy<'a, T = ()> {
 }
 
 impl<T> Hierarchy<'_, T> {
-    pub fn show<F: QueryFilter>(&mut self, ui: &mut egui::Ui) -> bool {
-        let mut root_query = self.world.query_filtered::<Entity, (Without<Parent>, F)>();
+    pub fn show<QF>(&mut self, ui: &mut egui::Ui) -> bool
+    where
+        QF: QueryFilter,
+    {
+        let filter: Filter = Filter::all();
+        self._show::<QF, _>(ui, filter)
+    }
+    pub fn show_with_default_filter<QF>(&mut self, ui: &mut egui::Ui) -> bool
+    where
+        QF: QueryFilter,
+    {
+        let filter: Filter = Filter::from_ui(ui, egui::Id::new("default_hierarchy_filter"));
+        self._show::<QF, _>(ui, filter)
+    }
+    pub fn show_with_filter<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool
+    where
+        QF: QueryFilter,
+        F: EntityFilter,
+    {
+        self._show::<QF, F>(ui, filter)
+    }
+    fn _show<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool
+    where
+        QF: QueryFilter,
+        F: EntityFilter,
+    {
+        let mut root_query = self.world.query_filtered::<Entity, (Without<Parent>, QF)>();
 
         let always_open: HashSet<Entity> = self
             .selected
@@ -51,22 +76,27 @@ impl<T> Hierarchy<'_, T> {
             .collect();
 
         let mut entities: Vec<_> = root_query.iter(self.world).collect();
+        filter.filter_entities(self.world, &mut entities);
         entities.sort();
 
         let mut selected = false;
         for &entity in &entities {
-            selected |= self.entity_ui(ui, entity, &always_open, &entities);
+            selected |= self.entity_ui(ui, entity, &always_open, &entities, &filter);
         }
         selected
     }
 
-    fn entity_ui(
+    fn entity_ui<F>(
         &mut self,
         ui: &mut egui::Ui,
         entity: Entity,
         always_open: &HashSet<Entity>,
         at_same_level: &[Entity],
-    ) -> bool {
+        filter: &F,
+    ) -> bool
+    where
+        F: EntityFilter,
+    {
         let mut new_selection = false;
         let selected = self.selected.contains(entity);
 
@@ -108,9 +138,10 @@ impl<T> Hierarchy<'_, T> {
             .show(ui, |ui| {
                 let children = self.world.get::<Children>(entity);
                 if let Some(children) = children {
-                    let children = children.to_vec();
-                    for &child in children.iter() {
-                        new_selection |= self.entity_ui(ui, child, always_open, &children);
+                    let mut children = children.to_vec();
+                    filter.filter_entities(self.world, &mut children);
+                    for &child in &children {
+                        new_selection |= self.entity_ui(ui, child, always_open, &children, filter);
                     }
                 } else {
                     ui.label("No children");

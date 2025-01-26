@@ -8,7 +8,7 @@
 
 use std::{marker::PhantomData, sync::Mutex};
 
-use crate::utils::pretty_type_name;
+use crate::{bevy_inspector::Filter, utils::pretty_type_name};
 use bevy_app::{App, MainScheduleOrder, Plugin, Update};
 use bevy_asset::Asset;
 use bevy_core::TypeRegistrationPlugin;
@@ -485,7 +485,7 @@ fn entity_query_ui<F: QueryFilter>(world: &mut World) {
         .default_size(DEFAULT_SIZE)
         .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
-                bevy_inspector::ui_for_world_entities_filtered::<F>(world, ui, false);
+                bevy_inspector::ui_for_entities_filtered(world, ui, false, &Filter::<F>::all());
                 ui.allocate_space(ui.available_size());
             });
         });

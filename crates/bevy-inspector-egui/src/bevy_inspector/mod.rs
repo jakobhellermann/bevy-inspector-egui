@@ -26,7 +26,7 @@
 //!     egui::CollapsingHeader::new("Entities")
 //!         .default_open(true)
 //!         .show(ui, |ui| {
-//!             bevy_inspector::ui_for_world_entities(world, ui);
+//!             bevy_inspector::ui_for_entities(world, ui);
 //!         });
 //!     egui::CollapsingHeader::new("Resources").show(ui, |ui| {
 //!         bevy_inspector::ui_for_resources(world, ui);
@@ -38,6 +38,7 @@
 //! ```
 
 use std::any::TypeId;
+use std::marker::PhantomData;
 
 use crate::utils::{pretty_type_name, pretty_type_name_str};
 use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
@@ -85,7 +86,7 @@ pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
     egui::CollapsingHeader::new("Entities")
         .default_open(true)
         .show(ui, |ui| {
-            ui_for_world_entities(world, ui);
+            ui_for_entities(world, ui);
         });
     egui::CollapsingHeader::new("Resources").show(ui, |ui| {
         ui_for_resources(world, ui);
@@ -237,86 +238,49 @@ pub fn ui_for_state<T: FreelyMutableState + Reflect>(world: &mut World, ui: &mut
     queue.apply(world);
 }
 
-/// Display all entities and their components
+/// Display all entities matching [`Without<Parent>`] and their components
+///
+/// Includes basic [`EntityFilter`]
+#[deprecated(since = "0.28.1", note = "use ui_for_entities instead")]
 pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
-    ui_for_world_entities_filtered::<Without<Parent>>(world, ui, true);
+    ui_for_entities(world, ui);
 }
-
-#[derive(Debug, Clone)]
-struct Filter {
-    word: String,
-    is_fuzzy: bool,
-}
-
-impl Filter {
-    fn from_ui(ui: &mut egui::Ui) -> Self {
-        let word = {
-            // filter, using eguis memory and a hardcoded id
-            let filter_id = egui::Id::new("world ui filter word");
-            let mut filter = ui.memory_mut(|mem| {
-                let filter: &mut String = mem.data.get_persisted_mut_or_default(filter_id);
-                filter.clone()
-            });
-            ui.text_edit_singleline(&mut filter);
-            ui.memory_mut(|mem| {
-                *mem.data.get_persisted_mut_or_default(filter_id) = filter.clone();
-            });
-
-            // improves overall matching
-            filter.to_lowercase()
-        };
-
-        // filter kind
-        let is_fuzzy = {
-            let filter_kind_id = egui::Id::new("world ui filter fuzzy");
-            let mut is_fuzzy = ui.memory_mut(|mem| {
-                let fuzzy: &mut bool = mem.data.get_persisted_mut_or_default(filter_kind_id);
-                *fuzzy
-            });
-            ui.checkbox(&mut is_fuzzy, "Fuzzy Match");
-            ui.memory_mut(|mem| {
-                *mem.data.get_persisted_mut_or_default(filter_kind_id) = is_fuzzy;
-            });
-            is_fuzzy
-        };
-
-        Filter { word, is_fuzzy }
-    }
-
-    /// empty filter which does nothing
-    fn empty() -> Self {
-        Self {
-            word: String::from(""),
-            is_fuzzy: false,
-        }
-    }
-
-    /// filter entities based on internal state
-    fn filter_entities(&self, world: &mut World, entities: &mut Vec<Entity>) {
-        if self.word.is_empty() {
-            return;
-        }
-
-        entities.retain(|entity| {
-            self_or_children_satisfy_filter(world, *entity, self.word.as_str(), self.is_fuzzy)
-        });
-    }
-}
-
-/// Display all entities matching the given filter
-pub fn ui_for_world_entities_filtered<F: WorldQuery + QueryFilter>(
+/// Display all entities matching the static [`QueryFilter`]
+#[deprecated(since = "0.28.1", note = "use ui_for_entities_filtered instead")]
+pub fn ui_for_world_entities_filtered<QF: WorldQuery + QueryFilter>(
     world: &mut World,
     ui: &mut egui::Ui,
     with_children: bool,
 ) {
-    let filter = Filter::from_ui(ui);
+    ui_for_entities_filtered(world, ui, with_children, &Filter::<QF>::all());
+}
 
+/// Display all root entities.
+pub fn ui_for_entities(world: &mut World, ui: &mut egui::Ui) {
+    let filter: Filter = Filter::from_ui_fuzzy(ui, egui::Id::new("default_world_entities_filter"));
+    ui_for_entities_filtered(world, ui, true, &filter);
+}
+
+/// Display all entities matching the given [`EntityFilter`].
+///
+/// You can use the [`Filter`] type to specify both a static filter as a generic parameter (default is `Without<Parent>`),
+/// and a word to match. [`Filter::from_ui`] will display a search box and fuzzy filter checkbox.
+pub fn ui_for_entities_filtered<F>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    with_children: bool,
+    filter: &F,
+) where
+    F: EntityFilter,
+{
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
-    let mut root_entities = world.query_filtered::<Entity, F>();
+    let mut root_entities = world.query_filtered::<Entity, F::StaticFilter>();
     let mut entities = root_entities.iter(world).collect::<Vec<_>>();
+
     filter.filter_entities(world, &mut entities);
+
     entities.sort();
 
     let id = egui::Id::new("world ui");
@@ -335,7 +299,7 @@ pub fn ui_for_world_entities_filtered<F: WorldQuery + QueryFilter>(
                         ui,
                         id,
                         &type_registry,
-                        &filter,
+                        filter,
                     );
                 } else {
                     let mut queue = CommandQueue::default();
@@ -350,6 +314,138 @@ pub fn ui_for_world_entities_filtered<F: WorldQuery + QueryFilter>(
                     queue.apply(world);
                 }
             });
+    }
+}
+
+pub trait EntityFilter {
+    type StaticFilter: QueryFilter;
+
+    /// Returns true if the filter term is currently active
+    ///
+    /// Used in the default impl of [`EntityFilter::filter_entities`] to skip filtering if false
+    ///
+    /// default impl is true
+    fn is_active(&self) -> bool {
+        true
+    }
+
+    /// Filters entities in place
+    ///
+    /// default impl:
+    /// - uses [`EntityFilter::filter_entity`] to mark what entities to retain
+    /// - skips filtering if [`EntityFilter::is_active`] returns false
+    fn filter_entities(&self, world: &mut World, entities: &mut Vec<Entity>) {
+        if !self.is_active() {
+            return;
+        }
+        entities.retain(|&entity| self.filter_entity(world, entity));
+    }
+
+    /// Returns true if entity matches the filter term
+    fn filter_entity(&self, world: &mut World, entity: Entity) -> bool;
+}
+
+#[derive(Debug)]
+pub struct Filter<F: QueryFilter = Without<Parent>> {
+    pub word: String,
+    pub is_fuzzy: bool,
+    pub marker: PhantomData<F>,
+}
+
+impl<F: QueryFilter + Clone> Clone for Filter<F> {
+    fn clone(&self) -> Self {
+        Self {
+            word: self.word.clone(),
+            is_fuzzy: self.is_fuzzy.clone(),
+            marker: PhantomData,
+        }
+    }
+}
+
+impl<F: QueryFilter> Filter<F> {
+    pub fn from_ui_fuzzy(ui: &mut egui::Ui, id: egui::Id) -> Self {
+        let word = {
+            let id = id.with("word");
+            // filter, using eguis memory and provided id
+            let mut filter_string = ui.memory_mut(|mem| {
+                let filter: &mut String = mem.data.get_persisted_mut_or_default(id);
+                filter.clone()
+            });
+            ui.text_edit_singleline(&mut filter_string);
+            ui.memory_mut(|mem| {
+                *mem.data.get_persisted_mut_or_default(id) = filter_string.clone();
+            });
+
+            // improves overall matching
+            filter_string.to_lowercase()
+        };
+
+        Filter {
+            word,
+            is_fuzzy: true,
+            marker: PhantomData,
+        }
+    }
+
+    pub fn from_ui(ui: &mut egui::Ui, id: egui::Id) -> Self {
+        ui.horizontal(|ui| {
+            // filter kind
+            let is_fuzzy = {
+                let id = id.with("is_fuzzy");
+                let mut is_fuzzy = ui.memory_mut(|mem| {
+                    let fuzzy: &mut bool = mem.data.get_persisted_mut_or_default(id);
+                    *fuzzy
+                });
+                ui.checkbox(&mut is_fuzzy, "Fuzzy");
+                ui.memory_mut(|mem| {
+                    *mem.data.get_persisted_mut_or_default(id) = is_fuzzy;
+                });
+                is_fuzzy
+            };
+            let word = {
+                let id = id.with("word");
+                // filter, using eguis memory and provided id
+                let mut filter_string = ui.memory_mut(|mem| {
+                    let filter: &mut String = mem.data.get_persisted_mut_or_default(id);
+                    filter.clone()
+                });
+                ui.text_edit_singleline(&mut filter_string);
+                ui.memory_mut(|mem| {
+                    *mem.data.get_persisted_mut_or_default(id) = filter_string.clone();
+                });
+
+                // improves overall matching
+                filter_string.to_lowercase()
+            };
+
+            Filter {
+                word,
+                is_fuzzy,
+                marker: PhantomData,
+            }
+        })
+        .inner
+    }
+
+    /// empty filter which does nothing
+    pub fn all() -> Self {
+        Self {
+            word: String::from(""),
+            is_fuzzy: false,
+            marker: PhantomData,
+        }
+    }
+}
+
+impl<F: QueryFilter> EntityFilter for Filter<F> {
+    type StaticFilter = F;
+
+    fn is_active(&self) -> bool {
+        !self.word.is_empty()
+    }
+
+    fn filter_entity(&self, world: &mut World, entity: Entity) -> bool {
+        self_or_children_satisfy_filter(world, entity, self.word.as_str(), self.is_fuzzy)
     }
 }
 
@@ -389,24 +485,27 @@ pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut e
     let entity_name = guess_entity_name(world, entity);
     ui.label(entity_name);
 
+    let filter: Filter = Filter::all();
     ui_for_entity_with_children_inner(
         world,
         entity,
         ui,
         egui::Id::new(entity),
         &type_registry,
-        &Filter::empty(),
+        &filter,
     )
 }
 
-fn ui_for_entity_with_children_inner(
+fn ui_for_entity_with_children_inner<F>(
     world: &mut World,
     entity: Entity,
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
-    filter: &Filter,
-) {
+    filter: &F,
+) where
+    F: EntityFilter,
+{
     let mut queue = CommandQueue::default();
     ui_for_entity_components(
         &mut world.into(),
@@ -424,7 +523,7 @@ fn ui_for_entity_with_children_inner(
         if !children.is_empty() {
             filter.filter_entities(world, &mut children);
             ui.label("Children");
-            for &child in children.iter() {
+            for child in children {
                 let id = id.with(child);
 
                 let child_entity_name = guess_entity_name(world, child);
