@@ -381,37 +381,39 @@ pub struct Filter {
 
 impl Filter {
     pub fn from_ui(ui: &mut egui::Ui, id: egui::Id) -> Self {
-        let word = {
-            let id = id.with("word");
-            // filter, using eguis memory and provided id
-            let mut filter_string = ui.memory_mut(|mem| {
-                let filter: &mut String = mem.data.get_persisted_mut_or_default(id);
-                filter.clone()
-            });
-            ui.text_edit_singleline(&mut filter_string);
-            ui.memory_mut(|mem| {
-                *mem.data.get_persisted_mut_or_default(id) = filter_string.clone();
-            });
+        ui.horizontal(|ui| {
+            // filter kind
+            let is_fuzzy = {
+                let id = id.with("is_fuzzy");
+                let mut is_fuzzy = ui.memory_mut(|mem| {
+                    let fuzzy: &mut bool = mem.data.get_persisted_mut_or_default(id);
+                    *fuzzy
+                });
+                ui.checkbox(&mut is_fuzzy, "Fuzzy");
+                ui.memory_mut(|mem| {
+                    *mem.data.get_persisted_mut_or_default(id) = is_fuzzy;
+                });
+                is_fuzzy
+            };
+            let word = {
+                let id = id.with("word");
+                // filter, using eguis memory and provided id
+                let mut filter_string = ui.memory_mut(|mem| {
+                    let filter: &mut String = mem.data.get_persisted_mut_or_default(id);
+                    filter.clone()
+                });
+                ui.text_edit_singleline(&mut filter_string);
+                ui.memory_mut(|mem| {
+                    *mem.data.get_persisted_mut_or_default(id) = filter_string.clone();
+                });
 
-            // improves overall matching
-            filter_string.to_lowercase()
-        };
+                // improves overall matching
+                filter_string.to_lowercase()
+            };
 
-        // filter kind
-        let is_fuzzy = {
-            let id = id.with("is_fuzzy");
-            let mut is_fuzzy = ui.memory_mut(|mem| {
-                let fuzzy: &mut bool = mem.data.get_persisted_mut_or_default(id);
-                *fuzzy
-            });
-            ui.checkbox(&mut is_fuzzy, "Fuzzy Match");
-            ui.memory_mut(|mem| {
-                *mem.data.get_persisted_mut_or_default(id) = is_fuzzy;
-            });
-            is_fuzzy
-        };
-
-        Filter { word, is_fuzzy }
+            Filter { word, is_fuzzy }
+        })
+        .inner
     }
 
     /// empty filter which does nothing
