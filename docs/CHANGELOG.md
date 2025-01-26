@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.29.1
+- add enabled-by-default `documentation` feature, which will display docs for reflected components on hover 
+
 ## Version 0.29.0
 - fix sRGBA colors not being accurate [(#235)](https://github.com/jakobhellermann/bevy-inspector-egui/pull/235)
 - add ability to perform custom cilters in hierarchy [(#231)](https://github.com/jakobhellermann/bevy-inspector-egui/pull/231)
