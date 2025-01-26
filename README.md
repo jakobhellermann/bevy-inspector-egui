@@ -145,6 +145,7 @@ Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_
 
 | bevy | bevy-inspector-egui |
 | ---- | ------------------- |
+| 0.15 | 0.29                |
 | 0.15 | 0.28                |
 | 0.14 | 0.27                |
 | 0.14 | 0.26                |
