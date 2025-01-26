@@ -40,13 +40,14 @@ impl<T> Hierarchy<'_, T> {
     where
         QF: QueryFilter,
     {
-        self._show::<QF, _>(ui, Filter::empty())
+        let filter: Filter = Filter::all();
+        self._show::<QF, _>(ui, filter)
     }
     pub fn show_with_default_filter<QF>(&mut self, ui: &mut egui::Ui) -> bool
     where
         QF: QueryFilter,
     {
-        let filter = Filter::from_ui(ui, egui::Id::new("default_hierarchy_filter"));
+        let filter: Filter = Filter::from_ui(ui, egui::Id::new("default_hierarchy_filter"));
         self._show::<QF, _>(ui, filter)
     }
     pub fn show_with_filter<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool

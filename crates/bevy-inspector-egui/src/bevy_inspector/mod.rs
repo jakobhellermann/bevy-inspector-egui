@@ -38,6 +38,7 @@
 //! ```
 
 use std::any::TypeId;
+use std::marker::PhantomData;
 
 use crate::utils::{pretty_type_name, pretty_type_name_str};
 use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
@@ -244,14 +245,6 @@ pub fn ui_for_state<T: FreelyMutableState + Reflect>(world: &mut World, ui: &mut
 pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
     ui_for_entities(world, ui);
 }
-
-/// Display all entities matching [`Without<Parent>`] and their components
-///
-/// Includes basic [`EntityFilter`]
-pub fn ui_for_entities(world: &mut World, ui: &mut egui::Ui) {
-    ui_for_entities_filtered_with_default_filter::<Without<Parent>>(world, ui, true);
-}
-
 /// Display all entities matching the static [`QueryFilter`]
 #[deprecated(since = "0.28.1", note = "use ui_for_entities_filtered instead")]
 pub fn ui_for_world_entities_filtered<QF: WorldQuery + QueryFilter>(
@@ -259,54 +252,31 @@ pub fn ui_for_world_entities_filtered<QF: WorldQuery + QueryFilter>(
     ui: &mut egui::Ui,
     with_children: bool,
 ) {
-    ui_for_entities_filtered::<QF>(world, ui, with_children);
+    ui_for_entities_filtered(world, ui, with_children, &Filter::<QF>::all());
 }
 
-/// Display all entities matching the static [`QueryFilter`]
-pub fn ui_for_entities_filtered<QF: WorldQuery + QueryFilter>(
-    world: &mut World,
-    ui: &mut egui::Ui,
-    with_children: bool,
-) {
-    ui_for_entities_filtered_with_filter::<QF, _>(world, ui, with_children, &Filter::empty());
+/// Display all root entities.
+pub fn ui_for_entities(world: &mut World, ui: &mut egui::Ui) {
+    let filter: Filter = Filter::from_ui_fuzzy(ui, egui::Id::new("default_world_entities_filter"));
+    ui_for_entities_filtered(world, ui, true, &filter);
 }
 
-/// Display all entities matching [`Without<Parent>`] and the provided [`EntityFilter`]
-pub fn ui_for_entities_with_filter<F: EntityFilter>(
-    world: &mut World,
-    ui: &mut egui::Ui,
-    with_children: bool,
-    filter: &F,
-) {
-    ui_for_entities_filtered_with_filter::<Without<Parent>, F>(world, ui, with_children, &filter);
-}
-
-/// Display all entities matching the static [`QueryFilter`]
+/// Display all entities matching the given [`EntityFilter`].
 ///
-/// Includes basic [`EntityFilter`]
-pub fn ui_for_entities_filtered_with_default_filter<QF: WorldQuery + QueryFilter>(
-    world: &mut World,
-    ui: &mut egui::Ui,
-    with_children: bool,
-) {
-    let filter = Filter::from_ui(ui, egui::Id::new("default_world_entities_filter"));
-    ui_for_entities_filtered_with_filter::<QF, _>(world, ui, with_children, &filter);
-}
-
-/// Display all entities matching the given static [`QueryFilter`] and provided [`EntityFilter`]
-pub fn ui_for_entities_filtered_with_filter<QF, F>(
+/// You can use the [`Filter`] type to specify both a static filter as a generic parameter (default is `Without<Parent>`),
+/// and a word to match. [`Filter::from_ui`] will display a search box and fuzzy filter checkbox.
+pub fn ui_for_entities_filtered<F>(
     world: &mut World,
     ui: &mut egui::Ui,
     with_children: bool,
     filter: &F,
 ) where
-    QF: WorldQuery + QueryFilter,
     F: EntityFilter,
 {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
-    let mut root_entities = world.query_filtered::<Entity, QF>();
+    let mut root_entities = world.query_filtered::<Entity, F::StaticFilter>();
     let mut entities = root_entities.iter(world).collect::<Vec<_>>();
 
     filter.filter_entities(world, &mut entities);
@@ -348,6 +318,8 @@ pub fn ui_for_entities_filtered_with_filter<QF, F>(
 }
 
 pub trait EntityFilter {
+    type StaticFilter: QueryFilter;
+
     /// Returns true if the filter term is currently active
     ///
     /// Used in the default impl of [`EntityFilter::filter_entities`] to skip filtering if false
@@ -373,13 +345,48 @@ pub trait EntityFilter {
     fn filter_entity(&self, world: &mut World, entity: Entity) -> bool;
 }
 
-#[derive(Debug, Clone)]
-pub struct Filter {
+#[derive(Debug)]
+pub struct Filter<F: QueryFilter = Without<Parent>> {
     pub word: String,
     pub is_fuzzy: bool,
+    pub marker: PhantomData<F>,
 }
 
-impl Filter {
+impl<F: QueryFilter + Clone> Clone for Filter<F> {
+    fn clone(&self) -> Self {
+        Self {
+            word: self.word.clone(),
+            is_fuzzy: self.is_fuzzy.clone(),
+            marker: PhantomData,
+        }
+    }
+}
+
+impl<F: QueryFilter> Filter<F> {
+    pub fn from_ui_fuzzy(ui: &mut egui::Ui, id: egui::Id) -> Self {
+        let word = {
+            let id = id.with("word");
+            // filter, using eguis memory and provided id
+            let mut filter_string = ui.memory_mut(|mem| {
+                let filter: &mut String = mem.data.get_persisted_mut_or_default(id);
+                filter.clone()
+            });
+            ui.text_edit_singleline(&mut filter_string);
+            ui.memory_mut(|mem| {
+                *mem.data.get_persisted_mut_or_default(id) = filter_string.clone();
+            });
+
+            // improves overall matching
+            filter_string.to_lowercase()
+        };
+
+        Filter {
+            word,
+            is_fuzzy: true,
+            marker: PhantomData,
+        }
+    }
+
     pub fn from_ui(ui: &mut egui::Ui, id: egui::Id) -> Self {
         ui.horizontal(|ui| {
             // filter kind
@@ -411,21 +418,28 @@ impl Filter {
                 filter_string.to_lowercase()
             };
 
-            Filter { word, is_fuzzy }
+            Filter {
+                word,
+                is_fuzzy,
+                marker: PhantomData,
+            }
         })
         .inner
     }
 
     /// empty filter which does nothing
-    fn empty() -> Self {
+    pub fn all() -> Self {
         Self {
             word: String::from(""),
             is_fuzzy: false,
+            marker: PhantomData,
         }
     }
 }
 
-impl EntityFilter for Filter {
+impl<F: QueryFilter> EntityFilter for Filter<F> {
+    type StaticFilter = F;
+
     fn is_active(&self) -> bool {
         !self.word.is_empty()
     }
@@ -471,13 +485,14 @@ pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut e
     let entity_name = guess_entity_name(world, entity);
     ui.label(entity_name);
 
+    let filter: Filter = Filter::all();
     ui_for_entity_with_children_inner(
         world,
         entity,
         ui,
         egui::Id::new(entity),
         &type_registry,
-        &Filter::empty(),
+        &filter,
     )
 }
 
