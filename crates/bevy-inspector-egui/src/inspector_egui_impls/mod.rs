@@ -387,7 +387,7 @@ macro_rules! many_ui {
             id: egui::Id,
             env: InspectorUi<'_, '_>,
             values: &mut [&mut dyn bevy_reflect::PartialReflect],
-            projector: &dyn crate::reflect_inspector::ProjectorReflect,
+            projector: &dyn $crate::reflect_inspector::ProjectorReflect,
         ) -> bool {
             let same = $crate::inspector_egui_impls::iter_all_eq(
                 values

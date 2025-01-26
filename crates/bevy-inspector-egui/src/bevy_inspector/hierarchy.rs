@@ -109,7 +109,7 @@ impl<T> Hierarchy<'_, T> {
         let has_children = self
             .world
             .get::<Children>(entity)
-            .map_or(false, |children| children.len() > 0);
+            .is_some_and(|children| children.len() > 0);
 
         let open = if !has_children {
             Some(false)

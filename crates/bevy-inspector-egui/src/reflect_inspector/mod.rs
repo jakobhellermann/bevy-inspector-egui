@@ -1088,13 +1088,12 @@ impl InspectorUi<'_, '_> {
         match &op {
             AddElement(new_value) => {
                 set.insert_boxed(new_value.clone_value());
-                return true;
             }
             RemoveElement(val) => {
                 set.remove(&**val);
-                return true;
             }
         }
+        true
     }
 
     fn ui_for_set(
@@ -1166,7 +1165,7 @@ impl InspectorUi<'_, '_> {
     }
 
     #[must_use]
-    fn ui_to_insert_set_element_with_options<'a>(
+    fn ui_to_insert_set_element_with_options(
         &mut self,
         value_type: bevy_reflect::Type,
         ui: &mut egui::Ui,
@@ -1298,7 +1297,7 @@ impl InspectorUi<'_, '_> {
                 set0.iter().map(|v| v.clone_value()).collect();
 
             for (i, value_to_check) in reflected_values.iter().enumerate() {
-                let value_type_id = value_to_check.type_id();
+                let value_type_id = (**value_to_check).type_id();
                 egui::Grid::new((value_type_id, i)).show(ui, |ui| {
                     // Do all sets contain this value ?
                     if len == 1
@@ -1307,12 +1306,9 @@ impl InspectorUi<'_, '_> {
                                 ReflectMut::Set(set) => set,
                                 _ => unreachable!(),
                             };
-                            set_to_compare
-                                .iter()
-                                .find(|value| {
-                                    value.reflect_partial_eq(value_to_check.borrow()) == Some(true)
-                                })
-                                .is_some()
+                            set_to_compare.iter().any(|value| {
+                                value.reflect_partial_eq(value_to_check.borrow()) == Some(true)
+                            })
                         })
                     {
                         // All sets contain this value: Show value

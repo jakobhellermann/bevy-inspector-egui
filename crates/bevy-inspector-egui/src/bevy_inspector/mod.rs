@@ -356,7 +356,7 @@ impl<F: QueryFilter + Clone> Clone for Filter<F> {
     fn clone(&self) -> Self {
         Self {
             word: self.word.clone(),
-            is_fuzzy: self.is_fuzzy.clone(),
+            is_fuzzy: self.is_fuzzy,
             marker: PhantomData,
         }
     }
@@ -1008,9 +1008,7 @@ pub mod short_circuit {
         id: egui::Id,
         options: &dyn Any,
     ) -> Option<bool> {
-        let Some(value) = value.try_as_reflect() else {
-            return None;
-        };
+        let value = value.try_as_reflect()?;
 
         if let Some(reflect_handle) = env
             .type_registry
@@ -1188,9 +1186,7 @@ pub mod short_circuit {
         id: egui::Id,
         options: &dyn Any,
     ) -> Option<()> {
-        let Some(value) = value.try_as_reflect() else {
-            return None;
-        };
+        let value = value.try_as_reflect()?;
 
         if let Some(reflect_handle) = env
             .type_registry
