@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.29.0
+- fix sRGBA colors not being accurate [(#235)](https://github.com/jakobhellermann/bevy-inspector-egui/pull/235)
+- add ability to perform custom cilters in hierarchy [(#231)](https://github.com/jakobhellermann/bevy-inspector-egui/pull/231)
+- add `InspectorEguiImpl` for `Uuid`
+- update to `egui 0.30`, `bevy_egui 0.32`
+
 ## Version 0.28.1
 - fix inspector options not being respected
 - fix handle short circuiting not working
