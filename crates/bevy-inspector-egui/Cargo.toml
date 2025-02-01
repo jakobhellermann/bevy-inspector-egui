@@ -27,6 +27,7 @@ documentation = ["bevy_reflect/documentation"]
 bevy_render = ["dep:bevy_render", "dep:bevy_core_pipeline", "bevy_egui/render"]
 egui_clipboard = ["bevy_egui/manage_clipboard"]
 egui_open_url = ["bevy_egui/open_url"]
+egui_serde = ["bevy_egui/serde"]
 highlight_changes = []
 
 [package.metadata.docs.rs]
