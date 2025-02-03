@@ -109,13 +109,9 @@ pub fn show_docs(response: egui::Response, docs: Option<&str>) {
             }
         }
 
-        response
-            .on_hover_ui(|ui| {
-                easymark(ui, &docs[..end_idx]);
-            })
-            .on_disabled_hover_ui(|ui| {
-                easymark(ui, &docs[..end_idx]);
-            });
+        response.on_hover_ui(|ui| {
+            easymark(ui, &docs[..end_idx]);
+        });
     }
 }
 
