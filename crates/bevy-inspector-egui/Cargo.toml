@@ -21,10 +21,12 @@ default = [
     "bevy_pbr",
     "bevy_image",
     "bevy_render",
+    "bevy_core_pipeline",
     "egui_clipboard",
 ]
 documentation = ["bevy_reflect/documentation"]
-bevy_render = ["dep:bevy_render", "dep:bevy_core_pipeline", "bevy_egui/render"]
+bevy_render = ["dep:bevy_render",  "bevy_egui/render"]
+bevy_core_pipeline = ["dep:bevy_core_pipeline"]
 egui_clipboard = ["bevy_egui/manage_clipboard"]
 egui_open_url = ["bevy_egui/open_url"]
 highlight_changes = []

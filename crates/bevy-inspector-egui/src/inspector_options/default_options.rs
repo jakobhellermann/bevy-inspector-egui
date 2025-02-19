@@ -232,7 +232,7 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
     }
 
     #[rustfmt::skip]
-    #[cfg(feature = "bevy_render")]
+    #[cfg(feature = "bevy_core_pipeline")]
     insert_options_enum::<bevy_core_pipeline::core_3d::Camera3dDepthLoadOp>(
         type_registry,
         &[
