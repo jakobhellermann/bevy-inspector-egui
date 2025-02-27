@@ -119,10 +119,10 @@ pub fn easymark(ui: &mut egui::Ui, text: &str) {
     easymark::viewer::easy_mark(ui, text);
 }
 
-mod easymark {
+pub mod easymark {
     // taken and adapted from https://github.com/emilk/egui/blob/master/crates/egui_demo_lib/src/easy_mark/easy_mark_parser.rs
 
-    pub(crate) mod viewer {
+    pub mod viewer {
         use super::parser as easy_mark;
         use egui::*;
 
@@ -285,7 +285,7 @@ mod easymark {
         }
     }
 
-    pub(crate) mod parser {
+    pub mod parser {
 
         #[derive(Copy, Clone, Debug, Eq, PartialEq)]
         pub enum Item<'a> {
@@ -354,7 +354,7 @@ mod easymark {
         ///
         /// # Example:
         /// ```
-        /// # use egui_demo_lib::easy_mark::parser::Parser;
+        /// # use bevy_inspector_egui::egui_utils::easymark::parser::Parser;
         /// for item in Parser::new("Hello *world*!") {
         /// }
         ///
