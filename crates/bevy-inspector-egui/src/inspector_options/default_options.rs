@@ -165,7 +165,7 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
                 ("contrast", &NumberOptions::<f32>::positive().with_speed(0.01)),
                 ("gamma", &NumberOptions::<f32>::positive().with_speed(0.01)),
                 ("gain", &NumberOptions::<f32>::positive().with_speed(0.01)),
-                ("lift", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                ("lift", &NumberOptions::<f32>::default().with_speed(0.01)),
             ],
         );
 
@@ -173,9 +173,9 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         insert_options_struct::<bevy_render::view::ColorGradingGlobal>(
             type_registry,
             &[
-                ("exposure", &NumberOptions::<f32>::positive().with_speed(0.01)),
-                ("temperature", &NumberOptions::<f32>::positive().with_speed(0.01)),
-                ("tint", &NumberOptions::<f32>::positive().with_speed(0.01)),
+                ("exposure", &NumberOptions::<f32>::default().with_speed(0.01)),
+                ("temperature", &NumberOptions::<f32>::default().with_speed(0.01)),
+                ("tint", &NumberOptions::<f32>::default().with_speed(0.01)),
                 ("hue", &NumberOptions::<f32>::positive().with_speed(0.01)),
                 ("post_saturation", &NumberOptions::<f32>::positive().with_speed(0.01)),
                 ("midtones_range", &NumberOptions::<f32>::positive().with_speed(0.01)),
