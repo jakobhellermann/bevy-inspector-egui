@@ -143,7 +143,7 @@ pub mod reflect_inspector;
 pub mod restricted_world_view;
 
 pub mod dropdown;
-mod egui_utils;
+pub mod egui_utils;
 mod utils;
 
 #[cfg(feature = "bevy_render")]
