@@ -27,7 +27,7 @@ fn setup(
     commands.spawn((
         Name::new("My Cube"),
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        MeshMaterial3d(materials.add(Color::srgba(255. / 255., 181. / 255., 0., 102. / 255.))),
+        MeshMaterial3d(materials.add(Color::srgba(255., 181. / 255., 0., 102. / 255.))),
         Transform::from_xyz(0.0, 0.5, 0.0),
     ));
     // light

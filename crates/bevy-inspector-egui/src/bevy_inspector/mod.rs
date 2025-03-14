@@ -599,7 +599,7 @@ pub(crate) fn ui_for_entity_components(
 
         if size == 0 {
             ui.indent(id, |ui| {
-                let _response = ui.label(&name).into();
+                let _response = ui.label(&name);
                 #[cfg(feature = "documentation")]
                 crate::egui_utils::show_docs(_response, type_docs);
             });

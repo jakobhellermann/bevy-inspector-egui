@@ -293,7 +293,6 @@ pub mod easymark {
             // TODO(emilk): add Style here so empty heading still uses up the right amount of space.
             Newline,
 
-            ///
             Text(Style, &'a str),
 
             /// title, url
