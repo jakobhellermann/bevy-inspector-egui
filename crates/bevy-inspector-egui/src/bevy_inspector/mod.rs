@@ -592,15 +592,19 @@ pub(crate) fn ui_for_entity_components(
             continue;
         };
 
-        if size == 0 {
-            header.show(ui, |_| {});
-            continue;
-        }
-
         #[cfg(feature = "documentation")]
         let type_docs = type_registry
             .get_type_info(component_type_id)
             .and_then(|info| info.docs());
+
+        if size == 0 {
+            ui.indent(id, |ui| {
+                let _response = ui.label(&name).into();
+                #[cfg(feature = "documentation")]
+                crate::egui_utils::show_docs(_response, type_docs);
+            });
+            continue;
+        }
 
         // create a context with access to the world except for the currently viewed component
         let (mut component_view, world) = world.split_off_component((entity, component_type_id));
@@ -617,7 +621,10 @@ pub(crate) fn ui_for_entity_components(
         ) {
             Ok(value) => value,
             Err(e) => {
-                header.show(ui, |ui| errors::show_error(e, ui, &name));
+                ui.indent(id, |ui| {
+                    let response = ui.label(egui::RichText::new(&name).underline());
+                    response.on_hover_ui(|ui| errors::show_error(e, ui, &name));
+                });
                 continue;
             }
         };
