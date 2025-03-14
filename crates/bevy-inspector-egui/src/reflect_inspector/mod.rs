@@ -261,6 +261,10 @@ impl InspectorUi<'_, '_> {
             ReflectMut::Enum(value) => self.ui_for_enum(value, ui, id, options),
             ReflectMut::Opaque(value) => self.ui_for_value(value, ui, id, options),
             ReflectMut::Set(value) => self.ui_for_set(value, ui, id, options),
+            _ => {
+                ui.label("unsupported");
+                false
+            }
         }
     }
 
@@ -316,6 +320,9 @@ impl InspectorUi<'_, '_> {
             ReflectRef::Enum(value) => self.ui_for_enum_readonly(value, ui, id, options),
             ReflectRef::Opaque(value) => self.ui_for_value_readonly(value, ui, id, options),
             ReflectRef::Set(value) => self.ui_for_set_readonly(value, ui, id, options),
+            _ => {
+                ui.label("unsupported");
+            }
         }
     }
 
