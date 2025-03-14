@@ -353,8 +353,8 @@ pub mod easymark {
         /// See the module-level documentation for details.
         ///
         /// # Example:
-        /// ```
-        /// # use bevy_inspector_egui::egui_utils::easymark::parser::Parser;
+        /// ```no_compile
+        /// # use egui_demo_lib::easy_mark::parser::Parser;
         /// for item in Parser::new("Hello *world*!") {
         /// }
         ///
