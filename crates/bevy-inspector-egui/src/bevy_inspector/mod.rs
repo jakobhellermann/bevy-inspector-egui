@@ -45,7 +45,6 @@ use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
 use bevy_ecs::query::{QueryFilter, WorldQuery};
 use bevy_ecs::world::CommandQueue;
 use bevy_ecs::{component::ComponentId, prelude::*};
-use bevy_hierarchy::{Children, Parent};
 use bevy_reflect::{Reflect, TypeRegistry};
 use bevy_state::state::{FreelyMutableState, NextState, State};
 use fuzzy_matcher::skim::SkimMatcherV2;
@@ -346,7 +345,7 @@ pub trait EntityFilter {
 }
 
 #[derive(Debug)]
-pub struct Filter<F: QueryFilter = Without<Parent>> {
+pub struct Filter<F: QueryFilter = Without<ChildOf>> {
     pub word: String,
     pub is_fuzzy: bool,
     pub marker: PhantomData<F>,
@@ -518,7 +517,7 @@ fn ui_for_entity_with_children_inner<F>(
 
     let children = world
         .get::<Children>(entity)
-        .map(|children| children.iter().copied().collect::<Vec<_>>());
+        .map(|children| children.iter().into_iter().collect::<Vec<_>>());
     if let Some(mut children) = children {
         if !children.is_empty() {
             filter.filter_entities(world, &mut children);
@@ -577,7 +576,7 @@ pub(crate) fn ui_for_entity_components(
     id: egui::Id,
     type_registry: &TypeRegistry,
 ) {
-    let Some(components) = components_of_entity(world, entity) else {
+    let Ok(components) = components_of_entity(world, entity) else {
         errors::entity_does_not_exist(ui, entity);
         return;
     };
@@ -682,7 +681,7 @@ fn set_highlight_style(ui: &mut egui::Ui) {
 fn components_of_entity(
     world: &mut RestrictedWorldView<'_>,
     entity: Entity,
-) -> Option<Vec<(String, ComponentId, Option<TypeId>, usize)>> {
+) -> Result<Vec<(String, ComponentId, Option<TypeId>, usize)>> {
     let entity_ref = world.world().get_entity(entity)?;
 
     let archetype = entity_ref.archetype();
@@ -696,7 +695,7 @@ fn components_of_entity(
         })
         .collect();
     components.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
-    Some(components)
+    Ok(components)
 }
 
 /// Display the given entity with all its components and children
@@ -712,7 +711,7 @@ pub fn ui_for_entities_shared_components(
         return;
     };
 
-    let Some(mut components) = components_of_entity(&mut world.into(), first) else {
+    let Ok(mut components) = components_of_entity(&mut world.into(), first) else {
         return errors::entity_does_not_exist(ui, first);
     };
 

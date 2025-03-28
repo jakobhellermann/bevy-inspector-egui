@@ -469,8 +469,8 @@ struct MapDraftElement {
 impl Clone for MapDraftElement {
     fn clone(&self) -> Self {
         Self {
-            key: self.key.clone_value(),
-            value: self.value.clone_value(),
+            key: self.key.to_dynamic(),
+            value: self.value.to_dynamic(),
         }
     }
 }
@@ -479,7 +479,7 @@ struct SetDraftElement(Box<dyn PartialReflect>);
 
 impl Clone for SetDraftElement {
     fn clone(&self) -> Self {
-        Self(self.0.clone_value())
+        Self(self.0.to_dynamic())
     }
 }
 
@@ -775,7 +775,7 @@ impl InspectorUi<'_, '_> {
                     let default = self
                         .get_default_value_for(info.item_ty().id())
                         .map(|def| def.into_partial_reflect())
-                        .or_else(|| list.get(i).map(|v| v.clone_value()));
+                        .or_else(|| list.get(i).map(|v| v.to_dynamic()));
                     if let Some(new_value) = default {
                         list.insert(i, new_value);
                     } else {
@@ -791,7 +791,7 @@ impl InspectorUi<'_, '_> {
                     if let Some(prev_idx) = i.checked_sub(1) {
                         // Clone this element and insert it at its index - 1.
                         if let Some(element) = list.get(i) {
-                            let clone = element.clone_value();
+                            let clone = element.to_dynamic();
                             list.insert(prev_idx, clone);
                         }
                         // Remove the original, now at its index + 1.
@@ -802,7 +802,7 @@ impl InspectorUi<'_, '_> {
                 MoveElementDown(i) => {
                     // Clone the next element and insert it at this index.
                     if let Some(next_element) = list.get(i + 1) {
-                        let next_clone = next_element.clone_value();
+                        let next_clone = next_element.to_dynamic();
                         list.insert(i, next_clone);
                     }
                     // Remove the original, now at i + 2.
@@ -1075,7 +1075,7 @@ impl InspectorUi<'_, '_> {
         if let Some(index) = to_delete {
             // Can't have both an immutable borrow of the map's key,
             // and mutably borrow the map to delete the element.
-            let cloned_key = map.get_at(index).map(|(key, _)| key.clone_value());
+            let cloned_key = map.get_at(index).map(|(key, _)| key.to_dynamic());
             if let Some(key) = cloned_key {
                 map.remove(key.as_ref());
             }
@@ -1117,7 +1117,7 @@ impl InspectorUi<'_, '_> {
         use SetOp::*;
         match &op {
             AddElement(new_value) => {
-                set.insert_boxed(new_value.clone_value());
+                set.insert_boxed(new_value.to_dynamic());
             }
             RemoveElement(val) => {
                 set.remove(&**val);
@@ -1151,7 +1151,7 @@ impl InspectorUi<'_, '_> {
                     });
                     ui.horizontal_top(|ui| {
                         if remove_button(ui).on_hover_text("Remove element").clicked() {
-                            let copy = val.clone_value();
+                            let copy = val.to_dynamic();
                             op = Some(RemoveElement(copy));
                         }
                     });
@@ -1324,7 +1324,7 @@ impl InspectorUi<'_, '_> {
             };
             let value_type = set_info.value_ty();
             let reflected_values: Vec<Box<dyn PartialReflect>> =
-                set0.iter().map(|v| v.clone_value()).collect();
+                set0.iter().map(|v| v.to_dynamic()).collect();
 
             for (i, value_to_check) in reflected_values.iter().enumerate() {
                 let value_type_id = (**value_to_check).type_id();
@@ -1353,7 +1353,7 @@ impl InspectorUi<'_, '_> {
                         });
                         ui.horizontal_top(|ui| {
                             if remove_button(ui).on_hover_text("Remove element").clicked() {
-                                let copy = value_to_check.clone_value();
+                                let copy = value_to_check.to_dynamic();
                                 op = Some(RemoveElement(copy));
                             }
                         });
@@ -1804,7 +1804,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                             return Err(());
                         }
                     };
-                    dynamic_struct.insert_boxed(field.name(), field_default_value.clone_value());
+                    dynamic_struct.insert_boxed(field.name(), field_default_value.to_dynamic());
                 }
                 DynamicVariant::Struct(dynamic_struct)
             }
@@ -1818,7 +1818,7 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
                             return Err(());
                         }
                     };
-                    dynamic_tuple.insert_boxed(field_default_value.clone_value());
+                    dynamic_tuple.insert_boxed(field_default_value.to_dynamic());
                 }
                 DynamicVariant::Tuple(dynamic_tuple)
             }

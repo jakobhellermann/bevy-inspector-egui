@@ -95,6 +95,7 @@
 //!     let mut egui_context = world
 //!         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
 //!         .single(world)
+//!         .expect("EguiContext not found")
 //!         .clone();
 //!
 //!     egui::Window::new("UI").show(egui_context.get_mut(), |ui| {

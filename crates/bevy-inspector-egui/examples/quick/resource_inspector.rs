@@ -2,7 +2,7 @@ use bevy::input::common_conditions::input_toggle_active;
 use bevy::prelude::*;
 use bevy_inspector_egui::prelude::*;
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
-use bevy_utils::hashbrown::HashSet;
+use bevy_platform_support::collections::HashSet;
 
 #[derive(Reflect, Resource, Default, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]
@@ -22,11 +22,11 @@ fn main() {
         )
         //.init_resource::<Configuration>()
         .insert_resource(Configuration {
-            set: HashSet::from([
+            set: [
                 "Einar".to_string(),
                 "Olaf".to_string(),
                 "Harald".to_string(),
-            ]),
+            ].into_iter().collect(),
             ..default()
         })
         .register_type::<Configuration>()

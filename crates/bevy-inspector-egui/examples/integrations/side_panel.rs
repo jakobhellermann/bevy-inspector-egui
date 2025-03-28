@@ -23,6 +23,7 @@ fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities
     let mut egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .single(world)
+        .expect("EguiContext not found")
         .clone();
     egui::SidePanel::left("hierarchy")
         .default_width(200.0)

@@ -6,7 +6,7 @@ pub fn pretty_type_name_str(val: &str) -> String {
 }
 
 pub mod guess_entity_name {
-    use bevy_core::Name;
+    use bevy_ecs::prelude::Name;
     use bevy_ecs::{archetype::Archetype, prelude::*, world::unsafe_world_cell::UnsafeWorldCell};
 
     use crate::restricted_world_view::RestrictedWorldView;
@@ -25,7 +25,7 @@ pub mod guess_entity_name {
                     entity_ref.archetype(),
                 )
             }
-            Err(entity) => format!("Entity {} (inexistent)", entity.index()),
+            Err(_) => format!("Entity {} (inexistent)", entity.index()),
         }
     }
 
@@ -34,7 +34,7 @@ pub mod guess_entity_name {
         entity: Entity,
     ) -> String {
         match world.world().get_entity(entity) {
-            Some(cell) => {
+            Ok(cell) => {
                 if world.allows_access_to_component((entity, std::any::TypeId::of::<Name>())) {
                     // SAFETY: we have access and don't keep reference
                     if let Some(name) = unsafe { cell.get::<Name>() } {
@@ -43,7 +43,7 @@ pub mod guess_entity_name {
                 }
                 guess_entity_name_inner(world.world(), entity, cell.archetype())
             }
-            None => format!("Entity {} (inexistent)", entity.index()),
+            Err(_) => format!("Entity {} (inexistent)", entity.index()),
         }
     }
 

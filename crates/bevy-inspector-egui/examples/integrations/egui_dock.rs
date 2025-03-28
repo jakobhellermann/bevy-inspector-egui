@@ -88,7 +88,7 @@ struct MainCamera;
 fn show_ui_system(world: &mut World) {
     let Ok(egui_context) = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world)
+        .single(world)
     else {
         return;
     };
@@ -103,16 +103,15 @@ fn show_ui_system(world: &mut World) {
 fn set_camera_viewport(
     ui_state: Res<UiState>,
     primary_window: Query<&mut Window, With<PrimaryWindow>>,
-    egui_settings: Query<&EguiContextSettings>,
-    mut cameras: Query<&mut Camera, With<MainCamera>>,
+    egui_settings: Single<&EguiContextSettings>,
+    mut cam: Single<&mut Camera, With<MainCamera>>,
 ) {
-    let mut cam = cameras.single_mut();
 
-    let Ok(window) = primary_window.get_single() else {
+    let Ok(window) = primary_window.single() else {
         return;
     };
 
-    let scale_factor = window.scale_factor() * egui_settings.single().scale_factor;
+    let scale_factor = window.scale_factor() * egui_settings.scale_factor;
 
     let viewport_pos = ui_state.viewport_rect.left_top().to_vec2() * scale_factor;
     let viewport_size = ui_state.viewport_rect.size() * scale_factor;
@@ -290,7 +289,8 @@ fn draw_gizmo(
 ) {
     let (cam_transform, projection) = world
         .query_filtered::<(&GlobalTransform, &Projection), With<MainCamera>>()
-        .single(world);
+        .single(world)
+        .expect("Camera not found");
     let view_matrix = Mat4::from(cam_transform.affine().inverse());
     let projection_matrix = projection.get_clip_from_view();
 
@@ -476,6 +476,7 @@ fn setup(
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 0.02,
+        ..default()
     });
     // top light
     commands

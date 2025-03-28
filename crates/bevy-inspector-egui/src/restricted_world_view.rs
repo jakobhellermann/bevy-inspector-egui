@@ -366,9 +366,9 @@ impl<'w> RestrictedWorldView<'w> {
         let value = unsafe {
             self.world()
                 .get_entity(entity)
-                .ok_or(Error::ComponentDoesNotExist((entity, component)))?
+                .map_err(|_| Error::ComponentDoesNotExist((entity, component)))?
                 .get_mut_by_id(component_id)
-                .ok_or(Error::ComponentDoesNotExist((entity, component)))?
+                .map_err(|_| Error::ComponentDoesNotExist((entity, component)))?
         };
 
         // SAFETY: value is of type component
@@ -398,9 +398,9 @@ impl<'w> RestrictedWorldView<'w> {
         let value = unsafe {
             self.world()
                 .get_entity(entity)
-                .ok_or(Error::ComponentDoesNotExist((entity, component)))?
+                .map_err(|_| Error::ComponentDoesNotExist((entity, component)))?
                 .get_mut_by_id(component_id)
-                .ok_or(Error::ComponentDoesNotExist((entity, component)))?
+                .map_err(|_| Error::ComponentDoesNotExist((entity, component)))?
         };
 
         // SAFETY: value is of type component

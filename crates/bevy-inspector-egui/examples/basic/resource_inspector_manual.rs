@@ -42,6 +42,7 @@ fn inspector_ui(world: &mut World, mut disabled: Local<bool>) {
     let mut egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .single(world)
+        .expect("EguiContext not found")
         .clone();
 
     // the usual `ResourceInspector` code

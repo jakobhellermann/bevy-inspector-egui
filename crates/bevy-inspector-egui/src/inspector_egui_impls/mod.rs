@@ -5,7 +5,7 @@ use crate::{
     utils::pretty_type_name,
 };
 use bevy_reflect::{FromType, PartialReflect, Reflect, TypePath, TypeRegistry};
-use bevy_utils::Instant;
+use bevy_platform_support::time::Instant;
 use std::{
     any::{Any, TypeId},
     borrow::Cow,

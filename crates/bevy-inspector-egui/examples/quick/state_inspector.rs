@@ -34,7 +34,7 @@ fn set_color<const R: u8, const G: u8, const B: u8>(
     mut commands: Commands,
 ) {
     let color = Color::srgb_u8(R, G, B);
-    if let Ok(mut sprite) = sprite.get_single_mut() {
+    if let Ok(mut sprite) = sprite.single_mut() {
         sprite.color = color;
     } else {
         commands.spawn(Camera2d);

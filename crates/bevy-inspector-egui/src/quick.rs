@@ -11,7 +11,6 @@ use std::{marker::PhantomData, sync::Mutex};
 use crate::{bevy_inspector::Filter, utils::pretty_type_name};
 use bevy_app::{App, MainScheduleOrder, Plugin, Update};
 use bevy_asset::Asset;
-use bevy_core::TypeRegistrationPlugin;
 use bevy_ecs::{
     prelude::*,
     query::QueryFilter,
@@ -101,7 +100,7 @@ impl Plugin for WorldInspectorPlugin {
 fn world_inspector_ui(world: &mut World) {
     let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world);
+        .single(world);
 
     let Ok(egui_context) = egui_context else {
         return;
@@ -202,7 +201,7 @@ impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
 fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
     let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world);
+        .single(world);
 
     let Ok(egui_context) = egui_context else {
         return;
@@ -301,7 +300,7 @@ impl<T: FreelyMutableState + Reflect> Plugin for StateInspectorPlugin<T> {
 fn state_ui<T: FreelyMutableState + Reflect>(world: &mut World) {
     let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world);
+        .single(world);
 
     let Ok(egui_context) = egui_context else {
         return;
@@ -388,7 +387,7 @@ impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
 fn asset_inspector_ui<A: Asset + Reflect>(world: &mut World) {
     let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world);
+        .single(world);
 
     let Ok(egui_context) = egui_context else {
         return;
@@ -474,7 +473,7 @@ where
 fn entity_query_ui<F: QueryFilter>(world: &mut World) {
     let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world);
+        .single(world);
 
     let Ok(egui_context) = egui_context else {
         return;
@@ -492,7 +491,7 @@ fn entity_query_ui<F: QueryFilter>(world: &mut World) {
 }
 
 fn check_default_plugins(app: &bevy_app::App, name: &str) {
-    if !app.is_plugin_added::<TypeRegistrationPlugin>() {
+    if !app.is_plugin_added::<bevy_app::MainSchedulePlugin>() {
         panic!(
             r#"`{name}` should be added after the default plugins:
         .add_plugins(DefaultPlugins)
