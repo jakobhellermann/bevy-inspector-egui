@@ -106,7 +106,6 @@ fn set_camera_viewport(
     egui_settings: Single<&EguiContextSettings>,
     mut cam: Single<&mut Camera, With<MainCamera>>,
 ) {
-
     let Ok(window) = primary_window.single() else {
         return;
     };

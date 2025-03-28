@@ -24,7 +24,9 @@ impl Default for Config {
             font_size: 0.,
             option: None,
             vec: Vec::default(),
-            hash_map: [(0, "foo".to_owned()), (1, "bar".to_owned())].into_iter().collect(),
+            hash_map: [(0, "foo".to_owned()), (1, "bar".to_owned())]
+                .into_iter()
+                .collect(),
         }
     }
 }

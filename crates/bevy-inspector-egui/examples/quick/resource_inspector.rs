@@ -26,7 +26,9 @@ fn main() {
                 "Einar".to_string(),
                 "Olaf".to_string(),
                 "Harald".to_string(),
-            ].into_iter().collect(),
+            ]
+            .into_iter()
+            .collect(),
             ..default()
         })
         .register_type::<Configuration>()

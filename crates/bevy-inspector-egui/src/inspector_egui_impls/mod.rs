@@ -4,8 +4,8 @@ use crate::{
     reflect_inspector::{errors::no_multiedit, InspectorUi, ProjectorReflect},
     utils::pretty_type_name,
 };
-use bevy_reflect::{FromType, PartialReflect, Reflect, TypePath, TypeRegistry};
 use bevy_platform_support::time::Instant;
+use bevy_reflect::{FromType, PartialReflect, Reflect, TypePath, TypeRegistry};
 use std::{
     any::{Any, TypeId},
     borrow::Cow,

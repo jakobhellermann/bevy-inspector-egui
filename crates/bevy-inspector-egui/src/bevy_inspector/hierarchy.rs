@@ -61,7 +61,9 @@ impl<T> Hierarchy<'_, T> {
         QF: QueryFilter,
         F: EntityFilter,
     {
-        let mut root_query = self.world.query_filtered::<Entity, (Without<ChildOf>, QF)>();
+        let mut root_query = self
+            .world
+            .query_filtered::<Entity, (Without<ChildOf>, QF)>();
 
         let always_open: HashSet<Entity> = self
             .selected
