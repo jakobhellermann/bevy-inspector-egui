@@ -76,6 +76,7 @@ bevy = { version = "0.16.0-rc", default-features = false, features = [
     "std",
     "x11",
     "bevy_winit",
+    "bevy_state",
     "bevy_window",
     "bevy_pbr",
     "bevy_sprite",
