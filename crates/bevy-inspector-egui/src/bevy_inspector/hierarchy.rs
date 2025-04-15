@@ -70,7 +70,7 @@ impl<T> Hierarchy<'_, T> {
             .iter()
             .flat_map(|selected| {
                 std::iter::successors(Some(selected), |&entity| {
-                    self.world.get::<ChildOf>(entity).map(|c| c.parent)
+                    self.world.get::<ChildOf>(entity).map(|c| c.0)
                 })
                 .skip(1)
             })
