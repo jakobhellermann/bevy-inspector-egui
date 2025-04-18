@@ -1,8 +1,8 @@
 use bevy::input::common_conditions::input_toggle_active;
 use bevy::prelude::*;
 
-use bevy_inspector_egui::{bevy_egui::EguiPlugin, prelude::*};
 use bevy_inspector_egui::quick::ResourceInspectorPlugin;
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, prelude::*};
 use bevy_platform::collections::HashSet;
 
 #[derive(Reflect, Resource, Default, InspectorOptions)]
@@ -17,7 +17,9 @@ struct Configuration {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(EguiPlugin { enable_multipass_for_primary_context: true })
+        .add_plugins(EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
         .add_plugins(
             ResourceInspectorPlugin::<Configuration>::default()
                 .run_if(input_toggle_active(true, KeyCode::Escape)),

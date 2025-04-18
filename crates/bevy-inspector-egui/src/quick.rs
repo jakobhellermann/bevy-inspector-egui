@@ -11,11 +11,7 @@ use std::{marker::PhantomData, sync::Mutex};
 use crate::{bevy_inspector::Filter, utils::pretty_type_name};
 use bevy_app::Plugin;
 use bevy_asset::Asset;
-use bevy_ecs::{
-    prelude::*,
-    query::QueryFilter,
-    schedule::BoxedCondition,
-};
+use bevy_ecs::{prelude::*, query::QueryFilter, schedule::BoxedCondition};
 use bevy_egui::{EguiContext, EguiContextPass, EguiPlugin};
 use bevy_reflect::Reflect;
 use bevy_state::state::FreelyMutableState;
@@ -39,7 +35,6 @@ const DEFAULT_SIZE: (f32, f32) = (320., 160.);
 //             .insert_after(Update, Inspect);
 //     }
 // }
-
 
 /// Plugin displaying a egui window with an entity list, resources and assets
 ///

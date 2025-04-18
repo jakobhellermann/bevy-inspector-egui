@@ -25,16 +25,15 @@ struct GizmoMode;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        // .add_plugins(bevy_framepace::FramepacePlugin) // reduces input lag        
-        .add_plugins(bevy_egui::EguiPlugin { enable_multipass_for_primary_context: true })
+        // .add_plugins(bevy_framepace::FramepacePlugin) // reduces input lag
+        .add_plugins(bevy_egui::EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
         .add_plugins(DefaultInspectorConfigPlugin)
         // .add_plugins(bevy_mod_picking::plugins::DefaultPickingPlugins)
         .insert_resource(UiState::new())
         .add_systems(Startup, setup)
-        .add_systems(
-            EguiContextPass,
-            show_ui_system
-        )
+        .add_systems(EguiContextPass, show_ui_system)
         .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
         .add_systems(Update, set_gizmo_mode)
         // .add_systems(Update, auto_add_raycast_target)

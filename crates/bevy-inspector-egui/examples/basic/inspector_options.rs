@@ -69,7 +69,9 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(DefaultInspectorConfigPlugin)
-        .add_plugins(bevy_egui::EguiPlugin { enable_multipass_for_primary_context: true })
+        .add_plugins(bevy_egui::EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
         // types need to be registered
         .init_resource::<UiData>()
         .register_type::<Config>()
