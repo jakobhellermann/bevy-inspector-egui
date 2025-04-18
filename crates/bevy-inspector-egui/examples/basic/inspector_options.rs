@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_egui::EguiContext;
 use bevy_inspector_egui::inspector_options::std_options::NumberDisplay;
 use bevy_inspector_egui::{prelude::*, DefaultInspectorConfigPlugin};
-use bevy_platform_support::collections::HashMap;
+use bevy_platform::collections::HashMap;
 use bevy_window::PrimaryWindow;
 
 #[derive(Reflect, InspectorOptions)]
@@ -69,7 +69,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(DefaultInspectorConfigPlugin)
-        .add_plugins(bevy_egui::EguiPlugin)
+        .add_plugins(bevy_egui::EguiPlugin { enable_multipass_for_primary_context: true })
         // types need to be registered
         .init_resource::<UiData>()
         .register_type::<Config>()

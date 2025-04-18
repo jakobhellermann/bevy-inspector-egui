@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_asset::{ReflectAsset, UntypedAssetId};
-use bevy_egui::{EguiContext, EguiContextSettings, EguiPostUpdateSet};
+use bevy_egui::{EguiContext, EguiContextPass, EguiContextSettings};
 use bevy_inspector_egui::bevy_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
 use bevy_inspector_egui::bevy_inspector::{
     self, ui_for_entities_shared_components, ui_for_entity_with_children,
@@ -25,18 +25,15 @@ struct GizmoMode;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        // .add_plugins(bevy_framepace::FramepacePlugin) // reduces input lag
+        // .add_plugins(bevy_framepace::FramepacePlugin) // reduces input lag        
+        .add_plugins(bevy_egui::EguiPlugin { enable_multipass_for_primary_context: true })
         .add_plugins(DefaultInspectorConfigPlugin)
-        .add_plugins(bevy_egui::EguiPlugin)
         // .add_plugins(bevy_mod_picking::plugins::DefaultPickingPlugins)
         .insert_resource(UiState::new())
         .add_systems(Startup, setup)
         .add_systems(
-            PostUpdate,
+            EguiContextPass,
             show_ui_system
-                .before(EguiPostUpdateSet::ProcessOutput)
-                .before(bevy_egui::end_pass_system)
-                .before(bevy::transform::TransformSystem::TransformPropagate),
         )
         .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
         .add_systems(Update, set_gizmo_mode)

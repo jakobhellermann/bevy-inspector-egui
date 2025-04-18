@@ -1,6 +1,6 @@
 use std::{borrow::Cow, ops::AddAssign, path::PathBuf};
 
-use bevy_platform_support::time::Instant;
+use bevy_platform::time::Instant;
 use bevy_reflect::{PartialReflect, Reflect, TypePath};
 use egui::{DragValue, RichText, TextBuffer};
 

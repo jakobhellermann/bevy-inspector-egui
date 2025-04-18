@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::StateInspectorPlugin;
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::StateInspectorPlugin};
 use bevy_state::{
     app::AppExtStates,
     state::{OnEnter, States},
@@ -8,6 +8,7 @@ use bevy_state::{
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(EguiPlugin { enable_multipass_for_primary_context: true })
         .insert_resource(ClearColor(Color::BLACK))
         .init_state::<AppState>()
         .register_type::<AppState>()
