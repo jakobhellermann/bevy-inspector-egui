@@ -1,7 +1,7 @@
 [package]
 name = "bevy-inspector-egui"
-version = "0.30.0"
-edition = "2021"
+version = "0.31.0"
+edition = "2024"
 repository = "https://github.com/jakobhellermann/bevy-inspector-egui/"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
@@ -37,7 +37,7 @@ features = ["winit/x11"]
 [dependencies]
 winit = { version = "0.30.0", default-features = false }
 
-bevy-inspector-egui-derive = { version = "0.30.0", path = "../bevy-inspector-egui-derive" }
+bevy-inspector-egui-derive = { version = "0.31.0", path = "../bevy-inspector-egui-derive" }
 bevy_app = { version = "0.16.0" }
 bevy_asset = { version = "0.16.0" }
 bevy_color = { version = "0.16.0" }

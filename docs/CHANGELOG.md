@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.31.0
+- update to `bevy 0.16`
+
+## Version 0.30.0
+- add docs and labels for types without fields
+- allow color grading controls with negative numbers
+- `bevy_egui 0.33` and `egui 0.31`
+- fix panic on unsupported color type
+
 ## Version 0.29.1
 - add enabled-by-default `documentation` feature, which will display docs for reflected components on hover 
 
