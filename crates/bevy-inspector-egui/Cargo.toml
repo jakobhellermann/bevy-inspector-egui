@@ -87,6 +87,8 @@ bevy = { version = "0.17.0", default-features = false, features = [
     "bevy_text",
     "bevy_core_pipeline",
     "bevy_picking",
+    "bevy_gizmos",
+    "bevy_mesh_picking_backend",
     "animation",
     "png",
     "zstd_rust",
