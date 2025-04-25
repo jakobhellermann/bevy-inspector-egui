@@ -466,7 +466,6 @@ fn check_plugins(app: &bevy_app::App, name: &str) {
         .add_plugins(EguiPlugin {{ .. }})
         .add_plugins({name}::default())
             "#,
-            name = name,
         );
     }
 
@@ -476,7 +475,6 @@ fn check_plugins(app: &bevy_app::App, name: &str) {
         .add_plugins(EguiPlugin {{ enable_multipass_for_primary_context: true }})
         .add_plugins({name}::default())
             "#,
-            name = name,
         );
     }
 }

@@ -517,7 +517,7 @@ fn ui_for_entity_with_children_inner<F>(
 
     let children = world
         .get::<Children>(entity)
-        .map(|children| children.iter().into_iter().collect::<Vec<_>>());
+        .map(|children| children.iter().collect::<Vec<_>>());
     if let Some(mut children) = children {
         if !children.is_empty() {
             filter.filter_entities(world, &mut children);
@@ -982,7 +982,7 @@ fn handle_name(handle: UntypedAssetId, asset_server: Option<&AssetServer>) -> St
             format!("{:?}", egui::Id::new(index))
         }
         UntypedAssetId::Uuid { uuid, .. } => {
-            format!("{}", uuid)
+            format!("{uuid}")
         }
     }
 }
