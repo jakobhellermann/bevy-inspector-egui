@@ -148,5 +148,9 @@ name = "egui_dock"
 path = "examples/integrations/egui_dock.rs"
 
 [[example]]
+name = "egui_tiles"
+path = "examples/integrations/egui_tiles.rs"
+
+[[example]]
 name = "side_panel"
 path = "examples/integrations/side_panel.rs"

@@ -5,9 +5,11 @@ use bevy::{
     prelude::*,
 };
 use bevy_camera::{Viewport, visibility::RenderLayers};
-use bevy_egui::{EguiGlobalSettings, EguiPrimaryContextPass, PrimaryEguiContext};
+use bevy_egui::{
+    EguiContext, EguiContextSettings, EguiGlobalSettings, EguiPrimaryContextPass,
+    PrimaryEguiContext,
+};
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
-use bevy_inspector_egui::bevy_egui::{EguiContext, EguiContextSettings};
 use bevy_inspector_egui::bevy_inspector::hierarchy::{SelectedEntities, hierarchy_ui};
 use bevy_inspector_egui::bevy_inspector::{
     self, ui_for_entities_shared_components, ui_for_entity_with_children,
@@ -15,7 +17,7 @@ use bevy_inspector_egui::bevy_inspector::{
 use bevy_reflect::TypeRegistry;
 use bevy_window::{PrimaryWindow, Window};
 use egui::LayerId;
-use egui_dock::{DockArea, DockState, NodeIndex, Style};
+use egui_tiles::TileId;
 use std::any::TypeId;
 use transform_gizmo_bevy::{GizmoCamera, GizmoTarget, TransformGizmoPlugin};
 
@@ -137,7 +139,7 @@ enum InspectorSelection {
 
 #[derive(Resource)]
 struct UiState {
-    state: DockState<EguiWindow>,
+    state: egui_tiles::Tree<EguiWindow>,
     viewport_rect: egui::Rect,
     selected_entities: SelectedEntities,
     selection: InspectorSelection,
@@ -146,16 +148,37 @@ struct UiState {
 
 impl UiState {
     pub fn new() -> Self {
-        let mut state = DockState::new(vec![EguiWindow::GameView]);
-        let tree = state.main_surface_mut();
-        let [game, _inspector] =
-            tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
-        let [game, _hierarchy] = tree.split_left(game, 0.2, vec![EguiWindow::Hierarchy]);
-        let [_game, _bottom] =
-            tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Assets]);
+        let mut tiles = egui_tiles::Tiles::default();
+
+        let left = vec![tiles.insert_pane(EguiWindow::Hierarchy)];
+        let left = tiles.insert_tab_tile(left);
+
+        let center = vec![tiles.insert_pane(EguiWindow::GameView)];
+        let center = tiles.insert_tab_tile(center);
+
+        let right = vec![tiles.insert_pane(EguiWindow::Inspector)];
+        let right = tiles.insert_tab_tile(right);
+
+        let bottom = vec![
+            tiles.insert_pane(EguiWindow::Resources),
+            tiles.insert_pane(EguiWindow::Assets),
+        ];
+        let bottom = tiles.insert_tab_tile(bottom);
+
+        let lc = vec![left, center];
+        let lc = tiles.insert_horizontal_tile(lc);
+        set_linear_share(&mut tiles, lc, center, 4.);
+
+        let lcb = vec![lc, bottom];
+        let lcb = tiles.insert_vertical_tile(lcb);
+        set_linear_share(&mut tiles, lcb, lc, 4.);
+
+        let all = vec![lcb, right];
+        let all = tiles.insert_horizontal_tile(all);
+        set_linear_share(&mut tiles, all, lcb, 4.);
 
         Self {
-            state,
+            state: egui_tiles::Tree::new("tiles", all, tiles),
             selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,
             viewport_rect: egui::Rect::NOTHING,
@@ -171,9 +194,18 @@ impl UiState {
             selection: &mut self.selection,
             pointer_in_viewport: &mut self.pointer_in_viewport,
         };
-        DockArea::new(&mut self.state)
-            .style(Style::from_egui(ctx.style().as_ref()))
-            .show(ctx, &mut tab_viewer);
+
+        egui::CentralPanel::default()
+            .frame(egui::Frame::NONE)
+            .show(&ctx, |ui| {
+                self.state.ui(&mut tab_viewer, ui);
+            });
+    }
+}
+
+impl Default for UiState {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -194,14 +226,27 @@ struct TabViewer<'a> {
     pointer_in_viewport: &'a mut bool,
 }
 
-impl egui_dock::TabViewer for TabViewer<'_> {
-    type Tab = EguiWindow;
+impl egui_tiles::Behavior<EguiWindow> for TabViewer<'_> {
+    fn pane_ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: egui_tiles::TileId,
+        window: &mut EguiWindow,
+    ) -> egui_tiles::UiResponse {
+        if !matches!(window, EguiWindow::GameView) {
+            ui.painter().rect(
+                ui.available_rect_before_wrap(),
+                0.0,
+                ui.style().visuals.panel_fill,
+                egui::Stroke::NONE,
+                egui::StrokeKind::Outside,
+            );
+        }
 
-    fn ui(&mut self, ui: &mut egui_dock::egui::Ui, window: &mut Self::Tab) {
         let type_registry = self.world.resource::<AppTypeRegistry>().0.clone();
         let type_registry = type_registry.read();
 
-        match window {
+        match *window {
             EguiWindow::GameView => *self.viewport_rect = ui.clip_rect(),
             EguiWindow::Hierarchy => {
                 let selected = hierarchy_ui(self.world, ui, self.selected_entities);
@@ -242,14 +287,19 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         *self.pointer_in_viewport = ui
             .ctx()
             .rect_contains_pointer(LayerId::background(), self.viewport_rect.shrink(16.));
+
+        egui_tiles::UiResponse::None
     }
 
-    fn title(&mut self, window: &mut Self::Tab) -> egui_dock::egui::WidgetText {
-        format!("{window:?}").into()
+    fn tab_title_for_pane(&mut self, pane: &EguiWindow) -> egui::WidgetText {
+        format!("{pane:?}").into()
     }
 
-    fn clear_background(&self, window: &Self::Tab) -> bool {
-        !matches!(window, EguiWindow::GameView)
+    fn simplification_options(&self) -> egui_tiles::SimplificationOptions {
+        egui_tiles::SimplificationOptions {
+            prune_single_child_tabs: false,
+            ..default()
+        }
     }
 }
 
@@ -461,4 +511,25 @@ fn setup(
             ..default()
         },
     ));
+}
+
+#[track_caller]
+fn set_linear_share<Pane>(
+    tiles: &mut egui_tiles::Tiles<Pane>,
+    container: TileId,
+    tab: TileId,
+    share: f32,
+) {
+    match tiles.get_mut(container).unwrap() {
+        egui_tiles::Tile::Container(egui_tiles::Container::Linear(linear)) => {
+            /*if !linear.shares.iter().find(|&(&x, _)| x == tab).is_some() {
+                panic!(
+                    "Expected {tab:?} in {container:?}, found {:?}",
+                    linear.shares.iter().collect::<Vec<_>>()
+                );
+            }*/
+            linear.shares.set_share(tab, share)
+        }
+        _ => unreachable!(),
+    }
 }
