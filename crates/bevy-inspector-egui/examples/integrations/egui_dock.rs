@@ -1,78 +1,72 @@
-use std::any::TypeId;
-
 use bevy::{
     asset::{ReflectAsset, UntypedAssetId},
+    color::palettes::tailwind::*,
+    picking::pointer::{PointerAction, PointerInput, PointerInteraction},
     prelude::*,
-    reflect::TypeRegistry,
 };
 use bevy_camera::{Viewport, visibility::RenderLayers};
-use bevy_egui::EguiGlobalSettings;
-use bevy_inspector_egui::{
-    DefaultInspectorConfigPlugin,
-    bevy_egui::{EguiContext, EguiContextSettings, EguiPrimaryContextPass, PrimaryEguiContext},
-    bevy_inspector::{
-        self,
-        hierarchy::{SelectedEntities, hierarchy_ui},
-        ui_for_entities_shared_components, ui_for_entity_with_children,
-    },
+use bevy_egui::{EguiGlobalSettings, EguiPrimaryContextPass, PrimaryEguiContext};
+use bevy_inspector_egui::DefaultInspectorConfigPlugin;
+use bevy_inspector_egui::bevy_egui::input::EguiWantsInput;
+use bevy_inspector_egui::bevy_egui::{EguiContext, EguiContextSettings};
+use bevy_inspector_egui::bevy_inspector::hierarchy::{SelectedEntities, hierarchy_ui};
+use bevy_inspector_egui::bevy_inspector::{
+    self, ui_for_entities_shared_components, ui_for_entity_with_children,
 };
-
-use bevy_window::PrimaryWindow;
+use bevy_reflect::TypeRegistry;
+use bevy_window::{PrimaryWindow, Window};
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
-// use transform_gizmo_egui::{Gizmo, GizmoConfig, GizmoExt, GizmoOrientation};
+use std::any::TypeId;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(MeshPickingPlugin)
         // .add_plugins(bevy_framepace::FramepacePlugin) // reduces input lag
         .add_plugins(bevy_egui::EguiPlugin::default())
         .add_plugins(DefaultInspectorConfigPlugin)
-        // .add_plugins(bevy_mod_picking::plugins::DefaultPickingPlugins)
         .insert_resource(UiState::new())
         .add_systems(Startup, setup)
         .add_systems(EguiPrimaryContextPass, show_ui_system)
         .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
-        // .add_systems(Update, auto_add_raycast_target)
-        // .add_systems(Update, handle_pick_events)
+        .add_systems(Update, draw_mesh_intersections)
+        .add_systems(
+            PostUpdate,
+            handle_pick_events.run_if(|e: Res<EguiWantsInput>| !e.is_using_pointer()),
+        )
         .register_type::<Option<Handle<Image>>>()
         .register_type::<AlphaMode>()
         .run();
 }
 
-/*
-fn auto_add_raycast_target(
-    mut commands: Commands,
-    query: Query<Entity, (Without<PickRaycastTarget>, With<Handle<Mesh>>)>,
-) {
-    for entity in &query {
-        commands
-            .entity(entity)
-            .insert((PickRaycastTarget::default(), PickableBundle::default()));
+fn draw_mesh_intersections(pointers: Query<&PointerInteraction>, mut gizmos: Gizmos) {
+    for (point, normal) in pointers
+        .iter()
+        .filter_map(|interaction| interaction.get_nearest_hit())
+        .filter_map(|(_entity, hit)| hit.position.zip(hit.normal))
+    {
+        gizmos.sphere(point, 0.05, RED_500);
+        gizmos.arrow(point, point + normal.normalize() * 0.5, PINK_100);
     }
 }
 
 fn handle_pick_events(
     mut ui_state: ResMut<UiState>,
-    mut click_events: EventReader<PointerClick>,
-    mut egui: ResMut<EguiContext>,
-    egui_entity: Query<&EguiPointer>,
+    mut click_events: MessageReader<PointerInput>,
+    pointers: Query<&PointerInteraction>,
+    button: Res<ButtonInput<KeyCode>>,
 ) {
-    let egui_context = egui.ctx_mut();
-
-    for click in click_events.iter() {
-        if egui_entity.get(click.target()).is_ok() {
-            continue;
-        };
-
-        let modifiers = egui_context.input().modifiers;
-        let add = modifiers.ctrl || modifiers.shift;
-
-        ui_state
-            .selected_entities
-            .select_maybe_add(click.target(), add);
+    for event in click_events.read() {
+        if let PointerAction::Press(PointerButton::Primary) = event.action {
+            for interaction in pointers {
+                for (entity, _) in interaction.as_slice() {
+                    let add = button.any_pressed([KeyCode::ControlLeft, KeyCode::ShiftLeft]);
+                    ui_state.selected_entities.select_maybe_add(*entity, add);
+                }
+            }
+        }
     }
 }
-*/
 
 #[derive(Component)]
 struct MainCamera;
