@@ -1,6 +1,7 @@
 use bevy::input::common_conditions::input_toggle_active;
 use bevy::prelude::*;
-use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
+use bevy_egui::EguiPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 fn main() {
     App::new()

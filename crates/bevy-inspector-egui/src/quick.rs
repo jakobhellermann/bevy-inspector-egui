@@ -74,12 +74,11 @@ impl WorldInspectorPlugin {
 
 impl Plugin for WorldInspectorPlugin {
     fn build(&self, app: &mut bevy_app::App) {
-        check_default_plugins(app, "WorldInspectorPlugin");
+        check_plugins(app, "WorldInspectorPlugin");
 
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
-        assert!(app.is_plugin_added::<EguiPlugin>());
 
         let condition = self.condition.lock().unwrap().take();
         let mut system = world_inspector_ui.into_configs();
@@ -170,12 +169,11 @@ impl<T> ResourceInspectorPlugin<T> {
 
 impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
     fn build(&self, app: &mut bevy_app::App) {
-        check_default_plugins(app, "ResourceInspectorPlugin");
+        check_plugins(app, "ResourceInspectorPlugin");
 
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
-        assert!(app.is_plugin_added::<EguiPlugin>());
 
         let condition = self.condition.lock().unwrap().take();
         let mut system = inspector_ui::<T>.into_configs();
@@ -264,12 +262,11 @@ impl<T> StateInspectorPlugin<T> {
 
 impl<T: FreelyMutableState + Reflect> Plugin for StateInspectorPlugin<T> {
     fn build(&self, app: &mut bevy_app::App) {
-        check_default_plugins(app, "StateInspectorPlugin");
+        check_plugins(app, "StateInspectorPlugin");
 
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
-        assert!(app.is_plugin_added::<EguiPlugin>());
 
         let condition = self.condition.lock().unwrap().take();
         let mut system = state_ui::<T>.into_configs();
@@ -346,12 +343,11 @@ impl<A> AssetInspectorPlugin<A> {
 
 impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
     fn build(&self, app: &mut bevy_app::App) {
-        check_default_plugins(app, "AssetInspectorPlugin");
+        check_plugins(app, "AssetInspectorPlugin");
 
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
-        assert!(app.is_plugin_added::<EguiPlugin>());
 
         let condition = self.condition.lock().unwrap().take();
         let mut system = asset_inspector_ui::<A>.into_configs();
@@ -426,12 +422,11 @@ where
     F: QueryFilter,
 {
     fn build(&self, app: &mut bevy_app::App) {
-        check_default_plugins(app, "FilterQueryInspectorPlugin");
+        check_plugins(app, "FilterQueryInspectorPlugin");
 
         if !app.is_plugin_added::<DefaultInspectorConfigPlugin>() {
             app.add_plugins(DefaultInspectorConfigPlugin);
         }
-        assert!(app.is_plugin_added::<EguiPlugin>());
 
         let condition: Option<Box<dyn ReadOnlySystem<In = (), Out = bool>>> =
             self.condition.lock().unwrap().take();
@@ -463,11 +458,22 @@ fn entity_query_ui<F: QueryFilter>(world: &mut World) {
         });
 }
 
-fn check_default_plugins(app: &bevy_app::App, name: &str) {
+fn check_plugins(app: &bevy_app::App, name: &str) {
     if !app.is_plugin_added::<bevy_app::MainSchedulePlugin>() {
         panic!(
             r#"`{name}` should be added after the default plugins:
         .add_plugins(DefaultPlugins)
+        .add_plugins(EguiPlugin {{ .. }})
+        .add_plugins({name}::default())
+            "#,
+            name = name,
+        );
+    }
+
+    if !app.is_plugin_added::<EguiPlugin>() {
+        panic!(
+            r#"`{name}` needs to be added after `EguiPlugin`:
+        .add_plugins(EguiPlugin {{ enable_multipass_for_primary_context: true }})
         .add_plugins({name}::default())
             "#,
             name = name,
