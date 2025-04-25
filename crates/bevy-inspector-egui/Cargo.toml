@@ -38,27 +38,29 @@ features = ["winit/x11"]
 winit = { version = "0.30.0", default-features = false }
 
 bevy-inspector-egui-derive = { version = "0.30.0", path = "../bevy-inspector-egui-derive" }
-bevy_app = { version = "0.15.0" }
-bevy_asset = { version = "0.15.0" }
-bevy_color = { version = "0.15.0" }
-bevy_core = { version = "0.15.0" }
-bevy_ecs = { version = "0.15.0" }
-bevy_hierarchy = { version = "0.15.0" }
-bevy_log = { version = "0.15.0" }
-bevy_math = { version = "0.15.0" }
-bevy_reflect = { version = "0.15.0" }
-bevy_state = { version = "0.15.0" }
-bevy_time = { version = "0.15.0" }
-bevy_utils = { version = "0.15.0" }
-bevy_window = { version = "0.15.0" }
+bevy_app = { version = "0.16.0" }
+bevy_asset = { version = "0.16.0" }
+bevy_color = { version = "0.16.0" }
+bevy_platform = { version = "0.16.0" }
+#bevy_core = { version = "0.16.0" }
+bevy_ecs = { version = "0.16.0" }
+#bevy_hierarchy = { version = "0.16.0" }
+bevy_log = { version = "0.16.0" }
+bevy_math = { version = "0.16.0" }
+bevy_reflect = { version = "0.16.0" }
+bevy_state = { version = "0.16.0" }
+bevy_time = { version = "0.16.0" }
+bevy_utils = { version = "0.16.0" }
+bevy_window = { version = "0.16.0" }
 
-bevy_render = { version = "0.15.0", optional = true }
-bevy_core_pipeline = { version = "0.15.0", optional = true }
-bevy_pbr = { version = "0.15.0", optional = true }
-bevy_image = { version = "0.15.0", optional = true }
+bevy_render = { version = "0.16.0", optional = true }
+bevy_core_pipeline = { version = "0.16.0", optional = true }
+bevy_pbr = { version = "0.16.0", optional = true }
+bevy_image = { version = "0.16.0", optional = true }
 
 egui = "0.31"
-bevy_egui = { version = "0.33", default-features = false }
+
+bevy_egui = { version = "0.34.0", default-features = false }
 
 bytemuck = "1.16.0"
 image = { version = "0.25", default-features = false }
@@ -69,13 +71,16 @@ disqualified = "1.0.0"
 uuid = "1.11.0"
 
 [dev-dependencies]
-bevy = { version = "0.15.0", default-features = false, features = [
+bevy = { version = "0.16.0", default-features = false, features = [
+    "std",
     "x11",
     "bevy_winit",
+    "bevy_state",
     "bevy_window",
     "bevy_pbr",
     "bevy_sprite",
     "bevy_core_pipeline",
+    "bevy_picking",
     "animation",
     "png",
     "zstd",

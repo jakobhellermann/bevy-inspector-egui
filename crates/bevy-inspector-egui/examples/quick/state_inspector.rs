@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::StateInspectorPlugin;
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::StateInspectorPlugin};
 use bevy_state::{
     app::AppExtStates,
     state::{OnEnter, States},
@@ -8,6 +8,9 @@ use bevy_state::{
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
         .insert_resource(ClearColor(Color::BLACK))
         .init_state::<AppState>()
         .register_type::<AppState>()
@@ -34,7 +37,7 @@ fn set_color<const R: u8, const G: u8, const B: u8>(
     mut commands: Commands,
 ) {
     let color = Color::srgb_u8(R, G, B);
-    if let Ok(mut sprite) = sprite.get_single_mut() {
+    if let Ok(mut sprite) = sprite.single_mut() {
         sprite.color = color;
     } else {
         commands.spawn(Camera2d);

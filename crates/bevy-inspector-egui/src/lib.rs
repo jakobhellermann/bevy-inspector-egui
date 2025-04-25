@@ -76,7 +76,7 @@
 //!
 //! ```no_run
 //! use bevy::prelude::*;
-//! use bevy_egui::{EguiPlugin, EguiContext};
+//! use bevy_egui::{EguiPlugin, EguiContext, EguiContextPass};
 //! use bevy_inspector_egui::prelude::*;
 //! use bevy_inspector_egui::bevy_inspector;
 //! use bevy_window::PrimaryWindow;
@@ -85,9 +85,9 @@
 //! fn main() {
 //!     App::new()
 //!         .add_plugins(DefaultPlugins)
-//!         .add_plugins(EguiPlugin)
+//!         .add_plugins(EguiPlugin { enable_multipass_for_primary_context: true })
 //!         .add_plugins(bevy_inspector_egui::DefaultInspectorConfigPlugin) // adds default options and `InspectorEguiImpl`s
-//!         .add_systems(Update, inspector_ui)
+//!         .add_systems(EguiContextPass, inspector_ui)
 //!         .run();
 //! }
 //!
@@ -95,6 +95,7 @@
 //!     let mut egui_context = world
 //!         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
 //!         .single(world)
+//!         .expect("EguiContext not found")
 //!         .clone();
 //!
 //!     egui::Window::new("UI").show(egui_context.get_mut(), |ui| {

@@ -172,7 +172,7 @@ pub fn try_into_dynamic(image: &Image) -> Option<(DynamicImage, bool)> {
             DynamicImage::ImageLuma8(ImageBuffer::from_raw(
                 image.texture_descriptor.size.width,
                 image.texture_descriptor.size.height,
-                image.data.clone(),
+                image.data.as_ref()?.clone(),
             )?),
             false,
         ),
@@ -180,7 +180,7 @@ pub fn try_into_dynamic(image: &Image) -> Option<(DynamicImage, bool)> {
             DynamicImage::ImageLumaA8(ImageBuffer::from_raw(
                 image.texture_descriptor.size.width,
                 image.texture_descriptor.size.height,
-                image.data.clone(),
+                image.data.as_ref()?.clone(),
             )?),
             false,
         ),
@@ -188,7 +188,7 @@ pub fn try_into_dynamic(image: &Image) -> Option<(DynamicImage, bool)> {
             DynamicImage::ImageRgba8(ImageBuffer::from_raw(
                 image.texture_descriptor.size.width,
                 image.texture_descriptor.size.height,
-                image.data.clone(),
+                image.data.as_ref()?.clone(),
             )?),
             true,
         ),

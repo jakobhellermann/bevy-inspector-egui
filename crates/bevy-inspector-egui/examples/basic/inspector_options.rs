@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_egui::EguiContext;
 use bevy_inspector_egui::inspector_options::std_options::NumberDisplay;
 use bevy_inspector_egui::{prelude::*, DefaultInspectorConfigPlugin};
-use bevy_utils::HashMap;
+use bevy_platform::collections::HashMap;
 use bevy_window::PrimaryWindow;
 
 #[derive(Reflect, InspectorOptions)]
@@ -24,7 +24,9 @@ impl Default for Config {
             font_size: 0.,
             option: None,
             vec: Vec::default(),
-            hash_map: HashMap::from([(0, "foo".to_owned()), (1, "bar".to_owned())]),
+            hash_map: [(0, "foo".to_owned()), (1, "bar".to_owned())]
+                .into_iter()
+                .collect(),
         }
     }
 }
@@ -67,7 +69,9 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(DefaultInspectorConfigPlugin)
-        .add_plugins(bevy_egui::EguiPlugin)
+        .add_plugins(bevy_egui::EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
         // types need to be registered
         .init_resource::<UiData>()
         .register_type::<Config>()
@@ -87,6 +91,7 @@ fn ui_example(world: &mut World) {
     let mut egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .single(world)
+        .expect("EguiContext not found")
         .clone();
 
     egui::Window::new("UI").show(egui_context.get_mut(), |ui| {

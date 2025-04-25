@@ -281,7 +281,9 @@ impl InspectorPrimitive for Color {
             | Color::Oklaba(_)
             | Color::Oklcha(_)
             | Color::Xyza(_) => {
-                ui.label(format!("Colorspace of {self:?} is not supported yet. PRs welcome"));
+                ui.label(format!(
+                    "Colorspace of {self:?} is not supported yet. PRs welcome"
+                ));
                 return false;
             }
         }

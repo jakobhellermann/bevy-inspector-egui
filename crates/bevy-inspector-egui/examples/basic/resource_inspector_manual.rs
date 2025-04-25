@@ -1,6 +1,5 @@
 use bevy::prelude::*;
-use bevy_egui::EguiContext;
-use bevy_inspector_egui::bevy_egui::EguiPlugin;
+use bevy_inspector_egui::bevy_egui::{EguiContext, EguiContextPass, EguiPlugin};
 use bevy_inspector_egui::prelude::*;
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_window::PrimaryWindow;
@@ -17,14 +16,16 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         // if you don't use the `quick` plugins you need to add the `EguiPlugin` and the default inspector settings yourself
-        .add_plugins(EguiPlugin)
+        .add_plugins(EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
         .add_plugins(DefaultInspectorConfigPlugin)
         // insert and register resource
         .init_resource::<Configuration>()
         .register_type::<Configuration>()
         .add_systems(Startup, setup)
         // add the system showing the UI
-        .add_systems(Update, inspector_ui)
+        .add_systems(EguiContextPass, inspector_ui)
         .run();
 }
 
@@ -39,13 +40,15 @@ fn inspector_ui(world: &mut World, mut disabled: Local<bool>) {
         return;
     }
 
-    let mut egui_context = world
+    let Ok(egui_context) = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .single(world)
-        .clone();
-
+    else {
+        return;
+    };
+    let mut ctx = egui_context.clone();
     // the usual `ResourceInspector` code
-    egui::Window::new("Resource Inspector").show(egui_context.get_mut(), |ui| {
+    egui::Window::new("Resource Inspector").show(ctx.get_mut(), |ui| {
         egui::ScrollArea::both().show(ui, |ui| {
             bevy_inspector_egui::bevy_inspector::ui_for_resource::<Configuration>(world, ui);
 

@@ -1,9 +1,12 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::FilterQueryInspectorPlugin;
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::FilterQueryInspectorPlugin};
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
         .add_plugins(FilterQueryInspectorPlugin::<With<Transform>>::default())
         .add_systems(Startup, setup)
         .run();

@@ -1,29 +1,38 @@
+use std::ops::DerefMut;
+
 use bevy::{input::common_conditions::input_toggle_active, prelude::*};
-use bevy_egui::{EguiContext, EguiPlugin};
 use bevy_inspector_egui::{
-    bevy_inspector::hierarchy::SelectedEntities, DefaultInspectorConfigPlugin,
+    bevy_egui::{EguiContext, EguiContextPass, EguiPlugin},
+    bevy_inspector::hierarchy::SelectedEntities,
+    DefaultInspectorConfigPlugin,
 };
 use bevy_window::PrimaryWindow;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(EguiPlugin)
+        .add_plugins(EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
         .add_plugins(DefaultInspectorConfigPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, rotator_system)
         .add_systems(
-            Update,
+            EguiContextPass,
             inspector_ui.run_if(input_toggle_active(true, KeyCode::Escape)),
         )
         .run();
 }
 
 fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities>) {
-    let mut egui_context = world
+    let Ok(mut ctx) = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .single(world)
-        .clone();
+        .single_mut(world)
+    else {
+        return;
+    };
+
+    let mut egui_context = ctx.deref_mut().clone();
     egui::SidePanel::left("hierarchy")
         .default_width(200.0)
         .show(egui_context.get_mut(), |ui| {

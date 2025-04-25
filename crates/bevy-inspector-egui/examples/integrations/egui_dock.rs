@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_asset::{ReflectAsset, UntypedAssetId};
-use bevy_egui::{EguiContext, EguiContextSettings, EguiPostUpdateSet};
+use bevy_egui::{EguiContext, EguiContextPass, EguiContextSettings};
 use bevy_inspector_egui::bevy_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
 use bevy_inspector_egui::bevy_inspector::{
     self, ui_for_entities_shared_components, ui_for_entity_with_children,
@@ -26,18 +26,14 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         // .add_plugins(bevy_framepace::FramepacePlugin) // reduces input lag
+        .add_plugins(bevy_egui::EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
         .add_plugins(DefaultInspectorConfigPlugin)
-        .add_plugins(bevy_egui::EguiPlugin)
         // .add_plugins(bevy_mod_picking::plugins::DefaultPickingPlugins)
         .insert_resource(UiState::new())
         .add_systems(Startup, setup)
-        .add_systems(
-            PostUpdate,
-            show_ui_system
-                .before(EguiPostUpdateSet::ProcessOutput)
-                .before(bevy_egui::end_pass_system)
-                .before(bevy::transform::TransformSystem::TransformPropagate),
-        )
+        .add_systems(EguiContextPass, show_ui_system)
         .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
         .add_systems(Update, set_gizmo_mode)
         // .add_systems(Update, auto_add_raycast_target)
@@ -88,7 +84,7 @@ struct MainCamera;
 fn show_ui_system(world: &mut World) {
     let Ok(egui_context) = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world)
+        .single(world)
     else {
         return;
     };
@@ -103,16 +99,14 @@ fn show_ui_system(world: &mut World) {
 fn set_camera_viewport(
     ui_state: Res<UiState>,
     primary_window: Query<&mut Window, With<PrimaryWindow>>,
-    egui_settings: Query<&EguiContextSettings>,
-    mut cameras: Query<&mut Camera, With<MainCamera>>,
+    egui_settings: Single<&EguiContextSettings>,
+    mut cam: Single<&mut Camera, With<MainCamera>>,
 ) {
-    let mut cam = cameras.single_mut();
-
-    let Ok(window) = primary_window.get_single() else {
+    let Ok(window) = primary_window.single() else {
         return;
     };
 
-    let scale_factor = window.scale_factor() * egui_settings.single().scale_factor;
+    let scale_factor = window.scale_factor() * egui_settings.scale_factor;
 
     let viewport_pos = ui_state.viewport_rect.left_top().to_vec2() * scale_factor;
     let viewport_size = ui_state.viewport_rect.size() * scale_factor;
@@ -290,7 +284,8 @@ fn draw_gizmo(
 ) {
     let (cam_transform, projection) = world
         .query_filtered::<(&GlobalTransform, &Projection), With<MainCamera>>()
-        .single(world);
+        .single(world)
+        .expect("Camera not found");
     let view_matrix = Mat4::from(cam_transform.affine().inverse());
     let projection_matrix = projection.get_clip_from_view();
 
@@ -476,6 +471,7 @@ fn setup(
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 0.02,
+        ..default()
     });
     // top light
     commands
