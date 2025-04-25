@@ -6,6 +6,7 @@ use bevy_inspector_egui::bevy_inspector::{
     self, ui_for_entities_shared_components, ui_for_entity_with_children,
 };
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
+use bevy_math::{DQuat, DVec3};
 use std::any::TypeId;
 // use bevy_mod_picking::backends::egui::EguiPointer;
 // use bevy_mod_picking::prelude::*;
@@ -14,13 +15,7 @@ use bevy_render::camera::{CameraProjection, Viewport};
 use bevy_window::{PrimaryWindow, Window};
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
 
-#[cfg(egui_dock_gizmo)]
-use transform_gizmo_egui::GizmoMode;
-
-/// Placeholder type if gizmo is disabled.
-#[cfg(not(egui_dock_gizmo))]
-#[derive(Clone, Copy)]
-struct GizmoMode;
+use transform_gizmo_egui::{Gizmo, GizmoConfig, GizmoExt, GizmoOrientation};
 
 fn main() {
     App::new()
@@ -35,7 +30,6 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(EguiContextPass, show_ui_system)
         .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
-        .add_systems(Update, set_gizmo_mode)
         // .add_systems(Update, auto_add_raycast_target)
         // .add_systems(Update, handle_pick_events)
         .register_type::<Option<Handle<Image>>>()
@@ -131,22 +125,6 @@ fn set_camera_viewport(
     }
 }
 
-fn set_gizmo_mode(input: Res<ButtonInput<KeyCode>>, mut ui_state: ResMut<UiState>) {
-    #[cfg(egui_dock_gizmo)]
-    let keybinds = [
-        (KeyCode::KeyR, GizmoMode::Rotate),
-        (KeyCode::KeyT, GizmoMode::Translate),
-        (KeyCode::KeyS, GizmoMode::Scale),
-    ];
-    #[cfg(not(egui_dock_gizmo))]
-    let keybinds = [];
-    for (key, mode) in keybinds {
-        if input.just_pressed(key) {
-            ui_state.gizmo_mode = mode;
-        }
-    }
-}
-
 #[derive(Eq, PartialEq)]
 enum InspectorSelection {
     Entities,
@@ -160,7 +138,7 @@ struct UiState {
     viewport_rect: egui::Rect,
     selected_entities: SelectedEntities,
     selection: InspectorSelection,
-    gizmo_mode: GizmoMode,
+    gizmo: Gizmo,
 }
 
 impl UiState {
@@ -178,10 +156,7 @@ impl UiState {
             selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,
             viewport_rect: egui::Rect::NOTHING,
-            #[cfg(egui_dock_gizmo)]
-            gizmo_mode: GizmoMode::Translate,
-            #[cfg(not(egui_dock_gizmo))]
-            gizmo_mode: GizmoMode,
+            gizmo: Gizmo::default(),
         }
     }
 
@@ -191,7 +166,7 @@ impl UiState {
             viewport_rect: &mut self.viewport_rect,
             selected_entities: &mut self.selected_entities,
             selection: &mut self.selection,
-            gizmo_mode: self.gizmo_mode,
+            gizmo: &mut self.gizmo,
         };
         DockArea::new(&mut self.state)
             .style(Style::from_egui(ctx.style().as_ref()))
@@ -213,7 +188,7 @@ struct TabViewer<'a> {
     selected_entities: &'a mut SelectedEntities,
     selection: &'a mut InspectorSelection,
     viewport_rect: &'a mut egui::Rect,
-    gizmo_mode: GizmoMode,
+    gizmo: &'a mut Gizmo,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -227,7 +202,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::GameView => {
                 *self.viewport_rect = ui.clip_rect();
 
-                draw_gizmo(ui, self.world, self.selected_entities, self.gizmo_mode);
+                draw_gizmo(ui, &mut self.gizmo, self.world, self.selected_entities);
             }
             EguiWindow::Hierarchy => {
                 let selected = hierarchy_ui(self.world, ui, self.selected_entities);
@@ -278,9 +253,9 @@ impl egui_dock::TabViewer for TabViewer<'_> {
 #[allow(unused)]
 fn draw_gizmo(
     ui: &mut egui::Ui,
+    gizmo: &mut Gizmo,
     world: &mut World,
     selected_entities: &SelectedEntities,
-    gizmo_mode: GizmoMode,
 ) {
     let (cam_transform, projection) = world
         .query_filtered::<(&GlobalTransform, &Projection), With<MainCamera>>()
@@ -294,33 +269,35 @@ fn draw_gizmo(
         return;
     }
 
-    /*for selected in selected_entities.iter() {
+    for selected in selected_entities.iter() {
         let Some(transform) = world.get::<Transform>(selected) else {
             continue;
         };
         let model_matrix = transform.compute_matrix();
 
-        let mut gizmo = Gizmo::new(GizmoConfig {
-            view_matrix: view_matrix.into(),
-            projection_matrix: projection_matrix.into(),
+        gizmo.update_config(GizmoConfig {
+            view_matrix: view_matrix.as_dmat4().into(),
+            projection_matrix: projection_matrix.as_dmat4().into(),
             orientation: GizmoOrientation::Local,
-            modes: EnumSet::from(gizmo_mode),
             ..Default::default()
         });
-        let Some([result]) = gizmo
-            .interact(ui, model_matrix.into())
-            .map(|(_, res)| res.as_slice())
-        else {
+        let transform = transform_gizmo_egui::math::Transform::from_scale_rotation_translation(
+            transform.scale.as_dvec3(),
+            transform.rotation.as_dquat(),
+            transform.translation.as_dvec3(),
+        );
+        let Some((result, transforms)) = gizmo.interact(ui, &[transform]) else {
             continue;
         };
+        let new = transforms[0];
 
         let mut transform = world.get_mut::<Transform>(selected).unwrap();
-        transform = Transform {
-            translation: Vec3::from(<[f64; 3]>::from(result.translation)),
-            rotation: Quat::from_array(<[f64; 4]>::from(result.rotation)),
-            scale: Vec3::from(<[f64; 3]>::from(result.scale)),
+        *transform = Transform {
+            translation: DVec3::from(new.translation).as_vec3(),
+            rotation: DQuat::from_array(<[f64; 4]>::from(new.rotation)).as_quat(),
+            scale: DVec3::from(new.scale).as_vec3(),
         };
-    }*/
+    }
 }
 
 fn select_resource(
