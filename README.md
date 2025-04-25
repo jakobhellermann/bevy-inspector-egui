@@ -28,6 +28,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(EguiPlugin { enable_multipass_for_primary_context: true })
         .add_plugins(WorldInspectorPlugin::new())
         .run();
 }
@@ -58,6 +59,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .init_resource::<Configuration>() // `ResourceInspectorPlugin` won't initialize the resource
         .register_type::<Configuration>() // you need to register your type to display it
+        .add_plugins(EguiPlugin { enable_multipass_for_primary_context: true })
         .add_plugins(ResourceInspectorPlugin::<Configuration>::default())
         // also works with built-in resources, as long as they are `Reflect`
         .add_plugins(ResourceInspectorPlugin::<Time>::default())
@@ -82,9 +84,9 @@ use std::any::TypeId;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(EguiPlugin)
+        .add_plugins(EguiPlugin { enable_multipass_for_primary_context: true })
         .add_plugins(bevy_inspector_egui::DefaultInspectorConfigPlugin) // adds default options and `InspectorEguiImpl`s
-        .add_systems(Update, inspector_ui)
+        .add_systems(EguiContextPass, inspector_ui)
         .run();
 }
 
