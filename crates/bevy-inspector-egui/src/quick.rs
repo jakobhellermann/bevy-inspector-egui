@@ -17,7 +17,7 @@ use bevy_reflect::Reflect;
 use bevy_state::state::FreelyMutableState;
 use bevy_window::PrimaryWindow;
 
-use crate::{bevy_inspector, DefaultInspectorConfigPlugin};
+use crate::{DefaultInspectorConfigPlugin, bevy_inspector};
 
 const DEFAULT_SIZE: (f32, f32) = (320., 160.);
 
