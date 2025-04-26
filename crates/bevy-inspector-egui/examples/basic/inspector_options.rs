@@ -1,7 +1,7 @@
 use bevy::prelude::*;
-use bevy_egui::EguiContext;
+use bevy_egui::{EguiContext, EguiContextPass};
 use bevy_inspector_egui::inspector_options::std_options::NumberDisplay;
-use bevy_inspector_egui::{prelude::*, DefaultInspectorConfigPlugin};
+use bevy_inspector_egui::{DefaultInspectorConfigPlugin, prelude::*};
 use bevy_platform::collections::HashMap;
 use bevy_window::PrimaryWindow;
 
@@ -78,7 +78,7 @@ fn main() {
         .register_type::<Shape>()
         .register_type::<UiData>()
         .add_systems(Startup, setup)
-        .add_systems(Update, ui_example)
+        .add_systems(EguiContextPass, ui_example)
         .run();
 }
 
@@ -88,13 +88,14 @@ fn setup(mut commands: Commands, mut ui_data: ResMut<UiData>) {
 }
 
 fn ui_example(world: &mut World) {
-    let mut egui_context = world
+    let Ok(egui_context) = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .single(world)
-        .expect("EguiContext not found")
-        .clone();
-
-    egui::Window::new("UI").show(egui_context.get_mut(), |ui| {
+    else {
+        return;
+    };
+    let mut ctx = egui_context.clone();
+    egui::Window::new("UI").show(ctx.get_mut(), |ui| {
         egui::ScrollArea::both().show(ui, |ui| {
             bevy_inspector_egui::bevy_inspector::ui_for_resource::<UiData>(world, ui);
         });
