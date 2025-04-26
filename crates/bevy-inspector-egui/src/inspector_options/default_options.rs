@@ -1,9 +1,9 @@
 use bevy_reflect::{TypeData, TypeInfo, TypeRegistry};
 
 use crate::{
-    inspector_options::{std_options::NumberOptions, Target},
-    prelude::ReflectInspectorOptions,
     InspectorOptions,
+    inspector_options::{Target, std_options::NumberOptions},
+    prelude::ReflectInspectorOptions,
 };
 
 #[allow(dead_code)]
@@ -12,7 +12,10 @@ fn insert_options_struct<T: 'static>(
     fields: &[(&'static str, &dyn TypeData)],
 ) {
     let Some(registration) = type_registry.get_mut(std::any::TypeId::of::<T>()) else {
-        bevy_log::warn!("Attempting to set default inspector options for {}, but it wasn't registered in the type registry.", std::any::type_name::<T>());
+        bevy_log::warn!(
+            "Attempting to set default inspector options for {}, but it wasn't registered in the type registry.",
+            std::any::type_name::<T>()
+        );
         return;
     };
     if registration.data::<ReflectInspectorOptions>().is_none() {
@@ -35,7 +38,10 @@ fn insert_options_enum<T: 'static>(
     fields: &[(&'static str, &'static str, &dyn TypeData)],
 ) {
     let Some(registration) = type_registry.get_mut(std::any::TypeId::of::<T>()) else {
-        bevy_log::warn!("Attempting to set default inspector options for {}, but it wasn't registered in the type registry.", std::any::type_name::<T>());
+        bevy_log::warn!(
+            "Attempting to set default inspector options for {}, but it wasn't registered in the type registry.",
+            std::any::type_name::<T>()
+        );
         return;
     };
     if registration.data::<ReflectInspectorOptions>().is_none() {

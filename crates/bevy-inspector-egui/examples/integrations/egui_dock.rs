@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 use bevy_asset::{ReflectAsset, UntypedAssetId};
 use bevy_egui::{EguiContext, EguiContextPass, EguiContextSettings};
-use bevy_inspector_egui::bevy_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
+use bevy_inspector_egui::DefaultInspectorConfigPlugin;
+use bevy_inspector_egui::bevy_inspector::hierarchy::{SelectedEntities, hierarchy_ui};
 use bevy_inspector_egui::bevy_inspector::{
     self, ui_for_entities_shared_components, ui_for_entity_with_children,
 };
-use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_math::{DQuat, DVec3};
 use std::any::TypeId;
 // use bevy_mod_picking::backends::egui::EguiPointer;
