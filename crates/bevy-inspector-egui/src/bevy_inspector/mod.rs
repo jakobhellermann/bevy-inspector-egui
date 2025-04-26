@@ -47,8 +47,8 @@ use bevy_ecs::world::CommandQueue;
 use bevy_ecs::{component::ComponentId, prelude::*};
 use bevy_reflect::{Reflect, TypeRegistry};
 use bevy_state::state::{FreelyMutableState, NextState, State};
-use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
+use fuzzy_matcher::skim::SkimMatcherV2;
 
 pub(crate) mod errors;
 
@@ -1151,8 +1151,10 @@ pub mod short_circuit {
                 used_handles.push(handle_id);
 
                 let asset_value = {
-                    assert!(assets_view
-                        .allows_access_to_resource(reflect_asset.assets_resource_type_id()));
+                    assert!(
+                        assets_view
+                            .allows_access_to_resource(reflect_asset.assets_resource_type_id())
+                    );
                     let asset_value =
                         // SAFETY: the world allows mutable access to `Assets<T>`
                         unsafe { reflect_asset.get_unchecked_mut(world.world(), handle) };

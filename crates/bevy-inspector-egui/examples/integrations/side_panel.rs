@@ -2,9 +2,9 @@ use std::ops::DerefMut;
 
 use bevy::{input::common_conditions::input_toggle_active, prelude::*};
 use bevy_inspector_egui::{
+    DefaultInspectorConfigPlugin,
     bevy_egui::{EguiContext, EguiContextPass, EguiPlugin},
     bevy_inspector::hierarchy::SelectedEntities,
-    DefaultInspectorConfigPlugin,
 };
 use bevy_window::PrimaryWindow;
 
