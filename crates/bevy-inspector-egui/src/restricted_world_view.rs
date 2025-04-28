@@ -1,12 +1,13 @@
 //! A view into the world which may only access certain resources and components
 
-use std::any::TypeId;
-
+use bevy_ecs::ptr::Ptr;
+use bevy_ecs::world::unsafe_world_cell::GetEntityMutByIdError;
 use bevy_ecs::{
     change_detection::MutUntyped, prelude::*, world::unsafe_world_cell::UnsafeWorldCell,
 };
 use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
 use smallvec::{SmallVec, smallvec};
+use std::any::{Any, TypeId};
 
 #[derive(Debug)]
 pub enum Error {
@@ -262,6 +263,32 @@ impl<'w> RestrictedWorldView<'w> {
     }
 }
 
+pub enum ReflectBorrow<'a> {
+    Mutable(Mut<'a, dyn Reflect>),
+    Immutable(&'a dyn Reflect),
+}
+
+impl ReflectBorrow<'_> {
+    pub fn downcast_mut<T: Any>(&mut self) -> Option<&mut T> {
+        match self {
+            ReflectBorrow::Mutable(value) => value.downcast_mut(),
+            ReflectBorrow::Immutable(_) => None,
+        }
+    }
+    pub fn downcast_ref<T: Any>(&self) -> Option<&T> {
+        match self {
+            ReflectBorrow::Mutable(value) => value.downcast_ref(),
+            ReflectBorrow::Immutable(value) => value.downcast_ref(),
+        }
+    }
+    pub fn is_changed(&self) -> bool {
+        match self {
+            ReflectBorrow::Mutable(value) => value.is_changed(),
+            ReflectBorrow::Immutable(_) => false,
+        }
+    }
+}
+
 /// Some safe methods for getting values out of the [`RestrictedWorldView`].
 /// Also has some methods for getting values in their [`Reflect`] form.
 impl<'w> RestrictedWorldView<'w> {
@@ -350,7 +377,7 @@ impl<'w> RestrictedWorldView<'w> {
         entity: Entity,
         component: TypeId,
         type_registry: &TypeRegistry,
-    ) -> Result<Mut<'_, dyn Reflect>, Error> {
+    ) -> Result<ReflectBorrow<'_>, Error> {
         if !self.allows_access_to_component((entity, component)) {
             return Err(Error::NoAccessToComponent((entity, component)));
         }
@@ -362,18 +389,28 @@ impl<'w> RestrictedWorldView<'w> {
             .get_id(component)
             .ok_or(Error::NoComponentId(component))?;
 
-        // SAFETY: we have access to (entity, component) and borrow `&mut self`
-        let value = unsafe {
-            self.world()
-                .get_entity(entity)
-                .map_err(|_| Error::ComponentDoesNotExist((entity, component)))?
-                .get_mut_by_id(component_id)
-                .map_err(|_| Error::ComponentDoesNotExist((entity, component)))?
-        };
+        let entity_ref = self
+            .world()
+            .get_entity(entity)
+            .map_err(|_| Error::ComponentDoesNotExist((entity, component)))?;
 
-        // SAFETY: value is of type component
-        let value = unsafe { mut_untyped_to_reflect(value, type_registry, component) }?;
-        Ok(value)
+        // SAFETY: we have access to (entity, component) and borrow `&mut self`
+        match unsafe { entity_ref.get_mut_by_id(component_id) } {
+            Ok(value) => {
+                // SAFETY: value has the type of `component``
+                let value = unsafe { mut_untyped_to_reflect(value, type_registry, component) }?;
+                return Ok(ReflectBorrow::Mutable(value));
+            }
+            Err(GetEntityMutByIdError::ComponentIsImmutable) => {
+                // SAFETY: we have access to (entity, component) and borrow `&self`
+                let value = unsafe { entity_ref.get_by_id(component_id) }
+                    .ok_or(Error::ComponentDoesNotExist((entity, component)))?;
+                // SAFETY: value has the type of `component``
+                let value = unsafe { ptr_untyped_to_reflect(value, type_registry, component) }?;
+                Ok(ReflectBorrow::Immutable(value))
+            }
+            Err(_) => Err(Error::ComponentDoesNotExist((entity, component))),
+        }
     }
 
     // SAFETY: must ensure distinct access
@@ -427,6 +464,27 @@ unsafe fn mut_untyped_to_reflect<'a>(
         // SAFETY: ptr is of type type_id as required in safety contract, type_id was checked above
         unsafe { reflect_from_ptr.as_reflect_mut(ptr) }
     });
+
+    Ok(value)
+}
+
+// SAFETY: Untyped is of type with `type_id`
+unsafe fn ptr_untyped_to_reflect<'a>(
+    value: Ptr<'a>,
+    type_registry: &TypeRegistry,
+    type_id: TypeId,
+) -> Result<&'a dyn Reflect, Error> {
+    let registration = type_registry
+        .get(type_id)
+        .ok_or(Error::NoTypeRegistration(type_id))?;
+    let reflect_from_ptr = registration
+        .data::<ReflectFromPtr>()
+        .ok_or(Error::NoTypeData(type_id, "ReflectFromPtr"))?;
+
+    assert_eq!(reflect_from_ptr.type_id(), type_id);
+
+    // SAFETY: ptr is of type type_id as required in safety contract, type_id was checked above
+    let value = unsafe { reflect_from_ptr.as_reflect(value) };
 
     Ok(value)
 }

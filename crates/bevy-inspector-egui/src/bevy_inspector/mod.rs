@@ -56,7 +56,7 @@ pub(crate) mod errors;
 pub mod hierarchy;
 
 use crate::reflect_inspector::{Context, InspectorUi};
-use crate::restricted_world_view::RestrictedWorldView;
+use crate::restricted_world_view::{ReflectBorrow, RestrictedWorldView};
 
 /// Display a single [`&mut dyn Reflect`](bevy_reflect::Reflect).
 ///
@@ -613,7 +613,7 @@ pub(crate) fn ui_for_entity_components(
             queue: queue.as_deref_mut(),
         };
 
-        let mut value = match component_view.get_entity_component_reflect(
+        let value = match component_view.get_entity_component_reflect(
             entity,
             component_type_id,
             type_registry,
@@ -636,18 +636,32 @@ pub(crate) fn ui_for_entity_components(
         let _response = header.show(ui, |ui| {
             ui.reset_style();
 
-            let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
-                .ui_for_reflect_with_options(
-                    value.bypass_change_detection().as_partial_reflect_mut(),
-                    ui,
-                    id.with(component_id),
-                    &(),
-                );
+            let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+            let id = id.with(component_id);
+            let options = &();
 
-            if inspector_changed {
-                value.set_changed();
-            }
+            match value {
+                ReflectBorrow::Mutable(mut value) => {
+                    let changed = env.ui_for_reflect_with_options(
+                        value.bypass_change_detection().as_partial_reflect_mut(),
+                        ui,
+                        id,
+                        options,
+                    );
+
+                    if changed {
+                        value.set_changed();
+                    }
+                }
+                ReflectBorrow::Immutable(value) => env.ui_for_reflect_readonly_with_options(
+                    value.as_partial_reflect(),
+                    ui,
+                    id,
+                    options,
+                ),
+            };
         });
+
         #[cfg(feature = "documentation")]
         crate::egui_utils::show_docs(_response.header_response, type_docs);
         ui.reset_style();
