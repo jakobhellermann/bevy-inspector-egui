@@ -56,7 +56,7 @@ pub(crate) mod errors;
 pub mod hierarchy;
 
 use crate::reflect_inspector::{Context, InspectorUi};
-use crate::restricted_world_view::RestrictedWorldView;
+use crate::restricted_world_view::{ReflectBorrow, RestrictedWorldView};
 
 /// Display a single [`&mut dyn Reflect`](bevy_reflect::Reflect).
 ///
@@ -635,18 +635,31 @@ pub(crate) fn ui_for_entity_components(
 
         let _response = header.show(ui, |ui| {
             ui.reset_style();
+            
+            match value {
+                ReflectBorrow::Mutable(mut value) => {
+                    let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
+                        .ui_for_reflect_with_options(
+                            value.bypass_change_detection().as_partial_reflect_mut(),
+                            ui,
+                            id.with(component_id),
+                            &(),
+                        );
 
-            let inspector_changed = InspectorUi::for_bevy(type_registry, &mut cx)
-                .ui_for_reflect_with_options(
-                    value.bypass_change_detection().as_partial_reflect_mut(),
-                    ui,
-                    id.with(component_id),
-                    &(),
-                );
-
-            if inspector_changed {
-                value.set_changed();
-            }
+                    if inspector_changed {
+                        value.set_changed();
+                    }
+                }
+                ReflectBorrow::Immutable(value) => {
+                    let _ = InspectorUi::for_bevy(type_registry, &mut cx)
+                        .ui_for_reflect_readonly_with_options(
+                            value.as_partial_reflect(),
+                            ui,
+                            id.with(component_id),
+                            &(),
+                        );
+                }
+            };
         });
         #[cfg(feature = "documentation")]
         crate::egui_utils::show_docs(_response.header_response, type_docs);
