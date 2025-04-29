@@ -1,6 +1,6 @@
 use egui::{
-    text::{CCursor, CCursorRange},
     Id, PopupCloseBehavior, Response, TextEdit, Ui, Widget, WidgetText,
+    text::{CCursor, CCursorRange},
 };
 use std::hash::Hash;
 

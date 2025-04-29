@@ -6,7 +6,7 @@ use bevy_ecs::{
     change_detection::MutUntyped, prelude::*, world::unsafe_world_cell::UnsafeWorldCell,
 };
 use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
-use smallvec::{smallvec, SmallVec};
+use smallvec::{SmallVec, smallvec};
 
 #[derive(Debug)]
 pub enum Error {

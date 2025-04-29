@@ -60,7 +60,7 @@
 //! ```
 
 use crate::egui_utils::show_docs;
-use crate::inspector_egui_impls::{iter_all_eq, InspectorEguiImpl};
+use crate::inspector_egui_impls::{InspectorEguiImpl, iter_all_eq};
 use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};
 use crate::restricted_world_view::RestrictedWorldView;
 use crate::{
@@ -68,12 +68,12 @@ use crate::{
     utils::pretty_type_name_str,
 };
 use bevy_ecs::world::CommandQueue;
-use bevy_reflect::{std_traits::ReflectDefault, DynamicStruct};
 use bevy_reflect::{
     Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List, ListInfo, Map, Reflect,
     ReflectMut, ReflectRef, Struct, StructInfo, Tuple, TupleInfo, TupleStruct, TupleStructInfo,
     TypeInfo, TypeRegistry, VariantInfo, VariantType,
 };
+use bevy_reflect::{DynamicStruct, std_traits::ReflectDefault};
 use bevy_reflect::{OpaqueInfo, PartialReflect, Set, SetInfo};
 use egui::{Grid, WidgetText};
 use std::borrow::Cow;
