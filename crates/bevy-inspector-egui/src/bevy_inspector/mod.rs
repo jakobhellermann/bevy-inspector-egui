@@ -43,12 +43,13 @@ use std::marker::PhantomData;
 use crate::utils::{pretty_type_name, pretty_type_name_str};
 use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
 use bevy_ecs::query::{QueryFilter, WorldQuery};
+use bevy_ecs::relationship::RelationshipSourceCollection;
 use bevy_ecs::world::CommandQueue;
 use bevy_ecs::{component::ComponentId, prelude::*};
 use bevy_reflect::{Reflect, TypeRegistry};
 use bevy_state::state::{FreelyMutableState, NextState, State};
-use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
+use fuzzy_matcher::skim::SkimMatcherV2;
 
 pub(crate) mod errors;
 
@@ -251,23 +252,62 @@ pub fn ui_for_world_entities_filtered<QF: WorldQuery + QueryFilter>(
     ui: &mut egui::Ui,
     with_children: bool,
 ) {
-    ui_for_entities_filtered(world, ui, with_children, &Filter::<QF>::all());
+    ui_for_entities_filtered(world, ui, with_children, false, &Filter::<QF>::all());
 }
 
 /// Display all root entities.
 pub fn ui_for_entities(world: &mut World, ui: &mut egui::Ui) {
     let filter: Filter = Filter::from_ui_fuzzy(ui, egui::Id::new("default_world_entities_filter"));
-    ui_for_entities_filtered(world, ui, true, &filter);
+    ui_for_entities_with_relationships_filtered::<Children, _>(world, ui, true, false, &filter);
 }
 
-/// Display all entities matching the given [`EntityFilter`].
-///
-/// You can use the [`Filter`] type to specify both a static filter as a generic parameter (default is `Without<Parent>`),
-/// and a word to match. [`Filter::from_ui`] will display a search box and fuzzy filter checkbox.
+pub fn ui_for_entities_with_relationship<R: RelationshipTarget>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    only_with_relationship: bool,
+) {
+    let filter: Filter = Filter::from_ui_fuzzy(
+        ui,
+        egui::Id::new(format!(
+            "default_world_entities_filter_for_relationship_{}",
+            std::any::type_name::<R>()
+        )),
+    );
+    ui_for_entities_with_relationships_filtered::<R, _>(
+        world,
+        ui,
+        true,
+        only_with_relationship,
+        &filter,
+    );
+}
+
 pub fn ui_for_entities_filtered<F>(
     world: &mut World,
     ui: &mut egui::Ui,
     with_children: bool,
+    only_with_relationship: bool,
+    filter: &F,
+) where
+    F: EntityFilter,
+{
+    ui_for_entities_with_relationships_filtered::<Children, F>(
+        world,
+        ui,
+        with_children,
+        only_with_relationship,
+        filter,
+    )
+}
+/// Display all entities matching the given [`EntityFilter`].
+///
+/// You can use the [`Filter`] type to specify both a static filter as a generic parameter (default is `Without<Parent>`),
+/// and a word to match. [`Filter::from_ui`] will display a search box and fuzzy filter checkbox.
+pub fn ui_for_entities_with_relationships_filtered<R: RelationshipTarget, F>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    with_children: bool,
+    only_with_relationship: bool,
     filter: &F,
 ) where
     F: EntityFilter,
@@ -278,6 +318,7 @@ pub fn ui_for_entities_filtered<F>(
     let mut root_entities = world.query_filtered::<Entity, F::StaticFilter>();
     let mut entities = root_entities.iter(world).collect::<Vec<_>>();
 
+    RelationshipFilter::<R>::new(only_with_relationship).filter_entities(world, &mut entities);
     filter.filter_entities(world, &mut entities);
 
     entities.sort();
@@ -292,7 +333,7 @@ pub fn ui_for_entities_filtered<F>(
             .id_salt(id)
             .show(ui, |ui| {
                 if with_children {
-                    ui_for_entity_with_children_inner(
+                    ui_for_entity_with_relationship_inner::<R, F>(
                         world,
                         entity,
                         ui,
@@ -313,6 +354,40 @@ pub fn ui_for_entities_filtered<F>(
                     queue.apply(world);
                 }
             });
+    }
+}
+
+#[derive(Debug)]
+pub struct RelationshipFilter<R: RelationshipTarget> {
+    pub only_with_relationship: bool,
+    marker: PhantomData<R>,
+}
+
+impl<R: RelationshipTarget> RelationshipFilter<R> {
+    pub fn new(only_with_relationship: bool) -> Self {
+        Self {
+            only_with_relationship,
+            marker: PhantomData,
+        }
+    }
+}
+
+impl<R: RelationshipTarget> Default for RelationshipFilter<R> {
+    fn default() -> Self {
+        Self {
+            only_with_relationship: true,
+            marker: PhantomData,
+        }
+    }
+}
+
+impl<R: RelationshipTarget> EntityFilter for RelationshipFilter<R> {
+    type StaticFilter = ();
+
+    fn filter_entity(&self, world: &mut World, entity: Entity) -> bool {
+        let entity_ref = world.entity(entity);
+        let has_relationship_condition = !self.only_with_relationship || entity_ref.contains::<R>();
+        has_relationship_condition && !entity_ref.contains::<R::Relationship>()
     }
 }
 
@@ -472,12 +547,21 @@ fn self_or_children_satisfy_filter(
 
         children
             .iter()
-            .any(|child| self_or_children_satisfy_filter(world, *child, filter, is_fuzzy))
+            .any(|child| self_or_children_satisfy_filter(world, child, filter, is_fuzzy))
     }
 }
 
 /// Display the given entity with all its components and children
 pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
+    ui_for_entity_with_relationship::<Children>(world, entity, ui)
+}
+
+/// Display the given entity with all its components and related entities
+pub fn ui_for_entity_with_relationship<R: RelationshipTarget>(
+    world: &mut World,
+    entity: Entity,
+    ui: &mut egui::Ui,
+) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
@@ -485,7 +569,7 @@ pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut e
     ui.label(entity_name);
 
     let filter: Filter = Filter::all();
-    ui_for_entity_with_children_inner(
+    ui_for_entity_with_relationship_inner::<R, _>(
         world,
         entity,
         ui,
@@ -495,7 +579,7 @@ pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut e
     )
 }
 
-fn ui_for_entity_with_children_inner<F>(
+fn ui_for_entity_with_relationship_inner<R: RelationshipTarget, F>(
     world: &mut World,
     entity: Entity,
     ui: &mut egui::Ui,
@@ -515,14 +599,14 @@ fn ui_for_entity_with_children_inner<F>(
         type_registry,
     );
 
-    let children = world
-        .get::<Children>(entity)
-        .map(|children| children.iter().collect::<Vec<_>>());
-    if let Some(mut children) = children {
-        if !children.is_empty() {
-            filter.filter_entities(world, &mut children);
-            ui.label("Children");
-            for child in children {
+    let related = world
+        .get::<R>(entity)
+        .map(|related| related.iter().collect::<Vec<_>>());
+    if let Some(mut related) = related {
+        if !related.is_empty() {
+            filter.filter_entities(world, &mut related);
+            ui.label(std::any::type_name::<R>());
+            for child in related {
                 let id = id.with(child);
 
                 let child_entity_name = guess_entity_name(world, child);
@@ -531,7 +615,7 @@ fn ui_for_entity_with_children_inner<F>(
                     .show(ui, |ui| {
                         ui.label(&child_entity_name);
 
-                        ui_for_entity_with_children_inner(
+                        ui_for_entity_with_relationship_inner::<R, F>(
                             world,
                             child,
                             ui,
@@ -1151,8 +1235,10 @@ pub mod short_circuit {
                 used_handles.push(handle_id);
 
                 let asset_value = {
-                    assert!(assets_view
-                        .allows_access_to_resource(reflect_asset.assets_resource_type_id()));
+                    assert!(
+                        assets_view
+                            .allows_access_to_resource(reflect_asset.assets_resource_type_id())
+                    );
                     let asset_value =
                         // SAFETY: the world allows mutable access to `Assets<T>`
                         unsafe { reflect_asset.get_unchecked_mut(world.world(), handle) };
