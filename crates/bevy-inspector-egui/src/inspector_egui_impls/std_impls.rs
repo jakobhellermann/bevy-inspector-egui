@@ -4,11 +4,11 @@ use bevy_platform::time::Instant;
 use bevy_reflect::{PartialReflect, Reflect, TypePath};
 use egui::{DragValue, RichText, TextBuffer};
 
-use super::{change_slider, iter_all_eq, InspectorPrimitive, InspectorUi};
+use super::{InspectorPrimitive, InspectorUi, change_slider, iter_all_eq};
 use crate::{
     inspector_options::{
-        std_options::{NumberDisplay, NumberOptions, RangeOptions},
         InspectorOptionsType,
+        std_options::{NumberDisplay, NumberOptions, RangeOptions},
     },
     reflect_inspector::ProjectorReflect,
 };

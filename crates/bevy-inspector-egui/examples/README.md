@@ -3,6 +3,7 @@
 - `basic` - Basic features of the crate
   - [`inspector_options.rs`](./basic/inspector_options.rs) Shows how to use `InspectorOptions` derive to tweak the UI
   - [`resource_inspector_manual.rs`](./basic/resource_inspector_manual.rs) Shows how to customize and build your own inspector windows
+  - [`relationship_ui.rs`](./basic/relationship_ui.rs) Shows the entity ui along a specific relationship.
 - `quick` - Demonstrations of the quick plugins
   - [`world_inspector.rs`](./quick/world_inspector.rs) Example of the `WorldInspectorPlugin`
   - [`resource_inspector.rs`](./quick/resource_inspector.rs) Example of the `ResourceInspectorPlugin`

@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use bevy_math::{prelude::*, DMat2, DMat3, DMat4, DVec2, DVec3, DVec4, Mat3A, Vec3A};
+use bevy_math::{DMat2, DMat3, DMat4, DVec2, DVec3, DVec4, Mat3A, Vec3A, prelude::*};
 use bevy_reflect::PartialReflect;
 
 use crate::inspector_options::std_options::NumberOptions;
