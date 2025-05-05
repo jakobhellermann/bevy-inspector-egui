@@ -24,6 +24,27 @@ pub fn hierarchy_ui(world: &mut World, ui: &mut egui::Ui, selected: &mut Selecte
     .show::<()>(ui)
 }
 
+/// Display UI of the entity hierarchy with a [QueryFilter].
+///
+/// Returns `true` if a new entity was selected.
+pub fn hierarchy_ui_filtered<QF>(world: &mut World, ui: &mut egui::Ui, selected: &mut SelectedEntities) -> bool
+where
+    QF: QueryFilter,
+{
+    let type_registry = world.resource::<AppTypeRegistry>().clone();
+    let type_registry = type_registry.read();
+
+    Hierarchy {
+        world,
+        type_registry: &type_registry,
+        selected,
+        context_menu: None,
+        shortcircuit_entity: None,
+        extra_state: &mut (),
+    }
+        .show::<QF>(ui)
+}
+
 pub struct Hierarchy<'a, T = ()> {
     pub world: &'a mut World,
     pub type_registry: &'a TypeRegistry,
