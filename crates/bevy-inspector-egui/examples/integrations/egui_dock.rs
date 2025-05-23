@@ -1,20 +1,24 @@
-use bevy::prelude::*;
-use bevy_asset::{ReflectAsset, UntypedAssetId};
-use bevy_egui::{EguiContext, EguiContextPass, EguiContextSettings};
-use bevy_inspector_egui::bevy_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
-use bevy_inspector_egui::bevy_inspector::{
-    self, ui_for_entities_shared_components, ui_for_entity_with_children,
-};
-use bevy_inspector_egui::DefaultInspectorConfigPlugin;
-use bevy_math::{DQuat, DVec3};
 use std::any::TypeId;
-// use bevy_mod_picking::backends::egui::EguiPointer;
-// use bevy_mod_picking::prelude::*;
-use bevy_reflect::TypeRegistry;
-use bevy_render::camera::{CameraProjection, Viewport};
-use bevy_window::{PrimaryWindow, Window};
-use egui_dock::{DockArea, DockState, NodeIndex, Style};
 
+use bevy::{
+    asset::{ReflectAsset, UntypedAssetId},
+    math::{DQuat, DVec3},
+    prelude::*,
+    reflect::TypeRegistry,
+    render::camera::{CameraProjection, Viewport},
+    window::{PrimaryWindow, Window},
+};
+use bevy_inspector_egui::{
+    DefaultInspectorConfigPlugin,
+    bevy_egui::{EguiContext, EguiContextPass, EguiContextSettings},
+    bevy_inspector::{
+        self,
+        hierarchy::{SelectedEntities, hierarchy_ui},
+        ui_for_entities_shared_components, ui_for_entity_with_children,
+    },
+};
+
+use egui_dock::{DockArea, DockState, NodeIndex, Style};
 use transform_gizmo_egui::{Gizmo, GizmoConfig, GizmoExt, GizmoOrientation};
 
 fn main() {

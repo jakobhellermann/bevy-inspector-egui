@@ -1,8 +1,10 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::bevy_egui::EguiPlugin;
-use bevy_inspector_egui::inspector_egui_impls::{InspectorEguiImpl, InspectorPrimitive};
-use bevy_inspector_egui::quick::ResourceInspectorPlugin;
-use bevy_inspector_egui::reflect_inspector::InspectorUi;
+use bevy_inspector_egui::{
+    bevy_egui::EguiPlugin,
+    inspector_egui_impls::{InspectorEguiImpl, InspectorPrimitive},
+    quick::ResourceInspectorPlugin,
+    reflect_inspector::InspectorUi,
+};
 
 #[derive(Resource, Reflect, Default)]
 struct Config {
