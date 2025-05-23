@@ -1,9 +1,9 @@
-use bevy::prelude::*;
-use bevy_egui::{EguiContext, EguiContextPass};
-use bevy_inspector_egui::inspector_options::std_options::NumberDisplay;
-use bevy_inspector_egui::{DefaultInspectorConfigPlugin, prelude::*};
-use bevy_platform::collections::HashMap;
-use bevy_window::PrimaryWindow;
+use bevy::{platform::collections::HashMap, prelude::*, window::PrimaryWindow};
+use bevy_egui::EguiContextPass;
+use bevy_inspector_egui::{
+    DefaultInspectorConfigPlugin, bevy_egui::EguiContext,
+    inspector_options::std_options::NumberDisplay, prelude::*,
+};
 
 #[derive(Reflect, InspectorOptions)]
 #[reflect(InspectorOptions)]
