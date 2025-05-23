@@ -1,7 +1,7 @@
 use bevy::prelude::*;
+use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_inspector_egui::bevy_egui::{EguiContext, EguiContextPass, EguiPlugin};
 use bevy_inspector_egui::prelude::*;
-use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_window::PrimaryWindow;
 
 #[derive(Reflect, Resource, Default, InspectorOptions)]
@@ -15,7 +15,6 @@ struct Configuration {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        // if you don't use the `quick` plugins you need to add the `EguiPlugin` and the default inspector settings yourself
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
