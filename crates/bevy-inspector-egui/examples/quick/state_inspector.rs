@@ -1,9 +1,11 @@
-use bevy::prelude::*;
-use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::StateInspectorPlugin};
-use bevy_state::{
-    app::AppExtStates,
-    state::{OnEnter, States},
+use bevy::{
+    prelude::*,
+    state::{
+        app::AppExtStates,
+        state::{OnEnter, States},
+    },
 };
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::StateInspectorPlugin};
 
 fn main() {
     App::new()
