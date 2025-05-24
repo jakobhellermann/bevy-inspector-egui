@@ -27,7 +27,11 @@ pub fn hierarchy_ui(world: &mut World, ui: &mut egui::Ui, selected: &mut Selecte
 /// Display UI of the entity hierarchy with a [QueryFilter].
 ///
 /// Returns `true` if a new entity was selected.
-pub fn hierarchy_ui_filtered<QF>(world: &mut World, ui: &mut egui::Ui, selected: &mut SelectedEntities) -> bool
+pub fn hierarchy_ui_filtered<QF>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    selected: &mut SelectedEntities,
+) -> bool
 where
     QF: QueryFilter,
 {
@@ -42,7 +46,7 @@ where
         shortcircuit_entity: None,
         extra_state: &mut (),
     }
-        .show::<QF>(ui)
+    .show::<QF>(ui)
 }
 
 pub struct Hierarchy<'a, T = ()> {
