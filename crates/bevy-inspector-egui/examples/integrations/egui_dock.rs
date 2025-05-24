@@ -202,7 +202,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::GameView => {
                 *self.viewport_rect = ui.clip_rect();
 
-                draw_gizmo(ui, &mut self.gizmo, self.world, self.selected_entities);
+                draw_gizmo(ui, self.gizmo, self.world, self.selected_entities);
             }
             EguiWindow::Hierarchy => {
                 let selected = hierarchy_ui(self.world, ui, self.selected_entities);

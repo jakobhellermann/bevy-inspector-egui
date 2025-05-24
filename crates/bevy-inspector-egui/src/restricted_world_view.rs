@@ -399,7 +399,7 @@ impl<'w> RestrictedWorldView<'w> {
             Ok(value) => {
                 // SAFETY: value has the type of `component``
                 let value = unsafe { mut_untyped_to_reflect(value, type_registry, component) }?;
-                return Ok(ReflectBorrow::Mutable(value));
+                Ok(ReflectBorrow::Mutable(value))
             }
             Err(GetEntityMutByIdError::ComponentIsImmutable) => {
                 // SAFETY: we have access to (entity, component) and borrow `&self`
