@@ -1,4 +1,4 @@
-# bevy-inspector-egui
+# bevy_inspector_egui
 
 Examples can be found at [`./crates/bevy-inspector-egui/examples`](./crates/bevy-inspector-egui/examples/).
 
