@@ -10,9 +10,7 @@ use bevy_inspector_egui::{
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(EguiPlugin {
-            enable_multipass_for_primary_context: true,
-        })
+        .add_plugins(EguiPlugin::default())
         .add_plugins(DefaultInspectorConfigPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, rotator_system)

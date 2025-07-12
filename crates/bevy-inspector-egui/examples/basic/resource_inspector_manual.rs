@@ -1,7 +1,7 @@
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::prelude::*;
 use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin,
-    bevy_egui::{EguiContext, EguiContextPass, EguiPlugin},
+    bevy_egui::{EguiContext, EguiPlugin, EguiPrimaryContextPass, PrimaryEguiContext},
     prelude::*,
 };
 
@@ -16,16 +16,14 @@ struct Configuration {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(EguiPlugin {
-            enable_multipass_for_primary_context: true,
-        })
+        .add_plugins(EguiPlugin::default())
         .add_plugins(DefaultInspectorConfigPlugin)
         // insert and register resource
         .init_resource::<Configuration>()
         .register_type::<Configuration>()
         .add_systems(Startup, setup)
         // add the system showing the UI
-        .add_systems(EguiContextPass, inspector_ui)
+        .add_systems(EguiPrimaryContextPass, inspector_ui)
         .run();
 }
 

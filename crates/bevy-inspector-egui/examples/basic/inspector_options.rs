@@ -1,5 +1,5 @@
-use bevy::{platform::collections::HashMap, prelude::*, window::PrimaryWindow};
-use bevy_egui::EguiPrimaryContextPass;
+use bevy::{platform::collections::HashMap, prelude::*};
+use bevy_egui::{EguiPlugin, EguiPrimaryContextPass, PrimaryEguiContext};
 use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin, bevy_egui::EguiContext,
     inspector_options::std_options::NumberDisplay, prelude::*,

@@ -10,7 +10,7 @@ use bevy::{
 };
 use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin,
-    bevy_egui::{EguiContext, EguiPrimaryContextPass, EguiContextSettings},
+    bevy_egui::{EguiContext, EguiPrimaryContextPass, EguiContextSettings, PrimaryEguiContext},
     bevy_inspector::{
         self,
         hierarchy::{SelectedEntities, hierarchy_ui},

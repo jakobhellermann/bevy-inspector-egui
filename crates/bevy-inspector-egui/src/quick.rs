@@ -48,7 +48,7 @@ const DEFAULT_SIZE: (f32, f32) = (320., 160.);
 /// fn main() {
 ///     App::new()
 ///         .add_plugins(DefaultPlugins)
-///         .add_plugins(EguiPlugin { enable_multipass_for_primary_context: true })
+///         .add_plugins(EguiPlugin::default())
 ///         .add_plugins(WorldInspectorPlugin::new())
 ///         .run();
 /// }
