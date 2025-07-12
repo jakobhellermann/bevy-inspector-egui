@@ -93,7 +93,7 @@
 //!
 //! fn inspector_ui(world: &mut World) {
 //!     let mut egui_context = world
-//!         .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
+//!         .query_filtered::<&mut EguiContext, With<bevy_egui::PrimaryEguiContext>>()
 //!         .single(world)
 //!         .expect("EguiContext not found")
 //!         .clone();
