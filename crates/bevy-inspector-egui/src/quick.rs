@@ -15,8 +15,6 @@ use bevy_ecs::{prelude::*, query::QueryFilter, schedule::BoxedCondition};
 use bevy_egui::{EguiContext, EguiPrimaryContextPass, EguiPlugin, PrimaryEguiContext};
 use bevy_reflect::Reflect;
 use bevy_state::state::FreelyMutableState;
-use bevy_window::PrimaryWindow;
-use bevy_log::warn;
 
 use crate::{DefaultInspectorConfigPlugin, bevy_inspector};
 
@@ -95,12 +93,10 @@ fn world_inspector_ui(world: &mut World) {
         .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single(world);
 
-    warn!("world_inspector_ui context query");
     let Ok(egui_context) = egui_context else {
         return;
     };
     let mut egui_context = egui_context.clone();
-    warn!("world_inspector_ui context cloned");
 
     egui::Window::new("World Inspector")
         .default_size(DEFAULT_SIZE)
