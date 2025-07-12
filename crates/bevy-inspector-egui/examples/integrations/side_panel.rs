@@ -3,7 +3,7 @@ use std::ops::DerefMut;
 use bevy::{input::common_conditions::input_toggle_active, prelude::*, window::PrimaryWindow};
 use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin,
-    bevy_egui::{EguiContext, EguiPrimaryContextPass, EguiPlugin},
+    bevy_egui::{EguiContext, EguiPlugin, EguiPrimaryContextPass},
     bevy_inspector::hierarchy::SelectedEntities,
 };
 

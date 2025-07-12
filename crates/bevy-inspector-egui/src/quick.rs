@@ -12,7 +12,7 @@ use crate::{bevy_inspector::Filter, utils::pretty_type_name};
 use bevy_app::Plugin;
 use bevy_asset::Asset;
 use bevy_ecs::{prelude::*, query::QueryFilter, schedule::BoxedCondition};
-use bevy_egui::{EguiContext, EguiPrimaryContextPass, EguiPlugin, PrimaryEguiContext};
+use bevy_egui::{EguiContext, EguiPlugin, EguiPrimaryContextPass, PrimaryEguiContext};
 use bevy_reflect::Reflect;
 use bevy_state::state::FreelyMutableState;
 
