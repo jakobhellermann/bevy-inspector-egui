@@ -10,7 +10,7 @@ use bevy::{
 };
 use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin,
-    bevy_egui::{EguiContext, EguiContextPass, EguiContextSettings},
+    bevy_egui::{EguiContext, EguiPrimaryContextPass, EguiContextSettings},
     bevy_inspector::{
         self,
         hierarchy::{SelectedEntities, hierarchy_ui},
@@ -25,14 +25,12 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         // .add_plugins(bevy_framepace::FramepacePlugin) // reduces input lag
-        .add_plugins(bevy_egui::EguiPlugin {
-            enable_multipass_for_primary_context: true,
-        })
+        .add_plugins(bevy_egui::EguiPlugin::default())
         .add_plugins(DefaultInspectorConfigPlugin)
         // .add_plugins(bevy_mod_picking::plugins::DefaultPickingPlugins)
         .insert_resource(UiState::new())
         .add_systems(Startup, setup)
-        .add_systems(EguiContextPass, show_ui_system)
+        .add_systems(EguiPrimaryContextPass, show_ui_system)
         .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
         // .add_systems(Update, auto_add_raycast_target)
         // .add_systems(Update, handle_pick_events)
@@ -81,7 +79,7 @@ struct MainCamera;
 
 fn show_ui_system(world: &mut World) {
     let Ok(egui_context) = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single(world)
     else {
         return;

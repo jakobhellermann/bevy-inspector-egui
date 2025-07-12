@@ -59,7 +59,9 @@
 //! }
 //! ```
 
+#[cfg(feature = "documentation")]
 use crate::egui_utils::show_docs;
+
 use crate::inspector_egui_impls::{InspectorEguiImpl, iter_all_eq};
 use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};
 use crate::restricted_world_view::RestrictedWorldView;

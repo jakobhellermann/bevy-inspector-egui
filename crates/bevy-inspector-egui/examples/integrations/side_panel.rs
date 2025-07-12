@@ -3,7 +3,7 @@ use std::ops::DerefMut;
 use bevy::{input::common_conditions::input_toggle_active, prelude::*, window::PrimaryWindow};
 use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin,
-    bevy_egui::{EguiContext, EguiContextPass, EguiPlugin},
+    bevy_egui::{EguiContext, EguiPrimaryContextPass, EguiPlugin},
     bevy_inspector::hierarchy::SelectedEntities,
 };
 
@@ -17,7 +17,7 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, rotator_system)
         .add_systems(
-            EguiContextPass,
+            EguiPrimaryContextPass,
             inspector_ui.run_if(input_toggle_active(true, KeyCode::Escape)),
         )
         .run();

@@ -1,5 +1,5 @@
 use bevy::{platform::collections::HashMap, prelude::*, window::PrimaryWindow};
-use bevy_egui::EguiContextPass;
+use bevy_egui::EguiPrimaryContextPass;
 use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin, bevy_egui::EguiContext,
     inspector_options::std_options::NumberDisplay, prelude::*,
@@ -69,16 +69,14 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(DefaultInspectorConfigPlugin)
-        .add_plugins(bevy_egui::EguiPlugin {
-            enable_multipass_for_primary_context: true,
-        })
+        .add_plugins(EguiPlugin::default())
         // types need to be registered
         .init_resource::<UiData>()
         .register_type::<Config>()
         .register_type::<Shape>()
         .register_type::<UiData>()
         .add_systems(Startup, setup)
-        .add_systems(EguiContextPass, ui_example)
+        .add_systems(EguiPrimaryContextPass, ui_example)
         .run();
 }
 
@@ -89,7 +87,7 @@ fn setup(mut commands: Commands, mut ui_data: ResMut<UiData>) {
 
 fn ui_example(world: &mut World) {
     let Ok(egui_context) = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single(world)
     else {
         return;

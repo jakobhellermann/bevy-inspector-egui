@@ -12,16 +12,17 @@ use crate::{bevy_inspector::Filter, utils::pretty_type_name};
 use bevy_app::Plugin;
 use bevy_asset::Asset;
 use bevy_ecs::{prelude::*, query::QueryFilter, schedule::BoxedCondition};
-use bevy_egui::{EguiContext, EguiContextPass, EguiPlugin};
+use bevy_egui::{EguiContext, EguiPrimaryContextPass, EguiPlugin, PrimaryEguiContext};
 use bevy_reflect::Reflect;
 use bevy_state::state::FreelyMutableState;
 use bevy_window::PrimaryWindow;
+use bevy_log::warn;
 
 use crate::{DefaultInspectorConfigPlugin, bevy_inspector};
 
 const DEFAULT_SIZE: (f32, f32) = (320., 160.);
 
-//TODO: Do we need this with EguiContextPass?
+//TODO: Do we need this with EguiPrimaryContextPass?
 // #[derive(ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
 // struct Inspect;
 
@@ -85,19 +86,21 @@ impl Plugin for WorldInspectorPlugin {
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
-        app.add_systems(EguiContextPass, system);
+        app.add_systems(EguiPrimaryContextPass, system);
     }
 }
 
 fn world_inspector_ui(world: &mut World) {
     let egui_context = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single(world);
 
+    warn!("world_inspector_ui context query");
     let Ok(egui_context) = egui_context else {
         return;
     };
     let mut egui_context = egui_context.clone();
+    warn!("world_inspector_ui context cloned");
 
     egui::Window::new("World Inspector")
         .default_size(DEFAULT_SIZE)
@@ -180,13 +183,13 @@ impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
-        app.add_systems(EguiContextPass, system);
+        app.add_systems(EguiPrimaryContextPass, system);
     }
 }
 
 fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
     let egui_context = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single(world);
 
     let Ok(egui_context) = egui_context else {
@@ -273,13 +276,13 @@ impl<T: FreelyMutableState + Reflect> Plugin for StateInspectorPlugin<T> {
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
-        app.add_systems(EguiContextPass, system);
+        app.add_systems(EguiPrimaryContextPass, system);
     }
 }
 
 fn state_ui<T: FreelyMutableState + Reflect>(world: &mut World) {
     let egui_context = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single(world);
 
     let Ok(egui_context) = egui_context else {
@@ -354,13 +357,13 @@ impl<A: Asset + Reflect> Plugin for AssetInspectorPlugin<A> {
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
-        app.add_systems(EguiContextPass, system);
+        app.add_systems(EguiPrimaryContextPass, system);
     }
 }
 
 fn asset_inspector_ui<A: Asset + Reflect>(world: &mut World) {
     let egui_context = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single(world);
 
     let Ok(egui_context) = egui_context else {
@@ -434,13 +437,13 @@ where
         if let Some(condition) = condition {
             system.run_if_dyn(condition);
         }
-        app.add_systems(EguiContextPass, system);
+        app.add_systems(EguiPrimaryContextPass, system);
     }
 }
 
 fn entity_query_ui<F: QueryFilter>(world: &mut World) {
     let egui_context = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single(world);
 
     let Ok(egui_context) = egui_context else {
@@ -463,7 +466,7 @@ fn check_plugins(app: &bevy_app::App, name: &str) {
         panic!(
             r#"`{name}` should be added after the default plugins:
         .add_plugins(DefaultPlugins)
-        .add_plugins(EguiPlugin {{ .. }})
+        .add_plugins(EguiPlugin::default())
         .add_plugins({name}::default())
             "#,
         );
@@ -472,7 +475,7 @@ fn check_plugins(app: &bevy_app::App, name: &str) {
     if !app.is_plugin_added::<EguiPlugin>() {
         panic!(
             r#"`{name}` needs to be added after `EguiPlugin`:
-        .add_plugins(EguiPlugin {{ enable_multipass_for_primary_context: true }})
+        .add_plugins(EguiPlugin::default())
         .add_plugins({name}::default())
             "#,
         );

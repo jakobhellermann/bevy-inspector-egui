@@ -41,7 +41,7 @@ fn inspector_ui(world: &mut World, mut disabled: Local<bool>) {
     }
 
     let Ok(egui_context) = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single(world)
     else {
         return;
