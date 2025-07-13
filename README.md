@@ -92,7 +92,7 @@ fn main() {
 
 fn inspector_ui(world: &mut World) {
     let Ok(egui_context) = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .get_single(world)
     else {
         return;

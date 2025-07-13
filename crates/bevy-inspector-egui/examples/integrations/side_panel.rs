@@ -1,6 +1,7 @@
 use std::ops::DerefMut;
 
-use bevy::{input::common_conditions::input_toggle_active, prelude::*, window::PrimaryWindow};
+use bevy::{input::common_conditions::input_toggle_active, prelude::*};
+use bevy_egui::PrimaryEguiContext;
 use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin,
     bevy_egui::{EguiContext, EguiPlugin, EguiPrimaryContextPass},
@@ -23,11 +24,12 @@ fn main() {
 
 fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities>) {
     let Ok(mut ctx) = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single_mut(world)
     else {
         return;
     };
+    dbg!();
 
     let mut egui_context = ctx.deref_mut().clone();
     egui::SidePanel::left("hierarchy")

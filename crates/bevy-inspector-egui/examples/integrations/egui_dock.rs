@@ -6,7 +6,7 @@ use bevy::{
     prelude::*,
     reflect::TypeRegistry,
     render::camera::{CameraProjection, Viewport},
-    window::{PrimaryWindow, Window},
+    window::Window,
 };
 use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin,
@@ -94,7 +94,7 @@ fn show_ui_system(world: &mut World) {
 // make camera only render to view not obstructed by UI
 fn set_camera_viewport(
     ui_state: Res<UiState>,
-    primary_window: Query<&mut Window, With<PrimaryWindow>>,
+    primary_window: Query<&mut Window, With<PrimaryEguiContext>>,
     egui_settings: Single<&EguiContextSettings>,
     mut cam: Single<&mut Camera, With<MainCamera>>,
 ) {
