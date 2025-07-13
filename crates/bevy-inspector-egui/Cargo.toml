@@ -25,7 +25,7 @@ default = [
     "egui_clipboard",
 ]
 documentation = ["bevy_reflect/documentation"]
-bevy_render = ["dep:bevy_render",  "bevy_egui/render"]
+bevy_render = ["dep:bevy_render", "bevy_egui/render"]
 bevy_core_pipeline = ["dep:bevy_core_pipeline"]
 egui_clipboard = ["bevy_egui/manage_clipboard"]
 egui_open_url = ["bevy_egui/open_url"]
@@ -89,7 +89,7 @@ bevy = { version = "0.16.0", default-features = false, features = [
 ] }
 egui_dock = "0.16"
 bevy_math = { version = "0.16.0", features = ["mint"] }
-transform-gizmo-egui = "0.5"
+transform-gizmo-egui = "0.6"
 # bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
 # bevy_framepace = "0.11"
 
