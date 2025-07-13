@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.32.0
+- update to `bevy_egui 0.15` [(#268)](https://github.com/jakobhellermann/bevy-inspector-egui/pull/268)
+- don't show `Add Element` button for non-constructable types
+- add ability to show `TypeId`s
+
 ## Version 0.31.0
 - update to `bevy 0.16`
 
@@ -10,7 +15,7 @@
 - fix panic on unsupported color type
 
 ## Version 0.29.1
-- add enabled-by-default `documentation` feature, which will display docs for reflected components on hover 
+- add enabled-by-default `documentation` feature, which will display docs for reflected components on hover
 
 ## Version 0.29.0
 - fix sRGBA colors not being accurate [(#235)](https://github.com/jakobhellermann/bevy-inspector-egui/pull/235)
