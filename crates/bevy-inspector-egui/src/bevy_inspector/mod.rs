@@ -518,29 +518,22 @@ fn ui_for_entity_with_children_inner<F>(
     let children = world
         .get::<Children>(entity)
         .map(|children| children.iter().collect::<Vec<_>>());
-    if let Some(mut children) = children {
-        if !children.is_empty() {
-            filter.filter_entities(world, &mut children);
-            ui.label("Children");
-            for child in children {
-                let id = id.with(child);
+    if let Some(mut children) = children
+        && !children.is_empty()
+    {
+        filter.filter_entities(world, &mut children);
+        ui.label("Children");
+        for child in children {
+            let id = id.with(child);
 
-                let child_entity_name = guess_entity_name(world, child);
-                egui::CollapsingHeader::new(&child_entity_name)
-                    .id_salt(id)
-                    .show(ui, |ui| {
-                        ui.label(&child_entity_name);
+            let child_entity_name = guess_entity_name(world, child);
+            egui::CollapsingHeader::new(&child_entity_name)
+                .id_salt(id)
+                .show(ui, |ui| {
+                    ui.label(&child_entity_name);
 
-                        ui_for_entity_with_children_inner(
-                            world,
-                            child,
-                            ui,
-                            id,
-                            type_registry,
-                            filter,
-                        );
-                    });
-            }
+                    ui_for_entity_with_children_inner(world, child, ui, id, type_registry, filter);
+                });
         }
     }
 

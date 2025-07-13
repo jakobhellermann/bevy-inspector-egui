@@ -75,14 +75,14 @@ impl InspectorPrimitive for Entity {
                             id,
                             env.type_registry,
                         );
-                        if options.despawnable && world.contains_entity(entity) {
-                            if let Some(queue) = queue {
-                                if egui_utils::label_button(ui, "✖ Despawn", egui::Color32::RED) {
-                                    queue.push(move |world: &mut World| {
-                                        world.entity_mut(entity).despawn();
-                                    });
-                                }
-                            }
+                        if options.despawnable
+                            && world.contains_entity(entity)
+                            && let Some(queue) = queue
+                            && egui_utils::label_button(ui, "✖ Despawn", egui::Color32::RED)
+                        {
+                            queue.push(move |world: &mut World| {
+                                world.entity_mut(entity).despawn();
+                            });
                         }
                     });
             }
