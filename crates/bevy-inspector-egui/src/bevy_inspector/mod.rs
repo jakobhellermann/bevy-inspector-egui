@@ -45,6 +45,7 @@ use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
 use bevy_ecs::query::{QueryFilter, WorldQuery};
 use bevy_ecs::world::CommandQueue;
 use bevy_ecs::{component::ComponentId, prelude::*};
+use bevy_log::error;
 use bevy_reflect::{Reflect, TypeRegistry};
 use bevy_state::state::{FreelyMutableState, NextState, State};
 use fuzzy_matcher::FuzzyMatcher;
@@ -56,7 +57,7 @@ pub(crate) mod errors;
 pub mod hierarchy;
 
 use crate::reflect_inspector::{Context, InspectorUi};
-use crate::restricted_world_view::{ReflectBorrow, RestrictedWorldView};
+use crate::restricted_world_view::{Error, ReflectBorrow, RestrictedWorldView};
 
 /// Display a single [`&mut dyn Reflect`](bevy_reflect::Reflect).
 ///
@@ -598,66 +599,119 @@ pub(crate) fn ui_for_entity_components(
             continue;
         }
 
-        // create a context with access to the world except for the currently viewed component
-        let (mut component_view, world) = world.split_off_component((entity, component_type_id));
-        let mut cx = Context {
-            world: Some(world),
-            #[allow(clippy::needless_option_as_deref)]
-            queue: queue.as_deref_mut(),
+        let display_err = |ui: &mut egui::Ui, e: Error| {
+            let response = ui.label(egui::RichText::new(&name).underline());
+            response.on_hover_ui(|ui| errors::show_error(e, ui, &name));
         };
 
-        let value = match component_view.get_entity_component_reflect(
-            entity,
-            component_type_id,
-            type_registry,
-        ) {
-            Ok(value) => value,
-            Err(e) => {
-                ui.indent(id, |ui| {
-                    let response = ui.label(egui::RichText::new(&name).underline());
-                    response.on_hover_ui(|ui| errors::show_error(e, ui, &name));
-                });
-                continue;
-            }
-        };
+        let mut changed_cloned_component = None;
 
-        if value.is_changed() {
-            #[cfg(feature = "highlight_changes")]
-            set_highlight_style(ui);
-        }
-
-        let _response = header.show(ui, |ui| {
-            ui.reset_style();
-
-            let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
-            let id = id.with(component_id);
-            let options = &();
-
-            match value {
-                ReflectBorrow::Mutable(mut value) => {
-                    let changed = env.ui_for_reflect_with_options(
-                        value.bypass_change_detection().as_partial_reflect_mut(),
-                        ui,
-                        id,
-                        options,
-                    );
-
-                    if changed {
-                        value.set_changed();
-                    }
-                }
-                ReflectBorrow::Immutable(value) => env.ui_for_reflect_readonly_with_options(
-                    value.as_partial_reflect(),
-                    ui,
-                    id,
-                    options,
-                ),
+        {
+            // create a context with access to the world except for the currently viewed component
+            let (mut component_view, world) =
+                world.split_off_component((entity, component_type_id));
+            let mut cx = Context {
+                world: Some(world),
+                #[allow(clippy::needless_option_as_deref)]
+                queue: queue.as_deref_mut(),
             };
-        });
 
-        #[cfg(feature = "documentation")]
-        crate::egui_utils::show_docs(_response.header_response, type_docs);
-        ui.reset_style();
+            let value = match component_view.get_entity_component_reflect(
+                entity,
+                component_type_id,
+                type_registry,
+            ) {
+                Ok(value) => value,
+                Err(e) => {
+                    ui.indent(id, |ui| {
+                        display_err(ui, e);
+                    });
+                    continue;
+                }
+            };
+
+            if value.is_changed() {
+                #[cfg(feature = "highlight_changes")]
+                set_highlight_style(ui);
+            }
+
+            let _response = header.show(ui, |ui| {
+                ui.reset_style();
+
+                let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+                let id = id.with(component_id);
+                let options = &();
+
+                match value {
+                    ReflectBorrow::Mutable(mut value) => {
+                        let changed = env.ui_for_reflect_with_options(
+                            value.bypass_change_detection().as_partial_reflect_mut(),
+                            ui,
+                            id,
+                            options,
+                        );
+
+                        if changed {
+                            value.set_changed();
+                        }
+                    }
+                    ReflectBorrow::Immutable(value) => match value.reflect_clone() {
+                        Err(_) => env.ui_for_reflect_readonly_with_options(
+                            value.as_partial_reflect(),
+                            ui,
+                            id,
+                            options,
+                        ),
+                        Ok(mut value) => {
+                            ui.label(
+                                egui::RichText::new("Editing Immutable Component")
+                                    .color(egui::Color32::ORANGE),
+                            );
+                            let changed = env.ui_for_reflect_with_options(
+                                value.as_partial_reflect_mut(),
+                                ui,
+                                id,
+                                options,
+                            );
+
+                            if changed {
+                                changed_cloned_component.replace(value);
+                            }
+                        }
+                    },
+                };
+            });
+
+            #[cfg(feature = "documentation")]
+            crate::egui_utils::show_docs(_response.header_response, type_docs);
+            ui.reset_style();
+        };
+
+        if let Some(changed_cloned_component) = changed_cloned_component {
+            let Some(reflect_component) =
+                type_registry.get_type_data::<ReflectComponent>(component_type_id)
+            else {
+                display_err(ui, Error::NoTypeData(component_type_id, "ReflectComponent"));
+                continue;
+            };
+            let partial_reflect_component = changed_cloned_component.as_partial_reflect();
+            // TODO: SAFETY?
+            let world_mut = unsafe { world.world().world_mut() };
+            match world_mut.get_entity_mut(entity) {
+                Ok(mut entity_mut) => {
+                    reflect_component.insert(
+                        &mut entity_mut,
+                        partial_reflect_component,
+                        type_registry,
+                    );
+                }
+                Err(err) => {
+                    error!("Failed to get entity mut: {err:?} for {entity}");
+                    display_err(ui, Error::NoAccessToComponent((entity, component_type_id)));
+                    continue;
+                }
+            }
+        }
     }
 }
 
