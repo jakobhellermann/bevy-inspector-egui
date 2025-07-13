@@ -1,4 +1,4 @@
-use std::{borrow::Cow, ops::AddAssign, path::PathBuf};
+use std::{any::TypeId, borrow::Cow, ops::AddAssign, path::PathBuf};
 
 use bevy_platform::time::Instant;
 use bevy_reflect::{PartialReflect, Reflect, TypePath};
@@ -467,5 +467,23 @@ impl InspectorPrimitive for PathBuf {
 
     fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
         ui.text_edit_singleline(&mut self.to_string_lossy());
+    }
+}
+
+impl InspectorPrimitive for TypeId {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    ) -> bool {
+        self.ui_readonly(ui, options, id, env);
+        false
+    }
+
+    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+        let str = format!("{:?}", self);
+        ui.label(str);
     }
 }

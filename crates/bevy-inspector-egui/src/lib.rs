@@ -147,6 +147,8 @@ pub mod dropdown;
 pub mod egui_utils;
 mod utils;
 
+use std::any::TypeId;
+
 #[cfg(feature = "bevy_render")]
 pub use bevy_egui;
 pub use egui;
@@ -193,7 +195,8 @@ impl bevy_app::Plugin for DefaultInspectorConfigPlugin {
             .register_type::<bevy_math::Quat>()
             .register_type::<bevy_math::Rect>()
             .register_type::<bevy_color::Color>()
-            .register_type::<core::ops::Range<f32>>();
+            .register_type::<core::ops::Range<f32>>()
+            .register_type::<TypeId>();
 
         let type_registry = app.world().resource::<bevy_ecs::prelude::AppTypeRegistry>();
         let mut type_registry = type_registry.write();
