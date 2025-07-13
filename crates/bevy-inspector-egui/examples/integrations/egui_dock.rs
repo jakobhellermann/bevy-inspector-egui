@@ -6,8 +6,8 @@ use bevy::{
     prelude::*,
     reflect::TypeRegistry,
     render::camera::{CameraProjection, Viewport},
-    window::Window,
 };
+use bevy_egui::EguiGlobalSettings;
 use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin,
     bevy_egui::{EguiContext, EguiContextSettings, EguiPrimaryContextPass, PrimaryEguiContext},
@@ -18,6 +18,8 @@ use bevy_inspector_egui::{
     },
 };
 
+use bevy_render::view::RenderLayers;
+use bevy_window::PrimaryWindow;
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
 use transform_gizmo_egui::{Gizmo, GizmoConfig, GizmoExt, GizmoOrientation};
 
@@ -94,14 +96,10 @@ fn show_ui_system(world: &mut World) {
 // make camera only render to view not obstructed by UI
 fn set_camera_viewport(
     ui_state: Res<UiState>,
-    primary_window: Query<&mut Window, With<PrimaryEguiContext>>,
+    window: Single<&Window, With<PrimaryWindow>>,
+    mut cam: Single<&mut Camera, Without<PrimaryEguiContext>>,
     egui_settings: Single<&EguiContextSettings>,
-    mut cam: Single<&mut Camera, With<MainCamera>>,
 ) {
-    let Ok(window) = primary_window.single() else {
-        return;
-    };
-
     let scale_factor = window.scale_factor() * egui_settings.scale_factor;
 
     let viewport_pos = ui_state.viewport_rect.left_top().to_vec2() * scale_factor;
@@ -110,7 +108,6 @@ fn set_camera_viewport(
     let physical_position = UVec2::new(viewport_pos.x as u32, viewport_pos.y as u32);
     let physical_size = UVec2::new(viewport_size.x as u32, viewport_size.y as u32);
 
-    // The desired viewport rectangle at its offset in "physical pixel space"
     let rect = physical_position + physical_size;
 
     let window_size = window.physical_size();
@@ -376,7 +373,10 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut egui_global_settings: ResMut<EguiGlobalSettings>,
 ) {
+    egui_global_settings.auto_create_primary_context = false;
+
     let box_size = 2.0;
     let box_thickness = 0.15;
     let box_offset = (box_size + box_thickness) / 2.0;
@@ -493,5 +493,17 @@ fn setup(
             .looking_at(Vec3::new(0.0, box_offset, 0.0), Vec3::Y),
         MainCamera,
         // PickRaycastSource,
+    ));
+
+    // egui camera
+    commands.spawn((
+        Camera2d,
+        Name::new("Egui Camera"),
+        PrimaryEguiContext,
+        RenderLayers::none(),
+        Camera {
+            order: 1,
+            ..default()
+        },
     ));
 }
