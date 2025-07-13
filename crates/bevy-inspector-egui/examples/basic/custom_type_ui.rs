@@ -50,5 +50,10 @@ fn main() {
         .init_resource::<Config>()
         .register_type::<ToggleOption>()
         .register_type_data::<ToggleOption, InspectorEguiImpl>()
+        .add_systems(Startup, setup)
         .run();
+}
+
+fn setup(mut commands: Commands) {
+    commands.spawn(Camera2d);
 }
