@@ -988,15 +988,10 @@ impl InspectorUi<'_, '_> {
         _options: &dyn Any,
     ) -> bool {
         let mut changed = false;
-        let map_draft_id = id.with("map_draft");
         if map.is_empty() {
             ui.label("(Empty Map)");
             ui.end_row();
         }
-        let draft_clone = ui.data_mut(|data| {
-            data.get_temp_mut_or_default::<Option<MapDraftElement>>(map_draft_id)
-                .to_owned()
-        });
         let mut to_delete: Option<usize> = None;
 
         egui::Grid::new(id).show(ui, |ui| {
@@ -1010,61 +1005,8 @@ impl InspectorUi<'_, '_> {
                     ui.end_row();
                 }
             }
-            ui.separator();
-            ui.end_row();
-            ui.label("New element");
-            match draft_clone {
-                None => {
-                    // If no draft element exists, show a button to create one.
-                    if add_button(ui).clicked() {
-                        // Insert a temporary 'draft' key-value pair into UI state.
-                        if let Some(TypeInfo::Map(map_info)) = map.get_represented_type_info() {
-                            let op = Option::zip(
-                                self.get_default_value_for(map_info.key_ty().id()),
-                                self.get_default_value_for(map_info.value_ty().id()),
-                            )
-                            .map(|(k, v)| MapDraftElement {
-                                key: k.into_partial_reflect(),
-                                value: v.into_partial_reflect(),
-                            });
-                            if op.is_some() {
-                                ui.data_mut(|data| data.insert_temp(map_draft_id, op));
-                            }
-                        }
-                    }
-                    ui.end_row();
-                }
-                Some(MapDraftElement {
-                    key: mut k,
-                    value: mut v,
-                }) => {
-                    ui.end_row();
-                    // Show controls for editing our draft element.
-                    let key_changed = self.ui_for_reflect_with_options(k.as_mut(), ui, id, &());
-                    let value_changed = self.ui_for_reflect_with_options(v.as_mut(), ui, id, &());
-                    // If the clone changed, update the data in UI state.
-                    if key_changed || value_changed {
-                        let next_draft = MapDraftElement { key: k, value: v };
-                        ui.data_mut(|data| data.insert_temp(map_draft_id, Some(next_draft)));
-                    }
-                    // Show controls to insert the draft into the map, or remove it.
-                    if ui.button("Insert").clicked() {
-                        let draft = ui
-                            .data_mut(|data| data.get_temp::<Option<MapDraftElement>>(map_draft_id))
-                            .flatten();
-                        if let Some(draft) = draft {
-                            map.insert_boxed(draft.key, draft.value);
-                            ui.data_mut(|data| data.remove_by_type::<Option<MapDraftElement>>());
-                        }
-                        changed = true;
-                    }
-                    if ui.button("Cancel").clicked() {
-                        ui.data_mut(|data| data.remove_by_type::<Option<MapDraftElement>>());
-                        changed = true;
-                    }
-                    ui.end_row();
-                }
-            }
+
+            self.map_add_element_ui(map, ui, id, &mut changed);
         });
 
         if let Some(index) = to_delete {
@@ -1077,6 +1019,78 @@ impl InspectorUi<'_, '_> {
         }
 
         changed
+    }
+
+    fn map_add_element_ui(
+        &mut self,
+        map: &mut (dyn Map + 'static),
+        ui: &mut egui::Ui,
+        id: egui::Id,
+        changed: &mut bool,
+    ) -> Option<()> {
+        let map_draft_id = id.with("map_draft");
+        let draft_clone = ui.data_mut(|data| {
+            data.get_temp_mut_or_default::<Option<MapDraftElement>>(map_draft_id)
+                .to_owned()
+        });
+
+        let map_info = map.get_represented_map_info()?;
+
+        dbg!();
+        let key_default = self.get_reflect_default(map_info.key_ty().id())?;
+        dbg!();
+        let value_default = self.get_reflect_default(map_info.value_ty().id())?;
+        dbg!();
+
+        ui.separator();
+        ui.end_row();
+        ui.label("New element");
+        match draft_clone {
+            None => {
+                // If no draft element exists, show a button to create one.
+                if add_button(ui).clicked() {
+                    // Insert a temporary 'draft' key-value pair into UI state.
+                    let key = key_default.default().into_partial_reflect();
+                    let value = value_default.default().into_partial_reflect();
+                    ui.data_mut(|data| {
+                        data.insert_temp(map_draft_id, MapDraftElement { key, value })
+                    });
+                }
+                ui.end_row();
+            }
+            Some(MapDraftElement { mut key, mut value }) => {
+                ui.end_row();
+                // Show controls for editing our draft element.
+                let key_changed = self.ui_for_reflect_with_options(key.as_mut(), ui, id, &());
+                let value_changed = self.ui_for_reflect_with_options(value.as_mut(), ui, id, &());
+
+                // If the clone changed, update the data in UI state.
+                if key_changed || value_changed {
+                    let next_draft = MapDraftElement { key, value };
+                    ui.data_mut(|data| data.insert_temp(map_draft_id, Some(next_draft)));
+                }
+
+                // Show controls to insert the draft into the map, or remove it.
+                if ui.button("Insert").clicked() {
+                    let draft = ui
+                        .data_mut(|data| data.get_temp::<Option<MapDraftElement>>(map_draft_id))
+                        .flatten();
+                    if let Some(draft) = draft {
+                        map.insert_boxed(draft.key, draft.value);
+                        ui.data_mut(|data| data.remove_by_type::<Option<MapDraftElement>>());
+                    }
+                    *changed = true;
+                }
+
+                if ui.button("Cancel").clicked() {
+                    ui.data_mut(|data| data.remove_by_type::<Option<MapDraftElement>>());
+                    *changed = true;
+                }
+                ui.end_row();
+            }
+        }
+
+        Some(())
     }
 
     fn ui_for_reflect_map_readonly(
@@ -1161,12 +1175,10 @@ impl InspectorUi<'_, '_> {
                 return;
             };
             let value_type = set_info.value_ty();
-            let (new_op, new_changed) =
-                self.ui_to_insert_set_element_with_options(value_type, ui, id, options);
+            let new_op = self.set_add_element_ui(value_type, ui, id, options, &mut changed);
             if new_op.is_some() {
                 op = new_op;
             }
-            changed |= new_changed;
 
             ui.end_row();
 
@@ -1190,15 +1202,18 @@ impl InspectorUi<'_, '_> {
     }
 
     #[must_use]
-    fn ui_to_insert_set_element_with_options(
+    fn set_add_element_ui(
         &mut self,
         value_type: bevy_reflect::Type,
         ui: &mut egui::Ui,
         id: egui::Id,
         options: &dyn Any,
-    ) -> (Option<SetOp>, bool) {
-        let mut changed = false;
+        changed: &mut bool,
+    ) -> Option<SetOp> {
         let mut op = None;
+
+        let item_default = self.get_reflect_default(value_type.id())?.clone();
+
         ui.vertical(|ui| {
             ui.label("New element");
             let set_draft_id = id.with("set_draft");
@@ -1212,13 +1227,10 @@ impl InspectorUi<'_, '_> {
                     // If no draft element exists, show a button to create one.
                     if add_button(ui).clicked() {
                         // Insert a temporary 'draft' value into UI state, once inserted, we cannot modify it.
-                        let maybe_default = self
-                            .get_default_value_for(value_type.id())
-                            .map(|v| SetDraftElement(v.into_partial_reflect()));
-                        if maybe_default.is_some() {
-                            ui.data_mut(|data| data.insert_temp(set_draft_id, maybe_default));
-                        }
+                        let draft = SetDraftElement(item_default.default().into_partial_reflect());
+                        ui.data_mut(|data| data.insert_temp(set_draft_id, Some(draft)));
                     }
+
                     ui.end_row();
                 }
                 Some(SetDraftElement(mut v)) => {
@@ -1227,11 +1239,13 @@ impl InspectorUi<'_, '_> {
                     // FIXME: is the id passed here correct?
                     let value_changed =
                         self.ui_for_reflect_with_options(v.as_mut(), ui, id, options);
+
                     // If the clone changed, update the data in UI state.
                     if value_changed {
                         let next_draft = SetDraftElement(v);
                         ui.data_mut(|data| data.insert_temp(set_draft_id, Some(next_draft)));
                     }
+
                     // Show controls to insert the draft into the set, or remove it.
                     if ui.button("Insert").clicked() {
                         let draft = ui
@@ -1241,18 +1255,19 @@ impl InspectorUi<'_, '_> {
                             op = Some(SetOp::AddElement(draft.0));
                             ui.data_mut(|data| data.remove_by_type::<Option<SetDraftElement>>());
                         }
-                        changed = true;
+                        *changed = true;
                     }
+
                     if ui.button("Cancel").clicked() {
                         ui.data_mut(|data| data.remove_by_type::<Option<SetDraftElement>>());
-                        changed = true;
+                        *changed = true;
                     }
                     ui.end_row();
                 }
             }
         });
 
-        (op, changed)
+        op
     }
 
     fn ui_for_set_readonly(
@@ -1362,9 +1377,7 @@ impl InspectorUi<'_, '_> {
                     ui.separator();
                 }
             }
-            let (op, new_changed) =
-                self.ui_to_insert_set_element_with_options(value_type, ui, id, options);
-            changed |= new_changed;
+            let op = self.set_add_element_ui(value_type, ui, id, options, &mut changed);
 
             ui.end_row();
 
@@ -1772,6 +1785,10 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             short_circuit_readonly: self.short_circuit_readonly,
             short_circuit_many: self.short_circuit_many,
         }
+    }
+
+    fn get_reflect_default(&self, type_id: TypeId) -> Option<&ReflectDefault> {
+        self.type_registry.get_type_data::<ReflectDefault>(type_id)
     }
 
     fn get_default_value_for(&mut self, type_id: TypeId) -> Option<Box<dyn Reflect>> {
