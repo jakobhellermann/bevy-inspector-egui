@@ -393,20 +393,20 @@ pub mod easymark {
             // ```{language}\n{code}```
             fn code_block(&mut self) -> Option<Item<'a>> {
                 if let Some(language_start) = self.s.strip_prefix("```") {
-                    if let Some(newline) = language_start.find('\n')
-                {
-                    let language = &language_start[..newline];
-                    let code_start = &language_start[newline + 1..];
-                    if let Some(end) = code_start.find("\n```") {
-                        let code = &code_start[..end].trim();
-                        self.s = &code_start[end + 4..];
-                        self.start_of_line = false;
-                        return Some(Item::CodeBlock(language, code));
-                    } else {
-                        self.s = "";
-                        return Some(Item::CodeBlock(language, code_start));
+                    if let Some(newline) = language_start.find('\n') {
+                        let language = &language_start[..newline];
+                        let code_start = &language_start[newline + 1..];
+                        if let Some(end) = code_start.find("\n```") {
+                            let code = &code_start[..end].trim();
+                            self.s = &code_start[end + 4..];
+                            self.start_of_line = false;
+                            return Some(Item::CodeBlock(language, code));
+                        } else {
+                            self.s = "";
+                            return Some(Item::CodeBlock(language, code_start));
+                        }
                     }
-                }}
+                }
                 None
             }
 
