@@ -145,10 +145,10 @@ impl<T> Hierarchy<'_, T> {
             None
         };
 
-        if let Some(shortcircuit_entity) = self.shortcircuit_entity.as_mut()
-            && shortcircuit_entity(ui, entity, self.world, self.extra_state)
-        {
-            return false;
+        if let Some(shortcircuit_entity) = self.shortcircuit_entity.as_mut() {
+            if shortcircuit_entity(ui, entity, self.world, self.extra_state) {
+                return false;
+            }
         }
 
         #[allow(deprecated)] // the suggested replacement doesn't really work

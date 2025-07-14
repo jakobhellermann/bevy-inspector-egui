@@ -229,22 +229,24 @@ impl InspectorUi<'_, '_> {
         options: &dyn Any,
     ) -> bool {
         let mut options = options;
-        if options.is::<()>()
-            && let Some(data) = value.try_as_reflect().and_then(|val| {
+        if options.is::<()>() {
+            if let Some(data) = value.try_as_reflect().and_then(|val| {
                 self.type_registry
                     .get_type_data::<ReflectInspectorOptions>(val.type_id())
-            })
-        {
-            options = &data.0;
+            }) {
+                options = &data.0;
+            }
         }
 
-        if let Some(reflected) = value.try_as_reflect_mut()
-            && let Some(s) = self
+        if let Some(reflected) = value.try_as_reflect_mut() {
+            if let Some(s) = self
                 .type_registry
                 .get_type_data::<InspectorEguiImpl>(reflected.reflect_type_info().type_id())
-            && let Some(value) = value.try_as_reflect_mut()
-        {
-            return s.execute(value.as_any_mut(), ui, options, id, self.reborrow());
+            {
+                if let Some(value) = value.try_as_reflect_mut() {
+                    return s.execute(value.as_any_mut(), ui, options, id, self.reborrow());
+                }
+            }
         }
 
         if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
@@ -282,23 +284,27 @@ impl InspectorUi<'_, '_> {
         options: &dyn Any,
     ) {
         let mut options = options;
-        if options.is::<()>()
-            && let Some(value_reflect) = value.try_as_reflect()
-            && let Some(data) = self
-                .type_registry
-                .get_type_data::<ReflectInspectorOptions>(value_reflect.type_id())
-        {
-            options = &data.0;
+        if options.is::<()>() {
+            if let Some(value_reflect) = value.try_as_reflect() {
+                if let Some(data) = self
+                    .type_registry
+                    .get_type_data::<ReflectInspectorOptions>(value_reflect.type_id())
+                {
+                    options = &data.0;
+                }
+            }
         }
 
-        if let Some(value_reflect) = value.try_as_reflect()
-            && let Some(s) = self
+        if let Some(value_reflect) = value.try_as_reflect() {
+            if let Some(s) = self
                 .type_registry
                 .get_type_data::<InspectorEguiImpl>(value_reflect.type_id())
-            && let Some(value) = value.try_as_reflect()
-        {
-            s.execute_readonly(value.as_any(), ui, options, id, self.reborrow());
-            return;
+            {
+                if let Some(value) = value.try_as_reflect() {
+                    s.execute_readonly(value.as_any(), ui, options, id, self.reborrow());
+                    return;
+                }
+            }
         }
 
         if let Some(()) = (self.short_circuit_readonly)(self, value, ui, id, options) {
@@ -353,12 +359,15 @@ impl InspectorUi<'_, '_> {
         let info = registration.type_info();
 
         let mut options = options;
-        if options.is::<()>()
-            && let Some(data) = self
+        if options.is::<()>() {
+            if let Some(data) = self
                 .type_registry
                 .get_type_data::<ReflectInspectorOptions>(type_id)
-        {
-            options = &data.0;
+            {
+                {
+                    options = &data.0;
+                }
+            }
         }
 
         if let Some(s) = self
@@ -1682,11 +1691,12 @@ impl InspectorUi<'_, '_> {
                                 }
                             });*/
 
-                            if variant_label_response.clicked()
-                                && let Ok(dynamic_enum) =
+                            if variant_label_response.clicked() {
+                                if let Ok(dynamic_enum) =
                                     self.construct_default_variant(variant, ui)
-                            {
-                                changed_variant = Some((i, dynamic_enum));
+                                {
+                                    changed_variant = Some((i, dynamic_enum));
+                                }
                             };
                         });
                     }
