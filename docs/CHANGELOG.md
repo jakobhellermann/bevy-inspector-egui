@@ -1,7 +1,7 @@
 # Changelog
 
 ## Version 0.32.0
-- update to `bevy_egui 0.15` [(#268)](https://github.com/jakobhellermann/bevy-inspector-egui/pull/268)
+- update to `bevy_egui 0.35.0` [(#268)](https://github.com/jakobhellermann/bevy-inspector-egui/pull/268)
 - don't show `Add Element` button for non-constructable types
 - add ability to show `TypeId`s
 
