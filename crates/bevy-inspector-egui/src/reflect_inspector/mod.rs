@@ -1035,12 +1035,8 @@ impl InspectorUi<'_, '_> {
         });
 
         let map_info = map.get_represented_map_info()?;
-
-        dbg!();
         let key_default = self.get_reflect_default(map_info.key_ty().id())?;
-        dbg!();
         let value_default = self.get_reflect_default(map_info.value_ty().id())?;
-        dbg!();
 
         ui.separator();
         ui.end_row();
