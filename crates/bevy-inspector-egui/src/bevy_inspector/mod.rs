@@ -463,7 +463,7 @@ impl<F: QueryFilter> Filter<F> {
         Self {
             word: String::from(""),
             is_fuzzy: false,
-            hide_observers: false,
+            hide_observers: true,
             marker: PhantomData,
         }
     }
