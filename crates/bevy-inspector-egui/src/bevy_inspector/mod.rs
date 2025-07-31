@@ -365,7 +365,6 @@ impl<F: QueryFilter + Clone> Clone for Filter<F> {
 
 impl<F: QueryFilter> Filter<F> {
     pub fn from_ui_fuzzy(ui: &mut egui::Ui, id: egui::Id) -> Self {
-
         let hide_observers = {
             let id = id.with("hide_observers");
             let mut hide_observers = ui.memory_mut(|mem| {
@@ -378,7 +377,7 @@ impl<F: QueryFilter> Filter<F> {
             });
             hide_observers
         };
-        
+
         let word = {
             let id = id.with("word");
             // filter, using eguis memory and provided id
@@ -405,7 +404,6 @@ impl<F: QueryFilter> Filter<F> {
 
     pub fn from_ui(ui: &mut egui::Ui, id: egui::Id) -> Self {
         ui.horizontal(|ui| {
-
             let hide_observers = {
                 let id = id.with("hide_observers");
                 let mut hide_observers = ui.memory_mut(|mem| {
@@ -418,7 +416,7 @@ impl<F: QueryFilter> Filter<F> {
                 });
                 hide_observers
             };
-            
+
             // filter kind
             let is_fuzzy = {
                 let id = id.with("is_fuzzy");
@@ -477,7 +475,13 @@ impl<F: QueryFilter> EntityFilter for Filter<F> {
     }
 
     fn filter_entity(&self, world: &mut World, entity: Entity) -> bool {
-        self_or_children_satisfy_filter(world, entity, self.word.as_str(), self.is_fuzzy, self.hide_observers)
+        self_or_children_satisfy_filter(
+            world,
+            entity,
+            self.word.as_str(),
+            self.is_fuzzy,
+            self.hide_observers,
+        )
     }
 }
 
@@ -486,15 +490,16 @@ fn self_or_children_satisfy_filter(
     entity: Entity,
     filter: &str,
     is_fuzzy: bool,
-    hide_observers: bool
+    hide_observers: bool,
 ) -> bool {
     let name = guess_entity_name(world, entity);
-    
-    let is_hidden_observer = hide_observers && world
-        .query::<&observer::ObserverState>()
-        .get(world, entity)
-        .is_ok();
-    
+
+    let is_hidden_observer = hide_observers
+        && world
+            .query::<&observer::ObserverState>()
+            .get(world, entity)
+            .is_ok();
+
     let self_matches = if is_fuzzy {
         let matcher = SkimMatcherV2::default();
         matcher.fuzzy_match(name.as_str(), filter).is_some()
@@ -510,9 +515,9 @@ fn self_or_children_satisfy_filter(
             return false;
         };
 
-        children
-            .iter()
-            .any(|child| self_or_children_satisfy_filter(world, *child, filter, is_fuzzy, hide_observers))
+        children.iter().any(|child| {
+            self_or_children_satisfy_filter(world, *child, filter, is_fuzzy, hide_observers)
+        })
     }
 }
 
