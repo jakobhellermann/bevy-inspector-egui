@@ -44,7 +44,7 @@ use crate::utils::{pretty_type_name, pretty_type_name_str};
 use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
 use bevy_ecs::query::{QueryFilter, WorldQuery};
 use bevy_ecs::world::CommandQueue;
-use bevy_ecs::{component::ComponentId, prelude::*};
+use bevy_ecs::{component::ComponentId, observer, prelude::*};
 use bevy_reflect::{Reflect, TypeRegistry};
 use bevy_state::state::{FreelyMutableState, NextState, State};
 use fuzzy_matcher::FuzzyMatcher;
@@ -348,6 +348,7 @@ pub trait EntityFilter {
 pub struct Filter<F: QueryFilter = Without<ChildOf>> {
     pub word: String,
     pub is_fuzzy: bool,
+    pub hide_observers: bool,
     pub marker: PhantomData<F>,
 }
 
@@ -356,6 +357,7 @@ impl<F: QueryFilter + Clone> Clone for Filter<F> {
         Self {
             word: self.word.clone(),
             is_fuzzy: self.is_fuzzy,
+            hide_observers: self.hide_observers,
             marker: PhantomData,
         }
     }
@@ -363,6 +365,20 @@ impl<F: QueryFilter + Clone> Clone for Filter<F> {
 
 impl<F: QueryFilter> Filter<F> {
     pub fn from_ui_fuzzy(ui: &mut egui::Ui, id: egui::Id) -> Self {
+
+        let hide_observers = {
+            let id = id.with("hide_observers");
+            let mut hide_observers = ui.memory_mut(|mem| {
+                let persistent_value: &mut bool = mem.data.get_persisted_mut_or_default(id);
+                *persistent_value
+            });
+            ui.checkbox(&mut hide_observers, "Hide Observers");
+            ui.memory_mut(|mem| {
+                *mem.data.get_persisted_mut_or_default(id) = hide_observers;
+            });
+            hide_observers
+        };
+        
         let word = {
             let id = id.with("word");
             // filter, using eguis memory and provided id
@@ -382,12 +398,27 @@ impl<F: QueryFilter> Filter<F> {
         Filter {
             word,
             is_fuzzy: true,
+            hide_observers,
             marker: PhantomData,
         }
     }
 
     pub fn from_ui(ui: &mut egui::Ui, id: egui::Id) -> Self {
         ui.horizontal(|ui| {
+
+            let hide_observers = {
+                let id = id.with("hide_observers");
+                let mut hide_observers = ui.memory_mut(|mem| {
+                    let persistent_value: &mut bool = mem.data.get_persisted_mut_or_default(id);
+                    *persistent_value
+                });
+                ui.checkbox(&mut hide_observers, "Hide Observers");
+                ui.memory_mut(|mem| {
+                    *mem.data.get_persisted_mut_or_default(id) = hide_observers;
+                });
+                hide_observers
+            };
+            
             // filter kind
             let is_fuzzy = {
                 let id = id.with("is_fuzzy");
@@ -420,6 +451,7 @@ impl<F: QueryFilter> Filter<F> {
             Filter {
                 word,
                 is_fuzzy,
+                hide_observers,
                 marker: PhantomData,
             }
         })
@@ -431,6 +463,7 @@ impl<F: QueryFilter> Filter<F> {
         Self {
             word: String::from(""),
             is_fuzzy: false,
+            hide_observers: false,
             marker: PhantomData,
         }
     }
@@ -440,11 +473,11 @@ impl<F: QueryFilter> EntityFilter for Filter<F> {
     type StaticFilter = F;
 
     fn is_active(&self) -> bool {
-        !self.word.is_empty()
+        !self.word.is_empty() || self.hide_observers
     }
 
     fn filter_entity(&self, world: &mut World, entity: Entity) -> bool {
-        self_or_children_satisfy_filter(world, entity, self.word.as_str(), self.is_fuzzy)
+        self_or_children_satisfy_filter(world, entity, self.word.as_str(), self.is_fuzzy, self.hide_observers)
     }
 }
 
@@ -453,15 +486,22 @@ fn self_or_children_satisfy_filter(
     entity: Entity,
     filter: &str,
     is_fuzzy: bool,
+    hide_observers: bool
 ) -> bool {
     let name = guess_entity_name(world, entity);
+    
+    let is_hidden_observer = hide_observers && world
+        .query::<&observer::ObserverState>()
+        .get(world, entity)
+        .is_ok();
+    
     let self_matches = if is_fuzzy {
         let matcher = SkimMatcherV2::default();
         matcher.fuzzy_match(name.as_str(), filter).is_some()
     } else {
         name.to_lowercase().contains(filter)
     };
-    self_matches || {
+    !is_hidden_observer && self_matches || {
         let Ok(children) = world
             .query::<&Children>()
             .get(world, entity)
@@ -472,7 +512,7 @@ fn self_or_children_satisfy_filter(
 
         children
             .iter()
-            .any(|child| self_or_children_satisfy_filter(world, *child, filter, is_fuzzy))
+            .any(|child| self_or_children_satisfy_filter(world, *child, filter, is_fuzzy, hide_observers))
     }
 }
 
