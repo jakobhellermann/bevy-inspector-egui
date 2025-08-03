@@ -368,12 +368,12 @@ impl<F: QueryFilter> Filter<F> {
         let hide_observers = {
             let id = id.with("hide_observers");
             let mut hide_observers = ui.memory_mut(|mem| {
-                let persistent_value: &mut bool = mem.data.get_persisted_mut_or_default(id);
+                let persistent_value: &mut bool = mem.data.get_persisted_mut_or(id, true);
                 *persistent_value
             });
             ui.checkbox(&mut hide_observers, "Hide Observers");
             ui.memory_mut(|mem| {
-                *mem.data.get_persisted_mut_or_default(id) = hide_observers;
+                *mem.data.get_persisted_mut_or(id, true) = hide_observers;
             });
             hide_observers
         };
@@ -407,12 +407,12 @@ impl<F: QueryFilter> Filter<F> {
             let hide_observers = {
                 let id = id.with("hide_observers");
                 let mut hide_observers = ui.memory_mut(|mem| {
-                    let persistent_value: &mut bool = mem.data.get_persisted_mut_or_default(id);
+                    let persistent_value: &mut bool = mem.data.get_persisted_mut_or(id, true);
                     *persistent_value
                 });
                 ui.checkbox(&mut hide_observers, "Hide Observers");
                 ui.memory_mut(|mem| {
-                    *mem.data.get_persisted_mut_or_default(id) = hide_observers;
+                    *mem.data.get_persisted_mut_or(id, true) = hide_observers;
                 });
                 hide_observers
             };
