@@ -10,7 +10,7 @@ use bevy_asset::{Assets, Handle};
 use bevy_egui::EguiUserTextures;
 use bevy_image::Image;
 use bevy_reflect::DynamicTypePath;
-use egui::load::SizedTexture;
+use egui::{Vec2, load::SizedTexture};
 
 use crate::{
     bevy_inspector::errors::{no_world_in_context, show_error},
@@ -38,7 +38,6 @@ impl InspectorPrimitive for Handle<Image> {
         };
 
         update_and_show_image(self, world, ui);
-
         let (asset_server, images) =
             match world.get_two_resources_mut::<bevy_asset::AssetServer, Assets<Image>>() {
                 (Ok(a), Ok(b)) => (a, b),
@@ -54,10 +53,12 @@ impl InspectorPrimitive for Handle<Image> {
             };
 
         // get all loaded image paths
-        let mut image_paths = Vec::new();
+        let mut image_paths = Vec::with_capacity(images.len());
+        let mut handles = HashMap::new();
         for image in images.iter() {
             if let Some(image_path) = asset_server.get_path(image.0) {
                 image_paths.push(image_path.to_string());
+                handles.insert(image_path.to_string(), image.0.clone());
             }
         }
 
@@ -76,14 +77,30 @@ impl InspectorPrimitive for Handle<Image> {
             id.with("image_picker"),
             &mut image_picker_search_text,
             |ui, path| {
-                let response = ui.selectable_label(false, path);
+                let response = ui
+                    .selectable_label(
+                        self.path()
+                            .is_some_and(|p| p.path().as_os_str().to_string_lossy().eq(path)),
+                        path,
+                    )
+                    .on_hover_ui_at_pointer(|ui| {
+                        if let Some(id) = handles.get(path) {
+                            let s: Option<SizedTexture> =
+                                ui.data(|d| d.get_temp(format!("image:{}", id).into()));
+                            if let Some(id) = s {
+                                ui.image(id);
+                            }
+                        }
+                    });
                 if response.clicked() {
                     selected_path = Some(path.to_string());
                 }
                 response
             },
-        );
-        ui.add(dropdown);
+        )
+        .hint_text("Select image asset");
+        ui.add_enabled(!image_paths.is_empty(), dropdown)
+            .on_disabled_hover_text("No image assets are available");
 
         // update the typed search text
         ui.data_mut(|data| {
@@ -148,6 +165,18 @@ fn update_and_show_image(
     };
 
     let rescaled_image = images.get(&rescaled_handle).unwrap();
+    ui.data_mut(|d| {
+        d.insert_temp(
+            format!("image:{}", image.id()).into(),
+            SizedTexture {
+                id: texture_id.clone(),
+                size: Vec2::new(
+                    rescaled_image.texture_descriptor.size.width as f32,
+                    rescaled_image.texture_descriptor.size.height as f32,
+                ),
+            },
+        )
+    });
     show_image(rescaled_image, texture_id, ui);
 }
 

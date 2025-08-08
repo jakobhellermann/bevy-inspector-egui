@@ -2,10 +2,9 @@ use std::any::TypeId;
 
 use bevy::{
     asset::{ReflectAsset, UntypedAssetId},
-    math::{DQuat, DVec3},
     prelude::*,
     reflect::TypeRegistry,
-    render::camera::{CameraProjection, Viewport},
+    render::camera::Viewport,
 };
 use bevy_egui::EguiGlobalSettings;
 use bevy_inspector_egui::{
@@ -21,7 +20,7 @@ use bevy_inspector_egui::{
 use bevy_render::view::RenderLayers;
 use bevy_window::PrimaryWindow;
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
-use transform_gizmo_egui::{Gizmo, GizmoConfig, GizmoExt, GizmoOrientation};
+// use transform_gizmo_egui::{Gizmo, GizmoConfig, GizmoExt, GizmoOrientation};
 
 fn main() {
     App::new()
@@ -137,7 +136,7 @@ struct UiState {
     viewport_rect: egui::Rect,
     selected_entities: SelectedEntities,
     selection: InspectorSelection,
-    gizmo: Gizmo,
+    // gizmo: Gizmo,
 }
 
 impl UiState {
@@ -155,7 +154,7 @@ impl UiState {
             selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,
             viewport_rect: egui::Rect::NOTHING,
-            gizmo: Gizmo::default(),
+            // gizmo: Gizmo::default(),
         }
     }
 
@@ -165,7 +164,7 @@ impl UiState {
             viewport_rect: &mut self.viewport_rect,
             selected_entities: &mut self.selected_entities,
             selection: &mut self.selection,
-            gizmo: &mut self.gizmo,
+            // gizmo: &mut self.gizmo,
         };
         DockArea::new(&mut self.state)
             .style(Style::from_egui(ctx.style().as_ref()))
@@ -187,7 +186,7 @@ struct TabViewer<'a> {
     selected_entities: &'a mut SelectedEntities,
     selection: &'a mut InspectorSelection,
     viewport_rect: &'a mut egui::Rect,
-    gizmo: &'a mut Gizmo,
+    // gizmo: &'a mut Gizmo,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -201,7 +200,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::GameView => {
                 *self.viewport_rect = ui.clip_rect();
 
-                draw_gizmo(ui, self.gizmo, self.world, self.selected_entities);
+                // draw_gizmo(ui, self.gizmo, self.world, self.selected_entities);
             }
             EguiWindow::Hierarchy => {
                 let selected = hierarchy_ui(self.world, ui, self.selected_entities);
@@ -249,55 +248,55 @@ impl egui_dock::TabViewer for TabViewer<'_> {
     }
 }
 
-#[allow(unused)]
-fn draw_gizmo(
-    ui: &mut egui::Ui,
-    gizmo: &mut Gizmo,
-    world: &mut World,
-    selected_entities: &SelectedEntities,
-) {
-    let (cam_transform, projection) = world
-        .query_filtered::<(&GlobalTransform, &Projection), With<MainCamera>>()
-        .single(world)
-        .expect("Camera not found");
-    let view_matrix = Mat4::from(cam_transform.affine().inverse());
-    let projection_matrix = projection.get_clip_from_view();
+// #[allow(unused)]
+// fn draw_gizmo(
+//     ui: &mut egui::Ui,
+//     gizmo: &mut Gizmo,
+//     world: &mut World,
+//     selected_entities: &SelectedEntities,
+// ) {
+//     let (cam_transform, projection) = world
+//         .query_filtered::<(&GlobalTransform, &Projection), With<MainCamera>>()
+//         .single(world)
+//         .expect("Camera not found");
+//     let view_matrix = Mat4::from(cam_transform.affine().inverse());
+//     let projection_matrix = projection.get_clip_from_view();
 
-    if selected_entities.len() != 1 {
-        #[allow(clippy::needless_return)]
-        return;
-    }
+//     if selected_entities.len() != 1 {
+//         #[allow(clippy::needless_return)]
+//         return;
+//     }
 
-    for selected in selected_entities.iter() {
-        let Some(transform) = world.get::<Transform>(selected) else {
-            continue;
-        };
-        let model_matrix = transform.compute_matrix();
+//     for selected in selected_entities.iter() {
+//         let Some(transform) = world.get::<Transform>(selected) else {
+//             continue;
+//         };
+//         let model_matrix = transform.compute_matrix();
 
-        gizmo.update_config(GizmoConfig {
-            view_matrix: view_matrix.as_dmat4().into(),
-            projection_matrix: projection_matrix.as_dmat4().into(),
-            orientation: GizmoOrientation::Local,
-            ..Default::default()
-        });
-        let transform = transform_gizmo_egui::math::Transform::from_scale_rotation_translation(
-            transform.scale.as_dvec3(),
-            transform.rotation.as_dquat(),
-            transform.translation.as_dvec3(),
-        );
-        let Some((result, transforms)) = gizmo.interact(ui, &[transform]) else {
-            continue;
-        };
-        let new = transforms[0];
+//         gizmo.update_config(GizmoConfig {
+//             view_matrix: view_matrix.as_dmat4().into(),
+//             projection_matrix: projection_matrix.as_dmat4().into(),
+//             orientation: GizmoOrientation::Local,
+//             ..Default::default()
+//         });
+//         let transform = transform_gizmo_egui::math::Transform::from_scale_rotation_translation(
+//             transform.scale.as_dvec3(),
+//             transform.rotation.as_dquat(),
+//             transform.translation.as_dvec3(),
+//         );
+//         let Some((result, transforms)) = gizmo.interact(ui, &[transform]) else {
+//             continue;
+//         };
+//         let new = transforms[0];
 
-        let mut transform = world.get_mut::<Transform>(selected).unwrap();
-        *transform = Transform {
-            translation: DVec3::from(new.translation).as_vec3(),
-            rotation: DQuat::from_array(<[f64; 4]>::from(new.rotation)).as_quat(),
-            scale: DVec3::from(new.scale).as_vec3(),
-        };
-    }
-}
+//         let mut transform = world.get_mut::<Transform>(selected).unwrap();
+//         *transform = Transform {
+//             translation: DVec3::from(new.translation).as_vec3(),
+//             rotation: DQuat::from_array(<[f64; 4]>::from(new.rotation)).as_quat(),
+//             scale: DVec3::from(new.scale).as_vec3(),
+//         };
+//     }
+// }
 
 fn select_resource(
     ui: &mut egui::Ui,
