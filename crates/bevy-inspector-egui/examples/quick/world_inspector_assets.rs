@@ -21,6 +21,7 @@ fn setup(
 ) {
     // load a texture and retrieve its aspect ratio
     let texture_handle = asset_server.load("branding/bevy_logo_dark_big.png");
+    commands.spawn(Sprite::from_image(texture_handle.clone()));
     let aspect = 0.25;
 
     // create a new quad mesh. this is what we will apply the texture to
