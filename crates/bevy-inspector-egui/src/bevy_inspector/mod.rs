@@ -348,7 +348,7 @@ pub trait EntityFilter {
 pub struct Filter<F: QueryFilter = Without<ChildOf>> {
     pub word: String,
     pub is_fuzzy: bool,
-    pub hide_observers: bool,
+    pub show_observers: bool,
     pub marker: PhantomData<F>,
 }
 
@@ -357,7 +357,7 @@ impl<F: QueryFilter + Clone> Clone for Filter<F> {
         Self {
             word: self.word.clone(),
             is_fuzzy: self.is_fuzzy,
-            hide_observers: self.hide_observers,
+            show_observers: self.show_observers,
             marker: PhantomData,
         }
     }
@@ -365,41 +365,42 @@ impl<F: QueryFilter + Clone> Clone for Filter<F> {
 
 impl<F: QueryFilter> Filter<F> {
     pub fn from_ui_fuzzy(ui: &mut egui::Ui, id: egui::Id) -> Self {
-        let hide_observers = {
-            let id = id.with("hide_observers");
-            let mut hide_observers = ui.memory_mut(|mem| {
-                let persistent_value: &mut bool = mem.data.get_persisted_mut_or(id, true);
-                *persistent_value
-            });
-            ui.checkbox(&mut hide_observers, "Hide Observers");
-            ui.memory_mut(|mem| {
-                *mem.data.get_persisted_mut_or(id, true) = hide_observers;
-            });
-            hide_observers
-        };
+        ui.horizontal(|ui| {
+            let word = {
+                let id = id.with("word");
+                // filter, using eguis memory and provided id
+                let mut filter_string = ui.memory_mut(|mem| {
+                    let filter: &mut String = mem.data.get_persisted_mut_or_default(id);
+                    filter.clone()
+                });
+                ui.add(egui::TextEdit::singleline(&mut filter_string).desired_width(180.));
+                ui.memory_mut(|mem| {
+                    *mem.data.get_persisted_mut_or_default(id) = filter_string.clone();
+                });
 
-        let word = {
-            let id = id.with("word");
-            // filter, using eguis memory and provided id
-            let mut filter_string = ui.memory_mut(|mem| {
-                let filter: &mut String = mem.data.get_persisted_mut_or_default(id);
-                filter.clone()
-            });
-            ui.text_edit_singleline(&mut filter_string);
-            ui.memory_mut(|mem| {
-                *mem.data.get_persisted_mut_or_default(id) = filter_string.clone();
-            });
+                // improves overall matching
+                filter_string.to_lowercase()
+            };
 
-            // improves overall matching
-            filter_string.to_lowercase()
-        };
+            let show_observers = {
+                let id = id.with("show_observers");
+                let mut show_observers = ui.memory_mut(|mem| {
+                    let persistent_value: &mut bool = mem.data.get_persisted_mut_or(id, false);
+                    *persistent_value
+                });
+                ui.checkbox(&mut show_observers, "Observers");
+                ui.memory_mut(|mem| mem.data.insert_persisted(id, show_observers));
+                show_observers
+            };
 
-        Filter {
-            word,
-            is_fuzzy: true,
-            hide_observers,
-            marker: PhantomData,
-        }
+            Filter {
+                word,
+                is_fuzzy: true,
+                show_observers,
+                marker: PhantomData,
+            }
+        })
+        .inner
     }
 
     pub fn from_ui(ui: &mut egui::Ui, id: egui::Id) -> Self {
@@ -449,7 +450,7 @@ impl<F: QueryFilter> Filter<F> {
             Filter {
                 word,
                 is_fuzzy,
-                hide_observers,
+                show_observers: hide_observers,
                 marker: PhantomData,
             }
         })
@@ -461,7 +462,7 @@ impl<F: QueryFilter> Filter<F> {
         Self {
             word: String::from(""),
             is_fuzzy: false,
-            hide_observers: true,
+            show_observers: true,
             marker: PhantomData,
         }
     }
@@ -471,7 +472,7 @@ impl<F: QueryFilter> EntityFilter for Filter<F> {
     type StaticFilter = F;
 
     fn is_active(&self) -> bool {
-        !self.word.is_empty() || self.hide_observers
+        !self.word.is_empty() || !self.show_observers
     }
 
     fn filter_entity(&self, world: &mut World, entity: Entity) -> bool {
@@ -480,7 +481,7 @@ impl<F: QueryFilter> EntityFilter for Filter<F> {
             entity,
             self.word.as_str(),
             self.is_fuzzy,
-            self.hide_observers,
+            self.show_observers,
         )
     }
 }
@@ -490,11 +491,11 @@ fn self_or_children_satisfy_filter(
     entity: Entity,
     filter: &str,
     is_fuzzy: bool,
-    hide_observers: bool,
+    show_observers: bool,
 ) -> bool {
     let name = guess_entity_name(world, entity);
 
-    let is_hidden_observer = hide_observers
+    let is_hidden_observer = !show_observers
         && world
             .query::<&observer::ObserverState>()
             .get(world, entity)
@@ -516,7 +517,7 @@ fn self_or_children_satisfy_filter(
         };
 
         children.iter().any(|child| {
-            self_or_children_satisfy_filter(world, *child, filter, is_fuzzy, hide_observers)
+            self_or_children_satisfy_filter(world, *child, filter, is_fuzzy, show_observers)
         })
     }
 }
