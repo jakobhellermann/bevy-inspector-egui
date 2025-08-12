@@ -58,7 +58,7 @@ impl InspectorPrimitive for Handle<Image> {
         for image in images.iter() {
             if let Some(image_path) = asset_server.get_path(image.0) {
                 image_paths.push(image_path.to_string());
-                handles.insert(image_path.to_string(), image.0.clone());
+                handles.insert(image_path.to_string(), image.0);
             }
         }
 
@@ -169,7 +169,7 @@ fn update_and_show_image(
         d.insert_temp(
             format!("image:{}", image.id()).into(),
             SizedTexture {
-                id: texture_id.clone(),
+                id: texture_id,
                 size: Vec2::new(
                     rescaled_image.texture_descriptor.size.width as f32,
                     rescaled_image.texture_descriptor.size.height as f32,
