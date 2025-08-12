@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.33.0
+- update to `egui 0.32` / `bevy_egui 0.36` [(#280)](https://github.com/jakobhellermann/bevy-inspector-egui/pull/280)
+
 ## Version 0.32.0
 - update to `bevy_egui 0.35.0` [(#268)](https://github.com/jakobhellermann/bevy-inspector-egui/pull/268)
 - don't show `Add Element` button for non-constructable types
