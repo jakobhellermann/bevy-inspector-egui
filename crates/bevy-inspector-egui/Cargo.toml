@@ -9,20 +9,20 @@ description = "Inspector plugin for the bevy game engine"
 documentation = "https://docs.rs/bevy-inspector-egui"
 keywords = ["bevy", "inspector", "egui", "editor", "reflect"]
 categories = [
-    "game-development",
-    "gui",
-    "visualization",
-    "development-tools::procedural-macro-helpers",
+  "game-development",
+  "gui",
+  "visualization",
+  "development-tools::procedural-macro-helpers",
 ]
 
 [features]
 default = [
-    "documentation",
-    "bevy_pbr",
-    "bevy_image",
-    "bevy_render",
-    "bevy_core_pipeline",
-    "egui_clipboard",
+  "documentation",
+  "bevy_pbr",
+  "bevy_image",
+  "bevy_render",
+  "bevy_core_pipeline",
+  "egui_clipboard",
 ]
 documentation = ["bevy_reflect/documentation"]
 bevy_render = ["dep:bevy_render", "bevy_egui/render"]
@@ -58,9 +58,9 @@ bevy_core_pipeline = { version = "0.16.0", optional = true }
 bevy_pbr = { version = "0.16.0", optional = true }
 bevy_image = { version = "0.16.0", optional = true }
 
-egui = "0.31"
+egui = "0.32"
 
-bevy_egui = { version = "0.35.0", default-features = false }
+bevy_egui = { version = "0.36.0", default-features = false }
 
 bytemuck = "1.16.0"
 image = { version = "0.25", default-features = false }
@@ -72,22 +72,22 @@ uuid = "1.11.0"
 
 [dev-dependencies]
 bevy = { version = "0.16.0", default-features = false, features = [
-    "std",
-    "x11",
-    "bevy_winit",
-    "bevy_state",
-    "bevy_window",
-    "bevy_pbr",
-    "bevy_sprite",
-    "bevy_core_pipeline",
-    "bevy_picking",
-    "animation",
-    "png",
-    "zstd",
-    "tonemapping_luts",
-    "ktx2",
+  "std",
+  "x11",
+  "bevy_winit",
+  "bevy_state",
+  "bevy_window",
+  "bevy_pbr",
+  "bevy_sprite",
+  "bevy_core_pipeline",
+  "bevy_picking",
+  "animation",
+  "png",
+  "zstd",
+  "tonemapping_luts",
+  "ktx2",
 ] }
-egui_dock = "0.16"
+egui_dock = "0.17"
 bevy_math = { version = "0.16.0", features = ["mint"] }
 transform-gizmo-egui = "0.6"
 # bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }

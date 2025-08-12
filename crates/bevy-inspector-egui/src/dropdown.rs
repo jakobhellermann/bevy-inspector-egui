@@ -1,5 +1,5 @@
 use egui::{
-    Id, PopupCloseBehavior, Response, TextEdit, Ui, Widget, WidgetText,
+    Id, Popup, PopupCloseBehavior, Response, TextEdit, Ui, Widget, WidgetText,
     text::{CCursor, CCursorRange},
 };
 use std::hash::Hash;
@@ -100,30 +100,33 @@ impl<'a, F: FnMut(&mut Ui, &str) -> Response, V: AsRef<str>, I: Iterator<Item = 
                     )));
                 edit_output.state.store(ui.ctx(), r.id);
             }
-            ui.memory_mut(|m| m.open_popup(popup_id));
+            Popup::open_id(ui.ctx(), popup_id);
         }
 
         let mut changed = false;
-        egui::popup_below_widget(ui, popup_id, &r, PopupCloseBehavior::CloseOnClick, |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                for var in it {
-                    let text = var.as_ref();
-                    if filter_by_input
-                        && !buf.is_empty()
-                        && !text.to_lowercase().contains(&buf.to_lowercase())
-                    {
-                        continue;
-                    }
+        Popup::from_response(&r)
+            .close_behavior(PopupCloseBehavior::CloseOnClick)
+            .id(popup_id)
+            .show(|ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    for var in it {
+                        let text = var.as_ref();
+                        if filter_by_input
+                            && !buf.is_empty()
+                            && !text.to_lowercase().contains(&buf.to_lowercase())
+                        {
+                            continue;
+                        }
 
-                    if display(ui, text).clicked() {
-                        *buf = text.to_owned();
-                        changed = true;
+                        if display(ui, text).clicked() {
+                            *buf = text.to_owned();
+                            changed = true;
 
-                        ui.memory_mut(|m| m.close_popup());
+                            Popup::close_id(ui.ctx(), popup_id);
+                        }
                     }
-                }
+                });
             });
-        });
 
         if changed {
             r.mark_changed();
