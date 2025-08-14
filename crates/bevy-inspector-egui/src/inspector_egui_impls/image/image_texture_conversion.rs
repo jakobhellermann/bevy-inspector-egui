@@ -1,6 +1,6 @@
+use bevy_asset::RenderAssetUsages;
 use bevy_image::{Image, TextureFormatPixelInfo};
 use bevy_render::{
-    render_asset::RenderAssetUsages,
     render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
 use bytemuck::cast_slice;
