@@ -237,7 +237,7 @@ fn rescaled_image<'a>(
             let resized = image_texture_conversion::from_dynamic(resized, is_srgb);
 
             let resized_handle = textures.add(resized);
-            let weak = resized_handle.clone_weak();
+            let weak = resized_handle.clone();
             let texture_id = egui_usere_textures.add_image(resized_handle.clone());
             entry.insert(resized_handle);
             scaled_down_textures.rescaled_textures.insert(weak.clone());

@@ -992,30 +992,25 @@ impl InspectorUi<'_, '_> {
             ui.label("(Empty Map)");
             ui.end_row();
         }
-        let mut to_delete: Option<usize> = None;
+        let mut to_delete: Option<Box<dyn PartialReflect>> = None;
 
         egui::Grid::new(id).show(ui, |ui| {
-            for i in 0..map.len() {
-                if let Some((key, value)) = map.get_at_mut(i) {
-                    self.ui_for_reflect_readonly_with_options(key, ui, id.with(i), &());
-                    changed |= self.ui_for_reflect_with_options(value, ui, id.with(i), &());
-                    if remove_button(ui).on_hover_text("Remove element").clicked() {
-                        to_delete = Some(i);
-                    }
-                    ui.end_row();
+            for (i, (key, value)) in map.iter().enumerate() {
+                let ui_id = id.with(i);
+                self.ui_for_reflect_readonly_with_options(key, ui, ui_id, &());
+                changed |=
+                    self.ui_for_reflect_with_options(value.to_dynamic().as_mut(), ui, ui_id, &());
+                if remove_button(ui).on_hover_text("Remove element").clicked() {
+                    to_delete = Some(key.to_dynamic());
                 }
+                ui.end_row();
             }
 
             self.map_add_element_ui(map, ui, id, &mut changed);
         });
 
-        if let Some(index) = to_delete {
-            // Can't have both an immutable borrow of the map's key,
-            // and mutably borrow the map to delete the element.
-            let cloned_key = map.get_at(index).map(|(key, _)| key.to_dynamic());
-            if let Some(key) = cloned_key {
-                map.remove(key.as_ref());
-            }
+        if let Some(key) = to_delete {
+            map.remove(key.as_ref());
         }
 
         changed
@@ -1035,6 +1030,7 @@ impl InspectorUi<'_, '_> {
         });
 
         let map_info = map.get_represented_map_info()?;
+
         let key_default = self.get_reflect_default(map_info.key_ty().id())?;
         let value_default = self.get_reflect_default(map_info.value_ty().id())?;
 
@@ -1098,8 +1094,9 @@ impl InspectorUi<'_, '_> {
     ) {
         egui::Grid::new(id).show(ui, |ui| {
             for (i, (key, value)) in map.iter().enumerate() {
-                self.ui_for_reflect_readonly_with_options(key, ui, id.with(i), &());
-                self.ui_for_reflect_readonly_with_options(value, ui, id.with(i), &());
+                let ui_id = id.with(i);
+                self.ui_for_reflect_readonly_with_options(key, ui, ui_id, &());
+                self.ui_for_reflect_readonly_with_options(value, ui, ui_id, &());
                 ui.end_row();
             }
         });

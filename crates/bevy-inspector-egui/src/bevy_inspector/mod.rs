@@ -497,7 +497,7 @@ fn self_or_children_satisfy_filter(
 
     let is_hidden_observer = !show_observers
         && world
-            .query::<&observer::ObserverState>()
+            .query::<&observer::Observer>()
             .get(world, entity)
             .is_ok();
 
@@ -740,11 +740,12 @@ fn components_of_entity(
     let archetype = entity_ref.archetype();
     let mut components: Vec<_> = archetype
         .components()
+        .into_iter()
         .map(|component_id| {
-            let info = world.world().components().get_info(component_id).unwrap();
-            let name = pretty_type_name_str(info.name());
+            let info = world.world().components().get_info(*component_id).unwrap();
+            let name = pretty_type_name_str(&info.name().to_string());
 
-            (name, component_id, info.type_id(), info.layout().size())
+            (name, *component_id, info.type_id(), info.layout().size())
         })
         .collect();
     components.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
@@ -948,16 +949,18 @@ pub mod by_type_id {
 
         for handle_id in ids {
             let id = egui::Id::new(handle_id);
-            let mut handle = reflect_handle
-                .typed(UntypedHandle::Weak(handle_id))
-                .into_partial_reflect();
+            if let UntypedAssetId::Uuid { uuid, type_id } = handle_id {
+                let mut handle = reflect_handle
+                    .typed(UntypedHandle::Uuid { uuid, type_id })
+                    .into_partial_reflect();
 
-            egui::CollapsingHeader::new(handle_name(handle_id, asset_server.as_ref()))
-                .id_salt(id)
-                .show(ui, |ui| {
-                    let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
-                    env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
-                });
+                egui::CollapsingHeader::new(handle_name(handle_id, asset_server.as_ref()))
+                    .id_salt(id)
+                    .show(ui, |ui| {
+                        let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+                        env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
+                    });
+            }
         }
 
         queue.apply(world)
@@ -1009,16 +1012,21 @@ pub mod by_type_id {
         };
 
         let id = egui::Id::new(handle);
-        let mut handle = reflect_handle
-            .typed(UntypedHandle::Weak(handle))
-            .into_partial_reflect();
 
-        let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
-        let changed = env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
+        if let UntypedAssetId::Uuid { uuid, type_id } = handle {
+            let mut handle = reflect_handle
+                .typed(UntypedHandle::Uuid { uuid, type_id })
+                .into_partial_reflect();
 
-        queue.apply(world);
+            let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+            let changed = env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
 
-        changed
+            queue.apply(world);
+
+            changed
+        } else {
+            false
+        }
     }
 }
 
@@ -1114,7 +1122,7 @@ pub mod short_circuit {
                 );
                 let asset_value =
                 // SAFETY: the world allows mutable access to `Assets<T>`
-                unsafe { reflect_asset.get_unchecked_mut(world.world(), handle) };
+                unsafe { reflect_asset.get_unchecked_mut(world.world(), &handle) };
                 match asset_value {
                     Some(value) => value,
                     None => {
@@ -1210,7 +1218,7 @@ pub mod short_circuit {
                     );
                     let asset_value =
                         // SAFETY: the world allows mutable access to `Assets<T>`
-                        unsafe { reflect_asset.get_unchecked_mut(world.world(), handle) };
+                        unsafe { reflect_asset.get_unchecked_mut(world.world(), &handle) };
                     match asset_value {
                         Some(value) => value,
                         None => {
@@ -1294,7 +1302,7 @@ pub mod short_circuit {
                 assert!(
                     assets_view.allows_access_to_resource(reflect_asset.assets_resource_type_id())
                 );
-                let asset_value = reflect_asset.get(interior_mutable_world, handle);
+                let asset_value = reflect_asset.get(interior_mutable_world, &handle);
                 match asset_value {
                     Some(value) => value,
                     None => {

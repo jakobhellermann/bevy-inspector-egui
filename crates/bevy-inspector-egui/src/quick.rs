@@ -64,7 +64,7 @@ impl WorldInspectorPlugin {
     }
 
     /// Only show the UI of the specified condition is active
-    pub fn run_if<M>(mut self, condition: impl Condition<M>) -> Self {
+    pub fn run_if<M>(mut self, condition: impl SystemCondition<M>) -> Self {
         let condition_system = IntoSystem::into_system(condition);
         self.condition = Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
         self
@@ -159,7 +159,7 @@ impl<T> ResourceInspectorPlugin<T> {
     }
 
     /// Only show the UI of the specified condition is active
-    pub fn run_if<M>(mut self, condition: impl Condition<M>) -> Self {
+    pub fn run_if<M>(mut self, condition: impl SystemCondition<M>) -> Self {
         let condition_system = IntoSystem::into_system(condition);
         self.condition = Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
         self
@@ -252,7 +252,7 @@ impl<T> StateInspectorPlugin<T> {
     }
 
     /// Only show the UI of the specified condition is active
-    pub fn run_if<M>(mut self, condition: impl Condition<M>) -> Self {
+    pub fn run_if<M>(mut self, condition: impl SystemCondition<M>) -> Self {
         let condition_system = IntoSystem::into_system(condition);
         self.condition = Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
         self
@@ -333,7 +333,7 @@ impl<A> AssetInspectorPlugin<A> {
     }
 
     /// Only show the UI of the specified condition is active
-    pub fn run_if<M>(mut self, condition: impl Condition<M>) -> Self {
+    pub fn run_if<M>(mut self, condition: impl SystemCondition<M>) -> Self {
         let condition_system = IntoSystem::into_system(condition);
         self.condition = Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
         self
@@ -409,7 +409,7 @@ impl<A> FilterQueryInspectorPlugin<A> {
     }
 
     /// Only show the UI of the specified condition is active
-    pub fn run_if<M>(mut self, condition: impl Condition<M>) -> Self {
+    pub fn run_if<M>(mut self, condition: impl SystemCondition<M>) -> Self {
         let condition_system = IntoSystem::into_system(condition);
         self.condition = Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
         self

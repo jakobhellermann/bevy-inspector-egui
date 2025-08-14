@@ -1,8 +1,6 @@
+use bevy_asset::RenderAssetUsages;
 use bevy_image::{Image, TextureFormatPixelInfo};
-use bevy_render::{
-    render_asset::RenderAssetUsages,
-    render_resource::{Extent3d, TextureDimension, TextureFormat},
-};
+use bevy_render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use bytemuck::cast_slice;
 use image::{DynamicImage, ImageBuffer};
 
@@ -85,8 +83,9 @@ pub fn from_dynamic(dyn_img: DynamicImage, is_srgb: bool) -> Image {
             height = image.height();
             format = TextureFormat::Rgba16Uint;
 
-            let mut local_data =
-                Vec::with_capacity(width as usize * height as usize * format.pixel_size());
+            let mut local_data = Vec::with_capacity(
+                width as usize * height as usize * format.pixel_size().unwrap_or_default(),
+            );
 
             for pixel in image.into_raw().chunks_exact(3) {
                 let r = pixel[0];
@@ -116,8 +115,9 @@ pub fn from_dynamic(dyn_img: DynamicImage, is_srgb: bool) -> Image {
             height = image.height();
             format = TextureFormat::Rgba32Float;
 
-            let mut local_data =
-                Vec::with_capacity(width as usize * height as usize * format.pixel_size());
+            let mut local_data = Vec::with_capacity(
+                width as usize * height as usize * format.pixel_size().unwrap_or_default(),
+            );
 
             for pixel in image.into_raw().chunks_exact(3) {
                 let r = pixel[0];

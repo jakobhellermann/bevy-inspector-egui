@@ -7,8 +7,7 @@ use std::any::Any;
 
 #[cfg(feature = "bevy_render")]
 use ::{
-    bevy_asset::Assets, bevy_asset::Handle, bevy_render::mesh::Mesh,
-    bevy_render::view::RenderLayers,
+    bevy_asset::Assets, bevy_asset::Handle, bevy_camera::visibility::RenderLayers, bevy_mesh::Mesh,
 };
 
 #[cfg(feature = "bevy_render")]
@@ -171,8 +170,8 @@ fn mesh_ui_inner(mesh: &Mesh, ui: &mut egui::Ui) {
         if let Some(indices) = mesh.indices() {
             ui.label("Indices");
             let len = match indices {
-                bevy_render::mesh::Indices::U16(vec) => vec.len(),
-                bevy_render::mesh::Indices::U32(vec) => vec.len(),
+                bevy_mesh::Indices::U16(vec) => vec.len(),
+                bevy_mesh::Indices::U32(vec) => vec.len(),
             };
             ui.label(len.to_string());
             ui.end_row();
