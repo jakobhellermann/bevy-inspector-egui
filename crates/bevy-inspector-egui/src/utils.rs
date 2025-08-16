@@ -76,7 +76,7 @@ pub mod guess_entity_name {
         for component_type in type_names {
             if let Some(name) = associations
                 .iter()
-                .find_map(|&(name, matches)| (component_type == name).then_some(matches))
+                .find_map(|&(name, matches)| (component_type.to_string() == name).then_some(matches))
             {
                 return format!("{name} ({entity})");
             }
