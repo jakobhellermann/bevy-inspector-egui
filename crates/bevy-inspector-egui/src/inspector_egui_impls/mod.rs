@@ -266,6 +266,7 @@ pub fn register_std_impls(type_registry: &mut TypeRegistry) {
     add_of_with_many::<usize>(type_registry, std_impls::number_ui_many::<usize>);
     add::<bool>(type_registry);
     add::<String>(type_registry);
+    type_registry.register::<Cow<str>>();
     add::<Cow<str>>(type_registry);
     type_registry.register::<PathBuf>();
     add::<PathBuf>(type_registry);
@@ -316,13 +317,15 @@ pub fn register_glam_impls(type_registry: &mut TypeRegistry) {
 /// Register [`InspectorEguiImpl`]s for `bevy` types
 #[rustfmt::skip]
 pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
+    type_registry.register::<bevy_ecs::entity::Entity>();
     add_of_with_many::<bevy_ecs::entity::Entity>(type_registry, many_unimplemented::<bevy_ecs::entity::Entity>);
     add::<bevy_color::Color>(type_registry);
 
-    #[cfg(feature = "bevy_render")] 
+    #[cfg(feature = "bevy_render")]
     {
-      add_of_with_many::<bevy_asset::Handle<bevy_render::mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_render::mesh::Mesh>>);
-      add::<bevy_render::view::RenderLayers>(type_registry);
+      type_registry.register::<bevy_camera::visibility::RenderLayers>();
+      add_of_with_many::<bevy_asset::Handle<bevy_mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_mesh::Mesh>>);
+      add::<bevy_camera::visibility::RenderLayers>(type_registry);
     }
     #[cfg(feature = "bevy_image")]
     {
