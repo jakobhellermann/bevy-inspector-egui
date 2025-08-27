@@ -165,9 +165,6 @@ impl<T> Hierarchy<'_, T> {
         let header_response = response.header_response;
 
         if header_response.clicked() {
-            let selection_mode = ui.input(|input| {
-                SelectionMode::from_ctrl_shift(input.modifiers.ctrl, input.modifiers.shift)
-            });
             let extend_with = |from, to| {
                 // PERF: this could be done in one scan
                 let from_position = at_same_level.iter().position(|&entity| entity == from);
@@ -181,6 +178,7 @@ impl<T> Hierarchy<'_, T> {
                     .into_iter()
                     .flatten()
             };
+            let selection_mode = ui.input(|input| input.modifiers.into());
             self.selected.select(selection_mode, entity, extend_with);
             new_selection = true;
         }
@@ -235,9 +233,9 @@ pub enum SelectionMode {
     Extend,
 }
 
-impl SelectionMode {
-    pub fn from_ctrl_shift(ctrl: bool, shift: bool) -> SelectionMode {
-        match (ctrl, shift) {
+impl From<egui::Modifiers> for SelectionMode {
+    fn from(modifiers: egui::Modifiers) -> Self {
+        match (modifiers.ctrl, modifiers.shift) {
             (true, _) => SelectionMode::Add,
             (false, true) => SelectionMode::Extend,
             (false, false) => SelectionMode::Replace,
