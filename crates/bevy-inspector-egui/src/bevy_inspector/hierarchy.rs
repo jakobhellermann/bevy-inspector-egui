@@ -50,7 +50,7 @@ pub struct Hierarchy<'a, T = ()> {
 }
 
 impl<T> Hierarchy<'_, T> {
-    fn default_children_getter() -> impl Fn(&World, Entity) -> Option<Vec<Entity>> {
+    pub fn default_children_getter() -> impl Fn(&World, Entity) -> Option<Vec<Entity>> {
         |world: &World, entity: Entity| {
             world
                 .get::<Children>(entity)
@@ -58,7 +58,7 @@ impl<T> Hierarchy<'_, T> {
         }
     }
 
-    fn default_parent_getter() -> impl Fn(&World, Entity) -> Option<Entity> {
+    pub fn default_parent_getter() -> impl Fn(&World, Entity) -> Option<Entity> {
         |world: &World, entity: Entity| world.get::<ChildOf>(entity).map(|c| c.parent())
     }
 

@@ -11,9 +11,9 @@ use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin,
     bevy_egui::{EguiContext, EguiContextSettings, EguiPrimaryContextPass, PrimaryEguiContext},
     bevy_inspector::{
-        self,
-        hierarchy::{SelectedEntities, hierarchy_ui},
-        ui_for_entities_shared_components, ui_for_entity_with_children,
+        self, Filter,
+        hierarchy::{Hierarchy, SelectedEntities},
+        ui_for_entities_shared_components, ui_for_entity_with_getter,
     },
 };
 
@@ -181,6 +181,16 @@ enum EguiWindow {
     Inspector,
 }
 
+#[derive(Clone, Component, Copy, Debug, Deref, Reflect)]
+#[reflect(Component)]
+#[relationship(relationship_target = CustomChildren)]
+pub struct CustomChildOf(#[entities] pub Entity);
+
+#[derive(Clone, Component, Debug, Deref, Reflect)]
+#[reflect(Component)]
+#[relationship_target(relationship = CustomChildOf)]
+pub struct CustomChildren(Vec<Entity>);
+
 struct TabViewer<'a> {
     world: &'a mut World,
     selected_entities: &'a mut SelectedEntities,
@@ -203,7 +213,43 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                 // draw_gizmo(ui, self.gizmo, self.world, self.selected_entities);
             }
             EguiWindow::Hierarchy => {
-                let selected = hierarchy_ui(self.world, ui, self.selected_entities);
+                let selected = {
+                    let filter: Filter<(Without<CustomChildOf>, Without<ChildOf>)> = Filter::all();
+
+                    let children_getter = |world: &World, entity: Entity| {
+                        let children: Vec<Entity> = [
+                            world.get::<CustomChildren>(entity).map(|dc| dc.iter()),
+                            world.get::<Children>(entity).map(|c| c.iter()),
+                        ]
+                        .into_iter()
+                        .flatten()
+                        .flatten()
+                        .collect();
+
+                        (!children.is_empty()).then_some(children)
+                    };
+
+                    let parent_getter = |world: &World, entity: Entity| {
+                        world
+                            .get::<ChildOf>(entity)
+                            .map(|c| c.parent())
+                            .or_else(|| world.get::<CustomChildOf>(entity).map(|dc| dc.0))
+                    };
+
+                    Hierarchy {
+                        world: self.world,
+                        selected: self.selected_entities,
+                        context_menu: None,
+                        shortcircuit_entity: None,
+                        extra_state: &mut (),
+                    }
+                    .show_with_filter_and_getters::<(), _, _, _>(
+                        ui,
+                        filter,
+                        children_getter,
+                        parent_getter,
+                    )
+                };
                 if selected {
                     *self.selection = InspectorSelection::Entities;
                 }
@@ -212,7 +258,32 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Assets => select_asset(ui, &type_registry, self.world, self.selection),
             EguiWindow::Inspector => match *self.selection {
                 InspectorSelection::Entities => match self.selected_entities.as_slice() {
-                    &[entity] => ui_for_entity_with_children(self.world, entity, ui),
+                    &[entity] => {
+                        let filter: Filter<(Without<CustomChildOf>, Without<ChildOf>)> =
+                            Filter::all();
+
+                        let get_children = |world: &World, entity: Entity| {
+                            let children: Vec<Entity> = [
+                                world.get::<CustomChildren>(entity).map(|dc| dc.iter()),
+                                world.get::<Children>(entity).map(|c| c.iter()),
+                            ]
+                            .into_iter()
+                            .flatten()
+                            .flatten()
+                            .collect();
+
+                            (!children.is_empty()).then_some(children)
+                        };
+
+                        ui_for_entity_with_getter(
+                            self.world,
+                            entity,
+                            ui,
+                            egui::Id::new(entity),
+                            &filter,
+                            &get_children,
+                        );
+                    }
                     entities => ui_for_entities_shared_components(self.world, entities, ui),
                 },
                 InspectorSelection::Resource(type_id, ref name) => {
@@ -505,4 +576,8 @@ fn setup(
             ..default()
         },
     ));
+
+    let parent_entity = commands.spawn(Name::new("CustomParent")).id();
+    commands.spawn((Name::new("CustomChild1"), CustomChildOf(parent_entity)));
+    commands.spawn((Name::new("CustomChild2"), CustomChildOf(parent_entity)));
 }
