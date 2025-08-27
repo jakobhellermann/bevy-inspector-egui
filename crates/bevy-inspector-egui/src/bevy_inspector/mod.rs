@@ -327,6 +327,9 @@ pub trait EntityFilter {
         entities.retain(|&entity| self.filter_entity(world, entity));
     }
 
+    /// Get children entities for the given entity
+    fn get_children(&self, world: &World, entity: Entity) -> Option<Vec<Entity>>;
+
     /// Returns true if entity matches the filter term
     fn filter_entity(&self, world: &mut World, entity: Entity) -> bool;
 }
@@ -336,6 +339,7 @@ pub struct Filter<F: QueryFilter = Without<ChildOf>> {
     pub word: String,
     pub is_fuzzy: bool,
     pub show_observers: bool,
+    pub get_children: Option<fn(&World, Entity) -> Option<Vec<Entity>>>,
     pub marker: PhantomData<F>,
 }
 
@@ -345,6 +349,7 @@ impl<F: QueryFilter + Clone> Clone for Filter<F> {
             word: self.word.clone(),
             is_fuzzy: self.is_fuzzy,
             show_observers: self.show_observers,
+            get_children: self.get_children,
             marker: PhantomData,
         }
     }
@@ -384,6 +389,7 @@ impl<F: QueryFilter> Filter<F> {
                 word,
                 is_fuzzy: true,
                 show_observers,
+                get_children: None,
                 marker: PhantomData,
             }
         })
@@ -438,6 +444,7 @@ impl<F: QueryFilter> Filter<F> {
                 word,
                 is_fuzzy,
                 show_observers: hide_observers,
+                get_children: None,
                 marker: PhantomData,
             }
         })
@@ -450,6 +457,7 @@ impl<F: QueryFilter> Filter<F> {
             word: String::from(""),
             is_fuzzy: false,
             show_observers: true,
+            get_children: None,
             marker: PhantomData,
         }
     }
@@ -469,17 +477,32 @@ impl<F: QueryFilter> EntityFilter for Filter<F> {
             self.word.as_str(),
             self.is_fuzzy,
             self.show_observers,
+            &|world, entity| self.get_children(world, entity),
         )
+    }
+
+    fn get_children(&self, world: &World, entity: Entity) -> Option<Vec<Entity>> {
+        if let Some(getter) = self.get_children {
+            getter(world, entity)
+        } else {
+            world
+                .get::<Children>(entity)
+                .map(|children| children.iter().collect())
+        }
     }
 }
 
-fn self_or_children_satisfy_filter(
+fn self_or_children_satisfy_filter<G>(
     world: &mut World,
     entity: Entity,
     filter: &str,
     is_fuzzy: bool,
     show_observers: bool,
-) -> bool {
+    get_children: &G,
+) -> bool
+where
+    G: Fn(&World, Entity) -> Option<Vec<Entity>>,
+{
     let name = guess_entity_name(world, entity);
 
     let is_hidden_observer = !show_observers
@@ -495,16 +518,19 @@ fn self_or_children_satisfy_filter(
         name.to_lowercase().contains(filter)
     };
     !is_hidden_observer && self_matches || {
-        let Ok(children) = world
-            .query::<&Children>()
-            .get(world, entity)
-            .map(|children| children.to_vec())
-        else {
+        let Some(children) = get_children(world, entity) else {
             return false;
         };
 
         children.iter().any(|child| {
-            self_or_children_satisfy_filter(world, *child, filter, is_fuzzy, show_observers)
+            self_or_children_satisfy_filter(
+                world,
+                *child,
+                filter,
+                is_fuzzy,
+                show_observers,
+                get_children,
+            )
         })
     }
 }
