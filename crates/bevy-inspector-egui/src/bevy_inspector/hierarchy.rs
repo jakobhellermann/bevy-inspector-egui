@@ -151,9 +151,8 @@ impl<T> Hierarchy<'_, T> {
             return false;
         }
 
-        #[allow(deprecated)] // the suggested replacement doesn't really work
         let response = CollapsingHeader::new(name)
-            .id_source(entity)
+            .id_salt(entity)
             .icon(move |ui, openness, response| {
                 if !has_children {
                     return;
