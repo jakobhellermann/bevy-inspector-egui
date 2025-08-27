@@ -289,7 +289,11 @@ pub fn ui_for_entities_filtered<F>(
             .id_salt(id)
             .show(ui, |ui| {
                 if with_children {
-                    ui_for_entity_with_children_inner(world, entity, ui, id, filter);
+                    ui_for_entity_with_getter(world, entity, ui, id, filter, &|world, entity| {
+                        world
+                            .get::<Children>(entity)
+                            .map(|children| children.iter().collect())
+                    });
                 } else {
                     let mut queue = CommandQueue::default();
                     ui_for_entity_components(&mut world.into(), Some(&mut queue), entity, ui, id);
@@ -511,25 +515,35 @@ pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut e
     ui.label(entity_name);
 
     let filter: Filter = Filter::all();
-    ui_for_entity_with_children_inner(world, entity, ui, egui::Id::new(entity), &filter)
+    ui_for_entity_with_getter(
+        world,
+        entity,
+        ui,
+        egui::Id::new(entity),
+        &filter,
+        &|world, entity| {
+            world
+                .get::<Children>(entity)
+                .map(|children| children.iter().collect())
+        },
+    );
 }
 
-fn ui_for_entity_with_children_inner<F>(
+pub fn ui_for_entity_with_getter<F, G>(
     world: &mut World,
     entity: Entity,
     ui: &mut egui::Ui,
     id: egui::Id,
     filter: &F,
+    get_children: &G,
 ) where
     F: EntityFilter,
+    G: Fn(&World, Entity) -> Option<Vec<Entity>>,
 {
     let mut queue = CommandQueue::default();
     ui_for_entity_components(&mut world.into(), Some(&mut queue), entity, ui, id);
 
-    let children = world
-        .get::<Children>(entity)
-        .map(|children| children.iter().collect::<Vec<_>>());
-    if let Some(mut children) = children
+    if let Some(mut children) = get_children(&world, entity)
         && !children.is_empty()
     {
         filter.filter_entities(world, &mut children);
@@ -543,7 +557,7 @@ fn ui_for_entity_with_children_inner<F>(
                 .show(ui, |ui| {
                     ui.label(&child_entity_name);
 
-                    ui_for_entity_with_children_inner(world, child, ui, id, filter);
+                    ui_for_entity_with_getter(world, child, ui, id, filter, get_children);
                 });
         }
     }
