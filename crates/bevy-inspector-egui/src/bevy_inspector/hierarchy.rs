@@ -3,19 +3,14 @@ use std::collections::HashSet;
 use crate::bevy_inspector::{EntityFilter, Filter};
 use crate::utils::guess_entity_name;
 use bevy_ecs::{prelude::*, query::QueryFilter};
-use bevy_reflect::TypeRegistry;
 use egui::{CollapsingHeader, RichText};
 
 /// Display UI of the entity hierarchy.
 ///
 /// Returns `true` if a new entity was selected.
 pub fn hierarchy_ui(world: &mut World, ui: &mut egui::Ui, selected: &mut SelectedEntities) -> bool {
-    let type_registry = world.resource::<AppTypeRegistry>().clone();
-    let type_registry = type_registry.read();
-
     Hierarchy {
         world,
-        type_registry: &type_registry,
         selected,
         context_menu: None,
         shortcircuit_entity: None,
@@ -35,12 +30,8 @@ pub fn hierarchy_ui_filtered<QF>(
 where
     QF: QueryFilter,
 {
-    let type_registry = world.resource::<AppTypeRegistry>().clone();
-    let type_registry = type_registry.read();
-
     Hierarchy {
         world,
-        type_registry: &type_registry,
         selected,
         context_menu: None,
         shortcircuit_entity: None,
@@ -51,7 +42,6 @@ where
 
 pub struct Hierarchy<'a, T = ()> {
     pub world: &'a mut World,
-    pub type_registry: &'a TypeRegistry,
     pub selected: &'a mut SelectedEntities,
     pub context_menu: Option<&'a mut dyn FnMut(&mut egui::Ui, Entity, &mut World, &mut T)>,
     pub shortcircuit_entity:
