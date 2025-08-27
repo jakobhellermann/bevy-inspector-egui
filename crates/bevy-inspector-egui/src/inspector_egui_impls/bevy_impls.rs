@@ -72,7 +72,6 @@ impl InspectorPrimitive for Entity {
                             entity,
                             ui,
                             id,
-                            env.type_registry,
                         );
                         if options.despawnable
                             && world.contains_entity(entity)

@@ -273,9 +273,6 @@ pub fn ui_for_entities_filtered<F>(
 ) where
     F: EntityFilter,
 {
-    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
-    let type_registry = type_registry.read();
-
     let mut root_entities = world.query_filtered::<Entity, F::StaticFilter>();
     let mut entities = root_entities.iter(world).collect::<Vec<_>>();
 
@@ -293,24 +290,10 @@ pub fn ui_for_entities_filtered<F>(
             .id_salt(id)
             .show(ui, |ui| {
                 if with_children {
-                    ui_for_entity_with_children_inner(
-                        world,
-                        entity,
-                        ui,
-                        id,
-                        &type_registry,
-                        filter,
-                    );
+                    ui_for_entity_with_children_inner(world, entity, ui, id, filter);
                 } else {
                     let mut queue = CommandQueue::default();
-                    ui_for_entity_components(
-                        &mut world.into(),
-                        Some(&mut queue),
-                        entity,
-                        ui,
-                        id,
-                        &type_registry,
-                    );
+                    ui_for_entity_components(&mut world.into(), Some(&mut queue), entity, ui, id);
                     queue.apply(world);
                 }
             });
@@ -483,21 +466,11 @@ fn self_or_children_satisfy_filter(
 
 /// Display the given entity with all its components and children
 pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
-    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
-    let type_registry = type_registry.read();
-
     let entity_name = guess_entity_name(world, entity);
     ui.label(entity_name);
 
     let filter: Filter = Filter::all();
-    ui_for_entity_with_children_inner(
-        world,
-        entity,
-        ui,
-        egui::Id::new(entity),
-        &type_registry,
-        &filter,
-    )
+    ui_for_entity_with_children_inner(world, entity, ui, egui::Id::new(entity), &filter)
 }
 
 fn ui_for_entity_with_children_inner<F>(
@@ -505,20 +478,12 @@ fn ui_for_entity_with_children_inner<F>(
     entity: Entity,
     ui: &mut egui::Ui,
     id: egui::Id,
-    type_registry: &TypeRegistry,
     filter: &F,
 ) where
     F: EntityFilter,
 {
     let mut queue = CommandQueue::default();
-    ui_for_entity_components(
-        &mut world.into(),
-        Some(&mut queue),
-        entity,
-        ui,
-        id,
-        type_registry,
-    );
+    ui_for_entity_components(&mut world.into(), Some(&mut queue), entity, ui, id);
 
     let children = world
         .get::<Children>(entity)
@@ -537,7 +502,7 @@ fn ui_for_entity_with_children_inner<F>(
                 .show(ui, |ui| {
                     ui.label(&child_entity_name);
 
-                    ui_for_entity_with_children_inner(world, child, ui, id, type_registry, filter);
+                    ui_for_entity_with_children_inner(world, child, ui, id, filter);
                 });
         }
     }
@@ -547,9 +512,6 @@ fn ui_for_entity_with_children_inner<F>(
 
 /// Display the components of the given entity
 pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
-    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
-    let type_registry = type_registry.read();
-
     let entity_name = guess_entity_name(world, entity);
     ui.label(entity_name);
 
@@ -560,7 +522,6 @@ pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
         entity,
         ui,
         egui::Id::new(entity),
-        &type_registry,
     );
     queue.apply(world);
 }
@@ -572,8 +533,9 @@ pub(crate) fn ui_for_entity_components(
     entity: Entity,
     ui: &mut egui::Ui,
     id: egui::Id,
-    type_registry: &TypeRegistry,
 ) {
+    let type_registry = world.get_resource_mut::<AppTypeRegistry>().unwrap().clone();
+    let type_registry = type_registry.read();
     let Ok(components) = components_of_entity(world, entity) else {
         errors::entity_does_not_exist(ui, entity);
         return;
@@ -614,7 +576,7 @@ pub(crate) fn ui_for_entity_components(
         let value = match component_view.get_entity_component_reflect(
             entity,
             component_type_id,
-            type_registry,
+            &type_registry,
         ) {
             Ok(value) => value,
             Err(e) => {
@@ -639,7 +601,7 @@ pub(crate) fn ui_for_entity_components(
         let _response = header.show(ui, |ui| {
             ui.reset_style();
 
-            let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+            let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
             let id = id.with(component_id);
             let options = &();
 
