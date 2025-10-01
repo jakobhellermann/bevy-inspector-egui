@@ -39,8 +39,9 @@
 
 use std::any::TypeId;
 use std::marker::PhantomData;
+use std::path::Path;
 
-use crate::utils::{pretty_type_name, pretty_type_name_str};
+use crate::utils::{self, pretty_type_name, pretty_type_name_str};
 use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
 use bevy_ecs::query::{QueryFilter, WorldQuery};
 use bevy_ecs::world::CommandQueue;
@@ -667,6 +668,11 @@ pub(crate) fn ui_for_entity_components(
             }
         };
 
+        let changed_by = match &value {
+            ReflectBorrow::Mutable(val) => val.changed_by().into_option(),
+            ReflectBorrow::Immutable(_) => None,
+        };
+
         if value.is_changed() {
             #[cfg(feature = "highlight_changes")]
             set_highlight_style(ui);
@@ -701,8 +707,35 @@ pub(crate) fn ui_for_entity_components(
             };
         });
 
+        let response = _response.header_response;
+
+        if let Some(location) = changed_by {
+            response.context_menu(|ui| {
+                ui.label("Last change:");
+                let path = Path::new(location.file());
+                let pretty = utils::trim_cargo_registry_path(path);
+
+                if ui
+                    .button(format!(
+                        "{}:{}:{}",
+                        pretty.as_deref().unwrap_or(path).display(),
+                        location.line(),
+                        location.column()
+                    ))
+                    .clicked()
+                {
+                    if let Err(e) = utils::open_file_at(location) {
+                        bevy_log::error!("Failed to open last change location: {}", e);
+                    } else {
+                        bevy_log::info!("Successfully opened {location}");
+                    }
+                }
+            });
+        }
+
         #[cfg(feature = "documentation")]
-        crate::egui_utils::show_docs(_response.header_response, type_docs);
+        crate::egui_utils::show_docs(response, type_docs);
+
         ui.reset_style();
     }
 }

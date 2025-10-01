@@ -1,3 +1,10 @@
+use std::{
+    panic::Location,
+    path::{Path, PathBuf},
+};
+
+use bevy_ecs::error::Result;
+
 pub fn pretty_type_name<T>() -> String {
     format!("{:?}", disqualified::ShortName::of::<T>())
 }
@@ -83,4 +90,48 @@ pub mod guess_entity_name {
 
         format!("Entity ({entity})")
     }
+}
+
+pub fn trim_cargo_registry_path(path: &Path) -> Option<PathBuf> {
+    let mut components = path.components().peekable();
+    while let Some(c) = components.next() {
+        if c.as_os_str() == ".cargo" {
+            if components.next()?.as_os_str() != "registry" {
+                return None;
+            }
+            if components.next()?.as_os_str() != "src" {
+                return None;
+            }
+            components.next()?;
+            return Some(components.collect());
+        }
+    }
+
+    None
+}
+
+pub fn open_file_at(location: &Location<'_>) -> Result<()> {
+    let path = Path::new(location.file());
+
+    // try editors supporting opening file:col first (in order of most likely to be explicitly installed)
+    if std::process::Command::new("zeditor")
+        .arg(location.to_string())
+        .spawn()
+        .is_ok()
+    {
+        return Ok(());
+    }
+
+    if std::process::Command::new("code")
+        .arg("--goto")
+        .arg(location.to_string())
+        .spawn()
+        .is_ok()
+    {
+        return Ok(());
+    }
+
+    opener::open(path)?;
+
+    Ok(())
 }
