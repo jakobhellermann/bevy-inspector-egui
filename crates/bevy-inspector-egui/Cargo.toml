@@ -75,6 +75,9 @@ uuid = "1.11.0"
 bevy = { version = "0.17.0", default-features = false, features = [
     "std",
     "x11",
+    "wayland",
+    "reflect_auto_register",
+    "bevy_log",
     "bevy_winit",
     "bevy_state",
     "bevy_window",
