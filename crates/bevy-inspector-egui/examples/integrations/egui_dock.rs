@@ -7,7 +7,6 @@ use bevy::{
 use bevy_camera::{Viewport, visibility::RenderLayers};
 use bevy_egui::{EguiGlobalSettings, EguiPrimaryContextPass, PrimaryEguiContext};
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
-use bevy_inspector_egui::bevy_egui::input::EguiWantsInput;
 use bevy_inspector_egui::bevy_egui::{EguiContext, EguiContextSettings};
 use bevy_inspector_egui::bevy_inspector::hierarchy::{SelectedEntities, hierarchy_ui};
 use bevy_inspector_egui::bevy_inspector::{
@@ -15,6 +14,7 @@ use bevy_inspector_egui::bevy_inspector::{
 };
 use bevy_reflect::TypeRegistry;
 use bevy_window::{PrimaryWindow, Window};
+use egui::LayerId;
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
 use std::any::TypeId;
 use transform_gizmo_bevy::{GizmoCamera, GizmoTarget, TransformGizmoPlugin};
@@ -56,9 +56,8 @@ fn handle_pick_events(
     button: Res<ButtonInput<KeyCode>>,
     gizmo_targets: Query<(Entity, &GizmoTarget)>,
     mut commands: Commands,
-    egui_wants_input: Res<EguiWantsInput>,
 ) {
-    if egui_wants_input.is_using_pointer() {
+    if !ui_state.pointer_in_viewport {
         return;
     }
     for event in click_events.read() {
@@ -142,6 +141,7 @@ struct UiState {
     viewport_rect: egui::Rect,
     selected_entities: SelectedEntities,
     selection: InspectorSelection,
+    pointer_in_viewport: bool,
 }
 
 impl UiState {
@@ -159,6 +159,7 @@ impl UiState {
             selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,
             viewport_rect: egui::Rect::NOTHING,
+            pointer_in_viewport: false,
         }
     }
 
@@ -168,6 +169,7 @@ impl UiState {
             viewport_rect: &mut self.viewport_rect,
             selected_entities: &mut self.selected_entities,
             selection: &mut self.selection,
+            pointer_in_viewport: &mut self.pointer_in_viewport,
         };
         DockArea::new(&mut self.state)
             .style(Style::from_egui(ctx.style().as_ref()))
@@ -189,6 +191,7 @@ struct TabViewer<'a> {
     selected_entities: &'a mut SelectedEntities,
     selection: &'a mut InspectorSelection,
     viewport_rect: &'a mut egui::Rect,
+    pointer_in_viewport: &'a mut bool,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -235,6 +238,10 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                 }
             },
         }
+
+        *self.pointer_in_viewport = ui
+            .ctx()
+            .rect_contains_pointer(LayerId::background(), self.viewport_rect.shrink(16.));
     }
 
     fn title(&mut self, window: &mut Self::Tab) -> egui_dock::egui::WidgetText {
