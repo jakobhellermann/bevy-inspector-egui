@@ -20,6 +20,7 @@ fn setup(
 ) {
     // plane
     commands.spawn((
+        Name::new("Plane"),
         Mesh3d(meshes.add(Plane3d::default().mesh().size(5.0, 5.0))),
         MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
     ));
@@ -32,6 +33,7 @@ fn setup(
     ));
     // light
     commands.spawn((
+        Name::new("Light"),
         PointLight {
             intensity: 2_000_000.0,
             shadows_enabled: true,
@@ -41,6 +43,7 @@ fn setup(
     ));
     // camera
     commands.spawn((
+        Name::new("Camera"),
         Camera3d::default(),
         Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));

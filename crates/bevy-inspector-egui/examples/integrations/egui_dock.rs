@@ -501,6 +501,7 @@ fn setup(
         RenderLayers::none(),
         Camera {
             order: 1,
+            clear_color: ClearColorConfig::None,
             ..default()
         },
     ));
