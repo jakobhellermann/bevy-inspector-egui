@@ -7,7 +7,7 @@ use std::{
 
 use crate::utils::pretty_type_name;
 use bevy_asset::{Assets, Handle};
-use bevy_egui::EguiUserTextures;
+use bevy_egui::{EguiTextureHandle, EguiUserTextures};
 use bevy_image::Image;
 use bevy_reflect::DynamicTypePath;
 use egui::{Vec2, load::SizedTexture};
@@ -219,7 +219,10 @@ fn rescaled_image<'a>(
     let (texture, texture_id) = match scaled_down_textures.textures.entry(handle.clone()) {
         Entry::Occupied(handle) => {
             let handle: Handle<Image> = handle.get().clone();
-            (handle.clone(), egui_usere_textures.add_image(handle))
+            (
+                handle.clone(),
+                egui_usere_textures.add_image(EguiTextureHandle::Strong(handle)),
+            )
         }
         Entry::Vacant(entry) => {
             if scaled_down_textures.rescaled_textures.contains(handle) {
@@ -238,7 +241,8 @@ fn rescaled_image<'a>(
 
             let resized_handle = textures.add(resized);
             let weak = resized_handle.clone();
-            let texture_id = egui_usere_textures.add_image(resized_handle.clone());
+            let texture_id =
+                egui_usere_textures.add_image(EguiTextureHandle::Strong(resized_handle.clone()));
             entry.insert(resized_handle);
             scaled_down_textures.rescaled_textures.insert(weak.clone());
 

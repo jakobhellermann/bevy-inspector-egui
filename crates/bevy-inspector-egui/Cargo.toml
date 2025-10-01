@@ -59,9 +59,8 @@ bevy_core_pipeline = { version = "0.17.0", optional = true }
 bevy_pbr = { version = "0.17.0", optional = true }
 bevy_image = { version = "0.17.0", optional = true }
 
-egui = { version = "0.32" }
-
-bevy_egui = { version = "0.37.0", git = "https://github.com/pindash-io/bevy_egui.git", branch = "bevy-0.17", default-features = false }
+egui.workspace = true
+bevy_egui.workspace = true
 
 bytemuck = "1.16.0"
 image = { version = "0.25", default-features = false }
