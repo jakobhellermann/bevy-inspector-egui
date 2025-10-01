@@ -70,7 +70,7 @@ pub mod guess_entity_name {
             ("bevy_ui::ui_node::Node", "Node"),
             ("bevy_pbr::mesh_material::MeshMaterial3d<bevy_pbr::pbr_material::StandardMaterial>", "Pbr Mesh"),
             ("bevy_window::window::Window", "Window"),
-            ("bevy_ecs::observer::runner::ObserverState", "Observer"),
+            ("bevy_ecs::observer::distributed_storage::Observer", "Observer"),
             ("bevy_window::monitor::Monitor", "Monitor"),
             ("bevy_picking::pointer::PointerId", "Pointer"),
         ];
