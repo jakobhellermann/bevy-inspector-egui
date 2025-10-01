@@ -29,7 +29,6 @@ fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities
     else {
         return;
     };
-    dbg!();
 
     let mut egui_context = ctx.deref_mut().clone();
     egui::SidePanel::left("hierarchy")
