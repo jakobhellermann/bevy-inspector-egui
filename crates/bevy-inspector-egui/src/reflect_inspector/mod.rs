@@ -64,6 +64,7 @@ use crate::egui_utils::show_docs;
 
 use crate::inspector_egui_impls::{InspectorEguiImpl, iter_all_eq};
 use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};
+use crate::reflect_inspector::errors::TypeDataError;
 use crate::restricted_world_view::RestrictedWorldView;
 use crate::{
     egui_utils::{add_button, down_button, remove_button, up_button},
@@ -71,12 +72,12 @@ use crate::{
 };
 use bevy_ecs::world::CommandQueue;
 use bevy_reflect::{
-    Array, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List, ListInfo, Map, Reflect,
-    ReflectMut, ReflectRef, Struct, StructInfo, Tuple, TupleInfo, TupleStruct, TupleStructInfo,
-    TypeInfo, TypeRegistry, VariantInfo, VariantType,
+    Array, DynamicEnum, DynamicTuple, DynamicTyped, DynamicVariant, Enum, EnumInfo, List, ListInfo,
+    Map, Reflect, ReflectMut, ReflectRef, Struct, StructInfo, Tuple, TupleInfo, TupleStruct,
+    TupleStructInfo, TypeInfo, TypeRegistry, VariantInfo, VariantType,
 };
 use bevy_reflect::{DynamicStruct, std_traits::ReflectDefault};
-use bevy_reflect::{OpaqueInfo, PartialReflect, Set, SetInfo};
+use bevy_reflect::{PartialReflect, Set, SetInfo};
 use egui::{Grid, WidgetText};
 use std::borrow::Cow;
 use std::{
@@ -237,15 +238,15 @@ impl InspectorUi<'_, '_> {
         {
             options = &data.0;
         }
-
-        if let Some(reflected) = value.try_as_reflect_mut()
-            && let Some(s) = self
-                .type_registry
-                .get_type_data::<InspectorEguiImpl>(reflected.reflect_type_info().type_id())
-            && let Some(value) = value.try_as_reflect_mut()
-        {
-            return s.execute(value.as_any_mut(), ui, options, id, self.reborrow());
-        }
+        let reason = match value.try_as_reflect_mut() {
+            Some(value) => match get_type_data(self.type_registry, value) {
+                Ok(ui_impl) => {
+                    return ui_impl.execute(value.as_any_mut(), ui, options, id, self.reborrow());
+                }
+                Err(e) => e,
+            },
+            None => TypeDataError::NotFullyReflected,
+        };
 
         if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
             return changed;
@@ -259,7 +260,10 @@ impl InspectorUi<'_, '_> {
             ReflectMut::Array(value) => self.ui_for_array(value, ui, id, options),
             ReflectMut::Map(value) => self.ui_for_reflect_map(value, ui, id, options),
             ReflectMut::Enum(value) => self.ui_for_enum(value, ui, id, options),
-            ReflectMut::Opaque(value) => self.ui_for_value(value, ui, id, options),
+            ReflectMut::Opaque(value) => {
+                errors::reflect_value_no_impl(ui, reason, value.reflect_short_type_path());
+                false
+            }
             ReflectMut::Set(value) => self.ui_for_set(value, ui, id, options),
             #[allow(unreachable_patterns)]
             _ => {
@@ -291,15 +295,21 @@ impl InspectorUi<'_, '_> {
             options = &data.0;
         }
 
-        if let Some(value_reflect) = value.try_as_reflect()
-            && let Some(s) = self
-                .type_registry
-                .get_type_data::<InspectorEguiImpl>(value_reflect.type_id())
-            && let Some(value) = value.try_as_reflect()
-        {
-            s.execute_readonly(value.as_any(), ui, options, id, self.reborrow());
-            return;
-        }
+        let reason = match value.try_as_reflect() {
+            Some(value) => match get_type_data(self.type_registry, value) {
+                Ok(ui_impl) => {
+                    return ui_impl.execute_readonly(
+                        value.as_any(),
+                        ui,
+                        options,
+                        id,
+                        self.reborrow(),
+                    );
+                }
+                Err(e) => e,
+            },
+            None => TypeDataError::NotFullyReflected,
+        };
 
         if let Some(()) = (self.short_circuit_readonly)(self, value, ui, id, options) {
             return;
@@ -315,7 +325,9 @@ impl InspectorUi<'_, '_> {
             ReflectRef::Array(value) => self.ui_for_array_readonly(value, ui, id, options),
             ReflectRef::Map(value) => self.ui_for_reflect_map_readonly(value, ui, id, options),
             ReflectRef::Enum(value) => self.ui_for_enum_readonly(value, ui, id, options),
-            ReflectRef::Opaque(value) => self.ui_for_value_readonly(value, ui, id, options),
+            ReflectRef::Opaque(value) => {
+                errors::reflect_value_no_impl(ui, reason, value.reflect_short_type_path())
+            }
             ReflectRef::Set(value) => self.ui_for_set_readonly(value, ui, id, options),
             #[allow(unreachable_patterns)]
             _ => {
@@ -361,6 +373,13 @@ impl InspectorUi<'_, '_> {
             options = &data.0;
         }
 
+        let reason = match registration.data::<InspectorEguiImpl>() {
+            Some(ui_impl) => {
+                return ui_impl.execute_many(ui, options, id, self.reborrow(), values, projector);
+            }
+            None => TypeDataError::NoTypeData,
+        };
+
         if let Some(s) = self
             .type_registry
             .get_type_data::<InspectorEguiImpl>(type_id)
@@ -394,7 +413,10 @@ impl InspectorUi<'_, '_> {
                 false
             }
             TypeInfo::Enum(info) => self.ui_for_enum_many(info, ui, id, options, values, projector),
-            TypeInfo::Opaque(info) => self.ui_for_value_many(info, ui, id, options),
+            TypeInfo::Opaque(info) => {
+                errors::reflect_value_no_impl(ui, reason, info.type_path());
+                false
+            }
             TypeInfo::Set(info) => self.ui_for_set_many(info, ui, id, options, values, projector),
         }
     }
@@ -1735,38 +1757,6 @@ impl InspectorUi<'_, '_> {
             );
         });
     }
-
-    fn ui_for_value(
-        &mut self,
-        value: &mut dyn PartialReflect,
-        ui: &mut egui::Ui,
-        _id: egui::Id,
-        _options: &dyn Any,
-    ) -> bool {
-        errors::reflect_value_no_impl(ui, value.reflect_short_type_path());
-        false
-    }
-
-    fn ui_for_value_readonly(
-        &mut self,
-        value: &dyn PartialReflect,
-        ui: &mut egui::Ui,
-        _id: egui::Id,
-        _options: &dyn Any,
-    ) {
-        errors::reflect_value_no_impl(ui, value.reflect_short_type_path());
-    }
-
-    fn ui_for_value_many(
-        &mut self,
-        info: &OpaqueInfo,
-        ui: &mut egui::Ui,
-        _id: egui::Id,
-        _options: &dyn Any,
-    ) -> bool {
-        errors::reflect_value_no_impl(ui, info.type_path());
-        false
-    }
 }
 
 impl<'a, 'c> InspectorUi<'a, 'c> {
@@ -1949,4 +1939,17 @@ fn inspector_options_enum_variant_field<'a>(
 
 fn or(a: bool, b: bool) -> bool {
     a || b
+}
+
+fn get_type_data<'a>(
+    type_registry: &'a TypeRegistry,
+    type_id: &dyn DynamicTyped,
+) -> Result<&'a InspectorEguiImpl, TypeDataError> {
+    let registration = type_registry
+        .get(type_id.reflect_type_info().type_id())
+        .ok_or(TypeDataError::NotRegistered)?;
+    let data = registration
+        .data::<InspectorEguiImpl>()
+        .ok_or(TypeDataError::NoTypeData)?;
+    Ok(data)
 }

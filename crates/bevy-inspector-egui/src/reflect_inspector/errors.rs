@@ -2,27 +2,54 @@ use egui::FontId;
 
 use crate::{egui_utils::layout_job, utils::pretty_type_name_str};
 
-pub fn reflect_value_no_impl(ui: &mut egui::Ui, type_name: &str) {
-    let job = layout_job(&[
-        (FontId::monospace(12.0), type_name),
-        (FontId::proportional(13.0), " is "),
-        (FontId::monospace(12.0), "#[reflect_value]"),
-        (FontId::proportional(13.0), ", but has no "),
-        (FontId::monospace(12.0), "InspectorEguiImpl"),
-        (FontId::proportional(13.0), " registered in the "),
-        (FontId::monospace(12.0), "TypeRegistry"),
-        (FontId::proportional(13.0), " .\n"),
-        (FontId::proportional(13.0), "Try calling "),
-        (
-            FontId::monospace(12.0),
-            &format!(".register_type::<{}>", pretty_type_name_str(type_name)),
-        ),
-        (FontId::proportional(13.0), " or add the "),
-        (FontId::monospace(12.0), "DefaultInspectorConfigPlugin"),
-        (FontId::proportional(13.0), " for builtin types."),
-    ]);
+pub enum TypeDataError {
+    NoTypeData,
+    NotRegistered,
+    NotFullyReflected,
+}
 
-    ui.label(job);
+pub fn reflect_value_no_impl(ui: &mut egui::Ui, reason: TypeDataError, type_name: &str) {
+    let text = match reason {
+        TypeDataError::NotRegistered | TypeDataError::NoTypeData => &[
+            (FontId::monospace(12.0), type_name),
+            (FontId::proportional(13.0), " is "),
+            (FontId::monospace(12.0), "#[reflect(opaque)],\n"),
+            (FontId::proportional(13.0), "you need to register an "),
+            (FontId::monospace(12.0), "InspectorEguiImpl"),
+            (FontId::proportional(13.0), " in the "),
+            (FontId::monospace(12.0), "TypeRegistry"),
+            (FontId::proportional(13.0), " .\n\n"),
+            (FontId::proportional(13.0), "Try implementing "),
+            (
+                FontId::monospace(12.0),
+                &format!("InspectorPrimitive for {}", pretty_type_name_str(type_name)),
+            ),
+            (FontId::proportional(13.0), "\nand call "),
+            (
+                FontId::monospace(12.0),
+                &format!(
+                    "app.register_type_data::<{}, InspectorEguiImpl>",
+                    pretty_type_name_str(type_name)
+                ),
+            ),
+            (FontId::proportional(13.0), "."),
+        ] as &[_],
+        TypeDataError::NotFullyReflected => &[
+            (FontId::monospace(12.0), type_name),
+            (FontId::proportional(13.0), " is "),
+            (FontId::monospace(12.0), "#[reflect(opaque)],\n"),
+            (
+                FontId::proportional(13.0),
+                "but not backed by a real rust type.",
+            ),
+        ],
+    };
+    let job = layout_job(text);
+
+    ui.label(job).on_hover_ui(|ui| {
+        ui.set_max_width(ui.spacing().tooltip_width);
+        ui.label("If you see this message for a primitive type that should already have an implementation,\nmake sure you have the DefaultInspectorConfigPlugin added or open an issue on github.");
+    });
 }
 pub fn no_default_value(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
