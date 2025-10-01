@@ -938,21 +938,23 @@ pub mod by_type_id {
 
         let ids: Vec<_> = reflect_asset.ids(world).collect();
 
-        // Create a context with access to the entire world. Displaying the `Handle<T>` will short circuit into
-        // displaying the T with a world view excluding Assets<T>.
-        let world_view = RestrictedWorldView::new(world);
-        let mut queue = CommandQueue::default();
-        let mut cx = Context {
-            world: Some(world_view),
-            queue: Some(&mut queue),
-        };
-
         for handle_id in ids {
             let id = egui::Id::new(handle_id);
+
+            // If we have a `Uuid` asset handle, we can obtain a `Handle<T>`,
+            // which can be useful e.g. for `Handle<Image>` which has its own explicit egui UI.
             if let UntypedAssetId::Uuid { uuid, type_id } = handle_id {
                 let mut handle = reflect_handle
                     .typed(UntypedHandle::Uuid { uuid, type_id })
                     .into_partial_reflect();
+
+                // Create a context with access to the entire world. Displaying the `Handle<T>` will short circuit into
+                // displaying the T with a world view excluding Assets<T>.
+                let mut queue = CommandQueue::default();
+                let mut cx = Context {
+                    world: Some(RestrictedWorldView::new(world)),
+                    queue: Some(&mut queue),
+                };
 
                 egui::CollapsingHeader::new(handle_name(handle_id, asset_server.as_ref()))
                     .id_salt(id)
@@ -960,10 +962,40 @@ pub mod by_type_id {
                         let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
                         env.ui_for_reflect_with_options(&mut *handle, ui, id, &());
                     });
+
+                queue.apply(world);
+            }
+            // in the general case, we currently cannot cast get a `Handle<T>` through
+            // `ReflectAsset`/`ReflectHandle`. But we can still get the `&mut T`
+            // and inspect that (which works for e.g. `StandardMaterial`).
+            else {
+                let mut world_view = RestrictedWorldView::new(world);
+                let (asset_world, rest_world) =
+                    world_view.split_off_resource(reflect_asset.assets_resource_type_id());
+
+                // # Safety
+                // - The world cell has unique access to `Assets<T>`
+                // - We only call this once, so no overlapping references possible
+                let data = unsafe {
+                    reflect_asset
+                        .get_unchecked_mut(asset_world.world(), handle_id)
+                        .unwrap()
+                };
+
+                let mut queue = CommandQueue::default();
+                let mut cx = Context {
+                    world: Some(rest_world),
+                    queue: Some(&mut queue),
+                };
+
+                egui::CollapsingHeader::new(handle_name(handle_id, asset_server.as_ref()))
+                    .id_salt(id)
+                    .show(ui, |ui| {
+                        let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+                        env.ui_for_reflect_with_options(data, ui, id, &());
+                    });
             }
         }
-
-        queue.apply(world)
     }
 
     /// Display a given asset by handle and asset [`TypeId`]
