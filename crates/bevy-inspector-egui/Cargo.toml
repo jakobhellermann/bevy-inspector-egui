@@ -37,7 +37,7 @@ features = ["winit/x11"]
 [dependencies]
 winit = { version = "0.30.0", default-features = false }
 
-bevy-inspector-egui-derive = { path = "../bevy-inspector-egui-derive" }
+bevy-inspector-egui-derive = { version = "0.34", path = "../bevy-inspector-egui-derive" }
 bevy_app = "0.17.0"
 bevy_asset = "0.17.0"
 bevy_color = "0.17.0"
