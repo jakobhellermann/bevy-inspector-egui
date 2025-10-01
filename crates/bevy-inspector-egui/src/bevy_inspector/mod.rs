@@ -740,7 +740,7 @@ fn components_of_entity(
     let archetype = entity_ref.archetype();
     let mut components: Vec<_> = archetype
         .components()
-        .into_iter()
+        .iter()
         .map(|component_id| {
             let info = world.world().components().get_info(*component_id).unwrap();
             let name = pretty_type_name_str(&info.name().to_string());
