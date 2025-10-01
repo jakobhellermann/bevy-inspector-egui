@@ -97,7 +97,7 @@ bevy = { version = "0.17.0", default-features = false, features = [
 ] }
 bevy_math = { version = "0.17.0", features = ["mint"] }
 egui_dock = { version = "0.17" }
-# transform-gizmo-egui = "0.6"
+transform-gizmo-bevy = { git = "https://github.com/pindash-io/transform-gizmo", branch = "bevy-0.17" }
 # bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
 # bevy_framepace = "0.11"
 
