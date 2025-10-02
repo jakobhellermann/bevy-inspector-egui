@@ -26,6 +26,7 @@ default = [
 ]
 documentation = ["bevy_reflect/documentation"]
 bevy_render = ["dep:bevy_render", "bevy_egui/render"]
+bevy_gizmos = ["dep:bevy_gizmos"]
 bevy_core_pipeline = ["dep:bevy_core_pipeline"]
 egui_clipboard = ["bevy_egui/manage_clipboard"]
 egui_open_url = ["bevy_egui/open_url"]
@@ -58,6 +59,7 @@ bevy_render = { version = "0.17.0", optional = true }
 bevy_core_pipeline = { version = "0.17.0", optional = true }
 bevy_pbr = { version = "0.17.0", optional = true }
 bevy_image = { version = "0.17.0", optional = true }
+bevy_gizmos = { version = "0.17.0", optional = true }
 
 egui.workspace = true
 bevy_egui.workspace = true

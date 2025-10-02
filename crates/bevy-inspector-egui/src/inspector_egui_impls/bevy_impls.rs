@@ -340,3 +340,57 @@ impl InspectorPrimitive for RenderLayers {
         }
     }
 }
+
+#[cfg(feature = "bevy_gizmos")]
+impl InspectorPrimitive for bevy_gizmos::config::GizmoConfigStore {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        id: egui::Id,
+        mut env: InspectorUi<'_, '_>,
+    ) -> bool {
+        for (ty, group, value) in self.iter_mut() {
+            use egui::CollapsingHeader;
+
+            let name = env
+                .type_registry
+                .get(*ty)
+                .map(|x| x.type_info().ty().short_path())
+                .unwrap_or("<unknown gizmo group>");
+            CollapsingHeader::new(name)
+                .id_salt(id.with(ty))
+                .show(ui, |ui| {
+                    env.ui_for_reflect(group, ui);
+                    ui.separator();
+                    env.ui_for_reflect_with_options(value, ui, egui::Id::new("data"), &());
+                });
+        }
+
+        false
+    }
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        id: egui::Id,
+        mut env: InspectorUi<'_, '_>,
+    ) {
+        for (ty, group, value) in self.iter() {
+            use egui::CollapsingHeader;
+
+            let name = env
+                .type_registry
+                .get(*ty)
+                .map(|x| x.type_info().ty().short_path())
+                .unwrap_or("<unknown gizmo group>");
+            CollapsingHeader::new(name)
+                .id_salt(id.with(ty))
+                .show(ui, |ui| {
+                    env.ui_for_reflect_readonly(group, ui);
+                    ui.separator();
+                    env.ui_for_reflect_readonly_with_options(value, ui, egui::Id::new("data"), &());
+                });
+        }
+    }
+}

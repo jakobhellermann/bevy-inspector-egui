@@ -224,7 +224,7 @@ fn many_unimplemented<T: Any>(
     false
 }
 
-fn add<T: InspectorPrimitive + TypePath + PartialEq + Clone>(type_registry: &mut TypeRegistry) {
+fn add<T: InspectorPrimitive + TypePath>(type_registry: &mut TypeRegistry) {
     type_registry.register_type_data::<T, InspectorEguiImpl>();
 }
 fn add_of_with_many<T: InspectorPrimitive>(
@@ -331,6 +331,8 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
     {
       add_of_with_many::<bevy_asset::Handle<bevy_image::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_image::Image>>);
     }
+    #[cfg(feature = "bevy_gizmos")]
+    add::<bevy_gizmos::config::GizmoConfigStore>(type_registry);
 
     add::<uuid::Uuid>(type_registry);
 }

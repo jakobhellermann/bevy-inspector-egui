@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.34.1
+- add `bevy_gizmos` feature for inspecting `GizmoConfigGroup`
+
 ## Version 0.34.0
 - update to `bevy` 0.17 / `bevy_egui` 0.37
 - `egui_dock` example: use `transform-gizmo-bevy`
