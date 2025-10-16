@@ -3,5 +3,5 @@ resolver = "2"
 members = ["crates/*"]
 
 [workspace.dependencies]
-egui = "0.32"
-bevy_egui = "0.37"
+egui = "0.33"
+bevy_egui = "0.38"
