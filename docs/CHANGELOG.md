@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 0.35.0
+- update to `egui` 0.33
+
 ## Version 0.34.1
 - add `bevy_gizmos` feature for inspecting `GizmoConfigGroup`
 
