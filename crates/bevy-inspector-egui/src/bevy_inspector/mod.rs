@@ -964,7 +964,7 @@ pub mod by_type_id {
                 let (asset_world, rest_world) =
                     world_view.split_off_resource(reflect_asset.assets_resource_type_id());
 
-                // # Safety
+                // # SAFETY:
                 // - The world cell has unique access to `Assets<T>`
                 // - We only call this once, so no overlapping references possible
                 let data = unsafe {
