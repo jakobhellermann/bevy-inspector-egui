@@ -451,6 +451,7 @@ fn setup(
 
     // egui camera
     commands.spawn((
+        Pickable{ should_block_lower: false, is_hoverable: false },
         Camera2d,
         Name::new("Egui Camera"),
         PrimaryEguiContext,
