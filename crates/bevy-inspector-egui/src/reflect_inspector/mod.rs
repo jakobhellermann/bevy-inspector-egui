@@ -1014,26 +1014,22 @@ impl InspectorUi<'_, '_> {
             ui.label("(Empty Map)");
             ui.end_row();
         }
-        let mut to_delete: Option<Box<dyn PartialReflect>> = None;
 
         egui::Grid::new(id).show(ui, |ui| {
-            for (i, (key, value)) in map.iter().enumerate() {
+            let mut i = 0;
+            map.retain(&mut |key, value| {
                 let ui_id = id.with(i);
+                i += 1;
+
                 self.ui_for_reflect_readonly_with_options(key, ui, ui_id, &());
-                changed |=
-                    self.ui_for_reflect_with_options(value.to_dynamic().as_mut(), ui, ui_id, &());
-                if remove_button(ui).on_hover_text("Remove element").clicked() {
-                    to_delete = Some(key.to_dynamic());
-                }
+                changed |= self.ui_for_reflect_with_options(value, ui, ui_id, &());
+                let delete = remove_button(ui).on_hover_text("Remove element").clicked();
                 ui.end_row();
-            }
+                !delete
+            });
 
             self.map_add_element_ui(map, ui, id, &mut changed);
         });
-
-        if let Some(key) = to_delete {
-            map.remove(key.as_ref());
-        }
 
         changed
     }
@@ -1067,7 +1063,7 @@ impl InspectorUi<'_, '_> {
                     let key = key_default.default().into_partial_reflect();
                     let value = value_default.default().into_partial_reflect();
                     ui.data_mut(|data| {
-                        data.insert_temp(map_draft_id, MapDraftElement { key, value })
+                        data.insert_temp(map_draft_id, Some(MapDraftElement { key, value }))
                     });
                 }
                 ui.end_row();
