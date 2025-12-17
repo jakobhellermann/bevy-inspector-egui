@@ -81,6 +81,8 @@ fn main() {
 }
 
 fn setup(mut commands: Commands, mut ui_data: ResMut<UiData>) {
+    commands.spawn(Camera2d);
+
     let entity = commands.spawn(Mesh3d::default()).id();
     ui_data.entity = Some(entity);
 }
