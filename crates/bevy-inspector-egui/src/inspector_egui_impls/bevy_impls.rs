@@ -69,6 +69,20 @@ impl InspectorPrimitive for Entity {
                     .get_entity(entity)
                     .is_ok_and(|e| e.contains::<bevy_ecs::entity_disabling::Disabled>());
 
+                // Check if we should show disabled entities.
+                let show_disabled = ui.memory_mut(|mem| {
+                    *mem.data
+                        .get_persisted_mut_or_insert_with(
+                            egui::Id::new("show_disabled_entities"),
+                            || false,
+                        )
+                });
+
+                // Skip rendering disabled entities if the toggle is off.
+                if is_disabled && !show_disabled {
+                    return false;
+                }
+
                 if is_disabled {
                     ui.style_mut().visuals.override_text_color = Some(egui::Color32::DARK_GRAY);
                 }
