@@ -117,7 +117,7 @@ impl InspectorPrimitive for Entity {
                                 if has_disabled {
                                     if egui_utils::label_button(
                                         ui,
-                                        "✓ Enable",
+                                        "✔ Enable",
                                         egui::Color32::GREEN,
                                     ) {
                                         queue.push(move |world: &mut World| {

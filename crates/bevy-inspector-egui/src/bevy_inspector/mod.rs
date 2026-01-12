@@ -824,7 +824,7 @@ fn ui_for_entity_buttons(
             .unwrap_or(false);
 
         if has_disabled {
-            if crate::egui_utils::label_button(ui, "✓ Enable", egui::Color32::GREEN) {
+            if crate::egui_utils::label_button(ui, "✔ Enable", egui::Color32::GREEN) {
                 queue.push(move |world: &mut World| {
                     world.entity_mut(entity).remove::<Disabled>();
                 });
