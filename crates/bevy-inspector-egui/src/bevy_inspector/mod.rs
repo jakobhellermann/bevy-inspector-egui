@@ -579,7 +579,7 @@ fn ui_for_entity_with_children_inner<F>(
     ui: &mut egui::Ui,
     id: egui::Id,
     type_registry: &TypeRegistry,
-    filter: &F,
+    _filter: &F,
 ) where
     F: EntityFilter,
 {
@@ -593,46 +593,6 @@ fn ui_for_entity_with_children_inner<F>(
         type_registry,
     );
     ui_for_entity_buttons(world, entity, ui, &mut queue);
-
-    let children = world
-        .get::<Children>(entity)
-        .map(|children| children.iter().collect::<Vec<_>>());
-    if let Some(mut children) = children
-        && !children.is_empty()
-    {
-        filter.filter_entities(world, &mut children);
-        ui.label("Children");
-        for child in children {
-            let id = id.with(child);
-
-            let child_entity_name = guess_entity_name(world, child);
-
-            // Grey out disabled entities.
-            let is_disabled = world
-                .get::<bevy_ecs::entity_disabling::Disabled>(child)
-                .is_some();
-
-            if is_disabled {
-                ui.style_mut().visuals.override_text_color = Some(egui::Color32::DARK_GRAY);
-            }
-
-            egui::CollapsingHeader::new(&child_entity_name)
-                .id_salt(id)
-                .show(ui, |ui| {
-                    // Reset text color override so content doesn't inherit it
-                    ui.style_mut().visuals.override_text_color = None;
-
-                    ui.label(&child_entity_name);
-
-                    ui_for_entity_with_children_inner(world, child, ui, id, type_registry, filter);
-                });
-
-            // Reset text color override after header so next entity doesn't inherit it
-            if is_disabled {
-                ui.style_mut().visuals.override_text_color = None;
-            }
-        }
-    }
 
     queue.apply(world);
 }
