@@ -258,14 +258,117 @@ pub fn ui_for_world_entities_filtered<QF: WorldQuery + QueryFilter>(
 
 /// Display all root entities.
 pub fn ui_for_entities(world: &mut World, ui: &mut egui::Ui) {
+    // Runtime toggle for showing disabled entities.
+    let show_disabled_runtime = ui
+        .horizontal(|ui| {
+            let id = egui::Id::new("show_disabled_entities");
+            let mut show_disabled =
+                ui.memory_mut(|mem| *mem.data.get_persisted_mut_or_insert_with(id, || false));
+            ui.checkbox(&mut show_disabled, "Show Disabled");
+            ui.memory_mut(|mem| {
+                *mem.data.get_persisted_mut_or_default(id) = show_disabled;
+            });
+            show_disabled
+        })
+        .inner;
+
     let filter: Filter = Filter::from_ui_fuzzy(ui, egui::Id::new("default_world_entities_filter"));
-    ui_for_entities_filtered(world, ui, true, &filter);
+
+    if show_disabled_runtime {
+        ui_for_entities_filtered_allow_disabled(world, ui, true, &filter);
+    } else {
+        ui_for_entities_filtered(world, ui, true, &filter);
+    }
+}
+
+/// Helper function to render a list of entities with their components
+fn render_entity_list<F>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    entities: Vec<Entity>,
+    with_children: bool,
+    filter: &F,
+    type_registry: &TypeRegistry,
+) where
+    F: EntityFilter,
+{
+    let id = egui::Id::new("world ui");
+    for entity in entities {
+        let id = id.with(entity);
+
+        let entity_name = guess_entity_name(world, entity);
+
+        // Grey out disabled entities.
+        let is_disabled = world
+            .get::<bevy_ecs::entity_disabling::Disabled>(entity)
+            .is_some();
+
+        if is_disabled {
+            // Temporarily change text color for disabled entities.
+            ui.style_mut().visuals.override_text_color = Some(egui::Color32::DARK_GRAY);
+        }
+
+        egui::CollapsingHeader::new(&entity_name)
+            .id_salt(id)
+            .show(ui, |ui| {
+                // Reset text color override so content doesn't inherit it.
+                ui.style_mut().visuals.override_text_color = None;
+
+                if with_children {
+                    ui_for_entity_with_children_inner(world, entity, ui, id, type_registry, filter);
+                } else {
+                    let mut queue = CommandQueue::default();
+                    ui_for_entity_components(
+                        &mut world.into(),
+                        Some(&mut queue),
+                        entity,
+                        ui,
+                        id,
+                        type_registry,
+                    );
+                    ui_for_entity_buttons(world, entity, ui, &mut queue);
+                    queue.apply(world);
+                }
+            });
+
+        // Reset text color override after header so next entity doesn't inherit
+        // it.
+        if is_disabled {
+            ui.style_mut().visuals.override_text_color = None;
+        }
+    }
+}
+
+/// Display all entities matching the given [`EntityFilter`], including disabled
+/// entities.
+fn ui_for_entities_filtered_allow_disabled<F>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+    with_children: bool,
+    filter: &F,
+) where
+    F: EntityFilter,
+{
+    use bevy_ecs::{entity_disabling::Disabled, prelude::Allow};
+
+    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
+    let type_registry = type_registry.read();
+
+    let mut root_entities = world.query_filtered::<Entity, (Without<ChildOf>, Allow<Disabled>)>();
+    let mut entities = root_entities.iter(world).collect::<Vec<_>>();
+
+    filter.filter_entities(world, &mut entities);
+
+    entities.sort();
+
+    render_entity_list(world, ui, entities, with_children, filter, &type_registry);
 }
 
 /// Display all entities matching the given [`EntityFilter`].
 ///
-/// You can use the [`Filter`] type to specify both a static filter as a generic parameter (default is `Without<Parent>`),
-/// and a word to match. [`Filter::from_ui`] will display a search box and fuzzy filter checkbox.
+/// You can use the [`Filter`] type to specify both a static filter as a generic
+/// parameter (default is [`Without<Parent>`]), and a word to match.
+/// [`Filter::from_ui`] will display a search box and fuzzy filter checkbox.
 pub fn ui_for_entities_filtered<F>(
     world: &mut World,
     ui: &mut egui::Ui,
@@ -284,38 +387,7 @@ pub fn ui_for_entities_filtered<F>(
 
     entities.sort();
 
-    let id = egui::Id::new("world ui");
-    for entity in entities {
-        let id = id.with(entity);
-
-        let entity_name = guess_entity_name(world, entity);
-
-        egui::CollapsingHeader::new(&entity_name)
-            .id_salt(id)
-            .show(ui, |ui| {
-                if with_children {
-                    ui_for_entity_with_children_inner(
-                        world,
-                        entity,
-                        ui,
-                        id,
-                        &type_registry,
-                        filter,
-                    );
-                } else {
-                    let mut queue = CommandQueue::default();
-                    ui_for_entity_components(
-                        &mut world.into(),
-                        Some(&mut queue),
-                        entity,
-                        ui,
-                        id,
-                        &type_registry,
-                    );
-                    queue.apply(world);
-                }
-            });
-    }
+    render_entity_list(world, ui, entities, with_children, filter, &type_registry);
 }
 
 pub trait EntityFilter {
@@ -520,6 +592,7 @@ fn ui_for_entity_with_children_inner<F>(
         id,
         type_registry,
     );
+    ui_for_entity_buttons(world, entity, ui, &mut queue);
 
     let children = world
         .get::<Children>(entity)
@@ -533,13 +606,31 @@ fn ui_for_entity_with_children_inner<F>(
             let id = id.with(child);
 
             let child_entity_name = guess_entity_name(world, child);
+
+            // Grey out disabled entities.
+            let is_disabled = world
+                .get::<bevy_ecs::entity_disabling::Disabled>(child)
+                .is_some();
+
+            if is_disabled {
+                ui.style_mut().visuals.override_text_color = Some(egui::Color32::DARK_GRAY);
+            }
+
             egui::CollapsingHeader::new(&child_entity_name)
                 .id_salt(id)
                 .show(ui, |ui| {
+                    // Reset text color override so content doesn't inherit it
+                    ui.style_mut().visuals.override_text_color = None;
+
                     ui.label(&child_entity_name);
 
                     ui_for_entity_with_children_inner(world, child, ui, id, type_registry, filter);
                 });
+
+            // Reset text color override after header so next entity doesn't inherit it
+            if is_disabled {
+                ui.style_mut().visuals.override_text_color = None;
+            }
         }
     }
 
@@ -697,6 +788,53 @@ pub(crate) fn ui_for_entity_components(
 
         ui.reset_style();
     }
+}
+
+/// Display enable/disable and despawn buttons for an entity
+fn ui_for_entity_buttons(
+    world: &mut World,
+    entity: Entity,
+    ui: &mut egui::Ui,
+    queue: &mut CommandQueue,
+) {
+    use bevy_ecs::entity_disabling::Disabled;
+
+    // Check if entity still exists
+    if world.get_entity(entity).is_err() {
+        return;
+    }
+
+    ui.horizontal(|ui| {
+        // Check if entity has Disabled component.
+        let has_disabled = world
+            .get_entity(entity)
+            .map(|e| e.contains::<Disabled>())
+            .unwrap_or(false);
+
+        if has_disabled {
+            if crate::egui_utils::label_button(ui, "✓ Enable", egui::Color32::GREEN) {
+                queue.push(move |world: &mut World| {
+                    world.entity_mut(entity).remove::<Disabled>();
+                });
+            }
+        } else {
+            if crate::egui_utils::label_button(
+                ui,
+                "⊗ Disable",
+                egui::Color32::from_rgb(200, 160, 0),
+            ) {
+                queue.push(move |world: &mut World| {
+                    world.entity_mut(entity).insert(Disabled);
+                });
+            }
+        }
+
+        if crate::egui_utils::label_button(ui, "✖ Despawn", egui::Color32::RED) {
+            queue.push(move |world: &mut World| {
+                world.entity_mut(entity).despawn();
+            });
+        }
+    });
 }
 
 #[cfg(feature = "highlight_changes")]
