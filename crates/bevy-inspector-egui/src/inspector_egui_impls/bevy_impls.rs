@@ -62,9 +62,24 @@ impl InspectorPrimitive for Entity {
 
                 let entity_name =
                     crate::utils::guess_entity_name::guess_entity_name_restricted(world, entity);
+
+                // Grey out disabled entities.
+                let is_disabled = world
+                    .world()
+                    .get_entity(entity)
+                    .is_ok_and(|e| e.contains::<bevy_ecs::entity_disabling::Disabled>());
+
+                if is_disabled {
+                    ui.style_mut().visuals.override_text_color = Some(egui::Color32::DARK_GRAY);
+                }
+
                 egui::CollapsingHeader::new(entity_name)
                     .id_salt(id)
                     .show(ui, |ui| {
+                        // Reset text color override so content doesn't inherit
+                        // it.
+                        ui.style_mut().visuals.override_text_color = None;
+
                         let _queue = CommandQueue::default();
                         crate::bevy_inspector::ui_for_entity_components(
                             world,
@@ -122,6 +137,12 @@ impl InspectorPrimitive for Entity {
                             });
                         }
                     });
+
+                // Reset text color override after header so next entity doesn't
+                // inherit it.
+                if is_disabled {
+                    ui.style_mut().visuals.override_text_color = None;
+                }
             }
         }
         false
