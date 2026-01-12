@@ -71,11 +71,10 @@ impl InspectorPrimitive for Entity {
 
                 // Check if we should show disabled entities.
                 let show_disabled = ui.memory_mut(|mem| {
-                    *mem.data
-                        .get_persisted_mut_or_insert_with(
-                            egui::Id::new("show_disabled_entities"),
-                            || false,
-                        )
+                    *mem.data.get_persisted_mut_or_insert_with(
+                        egui::Id::new("show_disabled_entities"),
+                        || false,
+                    )
                 });
 
                 // Skip rendering disabled entities if the toggle is off.

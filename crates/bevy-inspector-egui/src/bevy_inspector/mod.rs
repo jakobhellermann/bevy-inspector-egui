@@ -601,6 +601,13 @@ fn ui_for_entity_with_children_inner<F>(
         && !children.is_empty()
     {
         filter.filter_entities(world, &mut children);
+
+        // Check if we should show disabled entities.
+        let show_disabled = ui.memory_mut(|mem| {
+            *mem.data
+                .get_persisted_mut_or_insert_with(egui::Id::new("show_disabled_entities"), || false)
+        });
+
         ui.label("Children");
         for child in children {
             let id = id.with(child);
@@ -611,6 +618,11 @@ fn ui_for_entity_with_children_inner<F>(
             let is_disabled = world
                 .get::<bevy_ecs::entity_disabling::Disabled>(child)
                 .is_some();
+
+            // Skip rendering disabled entities if the toggle is off.
+            if is_disabled && !show_disabled {
+                continue;
+            }
 
             if is_disabled {
                 ui.style_mut().visuals.override_text_color = Some(egui::Color32::DARK_GRAY);
