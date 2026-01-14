@@ -320,6 +320,10 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
     type_registry.register::<bevy_ecs::entity::Entity>();
     add_of_with_many::<bevy_ecs::entity::Entity>(type_registry, many_unimplemented::<bevy_ecs::entity::Entity>);
     add::<bevy_color::Color>(type_registry);
+    add::<bevy_color::Srgba>(type_registry);
+    add::<bevy_color::LinearRgba>(type_registry);
+    add::<bevy_color::Hsla>(type_registry);
+    add::<bevy_color::Hsva>(type_registry);
 
     #[cfg(feature = "bevy_render")]
     {
