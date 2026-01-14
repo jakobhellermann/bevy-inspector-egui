@@ -129,6 +129,10 @@ name = "resource_inspector_manual"
 path = "examples/basic/resource_inspector_manual.rs"
 
 [[example]]
+name = "world_inspector_manual"
+path = "examples/basic/world_inspector_manual.rs"
+
+[[example]]
 name = "resource_inspector"
 path = "examples/quick/resource_inspector.rs"
 
@@ -143,10 +147,6 @@ path = "examples/quick/asset_inspector.rs"
 [[example]]
 name = "world_inspector"
 path = "examples/quick/world_inspector.rs"
-
-[[example]]
-name = "world_inspector_manual"
-path = "examples/quick/world_inspector_manual.rs"
 
 [[example]]
 name = "world_inspector_assets"
