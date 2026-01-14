@@ -50,68 +50,128 @@ pub struct Hierarchy<'a, T = ()> {
 }
 
 impl<T> Hierarchy<'_, T> {
+    pub fn default_children_getter() -> impl Fn(&World, Entity) -> Option<Vec<Entity>> {
+        |world: &World, entity: Entity| {
+            world
+                .get::<Children>(entity)
+                .map(|children| children.iter().collect::<Vec<_>>())
+        }
+    }
+
+    pub fn default_parent_getter() -> impl Fn(&World, Entity) -> Option<Entity> {
+        |world: &World, entity: Entity| world.get::<ChildOf>(entity).map(|c| c.parent())
+    }
+
     pub fn show<QF>(&mut self, ui: &mut egui::Ui) -> bool
     where
         QF: QueryFilter,
     {
         let filter: Filter = Filter::all();
-        self._show::<QF, _>(ui, filter)
+        self._show::<QF, _, _, _>(
+            ui,
+            filter,
+            Self::default_children_getter(),
+            Self::default_parent_getter(),
+        )
     }
     pub fn show_with_default_filter<QF>(&mut self, ui: &mut egui::Ui) -> bool
     where
         QF: QueryFilter,
     {
         let filter: Filter = Filter::from_ui(ui, egui::Id::new("default_hierarchy_filter"));
-        self._show::<QF, _>(ui, filter)
+        self._show::<QF, _, _, _>(
+            ui,
+            filter,
+            Self::default_children_getter(),
+            Self::default_parent_getter(),
+        )
     }
     pub fn show_with_filter<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool
     where
         QF: QueryFilter,
         F: EntityFilter,
     {
-        self._show::<QF, F>(ui, filter)
+        self._show::<QF, F, _, _>(
+            ui,
+            filter,
+            Self::default_children_getter(),
+            Self::default_parent_getter(),
+        )
     }
-    fn _show<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool
+
+    pub fn show_with_filter_and_getters<QF, F, CG, PG>(
+        &mut self,
+        ui: &mut egui::Ui,
+        filter: F,
+        children_getter: CG,
+        parent_getter: PG,
+    ) -> bool
     where
         QF: QueryFilter,
         F: EntityFilter,
+        CG: Fn(&World, Entity) -> Option<Vec<Entity>>,
+        PG: Fn(&World, Entity) -> Option<Entity>,
     {
-        let mut root_query = self
-            .world
-            .query_filtered::<Entity, (Without<ChildOf>, QF)>();
+        self._show::<QF, F, CG, PG>(ui, filter, children_getter, parent_getter)
+    }
 
+    fn _show<QF, F, CG, PG>(
+        &mut self,
+        ui: &mut egui::Ui,
+        filter: F,
+        children_getter: CG,
+        parent_getter: PG,
+    ) -> bool
+    where
+        QF: QueryFilter,
+        F: EntityFilter,
+        CG: Fn(&World, Entity) -> Option<Vec<Entity>>,
+        PG: Fn(&World, Entity) -> Option<Entity>,
+    {
         let always_open: HashSet<Entity> = self
             .selected
             .iter()
             .flat_map(|selected| {
-                std::iter::successors(Some(selected), |&entity| {
-                    self.world.get::<ChildOf>(entity).map(|c| c.0)
-                })
-                .skip(1)
+                std::iter::successors(Some(selected), |&entity| parent_getter(self.world, entity))
+                    .skip(1)
             })
             .collect();
 
-        let mut entities: Vec<_> = root_query.iter(self.world).collect();
+        let mut root_query = self.world.query_filtered::<Entity, QF>();
+        let mut entities: Vec<_> = root_query
+            .iter(self.world)
+            .filter(|&entity| parent_getter(self.world, entity).is_none())
+            .collect();
+
         filter.filter_entities(self.world, &mut entities);
         entities.sort();
 
         let mut selected = false;
         for &entity in &entities {
-            selected |= self.entity_ui(ui, entity, &always_open, &entities, &filter);
+            selected |= self.entity_ui(
+                ui,
+                entity,
+                &always_open,
+                &entities,
+                &filter,
+                &children_getter,
+            );
         }
         selected
     }
 
-    fn entity_ui<F>(
+    fn entity_ui<F, CG>(
         &mut self,
         ui: &mut egui::Ui,
         entity: Entity,
         always_open: &HashSet<Entity>,
         at_same_level: &[Entity],
         filter: &F,
+        get_children: &CG,
     ) -> bool
     where
         F: EntityFilter,
+        CG: Fn(&World, Entity) -> Option<Vec<Entity>>,
     {
         let mut new_selection = false;
         let selected = self.selected.contains(entity);
@@ -122,9 +182,8 @@ impl<T> Hierarchy<'_, T> {
             name = name.strong();
         }
 
-        let has_children = self
-            .world
-            .get::<Children>(entity)
+        let has_children = get_children(self.world, entity)
+            .as_ref()
             .is_some_and(|children| !children.is_empty());
 
         let open = if !has_children {
@@ -151,12 +210,11 @@ impl<T> Hierarchy<'_, T> {
             })
             .open(open)
             .show(ui, |ui| {
-                let children = self.world.get::<Children>(entity);
-                if let Some(children) = children {
-                    let mut children = children.to_vec();
+                if let Some(mut children) = get_children(self.world, entity) {
                     filter.filter_entities(self.world, &mut children);
                     for &child in &children {
-                        new_selection |= self.entity_ui(ui, child, always_open, &children, filter);
+                        new_selection |=
+                            self.entity_ui(ui, child, always_open, &children, filter, get_children);
                     }
                 } else {
                     ui.label("No children");

@@ -274,9 +274,6 @@ pub fn ui_for_entities_filtered<F>(
 ) where
     F: EntityFilter,
 {
-    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
-    let type_registry = type_registry.read();
-
     let mut root_entities = world.query_filtered::<Entity, F::StaticFilter>();
     let mut entities = root_entities.iter(world).collect::<Vec<_>>();
 
@@ -294,24 +291,14 @@ pub fn ui_for_entities_filtered<F>(
             .id_salt(id)
             .show(ui, |ui| {
                 if with_children {
-                    ui_for_entity_with_children_inner(
-                        world,
-                        entity,
-                        ui,
-                        id,
-                        &type_registry,
-                        filter,
-                    );
+                    ui_for_entity_with_getter(world, entity, ui, id, filter, &|world, entity| {
+                        world
+                            .get::<Children>(entity)
+                            .map(|children| children.iter().collect())
+                    });
                 } else {
                     let mut queue = CommandQueue::default();
-                    ui_for_entity_components(
-                        &mut world.into(),
-                        Some(&mut queue),
-                        entity,
-                        ui,
-                        id,
-                        &type_registry,
-                    );
+                    ui_for_entity_components(&mut world.into(), Some(&mut queue), entity, ui, id);
                     queue.apply(world);
                 }
             });
@@ -342,6 +329,9 @@ pub trait EntityFilter {
         entities.retain(|&entity| self.filter_entity(world, entity));
     }
 
+    /// Get children entities for the given entity
+    fn get_children(&self, world: &World, entity: Entity) -> Option<Vec<Entity>>;
+
     /// Returns true if entity matches the filter term
     fn filter_entity(&self, world: &mut World, entity: Entity) -> bool;
 }
@@ -350,6 +340,7 @@ pub trait EntityFilter {
 pub struct Filter<F: QueryFilter = Without<ChildOf>> {
     pub word: String,
     pub is_fuzzy: bool,
+    pub get_children: Option<fn(&World, Entity) -> Option<Vec<Entity>>>,
     pub marker: PhantomData<F>,
 }
 
@@ -358,6 +349,7 @@ impl<F: QueryFilter + Clone> Clone for Filter<F> {
         Self {
             word: self.word.clone(),
             is_fuzzy: self.is_fuzzy,
+            get_children: self.get_children,
             marker: PhantomData,
         }
     }
@@ -385,6 +377,7 @@ impl<F: QueryFilter> Filter<F> {
             Filter {
                 word,
                 is_fuzzy: true,
+                get_children: None,
                 marker: PhantomData,
             }
         })
@@ -425,6 +418,7 @@ impl<F: QueryFilter> Filter<F> {
             Filter {
                 word,
                 is_fuzzy,
+                get_children: None,
                 marker: PhantomData,
             }
         })
@@ -436,6 +430,7 @@ impl<F: QueryFilter> Filter<F> {
         Self {
             word: String::from(""),
             is_fuzzy: false,
+            get_children: None,
             marker: PhantomData,
         }
     }
@@ -449,16 +444,36 @@ impl<F: QueryFilter> EntityFilter for Filter<F> {
     }
 
     fn filter_entity(&self, world: &mut World, entity: Entity) -> bool {
-        self_or_children_satisfy_filter(world, entity, self.word.as_str(), self.is_fuzzy)
+        self_or_children_satisfy_filter(
+            world,
+            entity,
+            self.word.as_str(),
+            self.is_fuzzy,
+            &|world, entity| self.get_children(world, entity),
+        )
+    }
+
+    fn get_children(&self, world: &World, entity: Entity) -> Option<Vec<Entity>> {
+        if let Some(getter) = self.get_children {
+            getter(world, entity)
+        } else {
+            world
+                .get::<Children>(entity)
+                .map(|children| children.iter().collect())
+        }
     }
 }
 
-fn self_or_children_satisfy_filter(
+fn self_or_children_satisfy_filter<G>(
     world: &mut World,
     entity: Entity,
     filter: &str,
     is_fuzzy: bool,
-) -> bool {
+    get_children: &G,
+) -> bool
+where
+    G: Fn(&World, Entity) -> Option<Vec<Entity>>,
+{
     let name = guess_entity_name(world, entity);
 
     let self_matches = if is_fuzzy {
@@ -468,63 +483,51 @@ fn self_or_children_satisfy_filter(
         name.to_lowercase().contains(filter)
     };
     self_matches || {
-        let Ok(children) = world
-            .query::<&Children>()
-            .get(world, entity)
-            .map(|children| children.to_vec())
-        else {
+        let Some(children) = get_children(world, entity) else {
             return false;
         };
 
-        children
-            .iter()
-            .any(|child| self_or_children_satisfy_filter(world, *child, filter, is_fuzzy))
+        children.iter().any(|child| {
+            self_or_children_satisfy_filter(world, *child, filter, is_fuzzy, get_children)
+        })
     }
 }
 
 /// Display the given entity with all its components and children
 pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
-    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
-    let type_registry = type_registry.read();
-
     let entity_name = guess_entity_name(world, entity);
     ui.label(entity_name);
 
     let filter: Filter = Filter::all();
-    ui_for_entity_with_children_inner(
+    ui_for_entity_with_getter(
         world,
         entity,
         ui,
         egui::Id::new(entity),
-        &type_registry,
         &filter,
-    )
+        &|world, entity| {
+            world
+                .get::<Children>(entity)
+                .map(|children| children.iter().collect())
+        },
+    );
 }
 
-fn ui_for_entity_with_children_inner<F>(
+pub fn ui_for_entity_with_getter<F, G>(
     world: &mut World,
     entity: Entity,
     ui: &mut egui::Ui,
     id: egui::Id,
-    type_registry: &TypeRegistry,
     filter: &F,
+    get_children: &G,
 ) where
     F: EntityFilter,
+    G: Fn(&World, Entity) -> Option<Vec<Entity>>,
 {
     let mut queue = CommandQueue::default();
-    ui_for_entity_components(
-        &mut world.into(),
-        Some(&mut queue),
-        entity,
-        ui,
-        id,
-        type_registry,
-    );
+    ui_for_entity_components(&mut world.into(), Some(&mut queue), entity, ui, id);
 
-    let children = world
-        .get::<Children>(entity)
-        .map(|children| children.iter().collect::<Vec<_>>());
-    if let Some(mut children) = children
+    if let Some(mut children) = get_children(&world, entity)
         && !children.is_empty()
     {
         filter.filter_entities(world, &mut children);
@@ -538,7 +541,7 @@ fn ui_for_entity_with_children_inner<F>(
                 .show(ui, |ui| {
                     ui.label(&child_entity_name);
 
-                    ui_for_entity_with_children_inner(world, child, ui, id, type_registry, filter);
+                    ui_for_entity_with_getter(world, child, ui, id, filter, get_children);
                 });
         }
     }
@@ -548,9 +551,6 @@ fn ui_for_entity_with_children_inner<F>(
 
 /// Display the components of the given entity
 pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
-    let type_registry = world.resource::<AppTypeRegistry>().0.clone();
-    let type_registry = type_registry.read();
-
     let entity_name = guess_entity_name(world, entity);
     ui.label(entity_name);
 
@@ -561,7 +561,6 @@ pub fn ui_for_entity(world: &mut World, entity: Entity, ui: &mut egui::Ui) {
         entity,
         ui,
         egui::Id::new(entity),
-        &type_registry,
     );
     queue.apply(world);
 }
@@ -573,8 +572,9 @@ pub(crate) fn ui_for_entity_components(
     entity: Entity,
     ui: &mut egui::Ui,
     id: egui::Id,
-    type_registry: &TypeRegistry,
 ) {
+    let type_registry = world.get_resource_mut::<AppTypeRegistry>().unwrap().clone();
+    let type_registry = type_registry.read();
     let Ok(components) = components_of_entity(world, entity) else {
         errors::nonexistent_entity(ui, entity);
         return;
@@ -615,7 +615,7 @@ pub(crate) fn ui_for_entity_components(
         let value = match component_view.get_entity_component_reflect(
             entity,
             component_type_id,
-            type_registry,
+            &type_registry,
         ) {
             Ok(value) => value,
             Err(e) => {
@@ -640,7 +640,7 @@ pub(crate) fn ui_for_entity_components(
         let _response = header.show(ui, |ui| {
             ui.reset_style();
 
-            let mut env = InspectorUi::for_bevy(type_registry, &mut cx);
+            let mut env = InspectorUi::for_bevy(&type_registry, &mut cx);
             let id = id.with(component_id);
             let options = &();
 
