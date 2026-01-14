@@ -1,6 +1,6 @@
 [package]
 name = "bevy-inspector-egui"
-version = "0.35.0"
+version = "0.36.0"
 edition = "2024"
 repository = "https://github.com/jakobhellermann/bevy-inspector-egui/"
 readme = "README.md"
@@ -38,7 +38,7 @@ features = ["winit/x11"]
 [dependencies]
 winit = { version = "0.30.0", default-features = false }
 
-bevy-inspector-egui-derive = { version = "0.35", path = "../bevy-inspector-egui-derive" }
+bevy-inspector-egui-derive = { version = "0.36", path = "../bevy-inspector-egui-derive" }
 bevy_app = "0.18.0"
 bevy_asset = "0.18.0"
 bevy_color = "0.18.0"
