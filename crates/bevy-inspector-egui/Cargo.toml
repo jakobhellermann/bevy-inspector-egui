@@ -24,7 +24,7 @@ default = [
     "bevy_core_pipeline",
     "egui_clipboard",
 ]
-documentation = ["bevy_reflect/documentation"]
+documentation = ["bevy/reflect_documentation"]
 bevy_render = ["dep:bevy_render", "bevy_egui/render"]
 bevy_gizmos = ["dep:bevy_gizmos"]
 bevy_core_pipeline = ["dep:bevy_core_pipeline"]
@@ -39,27 +39,27 @@ features = ["winit/x11"]
 winit = { version = "0.30.0", default-features = false }
 
 bevy-inspector-egui-derive = { version = "0.35", path = "../bevy-inspector-egui-derive" }
-bevy_app = "0.17.0"
-bevy_asset = "0.17.0"
-bevy_color = "0.17.0"
-bevy_platform = "0.17.0"
-bevy_ecs = "0.17.0"
-bevy_log = "0.17.0"
-bevy_camera = "0.17.0"
-bevy_math = "0.17.0"
-bevy_mesh = "0.17.0"
-bevy_light = "0.17.0"
-bevy_reflect = "0.17.0"
-bevy_state = "0.17.0"
-bevy_time = "0.17.0"
-bevy_utils = "0.17.0"
-bevy_window = "0.17.0"
+bevy_app = "0.18.0"
+bevy_asset = "0.18.0"
+bevy_color = "0.18.0"
+bevy_platform = "0.18.0"
+bevy_ecs = "0.18.0"
+bevy_log = "0.18.0"
+bevy_camera = "0.18.0"
+bevy_math = "0.18.0"
+bevy_mesh = "0.18.0"
+bevy_light = "0.18.0"
+bevy_reflect = "0.18.0"
+bevy_state = "0.18.0"
+bevy_time = "0.18.0"
+bevy_utils = "0.18.0"
+bevy_window = "0.18.0"
 
-bevy_render = { version = "0.17.0", optional = true }
-bevy_core_pipeline = { version = "0.17.0", optional = true }
-bevy_pbr = { version = "0.17.0", optional = true }
-bevy_image = { version = "0.17.0", optional = true }
-bevy_gizmos = { version = "0.17.0", optional = true }
+bevy_render = { version = "0.18.0", optional = true }
+bevy_core_pipeline = { version = "0.18.0", optional = true }
+bevy_pbr = { version = "0.18.0", optional = true }
+bevy_image = { version = "0.18.0", optional = true }
+bevy_gizmos = { version = "0.18.0", optional = true }
 
 egui.workspace = true
 bevy_egui.workspace = true
@@ -74,7 +74,7 @@ uuid = "1.11.0"
 opener = "0.8.3"
 
 [dev-dependencies]
-bevy = { version = "0.17.0", default-features = false, features = [
+bevy = { version = "0.18.0", default-features = false, features = [
     "std",
     "x11",
     "wayland",
@@ -89,14 +89,14 @@ bevy = { version = "0.17.0", default-features = false, features = [
     "bevy_core_pipeline",
     "bevy_picking",
     "bevy_gizmos",
-    "bevy_mesh_picking_backend",
-    "animation",
+    "mesh_picking",
+    "gltf_animation",
     "png",
     "zstd_rust",
     "tonemapping_luts",
     "ktx2",
 ] }
-bevy_math = { version = "0.17.0", features = ["mint"] }
+bevy_math = { version = "0.18.0", features = ["mint"] }
 egui_dock = { git = "https://github.com/Avarel/egui_dock", branch = "egui_0.33" }
 transform-gizmo-bevy = { git = "https://github.com/pindash-io/transform-gizmo", branch = "bevy-0.17" }
 # bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
