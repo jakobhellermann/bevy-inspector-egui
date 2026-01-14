@@ -125,7 +125,7 @@
 //!
 //! **Q: How do I change the names of the entities in the world inspector?**
 //!
-//! **A:** You can insert the [`Name`](bevy_core::Name) component.
+//! **A:** You can insert the [`Name`](bevy_ecs::name::Name) component.
 //!
 //! **Q: What if I just want to display a single value without passing in the whole `&mut World`?**
 //!

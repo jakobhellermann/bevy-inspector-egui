@@ -205,7 +205,7 @@ fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
 }
 
 /// Plugin displaying an egui window for an app state.
-/// Remember to call [`App::add_state`](bevy_app::App::init_state).
+/// Remember to call [`App::add_state`](bevy_state::app::AppExtStates::init_state).
 ///
 /// You can use [`StateInspectorPlugin::run_if`] to control when the window is shown, for example
 /// in combination with `input_toggle_active`.
