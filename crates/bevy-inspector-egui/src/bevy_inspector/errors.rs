@@ -7,22 +7,24 @@ use egui::FontId;
 
 use crate::{egui_utils::layout_job, restricted_world_view::Error};
 
-pub fn show_error(error: Error, ui: &mut egui::Ui, name_of_type: &str) {
+/// Lacking access on restricted world view
+pub fn no_access(error: Error, ui: &mut egui::Ui, name_of_type: &str) {
     match error {
         Error::NoAccessToResource(_) => no_access_resource(ui, name_of_type),
         Error::NoAccessToComponent((entity, _)) => no_access_component(ui, entity, name_of_type),
         Error::ComponentDoesNotExist((entity, _)) => {
-            component_does_not_exist(ui, entity, name_of_type)
+            nonexistent_component(ui, entity, name_of_type)
         }
-        Error::ResourceDoesNotExist(_) => resource_does_not_exist(ui, name_of_type),
-        Error::NoComponentId(_) => no_component_id(ui, name_of_type),
+        Error::ResourceDoesNotExist(_) => nonexistent_resource(ui, name_of_type),
+        Error::NoComponentId(_) => missing_componentid(ui, name_of_type),
         Error::NoTypeRegistration(_) => {
             crate::reflect_inspector::errors::not_in_type_registry(ui, name_of_type)
         }
-        Error::NoTypeData(_, data) => no_type_data(ui, name_of_type, data),
+        Error::NoTypeData(_, data) => missing_typedata(ui, name_of_type, data),
     }
 }
 
+/// The inspector has no access to the given resource
 pub fn no_access_resource(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
         (FontId::proportional(13.0), "No access to resource "),
@@ -32,6 +34,8 @@ pub fn no_access_resource(ui: &mut egui::Ui, type_name: &str) {
 
     ui.label(job);
 }
+
+/// The inspector has no access to the given component
 pub fn no_access_component(ui: &mut egui::Ui, entity: Entity, type_name: &str) {
     let job = layout_job(&[
         (FontId::proportional(13.0), "No access to component "),
@@ -44,7 +48,8 @@ pub fn no_access_component(ui: &mut egui::Ui, entity: Entity, type_name: &str) {
     ui.label(job);
 }
 
-pub fn resource_does_not_exist(ui: &mut egui::Ui, name: &str) {
+/// A resource necessary for the UI does not exist
+pub fn nonexistent_resource(ui: &mut egui::Ui, name: &str) {
     let job = layout_job(&[
         (FontId::proportional(13.0), "Resource "),
         (FontId::monospace(12.0), name),
@@ -54,7 +59,19 @@ pub fn resource_does_not_exist(ui: &mut egui::Ui, name: &str) {
     ui.label(job);
 }
 
-pub fn component_does_not_exist(ui: &mut egui::Ui, entity: Entity, name: &str) {
+/// An entity does not exist
+pub fn nonexistent_entity(ui: &mut egui::Ui, entity: Entity) {
+    let job = layout_job(&[
+        (FontId::proportional(13.0), "Entity "),
+        (FontId::monospace(12.0), &format!("{entity:?}")),
+        (FontId::proportional(13.0), " does not exist."),
+    ]);
+
+    ui.label(job);
+}
+
+/// A component necessary for the UI does not exist
+pub fn nonexistent_component(ui: &mut egui::Ui, entity: Entity, name: &str) {
     let job = layout_job(&[
         (FontId::proportional(13.0), "Component "),
         (FontId::monospace(12.0), name),
@@ -66,7 +83,8 @@ pub fn component_does_not_exist(ui: &mut egui::Ui, entity: Entity, name: &str) {
     ui.label(job);
 }
 
-pub fn no_component_id(ui: &mut egui::Ui, type_name: &str) {
+/// The type has no associated component id
+pub fn missing_componentid(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
         (FontId::monospace(12.0), type_name),
         (FontId::proportional(13.0), " has no associated "),
@@ -77,7 +95,21 @@ pub fn no_component_id(ui: &mut egui::Ui, type_name: &str) {
     ui.label(job);
 }
 
-pub fn no_type_data(ui: &mut egui::Ui, type_name: &str, type_data: &str) {
+/// The component is not backed by a rust type
+pub fn missing_type_id(ui: &mut egui::Ui, component_name: &str) {
+    let job = layout_job(&[
+        (FontId::monospace(12.0), component_name),
+        (
+            FontId::proportional(13.0),
+            " is not backed by a rust type, so it cannot be displayed.",
+        ),
+    ]);
+
+    ui.label(job);
+}
+
+/// The type has no required type data for displaying the UI
+pub fn missing_typedata(ui: &mut egui::Ui, type_name: &str, type_data: &str) {
     let job = layout_job(&[
         (FontId::monospace(12.0), type_name),
         (FontId::proportional(13.0), " has no "),
@@ -91,16 +123,7 @@ pub fn no_type_data(ui: &mut egui::Ui, type_name: &str, type_data: &str) {
     ui.label(job);
 }
 
-pub fn entity_does_not_exist(ui: &mut egui::Ui, entity: Entity) {
-    let job = layout_job(&[
-        (FontId::proportional(13.0), "Entity "),
-        (FontId::monospace(12.0), &format!("{entity:?}")),
-        (FontId::proportional(13.0), " does not exist."),
-    ]);
-
-    ui.label(job);
-}
-
+/// The UI requires access to the bevy world, but it is not present in the inspector context
 pub fn no_world_in_context(ui: &mut egui::Ui, type_name: &str) {
     let job = layout_job(&[
         (FontId::monospace(12.0), type_name),
@@ -115,7 +138,8 @@ pub fn no_world_in_context(ui: &mut egui::Ui, type_name: &str) {
     ui.label(job);
 }
 
-pub fn dead_asset_handle(ui: &mut egui::Ui, handle: UntypedAssetId) {
+/// The handle does not exist.
+pub fn nonexistent_asset_handle(ui: &mut egui::Ui, handle: UntypedAssetId) {
     let job = layout_job(&[
         (FontId::proportional(13.0), "Handle "),
         (FontId::monospace(12.0), &format!("{handle:?}")),
@@ -125,7 +149,8 @@ pub fn dead_asset_handle(ui: &mut egui::Ui, handle: UntypedAssetId) {
     ui.label(job);
 }
 
-pub fn state_does_not_exist(ui: &mut egui::Ui, name: &str) {
+/// The state does not exist
+pub fn nonexistent_state(ui: &mut egui::Ui, name: &str) {
     let job = layout_job(&[
         (FontId::proportional(13.0), "State "),
         (FontId::monospace(12.0), name),
@@ -143,19 +168,8 @@ pub fn state_does_not_exist(ui: &mut egui::Ui, name: &str) {
     ui.label(job);
 }
 
-pub fn no_type_id(ui: &mut egui::Ui, component_name: &str) {
-    let job = layout_job(&[
-        (FontId::monospace(12.0), component_name),
-        (
-            FontId::proportional(13.0),
-            " is not backed by a rust type, so it cannot be displayed.",
-        ),
-    ]);
-
-    ui.label(job);
-}
-
-pub fn name_of_type(type_id: TypeId, type_registry: &TypeRegistry) -> Cow<'_, str> {
+/// Yields a human-readable version of the type id if possible
+pub fn typeid_name(type_id: TypeId, type_registry: &TypeRegistry) -> Cow<'_, str> {
     type_registry
         .get(type_id)
         .map(|registration| Cow::Borrowed(registration.type_info().type_path_table().short_path()))

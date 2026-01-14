@@ -11,7 +11,7 @@ use ::{
 };
 
 #[cfg(feature = "bevy_render")]
-use crate::bevy_inspector::errors::{dead_asset_handle, show_error};
+use crate::bevy_inspector::errors::{no_access, nonexistent_asset_handle};
 use crate::{
     bevy_inspector::errors::no_world_in_context,
     egui_utils,
@@ -111,12 +111,12 @@ impl InspectorPrimitive for Handle<Mesh> {
         let mut meshes = match world.get_resource_mut::<Assets<Mesh>>() {
             Ok(meshes) => meshes,
             Err(error) => {
-                show_error(error, ui, "Assets<Mesh>");
+                no_access(error, ui, "Assets<Mesh>");
                 return false;
             }
         };
         let Some(mesh) = meshes.get_mut(handle) else {
-            dead_asset_handle(ui, handle.id().untyped());
+            nonexistent_asset_handle(ui, handle.id().untyped());
             return false;
         };
 
@@ -146,10 +146,10 @@ impl InspectorPrimitive for Handle<Mesh> {
         };
         let meshes = match world.get_resource_mut::<Assets<Mesh>>() {
             Ok(meshes) => meshes,
-            Err(error) => return show_error(error, ui, "Assets<Mesh>"),
+            Err(error) => return no_access(error, ui, "Assets<Mesh>"),
         };
         let Some(mesh) = meshes.get(self) else {
-            return dead_asset_handle(ui, self.id().untyped());
+            return nonexistent_asset_handle(ui, self.id().untyped());
         };
 
         mesh_ui_inner(mesh, ui);

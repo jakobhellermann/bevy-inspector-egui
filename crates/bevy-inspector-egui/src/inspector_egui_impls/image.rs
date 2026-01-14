@@ -13,7 +13,7 @@ use bevy_reflect::DynamicTypePath;
 use egui::{Vec2, load::SizedTexture};
 
 use crate::{
-    bevy_inspector::errors::{no_world_in_context, show_error},
+    bevy_inspector::errors::{no_access, no_world_in_context},
     dropdown::DropDownBox,
     reflect_inspector::InspectorUi,
     restricted_world_view::RestrictedWorldView,
@@ -43,10 +43,10 @@ impl InspectorPrimitive for Handle<Image> {
                 (Ok(a), Ok(b)) => (a, b),
                 (a, b) => {
                     if let Err(e) = a {
-                        show_error(e, ui, &pretty_type_name::<bevy_asset::AssetServer>());
+                        no_access(e, ui, &pretty_type_name::<bevy_asset::AssetServer>());
                     }
                     if let Err(e) = b {
-                        show_error(e, ui, &pretty_type_name::<Assets<Image>>());
+                        no_access(e, ui, &pretty_type_name::<Assets<Image>>());
                     }
                     return false;
                 }
@@ -138,10 +138,10 @@ fn update_and_show_image(
             (Ok(a), Ok(b)) => (a, b),
             (a, b) => {
                 if let Err(e) = a {
-                    show_error(e, ui, &pretty_type_name::<bevy_egui::EguiContext>());
+                    no_access(e, ui, &pretty_type_name::<bevy_egui::EguiContext>());
                 }
                 if let Err(e) = b {
-                    show_error(e, ui, &pretty_type_name::<Assets<Image>>());
+                    no_access(e, ui, &pretty_type_name::<Assets<Image>>());
                 }
                 return;
             }

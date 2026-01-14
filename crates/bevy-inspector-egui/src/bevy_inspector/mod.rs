@@ -51,7 +51,8 @@ use bevy_state::state::{FreelyMutableState, NextState, State};
 use fuzzy_matcher::FuzzyMatcher;
 use fuzzy_matcher::skim::SkimMatcherV2;
 
-pub(crate) mod errors;
+/// Helper functions for a consistent set of error messages.
+pub mod errors;
 
 /// UI for displaying the entity hierarchy
 pub mod hierarchy;
@@ -128,7 +129,7 @@ pub fn ui_for_resource<R: Resource + Reflect>(world: &mut World, ui: &mut egui::
     let Some((mut resource, world_view)) =
         RestrictedWorldView::new(world).split_off_resource_typed::<R>()
     else {
-        errors::resource_does_not_exist(ui, &pretty_type_name::<R>());
+        errors::nonexistent_resource(ui, &pretty_type_name::<R>());
         return;
     };
     let mut queue = CommandQueue::default();
@@ -179,7 +180,7 @@ pub fn ui_for_assets<A: Asset + Reflect>(world: &mut World, ui: &mut egui::Ui) {
     let Some((mut assets, world_view)) =
         RestrictedWorldView::new(world).split_off_resource_typed::<Assets<A>>()
     else {
-        errors::resource_does_not_exist(ui, &pretty_type_name::<Assets<A>>());
+        errors::nonexistent_resource(ui, &pretty_type_name::<Assets<A>>());
         return;
     };
 
@@ -214,12 +215,12 @@ pub fn ui_for_state<T: FreelyMutableState + Reflect>(world: &mut World, ui: &mut
     let Some((state, world_view)) =
         RestrictedWorldView::new(world).split_off_resource_typed::<State<T>>()
     else {
-        errors::state_does_not_exist(ui, &pretty_type_name::<T>());
+        errors::nonexistent_state(ui, &pretty_type_name::<T>());
         return;
     };
     let Some((mut next_state, world_view)) = world_view.split_off_resource_typed::<NextState<T>>()
     else {
-        errors::state_does_not_exist(ui, &pretty_type_name::<T>());
+        errors::nonexistent_state(ui, &pretty_type_name::<T>());
         return;
     };
     let mut queue = CommandQueue::default();
@@ -575,7 +576,7 @@ pub(crate) fn ui_for_entity_components(
     type_registry: &TypeRegistry,
 ) {
     let Ok(components) = components_of_entity(world, entity) else {
-        errors::entity_does_not_exist(ui, entity);
+        errors::nonexistent_entity(ui, entity);
         return;
     };
 
@@ -585,7 +586,7 @@ pub(crate) fn ui_for_entity_components(
         let header = egui::CollapsingHeader::new(&name).id_salt(id);
 
         let Some(component_type_id) = component_type_id else {
-            header.show(ui, |ui| errors::no_type_id(ui, &name));
+            header.show(ui, |ui| errors::missing_type_id(ui, &name));
             continue;
         };
 
@@ -620,7 +621,7 @@ pub(crate) fn ui_for_entity_components(
             Err(e) => {
                 ui.indent(id, |ui| {
                     let response = ui.label(egui::RichText::new(&name).underline());
-                    response.on_hover_ui(|ui| errors::show_error(e, ui, &name));
+                    response.on_hover_ui(|ui| errors::no_access(e, ui, &name));
                 });
                 continue;
             }
@@ -757,7 +758,7 @@ pub fn ui_for_entities_shared_components(
     };
 
     let Ok(mut components) = components_of_entity(&mut world.into(), first) else {
-        return errors::entity_does_not_exist(ui, first);
+        return errors::nonexistent_entity(ui, first);
     };
 
     for &entity in entities.iter().skip(1) {
@@ -786,7 +787,7 @@ pub fn ui_for_entities_shared_components(
                     return;
                 }
                 let Some(component_type_id) = component_type_id else {
-                    return errors::no_type_id(ui, &name);
+                    return errors::missing_type_id(ui, &name);
                 };
 
                 let mut values = Vec::with_capacity(entities.len());
@@ -809,7 +810,7 @@ pub fn ui_for_entities_shared_components(
                             values.push(value);
                         }
                         Err(error) => {
-                            errors::show_error(error, ui, &name);
+                            errors::no_access(error, ui, &name);
                             return;
                         }
                     }
@@ -852,7 +853,7 @@ pub mod by_type_id {
     };
 
     use super::{
-        errors::{self, name_of_type},
+        errors::{self, typeid_name},
         handle_name,
     };
 
@@ -880,7 +881,7 @@ pub mod by_type_id {
                 .get_resource_reflect_mut_by_id(resource_type_id, type_registry)
             {
                 Ok(resource) => resource,
-                Err(err) => return errors::show_error(err, ui, name_of_type),
+                Err(err) => return errors::no_access(err, ui, name_of_type),
             };
 
             let changed = env.ui_for_reflect(
@@ -907,22 +908,22 @@ pub mod by_type_id {
         let Some(registration) = type_registry.get(asset_type_id) else {
             return crate::reflect_inspector::errors::not_in_type_registry(
                 ui,
-                &name_of_type(asset_type_id, type_registry),
+                &typeid_name(asset_type_id, type_registry),
             );
         };
         let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
-            return errors::no_type_data(
+            return errors::missing_typedata(
                 ui,
-                &name_of_type(asset_type_id, type_registry),
+                &typeid_name(asset_type_id, type_registry),
                 "ReflectAsset",
             );
         };
         let Some(reflect_handle) =
             type_registry.get_type_data::<ReflectHandle>(reflect_asset.handle_type_id())
         else {
-            return errors::no_type_data(
+            return errors::missing_typedata(
                 ui,
-                &name_of_type(reflect_asset.handle_type_id(), type_registry),
+                &typeid_name(reflect_asset.handle_type_id(), type_registry),
                 "ReflectHandle",
             );
         };
@@ -1000,14 +1001,14 @@ pub mod by_type_id {
         let Some(registration) = type_registry.get(asset_type_id) else {
             crate::reflect_inspector::errors::not_in_type_registry(
                 ui,
-                &name_of_type(asset_type_id, type_registry),
+                &typeid_name(asset_type_id, type_registry),
             );
             return false;
         };
         let Some(reflect_asset) = registration.data::<ReflectAsset>() else {
-            errors::no_type_data(
+            errors::missing_typedata(
                 ui,
-                &name_of_type(asset_type_id, type_registry),
+                &typeid_name(asset_type_id, type_registry),
                 "ReflectAsset",
             );
             return false;
@@ -1015,9 +1016,9 @@ pub mod by_type_id {
         let Some(reflect_handle) =
             type_registry.get_type_data::<ReflectHandle>(reflect_asset.handle_type_id())
         else {
-            errors::no_type_data(
+            errors::missing_typedata(
                 ui,
-                &name_of_type(reflect_asset.handle_type_id(), type_registry),
+                &typeid_name(reflect_asset.handle_type_id(), type_registry),
                 "ReflectHandle",
             );
             return false;
@@ -1096,7 +1097,7 @@ pub mod short_circuit {
 
     use crate::reflect_inspector::{Context, InspectorUi, ProjectorReflect};
 
-    use super::errors::{self, name_of_type};
+    use super::errors::{self, typeid_name};
 
     pub fn short_circuit(
         env: &mut InspectorUi,
@@ -1119,9 +1120,9 @@ pub mod short_circuit {
                 .type_registry
                 .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
             else {
-                errors::no_type_data(
+                errors::missing_typedata(
                     ui,
-                    &name_of_type(reflect_handle.asset_type_id(), env.type_registry),
+                    &typeid_name(reflect_handle.asset_type_id(), env.type_registry),
                     "ReflectAsset",
                 );
                 return Some(false);
@@ -1149,7 +1150,7 @@ pub mod short_circuit {
                 match asset_value {
                     Some(value) => value,
                     None => {
-                        errors::dead_asset_handle(ui, handle_id);
+                        errors::nonexistent_asset_handle(ui, handle_id);
                         return Some(false);
                     }
                 }
@@ -1194,9 +1195,9 @@ pub mod short_circuit {
                 .type_registry
                 .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
             else {
-                errors::no_type_data(
+                errors::missing_typedata(
                     ui,
-                    &name_of_type(reflect_handle.asset_type_id(), env.type_registry),
+                    &typeid_name(reflect_handle.asset_type_id(), env.type_registry),
                     "ReflectAsset",
                 );
                 return Some(false);
@@ -1245,7 +1246,7 @@ pub mod short_circuit {
                     match asset_value {
                         Some(value) => value,
                         None => {
-                            errors::dead_asset_handle(ui, handle_id);
+                            errors::nonexistent_asset_handle(ui, handle_id);
                             return Some(false);
                         }
                     }
@@ -1299,9 +1300,9 @@ pub mod short_circuit {
                 .type_registry
                 .get_type_data::<ReflectAsset>(reflect_handle.asset_type_id())
             else {
-                errors::no_type_data(
+                errors::missing_typedata(
                     ui,
-                    &name_of_type(reflect_handle.asset_type_id(), env.type_registry),
+                    &typeid_name(reflect_handle.asset_type_id(), env.type_registry),
                     "ReflectAsset",
                 );
                 return Some(());
@@ -1329,7 +1330,7 @@ pub mod short_circuit {
                 match asset_value {
                     Some(value) => value,
                     None => {
-                        errors::dead_asset_handle(ui, handle_id);
+                        errors::nonexistent_asset_handle(ui, handle_id);
                         return Some(());
                     }
                 }
