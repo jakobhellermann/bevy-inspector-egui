@@ -17,7 +17,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins(EguiPlugin::default())
         .add_plugins(
-            ResourceInspectorPlugin::<GizmoConfigStore>::default()
+            ResourceInspectorPlugin::<Configuration>::default()
                 .run_if(input_toggle_active(true, KeyCode::Escape)),
         )
         //.init_resource::<Configuration>()
