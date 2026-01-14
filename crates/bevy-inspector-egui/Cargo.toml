@@ -132,6 +132,10 @@ name = "world_inspector"
 path = "examples/quick/world_inspector.rs"
 
 [[example]]
+name = "world_inspector_manual"
+path = "examples/quick/world_inspector_manual.rs"
+
+[[example]]
 name = "world_inspector_assets"
 path = "examples/quick/world_inspector_assets.rs"
 
