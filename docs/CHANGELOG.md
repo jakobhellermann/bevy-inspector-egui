@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.36.0
+- update to `bevy` 0.18, `bevy_egui` 0.39
+- fix bug in editing of hashmaps #294 (@vultix)
+- add ability to show color picker ui for color types like `LinearRgba` instead of just `Color`
+- document and expose the `bevy_inspector::errors` module as utilities for custom inspector UI errors
+- fix the unintended inclusion of all `bevy_egui` features
+
 ## Version 0.35.0
 - update to `egui` 0.33
 
