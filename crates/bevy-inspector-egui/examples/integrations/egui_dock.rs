@@ -58,6 +58,12 @@ fn handle_pick_events(
     mut commands: Commands,
 ) {
     if !ui_state.pointer_in_viewport {
+        gizmo_targets
+            .iter()
+            .for_each(|(entity, _)| {commands.entity(entity).remove::<GizmoTarget>();});
+        for entity in ui_state.selected_entities.iter() {
+            commands.entity(entity).insert_if_new(GizmoTarget::default());
+        }
         return;
     }
     for event in click_events.read() {
@@ -451,6 +457,7 @@ fn setup(
 
     // egui camera
     commands.spawn((
+        Pickable{ should_block_lower: false, is_hoverable: false },
         Camera2d,
         Name::new("Egui Camera"),
         PrimaryEguiContext,
