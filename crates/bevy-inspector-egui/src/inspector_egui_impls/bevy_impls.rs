@@ -5,12 +5,10 @@ use bevy_ecs::world::World;
 use egui::Color32;
 use std::any::Any;
 
+#[cfg(feature = "bevy_mesh")]
+use ::{bevy_asset::Assets, bevy_asset::Handle, bevy_mesh::Mesh};
 #[cfg(feature = "bevy_render")]
 use ::bevy_camera::visibility::RenderLayers;
-#[cfg(feature = "bevy_mesh")]
-use ::{
-    bevy_asset::Assets, bevy_asset::Handle, bevy_mesh::Mesh,
-};
 
 #[cfg(feature = "bevy_mesh")]
 use crate::bevy_inspector::errors::{no_access, nonexistent_asset_handle};
