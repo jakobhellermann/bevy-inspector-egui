@@ -18,18 +18,20 @@ categories = [
 [features]
 default = [
     "documentation",
-    "bevy",
     "egui_clipboard",
+    # Collections
+    "2d",
+    "3d",
 ]
-# Enable inspector UI for all optional bevy types
-bevy = [
+common = [
     "bevy_core_pipeline",
     "bevy_gizmos",
     "bevy_image",
-    "bevy_pbr",
-    "bevy_mesh",
     "bevy_render",
 ]
+2d = ["common"]
+3d = ["bevy_mesh", "bevy_pbr", "common"]
+
 # Enable showing documentation on hover.
 documentation = ["bevy_reflect/reflect_documentation"]
 
