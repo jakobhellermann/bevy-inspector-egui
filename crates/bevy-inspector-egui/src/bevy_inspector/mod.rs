@@ -496,7 +496,7 @@ fn self_or_children_satisfy_filter(
 ) -> bool {
     let name = guess_entity_name(world, entity);
 
-    let is_hidden_observer = 
+    let is_hidden_observer =
         !show_observers && world.query::<&Observer>().get(world, entity).is_ok();
 
     let self_matches = if is_fuzzy {
