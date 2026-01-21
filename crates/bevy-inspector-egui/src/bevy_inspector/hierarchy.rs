@@ -8,11 +8,7 @@ use egui::{CollapsingHeader, RichText};
 /// Display UI of the entity hierarchy.
 ///
 /// Returns `true` if a new entity was selected.
-pub fn hierarchy_ui(
-    world: &mut World,
-    ui: &mut egui::Ui,
-    selected: &mut SelectedEntities,
-) -> bool {
+pub fn hierarchy_ui(world: &mut World, ui: &mut egui::Ui, selected: &mut SelectedEntities) -> bool {
     Hierarchy {
         world,
         selected,
@@ -47,11 +43,9 @@ where
 pub struct Hierarchy<'a, T = ()> {
     pub world: &'a mut World,
     pub selected: &'a mut SelectedEntities,
-    pub context_menu:
-        Option<&'a mut dyn FnMut(&mut egui::Ui, Entity, &mut World, &mut T)>,
-    pub shortcircuit_entity: Option<
-        &'a mut dyn FnMut(&mut egui::Ui, Entity, &mut World, &mut T) -> bool,
-    >,
+    pub context_menu: Option<&'a mut dyn FnMut(&mut egui::Ui, Entity, &mut World, &mut T)>,
+    pub shortcircuit_entity:
+        Option<&'a mut dyn FnMut(&mut egui::Ui, Entity, &mut World, &mut T) -> bool>,
     pub extra_state: &'a mut T,
 }
 
@@ -67,15 +61,10 @@ impl<T> Hierarchy<'_, T> {
     where
         QF: QueryFilter,
     {
-        let filter: Filter =
-            Filter::from_ui(ui, egui::Id::new("default_hierarchy_filter"));
+        let filter: Filter = Filter::from_ui(ui, egui::Id::new("default_hierarchy_filter"));
         self._show::<QF, _>(ui, filter)
     }
-    pub fn show_with_filter<QF, F>(
-        &mut self,
-        ui: &mut egui::Ui,
-        filter: F,
-    ) -> bool
+    pub fn show_with_filter<QF, F>(&mut self, ui: &mut egui::Ui, filter: F) -> bool
     where
         QF: QueryFilter,
         F: EntityFilter,
@@ -108,8 +97,7 @@ impl<T> Hierarchy<'_, T> {
 
         let mut selected = false;
         for &entity in &entities {
-            selected |=
-                self.entity_ui(ui, entity, &always_open, &entities, &filter);
+            selected |= self.entity_ui(ui, entity, &always_open, &entities, &filter);
         }
         selected
     }
@@ -128,8 +116,7 @@ impl<T> Hierarchy<'_, T> {
         let mut new_selection = false;
         let selected = self.selected.contains(entity);
 
-        let entity_name =
-            guess_entity_name::guess_entity_name(self.world, entity);
+        let entity_name = guess_entity_name::guess_entity_name(self.world, entity);
         let mut name = RichText::new(entity_name);
         if selected {
             name = name.strong();
@@ -169,13 +156,7 @@ impl<T> Hierarchy<'_, T> {
                     let mut children = children.to_vec();
                     filter.filter_entities(self.world, &mut children);
                     for &child in &children {
-                        new_selection |= self.entity_ui(
-                            ui,
-                            child,
-                            always_open,
-                            &children,
-                            filter,
-                        );
+                        new_selection |= self.entity_ui(ui, child, always_open, &children, filter);
                     }
                 } else {
                     ui.label("No children");
@@ -186,15 +167,12 @@ impl<T> Hierarchy<'_, T> {
         if header_response.clicked() {
             let extend_with = |from, to| {
                 // PERF: this could be done in one scan
-                let from_position =
-                    at_same_level.iter().position(|&entity| entity == from);
-                let to_position =
-                    at_same_level.iter().position(|&entity| entity == to);
+                let from_position = at_same_level.iter().position(|&entity| entity == from);
+                let to_position = at_same_level.iter().position(|&entity| entity == to);
                 from_position
                     .zip(to_position)
                     .map(|(from, to)| {
-                        let (min, max) =
-                            if from < to { (from, to) } else { (to, from) };
+                        let (min, max) = if from < to { (from, to) } else { (to, from) };
                         at_same_level[min..=max].iter().copied()
                     })
                     .into_iter()
@@ -206,20 +184,15 @@ impl<T> Hierarchy<'_, T> {
         }
 
         if let Some(context_menu) = self.context_menu.as_mut() {
-            header_response.context_menu(|ui| {
-                context_menu(ui, entity, self.world, self.extra_state)
-            });
+            header_response
+                .context_menu(|ui| context_menu(ui, entity, self.world, self.extra_state));
         }
 
         new_selection
     }
 }
 
-fn paint_default_icon(
-    ui: &mut egui::Ui,
-    openness: f32,
-    response: &egui::Response,
-) {
+fn paint_default_icon(ui: &mut egui::Ui, openness: f32, response: &egui::Response) {
     let visuals = ui.style().interact(response);
     let stroke = visuals.fg_stroke;
 
@@ -231,14 +204,10 @@ fn paint_default_icon(
         egui::vec2(rect.width(), rect.height()) * 0.75,
     );
     let rect = rect.expand(visuals.expansion);
-    let mut points =
-        vec![rect.left_top(), rect.right_top(), rect.center_bottom()];
+    let mut points = vec![rect.left_top(), rect.right_top(), rect.center_bottom()];
     use std::f32::consts::TAU;
-    let rotation = egui::emath::Rot2::from_angle(egui::remap(
-        openness,
-        0.0..=1.0,
-        -TAU / 4.0..=0.0,
-    ));
+    let rotation =
+        egui::emath::Rot2::from_angle(egui::remap(openness, 0.0..=1.0, -TAU / 4.0..=0.0));
     for p in &mut points {
         *p = rect.center() + rotation * (*p - rect.center());
     }
@@ -297,20 +266,18 @@ impl SelectedEntities {
         match (self.len(), mode) {
             (0, _) => {
                 self.insert(entity);
-            },
+            }
             (_, SelectionMode::Replace) => {
                 self.insert_replace(entity);
-            },
+            }
             (_, SelectionMode::Add) => {
                 self.toggle(entity);
-            },
+            }
             (_, SelectionMode::Extend) => {
                 match self.last_action {
                     None => self.insert(entity),
                     Some((last_mode, last_entity)) => {
-                        if let SelectionMode::Add | SelectionMode::Replace =
-                            last_mode
-                        {
+                        if let SelectionMode::Add | SelectionMode::Replace = last_mode {
                             self.clear()
                         }
                         for entity in extend_with(entity, last_entity) {
@@ -319,9 +286,9 @@ impl SelectedEntities {
 
                         // extending doesn't update last action
                         return;
-                    },
+                    }
                 };
-            },
+            }
         }
         self.last_action = Some((mode, entity));
     }

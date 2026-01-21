@@ -21,12 +21,8 @@ pub struct DropDownBox<
     desired_width: Option<f32>,
 }
 
-impl<
-    'a,
-    F: FnMut(&mut Ui, &str) -> Response,
-    V: AsRef<str>,
-    I: Iterator<Item = V>,
-> DropDownBox<'a, F, V, I>
+impl<'a, F: FnMut(&mut Ui, &str) -> Response, V: AsRef<str>, I: Iterator<Item = V>>
+    DropDownBox<'a, F, V, I>
 {
     /// Creates new dropdown box.
     pub fn from_iter(
@@ -72,12 +68,8 @@ impl<
     }
 }
 
-impl<
-    'a,
-    F: FnMut(&mut Ui, &str) -> Response,
-    V: AsRef<str>,
-    I: Iterator<Item = V>,
-> Widget for DropDownBox<'a, F, V, I>
+impl<'a, F: FnMut(&mut Ui, &str) -> Response, V: AsRef<str>, I: Iterator<Item = V>> Widget
+    for DropDownBox<'a, F, V, I>
 {
     fn ui(self, ui: &mut Ui) -> Response {
         let Self {
@@ -99,9 +91,13 @@ impl<
         let mut r = edit_output.response;
         if r.gained_focus() {
             if select_on_focus {
-                edit_output.state.cursor.set_char_range(Some(
-                    CCursorRange::two(CCursor::new(0), CCursor::new(buf.len())),
-                ));
+                edit_output
+                    .state
+                    .cursor
+                    .set_char_range(Some(CCursorRange::two(
+                        CCursor::new(0),
+                        CCursor::new(buf.len()),
+                    )));
                 edit_output.state.store(ui.ctx(), r.id);
             }
             Popup::open_id(ui.ctx(), popup_id);
@@ -120,9 +116,7 @@ impl<
                         let text = var.as_ref();
                         if filter_by_input
                             && !buf.is_empty()
-                            && !text
-                                .to_lowercase()
-                                .contains(&buf.to_lowercase())
+                            && !text.to_lowercase().contains(&buf.to_lowercase())
                         {
                             continue;
                         }
@@ -137,10 +131,7 @@ impl<
                         if buf.is_empty() {
                             ui.label("No items found");
                         } else {
-                            ui.label(format!(
-                                "No items out of {} match the filter",
-                                counter
-                            ));
+                            ui.label(format!("No items out of {} match the filter", counter));
                         }
                     }
                 });

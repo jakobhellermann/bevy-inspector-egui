@@ -14,10 +14,7 @@ pub fn pretty_type_name_str(val: &str) -> String {
 
 pub mod guess_entity_name {
     use bevy_ecs::prelude::Name;
-    use bevy_ecs::{
-        archetype::Archetype, prelude::*,
-        world::unsafe_world_cell::UnsafeWorldCell,
-    };
+    use bevy_ecs::{archetype::Archetype, prelude::*, world::unsafe_world_cell::UnsafeWorldCell};
 
     use crate::restricted_world_view::RestrictedWorldView;
 
@@ -34,7 +31,7 @@ pub mod guess_entity_name {
                     entity,
                     entity_ref.archetype(),
                 )
-            },
+            }
             Err(_) => format!("Entity {} (inexistent)", entity.index()),
         }
     }
@@ -45,17 +42,14 @@ pub mod guess_entity_name {
     ) -> String {
         match world.world().get_entity(entity) {
             Ok(cell) => {
-                if world.allows_access_to_component((
-                    entity,
-                    std::any::TypeId::of::<Name>(),
-                )) {
+                if world.allows_access_to_component((entity, std::any::TypeId::of::<Name>())) {
                     // SAFETY: we have access and don't keep reference
                     if let Some(name) = unsafe { cell.get::<Name>() } {
                         return format!("{} ({})", name.as_str(), entity);
                     }
                 }
                 guess_entity_name_inner(world.world(), entity, cell.archetype())
-            },
+            }
             Err(_) => format!("Entity {} (inexistent)", entity.index()),
         }
     }
@@ -87,11 +81,9 @@ pub mod guess_entity_name {
         });
 
         for component_type in type_names {
-            if let Some(name) =
-                associations.iter().find_map(|&(name, matches)| {
-                    (component_type.to_string() == name).then_some(matches)
-                })
-            {
+            if let Some(name) = associations.iter().find_map(|&(name, matches)| {
+                (component_type.to_string() == name).then_some(matches)
+            }) {
                 return format!("{name} ({entity})");
             }
         }

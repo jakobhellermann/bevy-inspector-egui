@@ -15,11 +15,7 @@ pub fn layout_job(text: &[(FontId, &str)]) -> egui::epaint::text::LayoutJob {
     job
 }
 
-pub fn label_button(
-    ui: &mut egui::Ui,
-    text: &str,
-    text_color: egui::Color32,
-) -> bool {
+pub fn label_button(ui: &mut egui::Ui, text: &str, text_color: egui::Color32) -> bool {
     ui.add(egui::Button::new(
         egui::RichText::new(text).color(text_color),
     ))
@@ -35,8 +31,7 @@ struct IconButton {
 impl IconButton {
     fn new(ui: &mut egui::Ui) -> Self {
         let button_size = egui::Vec2::splat(ui.spacing().icon_width);
-        let (response, painter) =
-            ui.allocate_painter(button_size, egui::Sense::click());
+        let (response, painter) = ui.allocate_painter(button_size, egui::Sense::click());
         let visuals = if ui.is_enabled() {
             ui.style().interact(&response)
         } else {
@@ -136,17 +131,13 @@ pub mod easymark {
             easy_mark_it(ui, easy_mark::Parser::new(easy_mark));
         }
 
-        pub fn easy_mark_it<'em>(
-            ui: &mut Ui,
-            items: impl Iterator<Item = easy_mark::Item<'em>>,
-        ) {
+        pub fn easy_mark_it<'em>(ui: &mut Ui, items: impl Iterator<Item = easy_mark::Item<'em>>) {
             let initial_size = vec2(
                 ui.available_width(),
                 ui.spacing().interact_size.y, // Assume there will be
             );
 
-            let layout =
-                Layout::left_to_right(Align::BOTTOM).with_main_wrap(true);
+            let layout = Layout::left_to_right(Align::BOTTOM).with_main_wrap(true);
 
             ui.allocate_ui_with_layout(initial_size, layout, |ui| {
                 ui.spacing_mut().item_spacing.x = 0.0;
@@ -166,70 +157,47 @@ pub mod easymark {
             match item {
                 easy_mark::Item::Newline => {
                     // ui.label("\n"); // too much spacing (paragraph spacing)
-                    ui.allocate_exact_size(
-                        vec2(0.0, row_height),
-                        Sense::hover(),
-                    ); // make sure we take up some height
+                    ui.allocate_exact_size(vec2(0.0, row_height), Sense::hover()); // make sure we take up some height
                     ui.end_row();
                     ui.set_row_height(row_height);
-                },
+                }
 
                 easy_mark::Item::Text(style, text) => {
                     ui.label(rich_text_from_style(text, &style));
-                },
+                }
                 easy_mark::Item::Hyperlink(style, text, url) => {
-                    let text =
-                        text.trim_start_matches('`').trim_end_matches('`');
+                    let text = text.trim_start_matches('`').trim_end_matches('`');
                     let label = rich_text_from_style(text, &style);
-                    ui.add(Hyperlink::from_label_and_url(
-                        label,
-                        url.unwrap_or(""),
-                    ));
-                },
+                    ui.add(Hyperlink::from_label_and_url(label, url.unwrap_or("")));
+                }
 
                 easy_mark::Item::Separator => {
                     ui.add(Separator::default().horizontal());
-                },
+                }
                 easy_mark::Item::Indentation(indent) => {
                     let indent = indent as f32 * one_indent;
-                    ui.allocate_exact_size(
-                        vec2(indent, row_height),
-                        Sense::hover(),
-                    );
-                },
+                    ui.allocate_exact_size(vec2(indent, row_height), Sense::hover());
+                }
                 easy_mark::Item::QuoteIndent => {
                     let rect = ui
-                        .allocate_exact_size(
-                            vec2(2.0 * one_indent, row_height),
-                            Sense::hover(),
-                        )
+                        .allocate_exact_size(vec2(2.0 * one_indent, row_height), Sense::hover())
                         .0;
-                    let rect =
-                        rect.expand2(ui.style().spacing.item_spacing * 0.5);
+                    let rect = rect.expand2(ui.style().spacing.item_spacing * 0.5);
                     ui.painter().line_segment(
                         [rect.center_top(), rect.center_bottom()],
                         (1.0, ui.visuals().weak_text_color()),
                     );
-                },
+                }
                 easy_mark::Item::BulletPoint => {
-                    ui.allocate_exact_size(
-                        vec2(one_indent, row_height),
-                        Sense::hover(),
-                    );
+                    ui.allocate_exact_size(vec2(one_indent, row_height), Sense::hover());
                     bullet_point(ui, one_indent);
-                    ui.allocate_exact_size(
-                        vec2(one_indent, row_height),
-                        Sense::hover(),
-                    );
-                },
+                    ui.allocate_exact_size(vec2(one_indent, row_height), Sense::hover());
+                }
                 easy_mark::Item::NumberedPoint(number) => {
                     let width = 3.0 * one_indent;
                     numbered_point(ui, width, number);
-                    ui.allocate_exact_size(
-                        vec2(one_indent, row_height),
-                        Sense::hover(),
-                    );
-                },
+                    ui.allocate_exact_size(vec2(one_indent, row_height), Sense::hover());
+                }
                 easy_mark::Item::CodeBlock(_language, code) => {
                     let where_to_put_background = ui.painter().add(Shape::Noop);
                     let mut rect = ui.monospace(code).rect;
@@ -240,14 +208,11 @@ pub mod easymark {
                         where_to_put_background,
                         Shape::rect_filled(rect, 1.0, code_bg_color),
                     );
-                },
+                }
             };
         }
 
-        fn rich_text_from_style(
-            text: &str,
-            style: &easy_mark::Style,
-        ) -> RichText {
+        fn rich_text_from_style(text: &str, style: &easy_mark::Style) -> RichText {
             let easy_mark::Style {
                 heading,
                 quoted,
@@ -294,8 +259,7 @@ pub mod easymark {
 
         fn bullet_point(ui: &mut Ui, width: f32) -> Response {
             let row_height = ui.text_style_height(&TextStyle::Body);
-            let (rect, response) =
-                ui.allocate_exact_size(vec2(width, row_height), Sense::hover());
+            let (rect, response) = ui.allocate_exact_size(vec2(width, row_height), Sense::hover());
             ui.painter().circle_filled(
                 rect.center(),
                 rect.height() / 8.0,
@@ -307,8 +271,7 @@ pub mod easymark {
         fn numbered_point(ui: &mut Ui, width: f32, number: &str) -> Response {
             let font_id = TextStyle::Body.resolve(ui.style());
             let row_height = ui.fonts_mut(|fonts| fonts.row_height(&font_id));
-            let (rect, response) =
-                ui.allocate_exact_size(vec2(width, row_height), Sense::hover());
+            let (rect, response) = ui.allocate_exact_size(vec2(width, row_height), Sense::hover());
             let text = format!("{number}.");
             let text_color = ui.visuals().strong_text_color();
             ui.painter().text(
@@ -417,11 +380,8 @@ pub mod easymark {
 
             /// `1. `, `42. ` etc.
             fn numbered_list(&mut self) -> Option<Item<'a>> {
-                let n_digits =
-                    self.s.chars().take_while(|c| c.is_ascii_digit()).count();
-                if n_digits > 0
-                    && self.s.chars().skip(n_digits).take(2).eq(". ".chars())
-                {
+                let n_digits = self.s.chars().take_while(|c| c.is_ascii_digit()).count();
+                if n_digits > 0 && self.s.chars().skip(n_digits).take(2).eq(". ".chars()) {
                     let number = &self.s[..n_digits];
                     self.s = &self.s[(n_digits + 2)..];
                     self.start_of_line = false;
@@ -456,8 +416,7 @@ pub mod easymark {
                     self.s = rest;
                     self.start_of_line = false;
                     self.style.code = true;
-                    let rest_of_line =
-                        &self.s[..self.s.find('\n').unwrap_or(self.s.len())];
+                    let rest_of_line = &self.s[..self.s.find('\n').unwrap_or(self.s.len())];
                     if let Some(end) = rest_of_line.find('`') {
                         let item = Item::Text(self.style, &self.s[..end]);
                         self.s = &self.s[end + 1..];
@@ -477,41 +436,29 @@ pub mod easymark {
             /// `<url>` or `[link](url)`
             fn url(&mut self) -> Option<Item<'a>> {
                 if self.s.starts_with('<') {
-                    let this_line =
-                        &self.s[..self.s.find('\n').unwrap_or(self.s.len())];
+                    let this_line = &self.s[..self.s.find('\n').unwrap_or(self.s.len())];
                     if let Some(url_end) = this_line.find('>') {
                         let url = &self.s[1..url_end];
                         self.s = &self.s[url_end + 1..];
                         self.start_of_line = false;
-                        return Some(Item::Hyperlink(
-                            self.style,
-                            url,
-                            Some(url),
-                        ));
+                        return Some(Item::Hyperlink(self.style, url, Some(url)));
                     }
                 }
 
                 // [text](url)
                 if self.s.starts_with('[') {
-                    let newline_index =
-                        self.s.find('\n').unwrap_or(self.s.len());
+                    let newline_index = self.s.find('\n').unwrap_or(self.s.len());
                     let this_line = &self.s[..newline_index];
                     if let Some(bracket_end) = this_line.find(']') {
                         let text = &this_line[1..bracket_end];
                         let remaining = &this_line[bracket_end + 1..];
                         if remaining.starts_with('(') {
-                            if let Some(parens_end) =
-                                this_line[bracket_end + 2..].find(')')
-                            {
+                            if let Some(parens_end) = this_line[bracket_end + 2..].find(')') {
                                 let parens_end = bracket_end + 2 + parens_end;
                                 let url = &self.s[bracket_end + 2..parens_end];
                                 self.s = &self.s[parens_end + 1..];
                                 self.start_of_line = false;
-                                return Some(Item::Hyperlink(
-                                    self.style,
-                                    text,
-                                    Some(url),
-                                ));
+                                return Some(Item::Hyperlink(self.style, text, Some(url)));
                             }
                         // } else if remaining.starts_with(':') {
                         //     self.s = self.s.get(newline_index + 1..).unwrap_or_default();
@@ -520,9 +467,7 @@ pub mod easymark {
                         } else {
                             self.s = &self.s[bracket_end + 1..];
                             self.start_of_line = false;
-                            return Some(Item::Hyperlink(
-                                self.style, text, None,
-                            ));
+                            return Some(Item::Hyperlink(self.style, text, None));
                         }
                     }
                 }
@@ -565,10 +510,7 @@ pub mod easymark {
                     if self.start_of_line {
                         // leading space (indentation)
                         if self.s.starts_with(' ') {
-                            let length = self
-                                .s
-                                .find(|c| c != ' ')
-                                .unwrap_or(self.s.len());
+                            let length = self.s.find(|c| c != ' ').unwrap_or(self.s.len());
                             self.s = &self.s[length..];
                             self.start_of_line = true; // indentation doesn't count
                             return Some(Item::Indentation(length));
@@ -605,8 +547,7 @@ pub mod easymark {
                         // --- separator
                         if let Some(after) = self.s.strip_prefix("---") {
                             self.s = after.trim_start_matches('-'); // remove extra dashes
-                            self.s =
-                                self.s.strip_prefix('\n').unwrap_or(self.s); // remove trailing newline
+                            self.s = self.s.strip_prefix('\n').unwrap_or(self.s); // remove trailing newline
                             self.start_of_line = false;
                             return Some(Item::Separator);
                         }
@@ -667,12 +608,7 @@ pub mod easymark {
                     // Swallow everything up to the next special character:
                     let end = self
                         .s
-                        .find(
-                            &[
-                                '*', '`', '~', '_', '/', '$', '^', '\\', '<',
-                                '[', '\n',
-                            ][..],
-                        )
+                        .find(&['*', '`', '~', '_', '/', '$', '^', '\\', '<', '[', '\n'][..])
                         .map_or_else(|| self.s.len(), |special| special.max(1));
 
                     let item = Item::Text(self.style, &self.s[..end]);

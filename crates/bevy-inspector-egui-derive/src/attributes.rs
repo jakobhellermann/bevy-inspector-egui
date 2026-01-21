@@ -62,9 +62,7 @@ pub fn extract_inspector_attributes(
 ) -> syn::Result<Vec<InspectorAttribute>> {
     Ok(attrs
         .iter()
-        .filter(|attr| {
-            attr.path().get_ident().is_some_and(|p| p == "inspector")
-        })
+        .filter(|attr| attr.path().get_ident().is_some_and(|p| p == "inspector"))
         .map(|attr| attr.parse_args_with(parse_inspectable_attributes))
         .collect::<syn::Result<Vec<_>>>()?
         .into_iter()

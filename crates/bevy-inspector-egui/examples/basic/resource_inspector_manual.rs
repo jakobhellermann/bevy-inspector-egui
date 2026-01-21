@@ -1,9 +1,7 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::{
     DefaultInspectorConfigPlugin,
-    bevy_egui::{
-        EguiContext, EguiPlugin, EguiPrimaryContextPass, PrimaryEguiContext,
-    },
+    bevy_egui::{EguiContext, EguiPlugin, EguiPrimaryContextPass, PrimaryEguiContext},
     prelude::*,
 };
 

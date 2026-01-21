@@ -7,8 +7,7 @@ use std::any::Any;
 
 #[cfg(feature = "bevy_render")]
 use ::{
-    bevy_asset::Assets, bevy_asset::Handle,
-    bevy_camera::visibility::RenderLayers, bevy_mesh::Mesh,
+    bevy_asset::Assets, bevy_asset::Handle, bevy_camera::visibility::RenderLayers, bevy_mesh::Mesh,
 };
 
 #[cfg(feature = "bevy_render")]
@@ -23,23 +22,11 @@ use crate::{
 use super::InspectorPrimitive;
 
 impl InspectorPrimitive for uuid::Uuid {
-    fn ui(
-        &mut self,
-        ui: &mut egui::Ui,
-        _: &dyn Any,
-        _: egui::Id,
-        _: InspectorUi<'_, '_>,
-    ) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
         ui.label(self.to_string());
         false
     }
-    fn ui_readonly(
-        &self,
-        ui: &mut egui::Ui,
-        _: &dyn Any,
-        _: egui::Id,
-        _: InspectorUi<'_, '_>,
-    ) {
+    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
         ui.label(self.to_string());
     }
 }
@@ -62,7 +49,7 @@ impl InspectorPrimitive for Entity {
         match options.display {
             EntityDisplay::Id => {
                 ui.label(format!("{entity:?}"));
-            },
+            }
             EntityDisplay::Components => {
                 let Context {
                     world: Some(world),
@@ -75,9 +62,9 @@ impl InspectorPrimitive for Entity {
 
                 let entity_name =
                     crate::utils::guess_entity_name::guess_entity_name_restricted(world, entity);
-                egui::CollapsingHeader::new(entity_name).id_salt(id).show(
-                    ui,
-                    |ui| {
+                egui::CollapsingHeader::new(entity_name)
+                    .id_salt(id)
+                    .show(ui, |ui| {
                         let _queue = CommandQueue::default();
                         crate::bevy_inspector::ui_for_entity_components(
                             world,
@@ -90,30 +77,19 @@ impl InspectorPrimitive for Entity {
                         if options.despawnable
                             && world.contains_entity(entity)
                             && let Some(queue) = queue
-                            && egui_utils::label_button(
-                                ui,
-                                "✖ Despawn",
-                                egui::Color32::RED,
-                            )
+                            && egui_utils::label_button(ui, "✖ Despawn", egui::Color32::RED)
                         {
                             queue.push(move |world: &mut World| {
                                 world.entity_mut(entity).despawn();
                             });
                         }
-                    },
-                );
-            },
+                    });
+            }
         }
         false
     }
 
-    fn ui_readonly(
-        &self,
-        ui: &mut egui::Ui,
-        _: &dyn Any,
-        _: egui::Id,
-        _: InspectorUi<'_, '_>,
-    ) {
+    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
         ui.label(format!("{self:?}"));
     }
 }
@@ -137,7 +113,7 @@ impl InspectorPrimitive for Handle<Mesh> {
             Err(error) => {
                 no_access(error, ui, "Assets<Mesh>");
                 return false;
-            },
+            }
         };
         let Some(mesh) = meshes.get_mut(handle) else {
             nonexistent_asset_handle(ui, handle.id().untyped());
@@ -163,13 +139,7 @@ impl InspectorPrimitive for Handle<Mesh> {
         false
     }
 
-    fn ui_readonly(
-        &self,
-        ui: &mut egui::Ui,
-        _: &dyn Any,
-        _: egui::Id,
-        env: InspectorUi<'_, '_>,
-    ) {
+    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, env: InspectorUi<'_, '_>) {
         let Some(world) = &mut env.context.world else {
             no_world_in_context(ui, "Handle<Mesh>");
             return;
@@ -231,13 +201,7 @@ fn mesh_ui_inner(mesh: &Mesh, ui: &mut egui::Ui) {
 }
 
 impl InspectorPrimitive for Srgba {
-    fn ui(
-        &mut self,
-        ui: &mut egui::Ui,
-        _: &dyn Any,
-        _: egui::Id,
-        _: InspectorUi<'_, '_>,
-    ) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
         let mut color = Color32::from_rgba_unmultiplied(
             (self.red * 255.) as u8,
             (self.green * 255.) as u8,
@@ -267,13 +231,7 @@ impl InspectorPrimitive for Srgba {
     }
 }
 impl InspectorPrimitive for LinearRgba {
-    fn ui(
-        &mut self,
-        ui: &mut egui::Ui,
-        _: &dyn Any,
-        _: egui::Id,
-        _: InspectorUi<'_, '_>,
-    ) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
         let mut color = [self.red, self.green, self.blue, self.alpha];
         if ui
             .color_edit_button_rgba_premultiplied(&mut color)
@@ -300,19 +258,9 @@ impl InspectorPrimitive for LinearRgba {
     }
 }
 impl InspectorPrimitive for Hsla {
-    fn ui(
-        &mut self,
-        ui: &mut egui::Ui,
-        _: &dyn Any,
-        _: egui::Id,
-        _: InspectorUi<'_, '_>,
-    ) -> bool {
-        let mut hsva = egui::ecolor::Hsva::new(
-            self.hue,
-            self.saturation,
-            self.lightness,
-            self.alpha,
-        );
+    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+        let mut hsva =
+            egui::ecolor::Hsva::new(self.hue, self.saturation, self.lightness, self.alpha);
         if ui.color_edit_button_hsva(&mut hsva).changed() {
             self.hue = hsva.h;
             self.saturation = hsva.s;
@@ -335,19 +283,8 @@ impl InspectorPrimitive for Hsla {
     }
 }
 impl InspectorPrimitive for Hsva {
-    fn ui(
-        &mut self,
-        ui: &mut egui::Ui,
-        _: &dyn Any,
-        _: egui::Id,
-        _: InspectorUi<'_, '_>,
-    ) -> bool {
-        let mut hsva = egui::ecolor::Hsva::new(
-            self.hue,
-            self.saturation,
-            self.value,
-            self.alpha,
-        );
+    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+        let mut hsva = egui::ecolor::Hsva::new(self.hue, self.saturation, self.value, self.alpha);
         if ui.color_edit_button_hsva(&mut hsva).changed() {
             self.hue = hsva.h;
             self.saturation = hsva.s;
@@ -393,7 +330,7 @@ impl InspectorPrimitive for Color {
                     "Colorspace of {self:?} is not supported yet. PRs welcome"
                 ));
                 false
-            },
+            }
         }
     }
 
@@ -411,20 +348,13 @@ impl InspectorPrimitive for Color {
 
 #[cfg(feature = "bevy_render")]
 impl InspectorPrimitive for RenderLayers {
-    fn ui(
-        &mut self,
-        ui: &mut egui::Ui,
-        _: &dyn Any,
-        id: egui::Id,
-        _: InspectorUi<'_, '_>,
-    ) -> bool {
+    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, id: egui::Id, _: InspectorUi<'_, '_>) -> bool {
         let mut new_value = None;
         egui::Grid::new(id).num_columns(2).show(ui, |ui| {
             for layer in self.iter() {
                 let mut layer_copy = layer;
                 if ui.add(egui::DragValue::new(&mut layer_copy)).changed() {
-                    new_value =
-                        Some(self.clone().without(layer).with(layer_copy));
+                    new_value = Some(self.clone().without(layer).with(layer_copy));
                 }
 
                 if ui.button("-").clicked() {
@@ -449,13 +379,7 @@ impl InspectorPrimitive for RenderLayers {
         }
     }
 
-    fn ui_readonly(
-        &self,
-        ui: &mut egui::Ui,
-        _: &dyn Any,
-        _: egui::Id,
-        _: InspectorUi<'_, '_>,
-    ) {
+    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
         for layer in self.iter() {
             ui.label(format!("- {layer}"));
         }
@@ -484,12 +408,7 @@ impl InspectorPrimitive for bevy_gizmos::config::GizmoConfigStore {
                 .show(ui, |ui| {
                     env.ui_for_reflect(group, ui);
                     ui.separator();
-                    env.ui_for_reflect_with_options(
-                        value,
-                        ui,
-                        egui::Id::new("data"),
-                        &(),
-                    );
+                    env.ui_for_reflect_with_options(value, ui, egui::Id::new("data"), &());
                 });
         }
 
@@ -515,12 +434,7 @@ impl InspectorPrimitive for bevy_gizmos::config::GizmoConfigStore {
                 .show(ui, |ui| {
                     env.ui_for_reflect_readonly(group, ui);
                     ui.separator();
-                    env.ui_for_reflect_readonly_with_options(
-                        value,
-                        ui,
-                        egui::Id::new("data"),
-                        &(),
-                    );
+                    env.ui_for_reflect_readonly_with_options(value, ui, egui::Id::new("data"), &());
                 });
         }
     }

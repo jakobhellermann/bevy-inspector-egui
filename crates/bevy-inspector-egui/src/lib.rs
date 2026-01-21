@@ -198,13 +198,10 @@ impl bevy_app::Plugin for DefaultInspectorConfigPlugin {
             .register_type::<core::ops::Range<f32>>()
             .register_type::<TypeId>();
 
-        let type_registry =
-            app.world().resource::<bevy_ecs::prelude::AppTypeRegistry>();
+        let type_registry = app.world().resource::<bevy_ecs::prelude::AppTypeRegistry>();
         let mut type_registry = type_registry.write();
 
-        inspector_options::default_options::register_default_options(
-            &mut type_registry,
-        );
+        inspector_options::default_options::register_default_options(&mut type_registry);
         inspector_egui_impls::register_std_impls(&mut type_registry);
         inspector_egui_impls::register_glam_impls(&mut type_registry);
         inspector_egui_impls::register_bevy_impls(&mut type_registry);

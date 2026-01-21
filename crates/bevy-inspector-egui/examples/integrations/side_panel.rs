@@ -22,10 +22,7 @@ fn main() {
         .run();
 }
 
-fn inspector_ui(
-    world: &mut World,
-    mut selected_entities: Local<SelectedEntities>,
-) {
+fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities>) {
     let Ok(mut ctx) = world
         .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single_mut(world)
@@ -76,10 +73,7 @@ fn inspector_ui(
 #[derive(Component)]
 struct Rotator;
 
-fn rotator_system(
-    time: Res<Time>,
-    mut query: Query<&mut Transform, With<Rotator>>,
-) {
+fn rotator_system(time: Res<Time>, mut query: Query<&mut Transform, With<Rotator>>) {
     for mut transform in &mut query {
         transform.rotate_x(3.0 * time.delta_secs());
     }
@@ -113,8 +107,7 @@ fn setup(
             ));
         });
     // light
-    commands
-        .spawn((PointLight::default(), Transform::from_xyz(4.0, 5.0, -4.0)));
+    commands.spawn((PointLight::default(), Transform::from_xyz(4.0, 5.0, -4.0)));
     // camera
     commands.spawn((
         Camera3d::default(),

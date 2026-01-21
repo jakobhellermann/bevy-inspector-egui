@@ -12,9 +12,7 @@ use crate::{bevy_inspector::Filter, utils::pretty_type_name};
 use bevy_app::Plugin;
 use bevy_asset::Asset;
 use bevy_ecs::{prelude::*, query::QueryFilter, schedule::BoxedCondition};
-use bevy_egui::{
-    EguiContext, EguiPlugin, EguiPrimaryContextPass, PrimaryEguiContext,
-};
+use bevy_egui::{EguiContext, EguiPlugin, EguiPrimaryContextPass, PrimaryEguiContext};
 use bevy_reflect::Reflect;
 use bevy_state::state::FreelyMutableState;
 
@@ -68,8 +66,7 @@ impl WorldInspectorPlugin {
     /// Only show the UI of the specified condition is active
     pub fn run_if<M>(mut self, condition: impl SystemCondition<M>) -> Self {
         let condition_system = IntoSystem::into_system(condition);
-        self.condition =
-            Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
+        self.condition = Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
         self
     }
 }
@@ -164,8 +161,7 @@ impl<T> ResourceInspectorPlugin<T> {
     /// Only show the UI of the specified condition is active
     pub fn run_if<M>(mut self, condition: impl SystemCondition<M>) -> Self {
         let condition_system = IntoSystem::into_system(condition);
-        self.condition =
-            Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
+        self.condition = Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
         self
     }
 }
@@ -258,8 +254,7 @@ impl<T> StateInspectorPlugin<T> {
     /// Only show the UI of the specified condition is active
     pub fn run_if<M>(mut self, condition: impl SystemCondition<M>) -> Self {
         let condition_system = IntoSystem::into_system(condition);
-        self.condition =
-            Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
+        self.condition = Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
         self
     }
 }
@@ -340,8 +335,7 @@ impl<A> AssetInspectorPlugin<A> {
     /// Only show the UI of the specified condition is active
     pub fn run_if<M>(mut self, condition: impl SystemCondition<M>) -> Self {
         let condition_system = IntoSystem::into_system(condition);
-        self.condition =
-            Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
+        self.condition = Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
         self
     }
 }
@@ -417,8 +411,7 @@ impl<A> FilterQueryInspectorPlugin<A> {
     /// Only show the UI of the specified condition is active
     pub fn run_if<M>(mut self, condition: impl SystemCondition<M>) -> Self {
         let condition_system = IntoSystem::into_system(condition);
-        self.condition =
-            Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
+        self.condition = Mutex::new(Some(Box::new(condition_system) as BoxedCondition));
         self
     }
 }
@@ -458,12 +451,7 @@ fn entity_query_ui<F: QueryFilter>(world: &mut World) {
         .default_size(DEFAULT_SIZE)
         .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
-                bevy_inspector::ui_for_entities_filtered(
-                    world,
-                    ui,
-                    false,
-                    &Filter::<F>::all(),
-                );
+                bevy_inspector::ui_for_entities_filtered(world, ui, false, &Filter::<F>::all());
                 ui.allocate_space(ui.available_size());
             });
         });

@@ -3,8 +3,7 @@
 use bevy_ecs::ptr::Ptr;
 use bevy_ecs::world::unsafe_world_cell::GetEntityMutByIdError;
 use bevy_ecs::{
-    change_detection::MutUntyped, prelude::*,
-    world::unsafe_world_cell::UnsafeWorldCell,
+    change_detection::MutUntyped, prelude::*, world::unsafe_world_cell::UnsafeWorldCell,
 };
 use bevy_reflect::{Reflect, ReflectFromPtr, TypeRegistry};
 use smallvec::{SmallVec, smallvec};
@@ -90,12 +89,12 @@ impl<T: Clone + PartialEq> Allowed<T> {
                 let mut new = list.clone();
                 new.swap_remove(position);
                 Allowed::AllowList(new)
-            },
+            }
             Allowed::ForbidList(list) => {
                 let mut new = list.clone();
                 new.push(value);
                 Allowed::ForbidList(new)
-            },
+            }
         }
     }
     fn without_many(&self, values: impl Iterator<Item = T>) -> Allowed<T>
@@ -114,12 +113,12 @@ impl<T: Clone + PartialEq> Allowed<T> {
                     new.swap_remove(position);
                 }
                 Allowed::AllowList(new)
-            },
+            }
             Allowed::ForbidList(list) => {
                 let mut new = list.clone();
                 new.extend(values);
                 Allowed::ForbidList(new)
-            },
+            }
         }
     }
 }
@@ -172,10 +171,7 @@ impl<'w> RestrictedWorldView<'w> {
         self.resources.allows_access_to(type_id)
     }
     /// Whether the given component at the entity may be accessed from this world view
-    pub fn allows_access_to_component(
-        &self,
-        component: EntityComponent,
-    ) -> bool {
+    pub fn allows_access_to_component(&self, component: EntityComponent) -> bool {
         self.components.allows_access_to(component)
     }
 
@@ -301,9 +297,7 @@ impl<'w> RestrictedWorldView<'w> {
     }
 
     /// Gets a mutable reference to the resource of the given type
-    pub fn get_resource_mut<R: Resource>(
-        &mut self,
-    ) -> Result<Mut<'_, R>, Error> {
+    pub fn get_resource_mut<R: Resource>(&mut self) -> Result<Mut<'_, R>, Error> {
         // SAFETY: &mut self
         unsafe { self.get_resource_unchecked_mut() }
     }
@@ -324,9 +318,7 @@ impl<'w> RestrictedWorldView<'w> {
     /// # Safety
     /// This method does validate that we have access to `R`, but takes `&self`
     /// and as such doesn't check unique access.
-    unsafe fn get_resource_unchecked_mut<R: Resource>(
-        &self,
-    ) -> Result<Mut<'_, R>, Error> {
+    unsafe fn get_resource_unchecked_mut<R: Resource>(&self) -> Result<Mut<'_, R>, Error> {
         let type_id = TypeId::of::<R>();
         if !self.allows_access_to_resource(type_id) {
             return Err(Error::NoAccessToResource(type_id));
@@ -370,8 +362,7 @@ impl<'w> RestrictedWorldView<'w> {
         };
 
         // SAFETY: value is of type type_id
-        let value =
-            unsafe { mut_untyped_to_reflect(value, type_registry, type_id)? };
+        let value = unsafe { mut_untyped_to_reflect(value, type_registry, type_id)? };
 
         Ok(value)
     }
@@ -407,21 +398,17 @@ impl<'w> RestrictedWorldView<'w> {
         match unsafe { entity_ref.get_mut_by_id(component_id) } {
             Ok(value) => {
                 // SAFETY: value has the type of `component``
-                let value = unsafe {
-                    mut_untyped_to_reflect(value, type_registry, component)
-                }?;
+                let value = unsafe { mut_untyped_to_reflect(value, type_registry, component) }?;
                 Ok(ReflectBorrow::Mutable(value))
-            },
+            }
             Err(GetEntityMutByIdError::ComponentIsImmutable) => {
                 // SAFETY: we have access to (entity, component) and borrow `&self`
                 let value = unsafe { entity_ref.get_by_id(component_id) }
                     .ok_or(Error::ComponentDoesNotExist((entity, component)))?;
                 // SAFETY: value has the type of `component``
-                let value = unsafe {
-                    ptr_untyped_to_reflect(value, type_registry, component)
-                }?;
+                let value = unsafe { ptr_untyped_to_reflect(value, type_registry, component) }?;
                 Ok(ReflectBorrow::Immutable(value))
-            },
+            }
             Err(_) => Err(Error::ComponentDoesNotExist((entity, component))),
         }
     }
@@ -450,9 +437,7 @@ impl<'w> RestrictedWorldView<'w> {
                 .get_entity(entity)
                 .map_err(|_| Error::ComponentDoesNotExist((entity, component)))?
                 .get_mut_by_id(component_id)
-                .map_err(|_| {
-                    Error::ComponentDoesNotExist((entity, component))
-                })?
+                .map_err(|_| Error::ComponentDoesNotExist((entity, component)))?
         };
 
         // SAFETY: value is of type component
@@ -528,8 +513,7 @@ mod tests {
 
         let mut world = RestrictedWorldView::new(&mut world);
 
-        let (mut a_view, mut world) =
-            world.split_off_resource(TypeId::of::<A>());
+        let (mut a_view, mut world) = world.split_off_resource(TypeId::of::<A>());
         let mut a = a_view.get_resource_mut::<A>().unwrap();
         let mut b = world.get_resource_mut::<B>().unwrap();
 
@@ -545,8 +529,7 @@ mod tests {
 
         let mut world = RestrictedWorldView::new(&mut world);
 
-        let (mut a_view, mut world) =
-            world.split_off_resource(TypeId::of::<A>());
+        let (mut a_view, mut world) = world.split_off_resource(TypeId::of::<A>());
         let mut a = a_view.get_resource_mut::<A>().unwrap();
 
         let mut type_registry = TypeRegistry::empty();
@@ -576,16 +559,14 @@ mod tests {
         let mut world = World::new();
         let mut world = RestrictedWorldView::new(&mut world);
 
-        let (a_view, mut a_remaining) =
-            world.split_off_resource(TypeId::of::<A>());
+        let (a_view, mut a_remaining) = world.split_off_resource(TypeId::of::<A>());
 
         assert!(a_view.allows_access_to_resource(TypeId::of::<A>()));
         assert!(!a_remaining.allows_access_to_resource(TypeId::of::<A>()));
         assert!(!a_view.allows_access_to_resource(TypeId::of::<B>()));
         assert!(a_remaining.allows_access_to_resource(TypeId::of::<B>()));
 
-        let (b_view, b_remaining) =
-            a_remaining.split_off_resource(TypeId::of::<B>());
+        let (b_view, b_remaining) = a_remaining.split_off_resource(TypeId::of::<B>());
 
         assert!(b_view.allows_access_to_resource(TypeId::of::<B>()));
         assert!(!b_remaining.allows_access_to_resource(TypeId::of::<B>()));
@@ -609,11 +590,7 @@ mod tests {
         let (mut component_view, mut world) =
             world.split_off_component((entity, TypeId::of::<ComponentA>()));
         let mut component = component_view
-            .get_entity_component_reflect(
-                entity,
-                TypeId::of::<ComponentA>(),
-                &type_registry,
-            )
+            .get_entity_component_reflect(entity, TypeId::of::<ComponentA>(), &type_registry)
             .unwrap();
         let mut resource = world.get_resource_mut::<A>().unwrap();
 

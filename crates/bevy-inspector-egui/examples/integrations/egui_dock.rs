@@ -5,14 +5,10 @@ use bevy::{
     prelude::*,
 };
 use bevy_camera::{Viewport, visibility::RenderLayers};
-use bevy_egui::{
-    EguiGlobalSettings, EguiPrimaryContextPass, PrimaryEguiContext,
-};
+use bevy_egui::{EguiGlobalSettings, EguiPrimaryContextPass, PrimaryEguiContext};
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 use bevy_inspector_egui::bevy_egui::{EguiContext, EguiContextSettings};
-use bevy_inspector_egui::bevy_inspector::hierarchy::{
-    SelectedEntities, hierarchy_ui,
-};
+use bevy_inspector_egui::bevy_inspector::hierarchy::{SelectedEntities, hierarchy_ui};
 use bevy_inspector_egui::bevy_inspector::{
     self, ui_for_entities_shared_components, ui_for_entity_with_children,
 };
@@ -42,10 +38,7 @@ fn main() {
         .run();
 }
 
-fn draw_mesh_intersections(
-    pointers: Query<&PointerInteraction>,
-    mut gizmos: Gizmos,
-) {
+fn draw_mesh_intersections(pointers: Query<&PointerInteraction>, mut gizmos: Gizmos) {
     for (point, normal) in pointers
         .iter()
         .filter_map(|interaction| interaction.get_nearest_hit())
@@ -75,10 +68,7 @@ fn handle_pick_events(
 
             for interaction in pointers {
                 for (entity, _) in interaction.as_slice() {
-                    let add = button.any_pressed([
-                        KeyCode::ControlLeft,
-                        KeyCode::ShiftLeft,
-                    ]);
+                    let add = button.any_pressed([KeyCode::ControlLeft, KeyCode::ShiftLeft]);
                     ui_state.selected_entities.select_maybe_add(*entity, add);
 
                     for (target, _) in gizmo_targets.iter() {
@@ -88,9 +78,7 @@ fn handle_pick_events(
                     }
                     for selected in ui_state.selected_entities.iter() {
                         if !gizmo_targets.contains(selected) {
-                            commands
-                                .entity(selected)
-                                .insert(GizmoTarget::default());
+                            commands.entity(selected).insert(GizmoTarget::default());
                         }
                     }
                 }
@@ -122,14 +110,11 @@ fn set_camera_viewport(
 ) {
     let scale_factor = window.scale_factor() * egui_settings.scale_factor;
 
-    let viewport_pos =
-        ui_state.viewport_rect.left_top().to_vec2() * scale_factor;
+    let viewport_pos = ui_state.viewport_rect.left_top().to_vec2() * scale_factor;
     let viewport_size = ui_state.viewport_rect.size() * scale_factor;
 
-    let physical_position =
-        UVec2::new(viewport_pos.x as u32, viewport_pos.y as u32);
-    let physical_size =
-        UVec2::new(viewport_size.x as u32, viewport_size.y as u32);
+    let physical_position = UVec2::new(viewport_pos.x as u32, viewport_pos.y as u32);
+    let physical_size = UVec2::new(viewport_size.x as u32, viewport_size.y as u32);
 
     let rect = physical_position + physical_size;
 
@@ -163,18 +148,11 @@ impl UiState {
     pub fn new() -> Self {
         let mut state = DockState::new(vec![EguiWindow::GameView]);
         let tree = state.main_surface_mut();
-        let [game, _inspector] = tree.split_right(
-            NodeIndex::root(),
-            0.75,
-            vec![EguiWindow::Inspector],
-        );
-        let [game, _hierarchy] =
-            tree.split_left(game, 0.2, vec![EguiWindow::Hierarchy]);
-        let [_game, _bottom] = tree.split_below(
-            game,
-            0.8,
-            vec![EguiWindow::Resources, EguiWindow::Assets],
-        );
+        let [game, _inspector] =
+            tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
+        let [game, _hierarchy] = tree.split_left(game, 0.2, vec![EguiWindow::Hierarchy]);
+        let [_game, _bottom] =
+            tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Assets]);
 
         Self {
             state,
@@ -226,28 +204,17 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         match window {
             EguiWindow::GameView => *self.viewport_rect = ui.clip_rect(),
             EguiWindow::Hierarchy => {
-                let selected =
-                    hierarchy_ui(self.world, ui, self.selected_entities);
+                let selected = hierarchy_ui(self.world, ui, self.selected_entities);
                 if selected {
                     *self.selection = InspectorSelection::Entities;
                 }
-            },
-            EguiWindow::Resources => {
-                select_resource(ui, &type_registry, self.selection)
-            },
-            EguiWindow::Assets => {
-                select_asset(ui, &type_registry, self.world, self.selection)
-            },
+            }
+            EguiWindow::Resources => select_resource(ui, &type_registry, self.selection),
+            EguiWindow::Assets => select_asset(ui, &type_registry, self.world, self.selection),
             EguiWindow::Inspector => match *self.selection {
-                InspectorSelection::Entities => {
-                    match self.selected_entities.as_slice() {
-                        &[entity] => {
-                            ui_for_entity_with_children(self.world, entity, ui)
-                        },
-                        entities => ui_for_entities_shared_components(
-                            self.world, entities, ui,
-                        ),
-                    }
+                InspectorSelection::Entities => match self.selected_entities.as_slice() {
+                    &[entity] => ui_for_entity_with_children(self.world, entity, ui),
+                    entities => ui_for_entities_shared_components(self.world, entities, ui),
                 },
                 InspectorSelection::Resource(type_id, ref name) => {
                     ui.label(name);
@@ -258,7 +225,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                         name,
                         &type_registry,
                     )
-                },
+                }
                 InspectorSelection::Asset(type_id, ref name, handle) => {
                     ui.label(name);
                     bevy_inspector::by_type_id::ui_for_asset(
@@ -268,14 +235,13 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                         ui,
                         &type_registry,
                     );
-                },
+                }
             },
         }
 
-        *self.pointer_in_viewport = ui.ctx().rect_contains_pointer(
-            LayerId::background(),
-            self.viewport_rect.shrink(16.),
-        );
+        *self.pointer_in_viewport = ui
+            .ctx()
+            .rect_contains_pointer(LayerId::background(), self.viewport_rect.shrink(16.));
     }
 
     fn title(&mut self, window: &mut Self::Tab) -> egui_dock::egui::WidgetText {
@@ -311,10 +277,7 @@ fn select_resource(
         };
 
         if ui.selectable_label(selected, resource_name).clicked() {
-            *selection = InspectorSelection::Resource(
-                type_id,
-                resource_name.to_string(),
-            );
+            *selection = InspectorSelection::Resource(type_id, resource_name.to_string());
         }
     }
 }
@@ -344,9 +307,7 @@ fn select_asset(
         ui.collapsing(format!("{asset_name} ({})", handles.len()), |ui| {
             for handle in handles {
                 let selected = match *selection {
-                    InspectorSelection::Asset(_, _, selected_id) => {
-                        selected_id == handle
-                    },
+                    InspectorSelection::Asset(_, _, selected_id) => selected_id == handle,
                     _ => false,
                 };
 
@@ -354,11 +315,8 @@ fn select_asset(
                     .selectable_label(selected, format!("{handle:?}"))
                     .clicked()
                 {
-                    *selection = InspectorSelection::Asset(
-                        asset_type_id,
-                        asset_name.to_string(),
-                        handle,
-                    );
+                    *selection =
+                        InspectorSelection::Asset(asset_type_id, asset_name.to_string(), handle);
                 }
             }
         });
@@ -479,9 +437,7 @@ fn setup(
             illuminance: 2000.0,
             ..default()
         },
-        Transform::from_rotation(Quat::from_rotation_x(
-            -std::f32::consts::PI / 2.0,
-        )),
+        Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::PI / 2.0)),
     ));
 
     // camera

@@ -1,8 +1,6 @@
 use std::any::Any;
 
-use bevy_math::{
-    DMat2, DMat3, DMat4, DVec2, DVec3, DVec4, Mat3A, Vec3A, prelude::*,
-};
+use bevy_math::{DMat2, DMat3, DMat4, DVec2, DVec3, DVec4, Mat3A, Vec3A, prelude::*};
 use bevy_reflect::PartialReflect;
 
 use crate::inspector_options::std_options::NumberOptions;
@@ -216,11 +214,7 @@ pub mod quat {
             Quat::from_euler(EulerRot::XYZ, self.0.x, self.0.y, self.0.z)
         }
 
-        fn ui(
-            &mut self,
-            ui: &mut egui::Ui,
-            mut env: InspectorUi<'_, '_>,
-        ) -> bool {
+        fn ui(&mut self, ui: &mut egui::Ui, mut env: InspectorUi<'_, '_>) -> bool {
             env.ui_for_reflect(&mut self.0, ui)
         }
     }
@@ -271,11 +265,7 @@ pub mod quat {
             }
         }
 
-        fn ui(
-            &mut self,
-            ui: &mut egui::Ui,
-            mut env: InspectorUi<'_, '_>,
-        ) -> bool {
+        fn ui(&mut self, ui: &mut egui::Ui, mut env: InspectorUi<'_, '_>) -> bool {
             let (axis, angle) = &mut self.0;
 
             let mut changed = false;
@@ -305,8 +295,7 @@ pub mod quat {
                 .get_temp_mut_or_insert_with(id, || T::from_quat(*val))
         });
 
-        let externally_changed =
-            !intermediate.to_quat().abs_diff_eq(*val, f32::EPSILON);
+        let externally_changed = !intermediate.to_quat().abs_diff_eq(*val, f32::EPSILON);
         if externally_changed {
             intermediate = T::from_quat(*val);
         }
@@ -343,11 +332,9 @@ pub mod quat {
                     *value = Quat::from_vec4(vec4).normalize();
                 }
                 changed
-            },
+            }
             QuatDisplay::Euler => quat_ui_kind::<Euler>(value, ui, env),
-            QuatDisplay::YawPitchRoll => {
-                quat_ui_kind::<YawPitchRoll>(value, ui, env)
-            },
+            QuatDisplay::YawPitchRoll => quat_ui_kind::<YawPitchRoll>(value, ui, env),
             QuatDisplay::AxisAngle => quat_ui_kind::<AxisAngle>(value, ui, env),
         })
         .inner
@@ -361,9 +348,7 @@ pub mod quat {
         env: InspectorUi<'_, '_>,
     ) {
         let mut value = *value.downcast_ref::<Quat>().unwrap();
-        ui.add_enabled_ui(false, |ui| {
-            quat_ui(&mut value, ui, options, id, env)
-        });
+        ui.add_enabled_ui(false, |ui| quat_ui(&mut value, ui, options, id, env));
     }
 
     many_ui!(quat_ui_many quat_ui Quat);
