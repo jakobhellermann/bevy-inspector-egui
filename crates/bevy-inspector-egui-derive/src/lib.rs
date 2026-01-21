@@ -18,8 +18,12 @@ pub fn inspectable(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     result.unwrap_or_else(|err| err.into_compile_error()).into()
 }
 
-fn expand_struct(input: &DeriveInput, data: &DataStruct) -> syn::Result<TokenStream> {
-    let bevy_reflect = quote! { ::bevy_inspector_egui::__macro_exports::bevy_reflect };
+fn expand_struct(
+    input: &DeriveInput,
+    data: &DataStruct,
+) -> syn::Result<TokenStream> {
+    let bevy_reflect =
+        quote! { ::bevy_inspector_egui::__macro_exports::bevy_reflect };
 
     let fields = data
         .fields
@@ -52,7 +56,8 @@ fn expand_struct(input: &DeriveInput, data: &DataStruct) -> syn::Result<TokenStr
         .collect::<syn::Result<Vec<_>>>()?;
 
     let type_name = &input.ident;
-    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    let (impl_generics, ty_generics, where_clause) =
+        input.generics.split_for_impl();
 
     Ok(quote! {
         impl #impl_generics #bevy_reflect::FromType<#type_name #ty_generics> for ::bevy_inspector_egui::InspectorOptions
@@ -69,8 +74,12 @@ fn expand_struct(input: &DeriveInput, data: &DataStruct) -> syn::Result<TokenStr
     })
 }
 
-fn expand_enum(input: &DeriveInput, data: &DataEnum) -> syn::Result<TokenStream> {
-    let bevy_reflect = quote! { ::bevy_inspector_egui::__macro_exports::bevy_reflect };
+fn expand_enum(
+    input: &DeriveInput,
+    data: &DataEnum,
+) -> syn::Result<TokenStream> {
+    let bevy_reflect =
+        quote! { ::bevy_inspector_egui::__macro_exports::bevy_reflect };
 
     let fields = data
         .variants
@@ -117,7 +126,8 @@ fn expand_enum(input: &DeriveInput, data: &DataEnum) -> syn::Result<TokenStream>
         .collect::<syn::Result<Vec<_>>>()?;
 
     let type_name = &input.ident;
-    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    let (impl_generics, ty_generics, where_clause) =
+        input.generics.split_for_impl();
 
     Ok(quote! {
         impl #impl_generics #bevy_reflect::FromType<#type_name #ty_generics> for ::bevy_inspector_egui::InspectorOptions

@@ -11,7 +11,9 @@ macro_rules! impl_options {
             type DeriveOptions = $options;
             type Options = $options;
 
-            fn options_from_derive(options: Self::DeriveOptions) -> Self::Options {
+            fn options_from_derive(
+                options: Self::DeriveOptions,
+            ) -> Self::Options {
                 options
             }
         }
@@ -19,11 +21,16 @@ macro_rules! impl_options {
 }
 macro_rules! impl_options_defer_generic {
     ($name:ident < $generic:ident >) => {
-        impl<$generic: InspectorOptionsType> InspectorOptionsType for $name<$generic> {
-            type DeriveOptions = <$generic as InspectorOptionsType>::DeriveOptions;
+        impl<$generic: InspectorOptionsType> InspectorOptionsType
+            for $name<$generic>
+        {
+            type DeriveOptions =
+                <$generic as InspectorOptionsType>::DeriveOptions;
             type Options = <$generic as InspectorOptionsType>::Options;
 
-            fn options_from_derive(options: Self::DeriveOptions) -> Self::Options {
+            fn options_from_derive(
+                options: Self::DeriveOptions,
+            ) -> Self::Options {
                 $generic::options_from_derive(options)
             }
         }
@@ -163,7 +170,9 @@ impl<T: InspectorOptionsType> Default for RangeOptions<T> {
     }
 }
 
-impl<T: InspectorOptionsType + 'static> InspectorOptionsType for std::ops::Range<T> {
+impl<T: InspectorOptionsType + 'static> InspectorOptionsType
+    for std::ops::Range<T>
+{
     type DeriveOptions = RangeOptions<T>;
     type Options = RangeOptions<T>;
 
@@ -171,7 +180,9 @@ impl<T: InspectorOptionsType + 'static> InspectorOptionsType for std::ops::Range
         options
     }
 }
-impl<T: InspectorOptionsType + 'static> InspectorOptionsType for std::ops::RangeInclusive<T> {
+impl<T: InspectorOptionsType + 'static> InspectorOptionsType
+    for std::ops::RangeInclusive<T>
+{
     type DeriveOptions = RangeOptions<T>;
     type Options = RangeOptions<T>;
 

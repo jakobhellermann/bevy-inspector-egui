@@ -1,5 +1,7 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::FilterQueryInspectorPlugin};
+use bevy_inspector_egui::{
+    bevy_egui::EguiPlugin, quick::FilterQueryInspectorPlugin,
+};
 
 fn main() {
     App::new()

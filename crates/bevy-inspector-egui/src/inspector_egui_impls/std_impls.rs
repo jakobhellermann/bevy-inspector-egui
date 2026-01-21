@@ -59,7 +59,10 @@ impl<T: Reflect + Num> InspectorPrimitive for T {
                 RichText::new(format!(
                     "{}{}{}",
                     options.prefix,
-                    egui::emath::format_with_decimals_in_range(self.to_f64(), decimal_range),
+                    egui::emath::format_with_decimals_in_range(
+                        self.to_f64(),
+                        decimal_range
+                    ),
                     options.suffix
                 ))
                 .monospace(),
@@ -102,7 +105,10 @@ pub fn number_ui_readonly<T: egui::emath::Numeric>(
             RichText::new(format!(
                 "{}{}{}",
                 options.prefix,
-                egui::emath::format_with_decimals_in_range(value.to_f64(), decimal_range),
+                egui::emath::format_with_decimals_in_range(
+                    value.to_f64(),
+                    decimal_range
+                ),
                 options.suffix
             ))
             .monospace(),
@@ -128,10 +134,16 @@ fn display_number<T: egui::emath::Numeric>(
                 widget = widget.suffix(&options.suffix);
             }
             match (options.min, options.max) {
-                (Some(min), Some(max)) => widget = widget.range(min.to_f64()..=max.to_f64()),
-                (Some(min), None) => widget = widget.range(min.to_f64()..=f64::MAX),
-                (None, Some(max)) => widget = widget.range(f64::MIN..=max.to_f64()),
-                (None, None) => {}
+                (Some(min), Some(max)) => {
+                    widget = widget.range(min.to_f64()..=max.to_f64())
+                },
+                (Some(min), None) => {
+                    widget = widget.range(min.to_f64()..=f64::MAX)
+                },
+                (None, Some(max)) => {
+                    widget = widget.range(f64::MIN..=max.to_f64())
+                },
+                (None, None) => {},
             }
             if options.speed != 0.0 {
                 widget = widget.speed(options.speed);
@@ -139,14 +151,14 @@ fn display_number<T: egui::emath::Numeric>(
                 widget = widget.speed(default_speed);
             }
             ui.add(widget).changed()
-        }
+        },
         NumberDisplay::Slider => {
             let min = options.min.unwrap_or_else(|| T::from_f64(0.0));
             let max = options.max.unwrap_or_else(|| T::from_f64(1.0));
             let range = min..=max;
             let widget = egui::Slider::new(value, range);
             ui.add(widget).changed()
-        }
+        },
     };
 
     if let Some(min) = options.min {
@@ -202,7 +214,13 @@ where
 }
 
 impl InspectorPrimitive for bool {
-    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        _: egui::Id,
+        _: InspectorUi<'_, '_>,
+    ) -> bool {
         ui.checkbox(self, "").changed()
     }
 
@@ -221,7 +239,13 @@ impl InspectorPrimitive for bool {
 }
 
 impl InspectorPrimitive for String {
-    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        _: egui::Id,
+        _: InspectorUi<'_, '_>,
+    ) -> bool {
         if self.contains('\n') {
             ui.text_edit_multiline(self).changed()
         } else {
@@ -229,7 +253,13 @@ impl InspectorPrimitive for String {
         }
     }
 
-    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        _: egui::Id,
+        _: InspectorUi<'_, '_>,
+    ) {
         if self.contains('\n') {
             ui.text_edit_multiline(&mut self.as_str());
         } else {
@@ -239,7 +269,13 @@ impl InspectorPrimitive for String {
 }
 
 impl InspectorPrimitive for Cow<'static, str> {
-    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        _: egui::Id,
+        _: InspectorUi<'_, '_>,
+    ) -> bool {
         let mut clone = self.to_string();
         let changed = if self.contains('\n') {
             ui.text_edit_multiline(&mut clone).changed()
@@ -254,7 +290,13 @@ impl InspectorPrimitive for Cow<'static, str> {
         changed
     }
 
-    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        _: egui::Id,
+        _: InspectorUi<'_, '_>,
+    ) {
         if self.contains('\n') {
             ui.text_edit_multiline(&mut self.as_str());
         } else {
@@ -278,7 +320,8 @@ impl InspectorPrimitive for Duration {
             ..Default::default()
         };
 
-        let changed = env.ui_for_reflect_with_options(&mut seconds, ui, id, &options);
+        let changed =
+            env.ui_for_reflect_with_options(&mut seconds, ui, id, &options);
         if changed {
             *self = Duration::from_secs_f64(seconds);
         }
@@ -314,7 +357,13 @@ impl InspectorPrimitive for Instant {
         false
     }
 
-    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        _: egui::Id,
+        _: InspectorUi<'_, '_>,
+    ) {
         let mut secs = self.elapsed().as_secs_f32();
         ui.horizontal(|ui| {
             ui.add_enabled(false, DragValue::new(&mut secs));
@@ -323,8 +372,8 @@ impl InspectorPrimitive for Instant {
     }
 }
 
-impl<T: Reflect + TypePath + egui::emath::Numeric + InspectorOptionsType> InspectorPrimitive
-    for std::ops::Range<T>
+impl<T: Reflect + TypePath + egui::emath::Numeric + InspectorOptionsType>
+    InspectorPrimitive for std::ops::Range<T>
 {
     fn ui(
         &mut self,
@@ -345,7 +394,15 @@ impl<T: Reflect + TypePath + egui::emath::Numeric + InspectorOptionsType> Inspec
         env: InspectorUi<'_, '_>,
     ) {
         let std::ops::Range { start, end } = self;
-        display_range_readonly::<T>(ui, options, id, env, "..", Some(start), Some(end));
+        display_range_readonly::<T>(
+            ui,
+            options,
+            id,
+            env,
+            "..",
+            Some(start),
+            Some(end),
+        );
     }
 }
 fn display_range<T: egui::emath::Numeric + InspectorOptionsType>(
@@ -367,7 +424,8 @@ fn display_range<T: egui::emath::Numeric + InspectorOptionsType>(
     let mut changed = false;
     ui.horizontal(|ui| {
         if let Some(start) = start {
-            changed |= number_ui::<T>(start, ui, start_options, id, env.reborrow());
+            changed |=
+                number_ui::<T>(start, ui, start_options, id, env.reborrow());
         }
         ui.label(symbol);
         if let Some(end) = end {
@@ -391,11 +449,18 @@ fn display_range_readonly<T: egui::emath::Numeric + InspectorOptionsType>(
     let options = options.downcast_ref::<RangeOptions<T>>();
 
     let start_options = options.map(|a| &a.start as &dyn Any).unwrap_or(&());
-    let end_options = options.as_ref().map(|a| &a.end as &dyn Any).unwrap_or(&());
+    let end_options =
+        options.as_ref().map(|a| &a.end as &dyn Any).unwrap_or(&());
 
     ui.horizontal(|ui| {
         if let Some(start) = start {
-            number_ui_readonly::<T>(start, ui, start_options, id, env.reborrow());
+            number_ui_readonly::<T>(
+                start,
+                ui,
+                start_options,
+                id,
+                env.reborrow(),
+            );
         }
         ui.label(symbol);
         if let Some(end) = end {
@@ -404,8 +469,8 @@ fn display_range_readonly<T: egui::emath::Numeric + InspectorOptionsType>(
     });
 }
 
-impl<T: Reflect + TypePath + egui::emath::Numeric + InspectorOptionsType> InspectorPrimitive
-    for std::ops::RangeInclusive<T>
+impl<T: Reflect + TypePath + egui::emath::Numeric + InspectorOptionsType>
+    InspectorPrimitive for std::ops::RangeInclusive<T>
 {
     fn ui(
         &mut self,
@@ -454,7 +519,13 @@ impl<T: Reflect + TypePath + egui::emath::Numeric + InspectorOptionsType> Inspec
 }
 
 impl InspectorPrimitive for PathBuf {
-    fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        _: egui::Id,
+        _: InspectorUi<'_, '_>,
+    ) -> bool {
         let mut str = self.to_string_lossy();
         let changed = ui.text_edit_singleline(&mut str).changed();
 
@@ -465,7 +536,13 @@ impl InspectorPrimitive for PathBuf {
         changed
     }
 
-    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        _: egui::Id,
+        _: InspectorUi<'_, '_>,
+    ) {
         ui.text_edit_singleline(&mut self.to_string_lossy());
     }
 }
@@ -482,7 +559,13 @@ impl InspectorPrimitive for TypeId {
         false
     }
 
-    fn ui_readonly(&self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) {
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        _: &dyn Any,
+        _: egui::Id,
+        _: InspectorUi<'_, '_>,
+    ) {
         let str = format!("{:?}", self);
         ui.label(str);
     }

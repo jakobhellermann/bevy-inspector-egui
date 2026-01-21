@@ -67,7 +67,9 @@ impl Clone for InspectorOptions {
             options: self
                 .options
                 .iter()
-                .map(|(target, data)| (*target, TypeData::clone_type_data(&**data)))
+                .map(|(target, data)| {
+                    (*target, TypeData::clone_type_data(&**data))
+                })
                 .collect(),
         }
     }

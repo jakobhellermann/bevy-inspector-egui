@@ -63,7 +63,9 @@
 use crate::egui_utils::show_docs;
 
 use crate::inspector_egui_impls::{InspectorEguiImpl, iter_all_eq};
-use crate::inspector_options::{InspectorOptions, ReflectInspectorOptions, Target};
+use crate::inspector_options::{
+    InspectorOptions, ReflectInspectorOptions, Target,
+};
 use crate::reflect_inspector::errors::TypeDataError;
 use crate::restricted_world_view::RestrictedWorldView;
 use crate::{
@@ -72,9 +74,10 @@ use crate::{
 };
 use bevy_ecs::world::CommandQueue;
 use bevy_reflect::{
-    Array, DynamicEnum, DynamicTuple, DynamicTyped, DynamicVariant, Enum, EnumInfo, List, ListInfo,
-    Map, Reflect, ReflectMut, ReflectRef, Struct, StructInfo, Tuple, TupleInfo, TupleStruct,
-    TupleStructInfo, TypeInfo, TypeRegistry, VariantInfo, VariantType,
+    Array, DynamicEnum, DynamicTuple, DynamicTyped, DynamicVariant, Enum,
+    EnumInfo, List, ListInfo, Map, Reflect, ReflectMut, ReflectRef, Struct,
+    StructInfo, Tuple, TupleInfo, TupleStruct, TupleStructInfo, TypeInfo,
+    TypeRegistry, VariantInfo, VariantType,
 };
 use bevy_reflect::{DynamicStruct, std_traits::ReflectDefault};
 use bevy_reflect::{PartialReflect, Set, SetInfo};
@@ -87,9 +90,15 @@ use std::{
 
 pub(crate) mod errors;
 
-pub trait ProjectorReflect: Fn(&mut dyn PartialReflect) -> &mut dyn PartialReflect {}
+pub trait ProjectorReflect:
+    Fn(&mut dyn PartialReflect) -> &mut dyn PartialReflect
+{
+}
 
-impl<T> ProjectorReflect for T where T: Fn(&mut dyn PartialReflect) -> &mut dyn PartialReflect {}
+impl<T> ProjectorReflect for T where
+    T: Fn(&mut dyn PartialReflect) -> &mut dyn PartialReflect
+{
+}
 
 /// Display the value without any [`Context`] or short circuiting behaviour.
 ///
@@ -193,8 +202,10 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             type_registry,
             context,
             short_circuit: short_circuit.unwrap_or(|_, _, _, _, _| None),
-            short_circuit_readonly: short_circuit_readonly.unwrap_or(|_, _, _, _, _| None),
-            short_circuit_many: short_circuit_many.unwrap_or(|_, _, _, _, _, _, _, _| None),
+            short_circuit_readonly: short_circuit_readonly
+                .unwrap_or(|_, _, _, _, _| None),
+            short_circuit_many: short_circuit_many
+                .unwrap_or(|_, _, _, _, _, _, _, _| None),
         }
     }
 
@@ -208,13 +219,26 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
 
 impl InspectorUi<'_, '_> {
     /// Draws the inspector UI for the given value.
-    pub fn ui_for_reflect(&mut self, value: &mut dyn PartialReflect, ui: &mut egui::Ui) -> bool {
+    pub fn ui_for_reflect(
+        &mut self,
+        value: &mut dyn PartialReflect,
+        ui: &mut egui::Ui,
+    ) -> bool {
         self.ui_for_reflect_with_options(value, ui, egui::Id::NULL, &())
     }
 
     /// Draws the inspector UI for the given value in a read-only way.
-    pub fn ui_for_reflect_readonly(&mut self, value: &dyn PartialReflect, ui: &mut egui::Ui) {
-        self.ui_for_reflect_readonly_with_options(value, ui, egui::Id::NULL, &());
+    pub fn ui_for_reflect_readonly(
+        &mut self,
+        value: &dyn PartialReflect,
+        ui: &mut egui::Ui,
+    ) {
+        self.ui_for_reflect_readonly_with_options(
+            value,
+            ui,
+            egui::Id::NULL,
+            &(),
+        );
     }
 
     /// Draws the inspector UI for the given value with some options.
@@ -241,35 +265,57 @@ impl InspectorUi<'_, '_> {
         let reason = match value.try_as_reflect_mut() {
             Some(value) => match get_type_data(self.type_registry, value) {
                 Ok(ui_impl) => {
-                    return ui_impl.execute(value.as_any_mut(), ui, options, id, self.reborrow());
-                }
+                    return ui_impl.execute(
+                        value.as_any_mut(),
+                        ui,
+                        options,
+                        id,
+                        self.reborrow(),
+                    );
+                },
                 Err(e) => e,
             },
             None => TypeDataError::NotFullyReflected,
         };
 
-        if let Some(changed) = (self.short_circuit)(self, value, ui, id, options) {
+        if let Some(changed) =
+            (self.short_circuit)(self, value, ui, id, options)
+        {
             return changed;
         }
 
         match value.reflect_mut() {
-            ReflectMut::Struct(value) => self.ui_for_struct(value, ui, id, options),
-            ReflectMut::TupleStruct(value) => self.ui_for_tuple_struct(value, ui, id, options),
-            ReflectMut::Tuple(value) => self.ui_for_tuple(value, ui, id, options),
+            ReflectMut::Struct(value) => {
+                self.ui_for_struct(value, ui, id, options)
+            },
+            ReflectMut::TupleStruct(value) => {
+                self.ui_for_tuple_struct(value, ui, id, options)
+            },
+            ReflectMut::Tuple(value) => {
+                self.ui_for_tuple(value, ui, id, options)
+            },
             ReflectMut::List(value) => self.ui_for_list(value, ui, id, options),
-            ReflectMut::Array(value) => self.ui_for_array(value, ui, id, options),
-            ReflectMut::Map(value) => self.ui_for_reflect_map(value, ui, id, options),
+            ReflectMut::Array(value) => {
+                self.ui_for_array(value, ui, id, options)
+            },
+            ReflectMut::Map(value) => {
+                self.ui_for_reflect_map(value, ui, id, options)
+            },
             ReflectMut::Enum(value) => self.ui_for_enum(value, ui, id, options),
             ReflectMut::Opaque(value) => {
-                errors::reflect_value_no_impl(ui, reason, value.reflect_short_type_path());
+                errors::reflect_value_no_impl(
+                    ui,
+                    reason,
+                    value.reflect_short_type_path(),
+                );
                 false
-            }
+            },
             ReflectMut::Set(value) => self.ui_for_set(value, ui, id, options),
             #[allow(unreachable_patterns)]
             _ => {
                 ui.label("unsupported");
                 false
-            }
+            },
         }
     }
 
@@ -288,9 +334,10 @@ impl InspectorUi<'_, '_> {
         let mut options = options;
         if options.is::<()>()
             && let Some(value_reflect) = value.try_as_reflect()
-            && let Some(data) = self
-                .type_registry
-                .get_type_data::<ReflectInspectorOptions>(value_reflect.type_id())
+            && let Some(data) =
+                self.type_registry.get_type_data::<ReflectInspectorOptions>(
+                    value_reflect.type_id(),
+                )
         {
             options = &data.0;
         }
@@ -305,34 +352,52 @@ impl InspectorUi<'_, '_> {
                         id,
                         self.reborrow(),
                     );
-                }
+                },
                 Err(e) => e,
             },
             None => TypeDataError::NotFullyReflected,
         };
 
-        if let Some(()) = (self.short_circuit_readonly)(self, value, ui, id, options) {
+        if let Some(()) =
+            (self.short_circuit_readonly)(self, value, ui, id, options)
+        {
             return;
         }
 
         match value.reflect_ref() {
-            ReflectRef::Struct(value) => self.ui_for_struct_readonly(value, ui, id, options),
+            ReflectRef::Struct(value) => {
+                self.ui_for_struct_readonly(value, ui, id, options)
+            },
             ReflectRef::TupleStruct(value) => {
                 self.ui_for_tuple_struct_readonly(value, ui, id, options)
-            }
-            ReflectRef::Tuple(value) => self.ui_for_tuple_readonly(value, ui, id, options),
-            ReflectRef::List(value) => self.ui_for_list_readonly(value, ui, id, options),
-            ReflectRef::Array(value) => self.ui_for_array_readonly(value, ui, id, options),
-            ReflectRef::Map(value) => self.ui_for_reflect_map_readonly(value, ui, id, options),
-            ReflectRef::Enum(value) => self.ui_for_enum_readonly(value, ui, id, options),
-            ReflectRef::Opaque(value) => {
-                errors::reflect_value_no_impl(ui, reason, value.reflect_short_type_path())
-            }
-            ReflectRef::Set(value) => self.ui_for_set_readonly(value, ui, id, options),
+            },
+            ReflectRef::Tuple(value) => {
+                self.ui_for_tuple_readonly(value, ui, id, options)
+            },
+            ReflectRef::List(value) => {
+                self.ui_for_list_readonly(value, ui, id, options)
+            },
+            ReflectRef::Array(value) => {
+                self.ui_for_array_readonly(value, ui, id, options)
+            },
+            ReflectRef::Map(value) => {
+                self.ui_for_reflect_map_readonly(value, ui, id, options)
+            },
+            ReflectRef::Enum(value) => {
+                self.ui_for_enum_readonly(value, ui, id, options)
+            },
+            ReflectRef::Opaque(value) => errors::reflect_value_no_impl(
+                ui,
+                reason,
+                value.reflect_short_type_path(),
+            ),
+            ReflectRef::Set(value) => {
+                self.ui_for_set_readonly(value, ui, id, options)
+            },
             #[allow(unreachable_patterns)]
             _ => {
                 ui.label("unsupported");
-            }
+            },
         }
     }
 
@@ -345,7 +410,15 @@ impl InspectorUi<'_, '_> {
         values: &mut [&mut dyn PartialReflect],
         projector: &dyn ProjectorReflect,
     ) -> bool {
-        self.ui_for_reflect_many_with_options(type_id, name, ui, id, &(), values, projector)
+        self.ui_for_reflect_many_with_options(
+            type_id,
+            name,
+            ui,
+            id,
+            &(),
+            values,
+            projector,
+        )
     }
 
     pub fn ui_for_reflect_many_with_options(
@@ -375,8 +448,15 @@ impl InspectorUi<'_, '_> {
 
         let reason = match registration.data::<InspectorEguiImpl>() {
             Some(ui_impl) => {
-                return ui_impl.execute_many(ui, options, id, self.reborrow(), values, projector);
-            }
+                return ui_impl.execute_many(
+                    ui,
+                    options,
+                    id,
+                    self.reborrow(),
+                    values,
+                    projector,
+                );
+            },
             None => TypeDataError::NoTypeData,
         };
 
@@ -384,40 +464,58 @@ impl InspectorUi<'_, '_> {
             .type_registry
             .get_type_data::<InspectorEguiImpl>(type_id)
         {
-            return s.execute_many(ui, options, id, self.reborrow(), values, projector);
+            return s.execute_many(
+                ui,
+                options,
+                id,
+                self.reborrow(),
+                values,
+                projector,
+            );
         }
 
-        if let Some(changed) =
-            (self.short_circuit_many)(self, type_id, name, ui, id, options, values, projector)
-        {
+        if let Some(changed) = (self.short_circuit_many)(
+            self, type_id, name, ui, id, options, values, projector,
+        ) {
             return changed;
         }
 
         match info {
-            TypeInfo::Struct(info) => {
-                self.ui_for_struct_many(info, ui, id, options, values, projector)
-            }
-            TypeInfo::TupleStruct(info) => {
-                self.ui_for_tuple_struct_many(info, ui, id, options, values, projector)
-            }
+            TypeInfo::Struct(info) => self
+                .ui_for_struct_many(info, ui, id, options, values, projector),
+            TypeInfo::TupleStruct(info) => self.ui_for_tuple_struct_many(
+                info, ui, id, options, values, projector,
+            ),
             TypeInfo::Tuple(info) => {
                 self.ui_for_tuple_many(info, ui, id, options, values, projector)
-            }
-            TypeInfo::List(info) => self.ui_for_list_many(info, ui, id, options, values, projector),
+            },
+            TypeInfo::List(info) => {
+                self.ui_for_list_many(info, ui, id, options, values, projector)
+            },
             TypeInfo::Array(info) => {
-                errors::no_multiedit(ui, &pretty_type_name_str(info.type_path()));
+                errors::no_multiedit(
+                    ui,
+                    &pretty_type_name_str(info.type_path()),
+                );
                 false
-            }
+            },
             TypeInfo::Map(info) => {
-                errors::no_multiedit(ui, &pretty_type_name_str(info.type_path()));
+                errors::no_multiedit(
+                    ui,
+                    &pretty_type_name_str(info.type_path()),
+                );
                 false
-            }
-            TypeInfo::Enum(info) => self.ui_for_enum_many(info, ui, id, options, values, projector),
+            },
+            TypeInfo::Enum(info) => {
+                self.ui_for_enum_many(info, ui, id, options, values, projector)
+            },
             TypeInfo::Opaque(info) => {
                 errors::reflect_value_no_impl(ui, reason, info.type_path());
                 false
-            }
-            TypeInfo::Set(info) => self.ui_for_set_many(info, ui, id, options, values, projector),
+            },
+            TypeInfo::Set(info) => {
+                self.ui_for_set_many(info, ui, id, options, values, projector)
+            },
         }
     }
 }
@@ -434,7 +532,10 @@ enum SetOp {
     AddElement(Box<dyn PartialReflect>),
 }
 
-fn ui_for_empty_collection(ui: &mut egui::Ui, label: impl Into<WidgetText>) -> bool {
+fn ui_for_empty_collection(
+    ui: &mut egui::Ui,
+    label: impl Into<WidgetText>,
+) -> bool {
     let mut add = false;
     ui.vertical_centered(|ui| {
         ui.label(label);
@@ -449,7 +550,11 @@ fn ui_for_empty_list(ui: &mut egui::Ui) -> bool {
     ui_for_empty_collection(ui, "(Empty List)")
 }
 
-fn ui_for_list_controls(ui: &mut egui::Ui, index: usize, len: usize) -> Option<ListOp> {
+fn ui_for_list_controls(
+    ui: &mut egui::Ui,
+    index: usize,
+    len: usize,
+) -> Option<ListOp> {
     use ListOp::*;
     let mut op = None;
     ui.horizontal_top(|ui| {
@@ -465,7 +570,8 @@ fn ui_for_list_controls(ui: &mut egui::Ui, index: usize, len: usize) -> Option<L
                 op = Some(MoveElementUp(index));
             }
         });
-        let down_enabled = len.checked_sub(1).map(|l| index < l).unwrap_or(false);
+        let down_enabled =
+            len.checked_sub(1).map(|l| index < l).unwrap_or(false);
         ui.add_enabled_ui(down_enabled, |ui| {
             if down_button(ui).on_hover_text("Move element down").clicked() {
                 op = Some(MoveElementDown(index));
@@ -508,7 +614,9 @@ impl InspectorUi<'_, '_> {
         id: egui::Id,
         options: &dyn Any,
     ) -> bool {
-        let Some(TypeInfo::Struct(type_info)) = value.get_represented_type_info() else {
+        let Some(TypeInfo::Struct(type_info)) =
+            value.get_represented_type_info()
+        else {
             return false;
         };
 
@@ -541,7 +649,9 @@ impl InspectorUi<'_, '_> {
         id: egui::Id,
         options: &dyn Any,
     ) {
-        let Some(TypeInfo::Struct(type_info)) = value.get_represented_type_info() else {
+        let Some(TypeInfo::Struct(type_info)) =
+            value.get_represented_type_info()
+        else {
             return;
         };
 
@@ -589,7 +699,9 @@ impl InspectorUi<'_, '_> {
                     inspector_options_struct_field(options, i),
                     values,
                     &|a| match projector(a).reflect_mut() {
-                        ReflectMut::Struct(strukt) => strukt.field_at_mut(i).unwrap(),
+                        ReflectMut::Struct(strukt) => {
+                            strukt.field_at_mut(i).unwrap()
+                        },
                         _ => unreachable!(),
                     },
                 );
@@ -674,7 +786,9 @@ impl InspectorUi<'_, '_> {
                         inspector_options_struct_field(options, i),
                         values,
                         &|a| match projector(a).reflect_mut() {
-                            ReflectMut::TupleStruct(strukt) => strukt.field_mut(i).unwrap(),
+                            ReflectMut::TupleStruct(strukt) => {
+                                strukt.field_mut(i).unwrap()
+                            },
                             _ => unreachable!(),
                         },
                     );
@@ -760,7 +874,9 @@ impl InspectorUi<'_, '_> {
                         inspector_options_struct_field(options, i),
                         values,
                         &|a| match projector(a).reflect_mut() {
-                            ReflectMut::Tuple(strukt) => strukt.field_mut(i).unwrap(),
+                            ReflectMut::Tuple(strukt) => {
+                                strukt.field_mut(i).unwrap()
+                            },
                             _ => unreachable!(),
                         },
                     );
@@ -784,7 +900,8 @@ impl InspectorUi<'_, '_> {
         let error_id = id.with("error");
 
         for list in lists {
-            let Some(TypeInfo::List(info)) = list.get_represented_type_info() else {
+            let Some(TypeInfo::List(info)) = list.get_represented_type_info()
+            else {
                 continue;
             };
             match op {
@@ -796,14 +913,16 @@ impl InspectorUi<'_, '_> {
                     if let Some(new_value) = default {
                         list.insert(i, new_value);
                     } else {
-                        ui.data_mut(|data| data.insert_temp::<bool>(error_id, true));
+                        ui.data_mut(|data| {
+                            data.insert_temp::<bool>(error_id, true)
+                        });
                     }
                     changed = true;
-                }
+                },
                 RemoveElement(i) => {
                     list.remove(i);
                     changed = true;
-                }
+                },
                 MoveElementUp(i) => {
                     if let Some(prev_idx) = i.checked_sub(1) {
                         // Clone this element and insert it at its index - 1.
@@ -815,7 +934,7 @@ impl InspectorUi<'_, '_> {
                         list.remove(i + 1);
                         changed = true;
                     }
-                }
+                },
                 MoveElementDown(i) => {
                     // Clone the next element and insert it at this index.
                     if let Some(next_element) = list.get(i + 1) {
@@ -825,7 +944,7 @@ impl InspectorUi<'_, '_> {
                     // Remove the original, now at i + 2.
                     list.remove(i + 2);
                     changed = true;
-                }
+                },
             }
         }
         changed
@@ -852,7 +971,12 @@ impl InspectorUi<'_, '_> {
                     ui.label(i.to_string());
                     let val = list.get_mut(i).unwrap();
                     ui.horizontal_top(|ui| {
-                        changed |= self.ui_for_reflect_with_options(val, ui, id.with(i), options);
+                        changed |= self.ui_for_reflect_with_options(
+                            val,
+                            ui,
+                            id.with(i),
+                            options,
+                        );
                     });
                     ui.end_row();
 
@@ -867,7 +991,8 @@ impl InspectorUi<'_, '_> {
                 }
             }
 
-            let Some(TypeInfo::List(info)) = list.get_represented_type_info() else {
+            let Some(TypeInfo::List(info)) = list.get_represented_type_info()
+            else {
                 return;
             };
             let error_id = id.with("error");
@@ -878,7 +1003,9 @@ impl InspectorUi<'_, '_> {
                 changed |= self.respond_to_list_op(ui, id, lists, op);
             }
 
-            let error = ui.data_mut(|data| *data.get_temp_mut_or_default::<bool>(error_id));
+            let error = ui.data_mut(|data| {
+                *data.get_temp_mut_or_default::<bool>(error_id)
+            });
             if error {
                 errors::no_default_value(ui, info.type_path());
             }
@@ -902,7 +1029,12 @@ impl InspectorUi<'_, '_> {
             for i in 0..len {
                 let val = list.get(i).unwrap();
                 ui.horizontal_top(|ui| {
-                    self.ui_for_reflect_readonly_with_options(val, ui, id.with(i), options)
+                    self.ui_for_reflect_readonly_with_options(
+                        val,
+                        ui,
+                        id.with(i),
+                        options,
+                    )
                 });
 
                 if i != len - 1 {
@@ -924,15 +1056,12 @@ impl InspectorUi<'_, '_> {
         use ListOp::*;
         let mut changed = false;
 
-        let same_len =
-            iter_all_eq(
-                values
-                    .iter_mut()
-                    .map(|value| match projector(*value).reflect_mut() {
-                        ReflectMut::List(l) => l.len(),
-                        _ => unreachable!(),
-                    }),
-            );
+        let same_len = iter_all_eq(values.iter_mut().map(|value| {
+            match projector(*value).reflect_mut() {
+                ReflectMut::List(l) => l.len(),
+                _ => unreachable!(),
+            }
+        }));
 
         let Some(len) = same_len else {
             ui.label("lists have different sizes, cannot multiedit");
@@ -981,7 +1110,9 @@ impl InspectorUi<'_, '_> {
             }
 
             let error_id = id.with("error");
-            let error = ui.data_mut(|data| *data.get_temp_mut_or_default::<bool>(error_id));
+            let error = ui.data_mut(|data| {
+                *data.get_temp_mut_or_default::<bool>(error_id)
+            });
             if error {
                 errors::no_default_value(ui, info.type_path());
             }
@@ -989,12 +1120,12 @@ impl InspectorUi<'_, '_> {
                 ui.data_mut(|data| data.insert_temp::<bool>(error_id, false));
             }
             if let Some(op) = op {
-                let lists = values
-                    .iter_mut()
-                    .map(|l| match projector(*l).reflect_mut() {
+                let lists = values.iter_mut().map(|l| {
+                    match projector(*l).reflect_mut() {
                         ReflectMut::List(list) => list,
                         _ => unreachable!(),
-                    });
+                    }
+                });
                 changed |= self.respond_to_list_op(ui, id, lists, op);
             }
         });
@@ -1022,8 +1153,10 @@ impl InspectorUi<'_, '_> {
                 i += 1;
 
                 self.ui_for_reflect_readonly_with_options(key, ui, ui_id, &());
-                changed |= self.ui_for_reflect_with_options(value, ui, ui_id, &());
-                let delete = remove_button(ui).on_hover_text("Remove element").clicked();
+                changed |=
+                    self.ui_for_reflect_with_options(value, ui, ui_id, &());
+                let delete =
+                    remove_button(ui).on_hover_text("Remove element").clicked();
                 ui.end_row();
                 !delete
             });
@@ -1043,14 +1176,17 @@ impl InspectorUi<'_, '_> {
     ) -> Option<()> {
         let map_draft_id = id.with("map_draft");
         let draft_clone = ui.data_mut(|data| {
-            data.get_temp_mut_or_default::<Option<MapDraftElement>>(map_draft_id)
-                .to_owned()
+            data.get_temp_mut_or_default::<Option<MapDraftElement>>(
+                map_draft_id,
+            )
+            .to_owned()
         });
 
         let map_info = map.get_represented_map_info()?;
 
         let key_default = self.get_reflect_default(map_info.key_ty().id())?;
-        let value_default = self.get_reflect_default(map_info.value_ty().id())?;
+        let value_default =
+            self.get_reflect_default(map_info.value_ty().id())?;
 
         ui.separator();
         ui.end_row();
@@ -1063,41 +1199,60 @@ impl InspectorUi<'_, '_> {
                     let key = key_default.default().into_partial_reflect();
                     let value = value_default.default().into_partial_reflect();
                     ui.data_mut(|data| {
-                        data.insert_temp(map_draft_id, Some(MapDraftElement { key, value }))
+                        data.insert_temp(
+                            map_draft_id,
+                            Some(MapDraftElement { key, value }),
+                        )
                     });
                 }
                 ui.end_row();
-            }
+            },
             Some(MapDraftElement { mut key, mut value }) => {
                 ui.end_row();
                 // Show controls for editing our draft element.
-                let key_changed = self.ui_for_reflect_with_options(key.as_mut(), ui, id, &());
-                let value_changed = self.ui_for_reflect_with_options(value.as_mut(), ui, id, &());
+                let key_changed =
+                    self.ui_for_reflect_with_options(key.as_mut(), ui, id, &());
+                let value_changed = self.ui_for_reflect_with_options(
+                    value.as_mut(),
+                    ui,
+                    id,
+                    &(),
+                );
 
                 // If the clone changed, update the data in UI state.
                 if key_changed || value_changed {
                     let next_draft = MapDraftElement { key, value };
-                    ui.data_mut(|data| data.insert_temp(map_draft_id, Some(next_draft)));
+                    ui.data_mut(|data| {
+                        data.insert_temp(map_draft_id, Some(next_draft))
+                    });
                 }
 
                 // Show controls to insert the draft into the map, or remove it.
                 if ui.button("Insert").clicked() {
                     let draft = ui
-                        .data_mut(|data| data.get_temp::<Option<MapDraftElement>>(map_draft_id))
+                        .data_mut(|data| {
+                            data.get_temp::<Option<MapDraftElement>>(
+                                map_draft_id,
+                            )
+                        })
                         .flatten();
                     if let Some(draft) = draft {
                         map.insert_boxed(draft.key, draft.value);
-                        ui.data_mut(|data| data.remove_by_type::<Option<MapDraftElement>>());
+                        ui.data_mut(|data| {
+                            data.remove_by_type::<Option<MapDraftElement>>()
+                        });
                     }
                     *changed = true;
                 }
 
                 if ui.button("Cancel").clicked() {
-                    ui.data_mut(|data| data.remove_by_type::<Option<MapDraftElement>>());
+                    ui.data_mut(|data| {
+                        data.remove_by_type::<Option<MapDraftElement>>()
+                    });
                     *changed = true;
                 }
                 ui.end_row();
-            }
+            },
         }
 
         Some(())
@@ -1114,7 +1269,12 @@ impl InspectorUi<'_, '_> {
             for (i, (key, value)) in map.iter().enumerate() {
                 let ui_id = id.with(i);
                 self.ui_for_reflect_readonly_with_options(key, ui, ui_id, &());
-                self.ui_for_reflect_readonly_with_options(value, ui, ui_id, &());
+                self.ui_for_reflect_readonly_with_options(
+                    value,
+                    ui,
+                    ui_id,
+                    &(),
+                );
                 ui.end_row();
             }
         });
@@ -1133,15 +1293,19 @@ impl InspectorUi<'_, '_> {
         }
         changed
     }
-    fn respond_to_set_op<'a>(&mut self, set: &'a mut dyn Set, op: &SetOp) -> bool {
+    fn respond_to_set_op<'a>(
+        &mut self,
+        set: &'a mut dyn Set,
+        op: &SetOp,
+    ) -> bool {
         use SetOp::*;
         match &op {
             AddElement(new_value) => {
                 set.insert_boxed(new_value.to_dynamic());
-            }
+            },
             RemoveElement(val) => {
                 set.remove(&**val);
-            }
+            },
         }
         true
     }
@@ -1167,10 +1331,18 @@ impl InspectorUi<'_, '_> {
             for (i, val) in set.iter().enumerate() {
                 egui::Grid::new((id, i)).show(ui, |ui| {
                     ui.horizontal_top(|ui| {
-                        self.ui_for_reflect_readonly_with_options(val, ui, id.with(i), options);
+                        self.ui_for_reflect_readonly_with_options(
+                            val,
+                            ui,
+                            id.with(i),
+                            options,
+                        );
                     });
                     ui.horizontal_top(|ui| {
-                        if remove_button(ui).on_hover_text("Remove element").clicked() {
+                        if remove_button(ui)
+                            .on_hover_text("Remove element")
+                            .clicked()
+                        {
                             let copy = val.to_dynamic();
                             op = Some(RemoveElement(copy));
                         }
@@ -1182,11 +1354,18 @@ impl InspectorUi<'_, '_> {
                     ui.separator();
                 }
             }
-            let Some(TypeInfo::Set(set_info)) = set.get_represented_type_info() else {
+            let Some(TypeInfo::Set(set_info)) = set.get_represented_type_info()
+            else {
                 return;
             };
             let value_type = set_info.value_ty();
-            let new_op = self.set_add_element_ui(value_type, ui, id, options, &mut changed);
+            let new_op = self.set_add_element_ui(
+                value_type,
+                ui,
+                id,
+                options,
+                &mut changed,
+            );
             if new_op.is_some() {
                 op = new_op;
             }
@@ -1200,7 +1379,9 @@ impl InspectorUi<'_, '_> {
                 changed |= self.respond_to_set_op(set, &op);
             }
 
-            let error = ui.data_mut(|data| *data.get_temp_mut_or_default::<bool>(error_id));
+            let error = ui.data_mut(|data| {
+                *data.get_temp_mut_or_default::<bool>(error_id)
+            });
             if error {
                 errors::no_default_value(ui, set_info.type_path());
             }
@@ -1229,8 +1410,10 @@ impl InspectorUi<'_, '_> {
             ui.label("New element");
             let set_draft_id = id.with("set_draft");
             let draft_clone = ui.data_mut(|data| {
-                data.get_temp_mut_or_default::<Option<SetDraftElement>>(set_draft_id)
-                    .to_owned()
+                data.get_temp_mut_or_default::<Option<SetDraftElement>>(
+                    set_draft_id,
+                )
+                .to_owned()
             });
             ui.end_row();
             match draft_clone {
@@ -1238,43 +1421,61 @@ impl InspectorUi<'_, '_> {
                     // If no draft element exists, show a button to create one.
                     if add_button(ui).clicked() {
                         // Insert a temporary 'draft' value into UI state, once inserted, we cannot modify it.
-                        let draft = SetDraftElement(item_default.default().into_partial_reflect());
-                        ui.data_mut(|data| data.insert_temp(set_draft_id, Some(draft)));
+                        let draft = SetDraftElement(
+                            item_default.default().into_partial_reflect(),
+                        );
+                        ui.data_mut(|data| {
+                            data.insert_temp(set_draft_id, Some(draft))
+                        });
                     }
 
                     ui.end_row();
-                }
+                },
                 Some(SetDraftElement(mut v)) => {
                     ui.end_row();
                     // Show controls for editing our draft element.
                     // FIXME: is the id passed here correct?
-                    let value_changed =
-                        self.ui_for_reflect_with_options(v.as_mut(), ui, id, options);
+                    let value_changed = self.ui_for_reflect_with_options(
+                        v.as_mut(),
+                        ui,
+                        id,
+                        options,
+                    );
 
                     // If the clone changed, update the data in UI state.
                     if value_changed {
                         let next_draft = SetDraftElement(v);
-                        ui.data_mut(|data| data.insert_temp(set_draft_id, Some(next_draft)));
+                        ui.data_mut(|data| {
+                            data.insert_temp(set_draft_id, Some(next_draft))
+                        });
                     }
 
                     // Show controls to insert the draft into the set, or remove it.
                     if ui.button("Insert").clicked() {
                         let draft = ui
-                            .data_mut(|data| data.get_temp::<Option<SetDraftElement>>(set_draft_id))
+                            .data_mut(|data| {
+                                data.get_temp::<Option<SetDraftElement>>(
+                                    set_draft_id,
+                                )
+                            })
                             .flatten();
                         if let Some(draft) = draft {
                             op = Some(SetOp::AddElement(draft.0));
-                            ui.data_mut(|data| data.remove_by_type::<Option<SetDraftElement>>());
+                            ui.data_mut(|data| {
+                                data.remove_by_type::<Option<SetDraftElement>>()
+                            });
                         }
                         *changed = true;
                     }
 
                     if ui.button("Cancel").clicked() {
-                        ui.data_mut(|data| data.remove_by_type::<Option<SetDraftElement>>());
+                        ui.data_mut(|data| {
+                            data.remove_by_type::<Option<SetDraftElement>>()
+                        });
                         *changed = true;
                     }
                     ui.end_row();
-                }
+                },
             }
         });
 
@@ -1292,7 +1493,12 @@ impl InspectorUi<'_, '_> {
         ui.vertical(|ui| {
             for (i, val) in set.iter().enumerate() {
                 ui.horizontal_top(|ui| {
-                    self.ui_for_reflect_readonly_with_options(val, ui, id.with(i), options)
+                    self.ui_for_reflect_readonly_with_options(
+                        val,
+                        ui,
+                        id.with(i),
+                        options,
+                    )
                 });
 
                 if i != len - 1 {
@@ -1314,15 +1520,12 @@ impl InspectorUi<'_, '_> {
         use SetOp::*;
         let mut changed = false;
 
-        let same_len =
-            iter_all_eq(
-                values
-                    .iter_mut()
-                    .map(|value| match projector(*value).reflect_mut() {
-                        ReflectMut::List(l) => l.len(),
-                        _ => unreachable!(),
-                    }),
-            );
+        let same_len = iter_all_eq(values.iter_mut().map(|value| {
+            match projector(*value).reflect_mut() {
+                ReflectMut::List(l) => l.len(),
+                _ => unreachable!(),
+            }
+        }));
 
         let Some(len) = same_len else {
             ui.label("lists have different sizes, cannot multiedit");
@@ -1340,7 +1543,9 @@ impl InspectorUi<'_, '_> {
                 ReflectMut::Set(set) => set,
                 _ => unreachable!(),
             };
-            let Some(TypeInfo::Set(set_info)) = set0.get_represented_type_info() else {
+            let Some(TypeInfo::Set(set_info)) =
+                set0.get_represented_type_info()
+            else {
                 return;
             };
             let value_type = set_info.value_ty();
@@ -1353,12 +1558,18 @@ impl InspectorUi<'_, '_> {
                     // Do all sets contain this value ?
                     if len == 1
                         || values[1..].iter_mut().all(|set_to_compare| {
-                            let set_to_compare = match projector(*set_to_compare).reflect_mut() {
+                            let set_to_compare = match projector(
+                                *set_to_compare,
+                            )
+                            .reflect_mut()
+                            {
                                 ReflectMut::Set(set) => set,
                                 _ => unreachable!(),
                             };
                             set_to_compare.iter().any(|value| {
-                                value.reflect_partial_eq(value_to_check.borrow()) == Some(true)
+                                value
+                                    .reflect_partial_eq(value_to_check.borrow())
+                                    == Some(true)
                             })
                         })
                     {
@@ -1373,7 +1584,10 @@ impl InspectorUi<'_, '_> {
                             );
                         });
                         ui.horizontal_top(|ui| {
-                            if remove_button(ui).on_hover_text("Remove element").clicked() {
+                            if remove_button(ui)
+                                .on_hover_text("Remove element")
+                                .clicked()
+                            {
                                 let copy = value_to_check.to_dynamic();
                                 op = Some(RemoveElement(copy));
                             }
@@ -1388,12 +1602,20 @@ impl InspectorUi<'_, '_> {
                     ui.separator();
                 }
             }
-            let op = self.set_add_element_ui(value_type, ui, id, options, &mut changed);
+            let op = self.set_add_element_ui(
+                value_type,
+                ui,
+                id,
+                options,
+                &mut changed,
+            );
 
             ui.end_row();
 
             let error_id = id.with("error");
-            let error = ui.data_mut(|data| *data.get_temp_mut_or_default::<bool>(error_id));
+            let error = ui.data_mut(|data| {
+                *data.get_temp_mut_or_default::<bool>(error_id)
+            });
             if error {
                 errors::no_default_value(ui, info.type_path());
             }
@@ -1401,12 +1623,12 @@ impl InspectorUi<'_, '_> {
                 ui.data_mut(|data| data.insert_temp::<bool>(error_id, false));
             }
             if let Some(op) = op {
-                let sets = values
-                    .iter_mut()
-                    .map(|l| match projector(*l).reflect_mut() {
+                let sets = values.iter_mut().map(|l| {
+                    match projector(*l).reflect_mut() {
                         ReflectMut::Set(list) => list,
                         _ => unreachable!(),
-                    });
+                    }
+                });
                 changed |= self.respond_to_sets_op(sets, op);
             }
         });
@@ -1428,7 +1650,12 @@ impl InspectorUi<'_, '_> {
             for i in 0..len {
                 let val = array.get_mut(i).unwrap();
                 ui.horizontal_top(|ui| {
-                    changed |= self.ui_for_reflect_with_options(val, ui, id.with(i), options);
+                    changed |= self.ui_for_reflect_with_options(
+                        val,
+                        ui,
+                        id.with(i),
+                        options,
+                    );
                 });
 
                 if i != len - 1 {
@@ -1452,7 +1679,12 @@ impl InspectorUi<'_, '_> {
             for i in 0..len {
                 let val = array.get(i).unwrap();
                 ui.horizontal_top(|ui| {
-                    self.ui_for_reflect_readonly_with_options(val, ui, id.with(i), options);
+                    self.ui_for_reflect_readonly_with_options(
+                        val,
+                        ui,
+                        id.with(i),
+                        options,
+                    );
                 });
 
                 if i != len - 1 {
@@ -1481,33 +1713,45 @@ impl InspectorUi<'_, '_> {
         let mut changed = false;
 
         ui.vertical(|ui| {
-            let changed_variant =
-                self.ui_for_enum_variant_select(id, ui, value.variant_index(), type_info);
+            let changed_variant = self.ui_for_enum_variant_select(
+                id,
+                ui,
+                value.variant_index(),
+                type_info,
+            );
             if let Some((_new_variant, dynamic_enum)) = changed_variant {
                 changed = true;
                 value.apply(&dynamic_enum);
             }
             let variant_index = value.variant_index();
 
-            let always_show_label = matches!(value.variant_type(), VariantType::Struct);
-            changed |=
-                maybe_grid_label_if(value.field_len(), ui, id, always_show_label, |ui, label| {
+            let always_show_label =
+                matches!(value.variant_type(), VariantType::Struct);
+            changed |= maybe_grid_label_if(
+                value.field_len(),
+                ui,
+                id,
+                always_show_label,
+                |ui, label| {
                     (0..value.field_len())
                         .map(|i| {
                             if label {
                                 #[cfg(feature = "documentation")]
-                                let field_docs = type_info.variant_at(variant_index).and_then(
-                                    |info| match info {
-                                        VariantInfo::Struct(info) => info.field_at(i)?.docs(),
+                                let field_docs = type_info
+                                    .variant_at(variant_index)
+                                    .and_then(|info| match info {
+                                        VariantInfo::Struct(info) => {
+                                            info.field_at(i)?.docs()
+                                        },
                                         _ => None,
-                                    },
-                                );
+                                    });
 
-                                let _response = if let Some(name) = value.name_at(i) {
-                                    ui.label(name)
-                                } else {
-                                    ui.label(i.to_string())
-                                };
+                                let _response =
+                                    if let Some(name) = value.name_at(i) {
+                                        ui.label(name)
+                                    } else {
+                                        ui.label(i.to_string())
+                                    };
                                 #[cfg(feature = "documentation")]
                                 show_docs(_response, field_docs);
                             }
@@ -1518,13 +1762,18 @@ impl InspectorUi<'_, '_> {
                                 field_value,
                                 ui,
                                 id.with(i),
-                                inspector_options_enum_variant_field(options, variant_index, i),
+                                inspector_options_enum_variant_field(
+                                    options,
+                                    variant_index,
+                                    i,
+                                ),
                             );
                             ui.end_row();
                             changed
                         })
                         .fold(false, or)
-                });
+                },
+            );
         });
 
         changed
@@ -1541,21 +1790,23 @@ impl InspectorUi<'_, '_> {
     ) -> bool {
         let mut changed = false;
 
-        let same_variant =
-            iter_all_eq(
-                values
-                    .iter_mut()
-                    .map(|value| match projector(*value).reflect_mut() {
-                        ReflectMut::Enum(info) => info.variant_index(),
-                        _ => unreachable!(),
-                    }),
-            );
+        let same_variant = iter_all_eq(values.iter_mut().map(|value| {
+            match projector(*value).reflect_mut() {
+                ReflectMut::Enum(info) => info.variant_index(),
+                _ => unreachable!(),
+            }
+        }));
 
         if let Some(variant_index) = same_variant {
             let mut variant = info.variant_at(variant_index).unwrap();
 
             ui.vertical(|ui| {
-                let variant_changed = self.ui_for_enum_variant_select(id, ui, variant_index, info);
+                let variant_changed = self.ui_for_enum_variant_select(
+                    id,
+                    ui,
+                    variant_index,
+                    info,
+                );
                 if let Some((new_variant_idx, dynamic_enum)) = variant_changed {
                     changed = true;
                     variant = info.variant_at(new_variant_idx).unwrap();
@@ -1572,21 +1823,35 @@ impl InspectorUi<'_, '_> {
                     VariantInfo::Unit(_) => 0,
                 };
 
-                let always_show_label = matches!(variant, VariantInfo::Struct(_));
-                changed |=
-                    maybe_grid_label_if(field_len, ui, id, always_show_label, |ui, label| {
-                        let handle = |(field_index, field_name, field_type_id, field_type_name)| {
+                let always_show_label =
+                    matches!(variant, VariantInfo::Struct(_));
+                changed |= maybe_grid_label_if(
+                    field_len,
+                    ui,
+                    id,
+                    always_show_label,
+                    |ui, label| {
+                        let handle = |(
+                            field_index,
+                            field_name,
+                            field_type_id,
+                            field_type_name,
+                        )| {
                             if label {
                                 ui.label(field_name);
                             }
 
-                            let mut variants_across: Vec<&mut dyn PartialReflect> = values
+                            let mut variants_across: Vec<
+                                &mut dyn PartialReflect,
+                            > = values
                                 .iter_mut()
-                                .map(|value| match projector(*value).reflect_mut() {
-                                    ReflectMut::Enum(value) => {
-                                        value.field_at_mut(field_index).unwrap()
+                                .map(|value| {
+                                    match projector(*value).reflect_mut() {
+                                        ReflectMut::Enum(value) => value
+                                            .field_at_mut(field_index)
+                                            .unwrap(),
+                                        _ => unreachable!(),
                                     }
-                                    _ => unreachable!(),
                                 })
                                 .collect();
 
@@ -1638,10 +1903,13 @@ impl InspectorUi<'_, '_> {
                                 .fold(false, or),
                             VariantInfo::Unit(_) => false,
                         }
-                    });
+                    },
+                );
             });
         } else {
-            ui.label("enums have different selected variants, cannot multiedit");
+            ui.label(
+                "enums have different selected variants, cannot multiedit",
+            );
         }
 
         changed
@@ -1667,39 +1935,46 @@ impl InspectorUi<'_, '_> {
                         let variant_is_constructable =
                             variant_constructable(self.type_registry, variant);
 
-                        ui.add_enabled_ui(variant_is_constructable.is_ok(), |ui| {
-                            let mut variant_label_response =
-                                ui.selectable_label(is_active_variant, variant_name);
-
-                            if let Err(fields) = variant_is_constructable {
-                                variant_label_response = variant_label_response
-                                    .on_disabled_hover_ui(|ui| {
-                                        errors::unconstructable_variant(
-                                            ui,
-                                            info.type_path(),
-                                            variant_name,
-                                            &fields,
-                                        );
-                                    });
-                            }
-
-                            /*let res = variant_label_response.on_hover_ui(|ui| {
-                                if !unconstructable_variants.is_empty() {
-                                    errors::unconstructable_variants(
-                                        ui,
-                                        info.type_name(),
-                                        &unconstructable_variants,
+                        ui.add_enabled_ui(
+                            variant_is_constructable.is_ok(),
+                            |ui| {
+                                let mut variant_label_response = ui
+                                    .selectable_label(
+                                        is_active_variant,
+                                        variant_name,
                                     );
-                                }
-                            });*/
 
-                            if variant_label_response.clicked()
-                                && let Ok(dynamic_enum) =
-                                    self.construct_default_variant(variant, ui)
-                            {
-                                changed_variant = Some((i, dynamic_enum));
-                            };
-                        });
+                                if let Err(fields) = variant_is_constructable {
+                                    variant_label_response =
+                                        variant_label_response
+                                            .on_disabled_hover_ui(|ui| {
+                                                errors::unconstructable_variant(
+                                                    ui,
+                                                    info.type_path(),
+                                                    variant_name,
+                                                    &fields,
+                                                );
+                                            });
+                                }
+
+                                /*let res = variant_label_response.on_hover_ui(|ui| {
+                                    if !unconstructable_variants.is_empty() {
+                                        errors::unconstructable_variants(
+                                            ui,
+                                            info.type_name(),
+                                            &unconstructable_variants,
+                                        );
+                                    }
+                                });*/
+
+                                if variant_label_response.clicked()
+                                    && let Ok(dynamic_enum) = self
+                                        .construct_default_variant(variant, ui)
+                                {
+                                    changed_variant = Some((i, dynamic_enum));
+                                };
+                            },
+                        );
                     }
 
                     false
@@ -1724,7 +1999,8 @@ impl InspectorUi<'_, '_> {
                     .show_ui(ui, |_| {})
             });
 
-            let always_show_label = matches!(value.variant_type(), VariantType::Struct);
+            let always_show_label =
+                matches!(value.variant_type(), VariantType::Struct);
             maybe_grid_readonly_label_if(
                 value.field_len(),
                 ui,
@@ -1739,13 +2015,18 @@ impl InspectorUi<'_, '_> {
                                 ui.label(i.to_string());
                             }
                         }
-                        let field_value =
-                            value.field_at(i).expect("invalid reflect impl: field len");
+                        let field_value = value
+                            .field_at(i)
+                            .expect("invalid reflect impl: field len");
                         self.ui_for_reflect_readonly_with_options(
                             field_value,
                             ui,
                             id.with(i),
-                            inspector_options_enum_variant_field(options, value.variant_index(), i),
+                            inspector_options_enum_variant_field(
+                                options,
+                                value.variant_index(),
+                                i,
+                            ),
                         );
                         ui.end_row();
                     }
@@ -1770,8 +2051,13 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
         self.type_registry.get_type_data::<ReflectDefault>(type_id)
     }
 
-    fn get_default_value_for(&mut self, type_id: TypeId) -> Option<Box<dyn Reflect>> {
-        if let Some(reflect_default) = self.type_registry.get_type_data::<ReflectDefault>(type_id) {
+    fn get_default_value_for(
+        &mut self,
+        type_id: TypeId,
+    ) -> Option<Box<dyn Reflect>> {
+        if let Some(reflect_default) =
+            self.type_registry.get_type_data::<ReflectDefault>(type_id)
+        {
             return Some(reflect_default.default());
         }
 
@@ -1787,31 +2073,37 @@ impl<'a, 'c> InspectorUi<'a, 'c> {
             VariantInfo::Struct(struct_info) => {
                 let mut dynamic_struct = DynamicStruct::default();
                 for field in struct_info.iter() {
-                    let field_default_value = match self.get_default_value_for(field.type_id()) {
-                        Some(value) => value,
-                        None => {
-                            errors::no_default_value(ui, field.type_path());
-                            return Err(());
-                        }
-                    };
-                    dynamic_struct.insert_boxed(field.name(), field_default_value.to_dynamic());
+                    let field_default_value =
+                        match self.get_default_value_for(field.type_id()) {
+                            Some(value) => value,
+                            None => {
+                                errors::no_default_value(ui, field.type_path());
+                                return Err(());
+                            },
+                        };
+                    dynamic_struct.insert_boxed(
+                        field.name(),
+                        field_default_value.to_dynamic(),
+                    );
                 }
                 DynamicVariant::Struct(dynamic_struct)
-            }
+            },
             VariantInfo::Tuple(tuple_info) => {
                 let mut dynamic_tuple = DynamicTuple::default();
                 for field in tuple_info.iter() {
-                    let field_default_value = match self.get_default_value_for(field.type_id()) {
-                        Some(value) => value,
-                        None => {
-                            errors::no_default_value(ui, field.type_path());
-                            return Err(());
-                        }
-                    };
-                    dynamic_tuple.insert_boxed(field_default_value.to_dynamic());
+                    let field_default_value =
+                        match self.get_default_value_for(field.type_id()) {
+                            Some(value) => value,
+                            None => {
+                                errors::no_default_value(ui, field.type_path());
+                                return Err(());
+                            },
+                        };
+                    dynamic_tuple
+                        .insert_boxed(field_default_value.to_dynamic());
                 }
                 DynamicVariant::Tuple(dynamic_tuple)
-            }
+            },
             VariantInfo::Unit(_) => DynamicVariant::Unit,
         };
         let dynamic_enum = DynamicEnum::new(variant.name(), dynamic_variant);
@@ -1854,11 +2146,11 @@ fn maybe_grid_readonly(
     mut f: impl FnMut(&mut egui::Ui, bool),
 ) {
     match i {
-        0 => {}
+        0 => {},
         1 => f(ui, false),
         _ => {
             Grid::new(id).show(ui, |ui| f(ui, true));
-        }
+        },
     }
 }
 fn maybe_grid_readonly_label_if(
@@ -1869,11 +2161,11 @@ fn maybe_grid_readonly_label_if(
     mut f: impl FnMut(&mut egui::Ui, bool),
 ) {
     match i {
-        0 => {}
+        0 => {},
         1 if !always_show_label => f(ui, false),
         _ => {
             Grid::new(id).show(ui, |ui| f(ui, true));
-        }
+        },
     }
 }
 
@@ -1891,13 +2183,15 @@ fn variant_constructable<'a>(
         VariantInfo::Struct(variant) => variant
             .iter()
             .filter_map(|field| {
-                (!type_id_is_constructable(field.type_id())).then_some(field.type_path())
+                (!type_id_is_constructable(field.type_id()))
+                    .then_some(field.type_path())
             })
             .collect(),
         VariantInfo::Tuple(variant) => variant
             .iter()
             .filter_map(|field| {
-                (!type_id_is_constructable(field.type_id())).then_some(field.type_path())
+                (!type_id_is_constructable(field.type_id()))
+                    .then_some(field.type_path())
             })
             .collect(),
         VariantInfo::Unit(_) => return Ok(()),

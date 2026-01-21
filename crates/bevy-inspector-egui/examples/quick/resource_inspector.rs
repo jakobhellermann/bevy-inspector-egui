@@ -1,7 +1,10 @@
 use bevy::{
-    input::common_conditions::input_toggle_active, platform::collections::HashSet, prelude::*,
+    input::common_conditions::input_toggle_active,
+    platform::collections::HashSet, prelude::*,
 };
-use bevy_inspector_egui::{bevy_egui::EguiPlugin, prelude::*, quick::ResourceInspectorPlugin};
+use bevy_inspector_egui::{
+    bevy_egui::EguiPlugin, prelude::*, quick::ResourceInspectorPlugin,
+};
 
 #[derive(Reflect, Resource, Default, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]

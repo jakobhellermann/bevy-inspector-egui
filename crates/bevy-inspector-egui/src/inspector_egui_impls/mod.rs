@@ -18,8 +18,13 @@ mod glam_impls;
 mod image;
 mod std_impls;
 
-type InspectorEguiImplFn =
-    fn(&mut dyn Any, &mut egui::Ui, &dyn Any, egui::Id, InspectorUi<'_, '_>) -> bool;
+type InspectorEguiImplFn = fn(
+    &mut dyn Any,
+    &mut egui::Ui,
+    &dyn Any,
+    egui::Id,
+    InspectorUi<'_, '_>,
+) -> bool;
 type InspectorEguiImplFnReadonly =
     fn(&dyn Any, &mut egui::Ui, &dyn Any, egui::Id, InspectorUi<'_, '_>);
 type InspectorEguiImplFnMany = for<'a> fn(
@@ -84,7 +89,9 @@ pub trait InspectorPrimitive: Reflect {
     );
 }
 
-fn ui_many_vtable<T: Reflect + PartialEq + Clone + Default + InspectorPrimitive>(
+fn ui_many_vtable<
+    T: Reflect + PartialEq + Clone + Default + InspectorPrimitive,
+>(
     ui: &mut egui::Ui,
     options: &dyn Any,
     id: egui::Id,
@@ -92,11 +99,13 @@ fn ui_many_vtable<T: Reflect + PartialEq + Clone + Default + InspectorPrimitive>
     values: &mut [&mut dyn bevy_reflect::PartialReflect],
     projector: &dyn ProjectorReflect,
 ) -> bool {
-    let same = crate::inspector_egui_impls::iter_all_eq(values.iter_mut().map(|value| {
-        projector(*value)
-            .try_downcast_mut::<T>()
-            .expect("non-fully-reflected value passed to ui_many_vtable")
-    }));
+    let same = crate::inspector_egui_impls::iter_all_eq(values.iter_mut().map(
+        |value| {
+            projector(*value)
+                .try_downcast_mut::<T>()
+                .expect("non-fully-reflected value passed to ui_many_vtable")
+        },
+    ));
 
     let mut temp = same.cloned().unwrap_or_default();
     if T::ui(&mut temp, ui, options, id, env) {
@@ -158,7 +167,9 @@ impl InspectorEguiImpl {
             fn_many: ui_many_vtable::<T>,
         }
     }
-    pub fn of_with_many<T: InspectorPrimitive>(fn_many: InspectorEguiImplFnMany) -> Self {
+    pub fn of_with_many<T: InspectorPrimitive>(
+        fn_many: InspectorEguiImplFnMany,
+    ) -> Self {
         InspectorEguiImpl {
             fn_mut: ui_vtable::<T>,
             fn_readonly: ui_readonly_vtable::<T>,
@@ -233,7 +244,9 @@ fn add_of_with_many<T: InspectorPrimitive>(
 ) {
     type_registry
         .get_mut(TypeId::of::<T>())
-        .unwrap_or_else(|| panic!("{} not registered", std::any::type_name::<T>()))
+        .unwrap_or_else(|| {
+            panic!("{} not registered", std::any::type_name::<T>())
+        })
         .insert(InspectorEguiImpl::of_with_many::<T>(fn_many));
 }
 
@@ -245,7 +258,9 @@ fn add_raw<T: 'static>(
 ) {
     type_registry
         .get_mut(TypeId::of::<T>())
-        .unwrap_or_else(|| panic!("{} not registered", std::any::type_name::<T>()))
+        .unwrap_or_else(|| {
+            panic!("{} not registered", std::any::type_name::<T>())
+        })
         .insert(InspectorEguiImpl::new(fn_mut, fn_readonly, fn_many));
 }
 
@@ -348,7 +363,12 @@ pub(crate) fn change_slider<T>(
     f: impl FnOnce(T, bool),
 ) -> bool
 where
-    T: egui::emath::Numeric + std::ops::Sub<Output = T> + Default + Send + Sync + 'static,
+    T: egui::emath::Numeric
+        + std::ops::Sub<Output = T>
+        + Default
+        + Send
+        + Sync
+        + 'static,
 {
     let speed = if T::INTEGRAL { 1.0 } else { 0.1 };
 
@@ -362,9 +382,11 @@ where
             }
 
             changed
-        }
+        },
         None => {
-            let old_change = ui.memory_mut(|memory| *memory.data.get_temp_mut_or_default::<T>(id));
+            let old_change = ui.memory_mut(|memory| {
+                *memory.data.get_temp_mut_or_default::<T>(id)
+            });
             let mut change = old_change;
 
             let widget = egui::DragValue::new(&mut change)
@@ -376,13 +398,17 @@ where
                 f(change - old_change, false);
             }
 
-            ui.memory_mut(|memory| *memory.data.get_temp_mut_or_default(id) = change);
+            ui.memory_mut(|memory| {
+                *memory.data.get_temp_mut_or_default(id) = change
+            });
             changed
-        }
+        },
     }
 }
 
-pub(crate) fn iter_all_eq<T: PartialEq>(mut iter: impl Iterator<Item = T>) -> Option<T> {
+pub(crate) fn iter_all_eq<T: PartialEq>(
+    mut iter: impl Iterator<Item = T>,
+) -> Option<T> {
     let first = iter.next()?;
     iter.all(|elem| elem == first).then_some(first)
 }
@@ -400,15 +426,16 @@ macro_rules! many_ui {
             projector: &dyn $crate::reflect_inspector::ProjectorReflect,
         ) -> bool {
             let same = $crate::inspector_egui_impls::iter_all_eq(
-                values
-                    .iter_mut()
-                    .map(|value| projector(*value).try_downcast_ref::<$ty>().unwrap()),
+                values.iter_mut().map(|value| {
+                    projector(*value).try_downcast_ref::<$ty>().unwrap()
+                }),
             );
 
             let mut temp = same.cloned().unwrap_or_default();
             if $inner(&mut temp, ui, options, id, env) {
                 for value in values.iter_mut() {
-                    let value = projector(*value).try_downcast_mut::<$ty>().unwrap();
+                    let value =
+                        projector(*value).try_downcast_mut::<$ty>().unwrap();
                     *value = temp.clone();
                 }
 

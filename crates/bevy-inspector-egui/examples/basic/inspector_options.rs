@@ -11,7 +11,8 @@ struct Config {
     // `f32` uses `NumberOptions<f32>`
     #[inspector(min = 10.0, max = 70.0, display = NumberDisplay::Slider)]
     font_size: f32,
-    #[inspector(min = -1.0, speed = 0.001)] // you can specify inner options for `Option<T>`
+    #[inspector(min = -1.0, speed = 0.001)]
+    // you can specify inner options for `Option<T>`
     option: Option<f32>,
     #[inspector(min = 10, max = 20)] // same for Vec<T>
     vec: Vec<u32>,
@@ -97,7 +98,9 @@ fn ui_example(world: &mut World) {
     let mut ctx = egui_context.clone();
     egui::Window::new("UI").show(ctx.get_mut(), |ui| {
         egui::ScrollArea::both().show(ui, |ui| {
-            bevy_inspector_egui::bevy_inspector::ui_for_resource::<UiData>(world, ui);
+            bevy_inspector_egui::bevy_inspector::ui_for_resource::<UiData>(
+                world, ui,
+            );
         });
     });
 }

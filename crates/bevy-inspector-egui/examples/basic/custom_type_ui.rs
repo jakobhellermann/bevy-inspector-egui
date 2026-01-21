@@ -22,7 +22,8 @@ impl InspectorPrimitive for ToggleOption {
         _: egui::Id,
         _: InspectorUi<'_, '_>,
     ) -> bool {
-        let mut changed = ui.radio_value(&mut self.0, false, "Disabled").changed();
+        let mut changed =
+            ui.radio_value(&mut self.0, false, "Disabled").changed();
         changed |= ui.radio_value(&mut self.0, true, "Enabled").changed();
         changed
     }

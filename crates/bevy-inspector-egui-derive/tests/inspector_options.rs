@@ -1,7 +1,10 @@
 use bevy_ecs::entity::Entity;
 use bevy_inspector_egui::{
     inspector_options::{
-        std_options::{EntityDisplay, EntityOptions, NumberOptions, QuatDisplay, QuatOptions},
+        std_options::{
+            EntityDisplay, EntityOptions, NumberOptions, QuatDisplay,
+            QuatOptions,
+        },
         Target,
     },
     InspectorOptions,

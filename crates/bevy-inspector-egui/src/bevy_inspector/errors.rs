@@ -11,15 +11,22 @@ use crate::{egui_utils::layout_job, restricted_world_view::Error};
 pub fn no_access(error: Error, ui: &mut egui::Ui, name_of_type: &str) {
     match error {
         Error::NoAccessToResource(_) => no_access_resource(ui, name_of_type),
-        Error::NoAccessToComponent((entity, _)) => no_access_component(ui, entity, name_of_type),
+        Error::NoAccessToComponent((entity, _)) => {
+            no_access_component(ui, entity, name_of_type)
+        },
         Error::ComponentDoesNotExist((entity, _)) => {
             nonexistent_component(ui, entity, name_of_type)
-        }
-        Error::ResourceDoesNotExist(_) => nonexistent_resource(ui, name_of_type),
+        },
+        Error::ResourceDoesNotExist(_) => {
+            nonexistent_resource(ui, name_of_type)
+        },
         Error::NoComponentId(_) => missing_componentid(ui, name_of_type),
         Error::NoTypeRegistration(_) => {
-            crate::reflect_inspector::errors::not_in_type_registry(ui, name_of_type)
-        }
+            crate::reflect_inspector::errors::not_in_type_registry(
+                ui,
+                name_of_type,
+            )
+        },
         Error::NoTypeData(_, data) => missing_typedata(ui, name_of_type, data),
     }
 }
@@ -169,9 +176,16 @@ pub fn nonexistent_state(ui: &mut egui::Ui, name: &str) {
 }
 
 /// Yields a human-readable version of the type id if possible
-pub fn typeid_name(type_id: TypeId, type_registry: &TypeRegistry) -> Cow<'_, str> {
+pub fn typeid_name(
+    type_id: TypeId,
+    type_registry: &TypeRegistry,
+) -> Cow<'_, str> {
     type_registry
         .get(type_id)
-        .map(|registration| Cow::Borrowed(registration.type_info().type_path_table().short_path()))
+        .map(|registration| {
+            Cow::Borrowed(
+                registration.type_info().type_path_table().short_path(),
+            )
+        })
         .unwrap_or_else(|| Cow::Owned(format!("{type_id:?}")))
 }
