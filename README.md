@@ -121,10 +121,15 @@ Pair this with a crate like [`egui_dock`](https://docs.rs/egui_dock/latest/egui_
 
 ## Cargo features
 
+- `2d` (default): enable 2d-only dependencies
+- `3d` (default): enable 3d-only dependencies
+- `common` (default): enable common dependencies used in 2d and 3d
 - `highlight_changes` - highlight changed values every frame.
   Ideally this should be runtime-configurable, but it was implemented like this as a stopgap solution. If you'd like to configure this at runtime, please open an issue to let me know it's more of a priority.
-- `bevy_pbr` (default): register default options for `bevy_pbr` types. You should disable this if you don't use `bevy_pbr` to reduce the dependency footprint.
-- `bevy_gizmos`: enable inspecting of `GizmoConfigGroup`
+- `bevy_mesh` - enable inspecting of `Mesh`.
+- `bevy_pbr` - register default options for `bevy_pbr` types.
+- `bevy_light` - register default options for `bevy_light` types.
+- `bevy_gizmos` - enable inspecting of `GizmoConfigGroup`.
 
 ## FAQ
 

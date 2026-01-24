@@ -5,12 +5,12 @@ use bevy_ecs::world::World;
 use egui::Color32;
 use std::any::Any;
 
+#[cfg(feature = "bevy_mesh")]
+use ::{bevy_asset::Assets, bevy_asset::Handle, bevy_mesh::Mesh};
 #[cfg(feature = "bevy_render")]
-use ::{
-    bevy_asset::Assets, bevy_asset::Handle, bevy_camera::visibility::RenderLayers, bevy_mesh::Mesh,
-};
+use ::bevy_camera::visibility::RenderLayers;
 
-#[cfg(feature = "bevy_render")]
+#[cfg(feature = "bevy_mesh")]
 use crate::bevy_inspector::errors::{no_access, nonexistent_asset_handle};
 use crate::{
     bevy_inspector::errors::no_world_in_context,
@@ -94,7 +94,7 @@ impl InspectorPrimitive for Entity {
     }
 }
 
-#[cfg(feature = "bevy_render")]
+#[cfg(feature = "bevy_mesh")]
 impl InspectorPrimitive for Handle<Mesh> {
     fn ui(
         &mut self,
@@ -156,7 +156,7 @@ impl InspectorPrimitive for Handle<Mesh> {
     }
 }
 
-#[cfg(feature = "bevy_render")]
+#[cfg(feature = "bevy_mesh")]
 fn mesh_ui_inner(mesh: &Mesh, ui: &mut egui::Ui) {
     egui::Grid::new("mesh").show(ui, |ui| {
         ui.label("primitive_topology");

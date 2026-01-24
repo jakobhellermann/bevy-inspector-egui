@@ -189,7 +189,7 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         );
     }
 
-    #[cfg(feature = "bevy_pbr")]
+    #[cfg(feature = "bevy_light")]
     {
         #[rustfmt::skip]
         insert_options_struct::<bevy_light::AmbientLight>(
@@ -217,17 +217,6 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         );
 
         #[rustfmt::skip]
-        insert_options_struct::<bevy_pbr::StandardMaterial>(
-            type_registry,
-            &[
-                ("perceptual_roughness", &NumberOptions::<f32>::between(0.089, 1.0)),
-                ("metallic", &NumberOptions::<f32>::normalized()),
-                ("reflectance", &NumberOptions::<f32>::normalized()),
-                ("depth_bias", &NumberOptions::<f32>::positive()),
-            ],
-        );
-
-        #[rustfmt::skip]
         insert_options_enum::<bevy_light::cluster::ClusterConfig>(
             type_registry,
             &[
@@ -236,6 +225,18 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
             ],
         );
     }
+
+    #[rustfmt::skip]
+    #[cfg(feature = "bevy_pbr")]
+    insert_options_struct::<bevy_pbr::StandardMaterial>(
+        type_registry,
+        &[
+            ("perceptual_roughness", &NumberOptions::<f32>::between(0.089, 1.0)),
+            ("metallic", &NumberOptions::<f32>::normalized()),
+            ("reflectance", &NumberOptions::<f32>::normalized()),
+            ("depth_bias", &NumberOptions::<f32>::positive()),
+        ],
+    );
 
     #[rustfmt::skip]
     #[cfg(feature = "bevy_core_pipeline")]
