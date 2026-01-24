@@ -30,7 +30,7 @@ common = [
     "bevy_render",
 ]
 2d = ["common"]
-3d = ["bevy_mesh", "bevy_pbr", "common"]
+3d = ["bevy_light", "bevy_mesh", "bevy_pbr", "common"]
 
 # Enable showing documentation on hover.
 documentation = ["bevy_reflect/reflect_documentation"]
@@ -65,13 +65,13 @@ bevy_ecs = "0.18.0"
 bevy_log = "0.18.0"
 bevy_camera = "0.18.0"
 bevy_math = "0.18.0"
-bevy_light = "0.18.0"
 bevy_reflect = "0.18.0"
 bevy_state = "0.18.0"
 bevy_time = "0.18.0"
 bevy_utils = "0.18.0"
 bevy_window = "0.18.0"
 
+bevy_light = { version = "0.18.0", optional = true }
 bevy_mesh = { version = "0.18.0", optional = true }
 bevy_render = { version = "0.18.0", optional = true }
 bevy_core_pipeline = { version = "0.18.0", optional = true }
