@@ -30,6 +30,25 @@ fn setup(
         Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
         MeshMaterial3d(materials.add(Color::srgba(255., 181. / 255., 0., 102. / 255.))),
         Transform::from_xyz(0.0, 0.5, 0.0),
+        children![
+            (
+                Name::new("My First Sphere"),
+                Mesh3d(meshes.add(Sphere::default().mesh())),
+                MeshMaterial3d(materials.add(Color::srgba(
+                    0.,
+                    162. / 255.,
+                    232. / 255.,
+                    153. / 255.
+                ))),
+                Transform::from_xyz(1.0, 1.0, 0.0),
+            ),
+            (
+                Name::new("My Second Sphere"),
+                Mesh3d(meshes.add(Sphere::default().mesh())),
+                MeshMaterial3d(materials.add(Color::srgba(255., 0., 255., 153. / 255.))),
+                Transform::from_xyz(-1.0, 1.0, 0.0),
+            ),
+        ],
     ));
     // light
     commands.spawn((

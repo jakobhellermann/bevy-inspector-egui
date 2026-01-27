@@ -62,9 +62,37 @@ impl InspectorPrimitive for Entity {
 
                 let entity_name =
                     crate::utils::guess_entity_name::guess_entity_name_restricted(world, entity);
+
+                // Grey out disabled entities.
+                let is_disabled = world
+                    .world()
+                    .get_entity(entity)
+                    .is_ok_and(|e| e.contains::<bevy_ecs::entity_disabling::Disabled>());
+
+                // Check if we should show disabled entities.
+                let show_disabled = ui.memory_mut(|mem| {
+                    *mem.data.get_persisted_mut_or_insert_with(
+                        egui::Id::new("show_disabled_entities"),
+                        || false,
+                    )
+                });
+
+                // Skip rendering disabled entities if the toggle is off.
+                if is_disabled && !show_disabled {
+                    return false;
+                }
+
+                if is_disabled {
+                    ui.style_mut().visuals.override_text_color = Some(egui::Color32::DARK_GRAY);
+                }
+
                 egui::CollapsingHeader::new(entity_name)
                     .id_salt(id)
                     .show(ui, |ui| {
+                        // Reset text color override so content doesn't inherit
+                        // it.
+                        ui.style_mut().visuals.override_text_color = None;
+
                         let _queue = CommandQueue::default();
                         crate::bevy_inspector::ui_for_entity_components(
                             world,
@@ -74,16 +102,60 @@ impl InspectorPrimitive for Entity {
                             id,
                             env.type_registry,
                         );
-                        if options.despawnable
-                            && world.contains_entity(entity)
+
+                        if world.contains_entity(entity)
                             && let Some(queue) = queue
-                            && egui_utils::label_button(ui, "✖ Despawn", egui::Color32::RED)
                         {
-                            queue.push(move |world: &mut World| {
-                                world.entity_mut(entity).despawn();
+                            ui.horizontal(|ui| {
+                                // Check if entity has Disabled component.
+                                let has_disabled = world
+                                    .world()
+                                    .get_entity(entity)
+                                    .map(|e| e.contains::<bevy_ecs::entity_disabling::Disabled>())
+                                    .unwrap_or(false);
+
+                                if has_disabled {
+                                    if egui_utils::label_button(
+                                        ui,
+                                        "✔ Enable",
+                                        egui::Color32::GREEN,
+                                    ) {
+                                        queue.push(move |world: &mut World| {
+                                            world
+                                                .entity_mut(entity)
+                                                .remove::<bevy_ecs::entity_disabling::Disabled>();
+                                        });
+                                    }
+                                } else {
+                                    if egui_utils::label_button(
+                                        ui,
+                                        "⊗ Disable",
+                                        egui::Color32::from_rgb(200, 160, 0),
+                                    ) {
+                                        queue.push(move |world: &mut World| {
+                                            world
+                                                .entity_mut(entity)
+                                                .insert(bevy_ecs::entity_disabling::Disabled);
+                                        });
+                                    }
+                                }
+
+                                if options.despawnable
+                                    && egui_utils::label_button(ui, "✖ Despawn", egui::Color32::RED)
+                                {
+                                    queue.push(move |world: &mut World| {
+                                        world.entity_mut(entity).despawn();
+                                    });
+                                }
                             });
                         }
                     });
+
+                // Reset text color override after header so next entity doesn't
+                // inherit it.
+                if is_disabled {
+                    ui.style_mut().visuals.override_text_color = None;
+                }
             }
         }
         false
