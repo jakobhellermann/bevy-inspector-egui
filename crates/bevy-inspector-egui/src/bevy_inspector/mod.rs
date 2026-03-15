@@ -44,6 +44,7 @@ use std::path::Path;
 use crate::utils::{self, pretty_type_name, pretty_type_name_str};
 use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
 use bevy_ecs::query::{QueryFilter, WorldQuery};
+use bevy_ecs::resource::IsResource;
 use bevy_ecs::world::CommandQueue;
 use bevy_ecs::{component::ComponentId, prelude::*};
 use bevy_reflect::{Reflect, TypeRegistry};
@@ -347,7 +348,7 @@ pub trait EntityFilter {
 }
 
 #[derive(Debug)]
-pub struct Filter<F: QueryFilter = Without<ChildOf>> {
+pub struct Filter<F: QueryFilter = (Without<ChildOf>, Without<IsResource>)> {
     pub word: String,
     pub is_fuzzy: bool,
     pub marker: PhantomData<F>,
