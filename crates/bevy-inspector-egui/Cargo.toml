@@ -75,7 +75,7 @@ bevy_image = { git = "https://github.com/bevyengine/bevy.git", rev = "1b3b01e", 
 bevy_gizmos = { git = "https://github.com/bevyengine/bevy.git", rev = "1b3b01e", optional = true }
 
 egui.workspace = true
-bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "287a9d1", default-features = false }
+bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "d5d667d", default-features = false }
 
 bytemuck = "1.16.0"
 image = { version = "0.25", default-features = false }
