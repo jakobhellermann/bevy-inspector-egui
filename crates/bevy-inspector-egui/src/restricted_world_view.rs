@@ -351,7 +351,7 @@ impl<'w> RestrictedWorldView<'w> {
         let component_id = self
             .world()
             .components()
-            .get_resource_id(type_id)
+            .get_id(type_id)
             .ok_or(Error::ResourceDoesNotExist(type_id))?;
 
         // SAFETY: we have access to `type_id` and borrow `&mut self`
