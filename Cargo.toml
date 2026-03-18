@@ -4,4 +4,4 @@ members = ["crates/*"]
 
 [workspace.dependencies]
 egui = "0.33"
-bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "2cd18eb" }
+bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "49e3a7f" }
