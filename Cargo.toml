@@ -4,4 +4,32 @@ members = ["crates/*"]
 
 [workspace.dependencies]
 egui = "0.33"
-bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "49e3a7f" }
+bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "df93e29" }
+
+[patch."crates-io"]
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_app = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_asset = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_color = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_input = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_platform = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_ecs = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_log = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_camera = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_math = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_mesh = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_light = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_reflect = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_shader = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_state = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_time = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_transform = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_window = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_render = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_core_pipeline = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_pbr = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_image = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_gizmos = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_winit = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
