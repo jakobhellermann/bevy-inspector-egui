@@ -52,30 +52,30 @@ features = ["winit/x11"]
 winit = { version = "0.30.0", default-features = false }
 
 bevy-inspector-egui-derive = { version = "0.36", path = "../bevy-inspector-egui-derive" }
-bevy_app = "0.19.0-dev"
-bevy_asset = "0.19.0-dev"
-bevy_color = "0.19.0-dev"
-bevy_platform = "0.19.0-dev"
-bevy_ecs = "0.19.0-dev"
-bevy_log = "0.19.0-dev"
-bevy_camera = "0.19.0-dev"
-bevy_math = "0.19.0-dev"
-bevy_mesh = "0.19.0-dev"
-bevy_light = "0.19.0-dev"
-bevy_reflect = "0.19.0-dev"
-bevy_state = "0.19.0-dev"
-bevy_time = "0.19.0-dev"
-bevy_utils = "0.19.0-dev"
-bevy_window = "0.19.0-dev"
+bevy_app = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_asset = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_color = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_platform = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_ecs = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_log = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_camera = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_math = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_mesh = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_light = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_reflect = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_state = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_time = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
+bevy_window = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36" }
 
-bevy_render = { version = "0.19.0-dev", optional = true }
-bevy_core_pipeline = { version = "0.19.0-dev", optional = true }
-bevy_pbr = { version = "0.19.0-dev", optional = true }
-bevy_image = { version = "0.19.0-dev", optional = true }
-bevy_gizmos = { version = "0.19.0-dev", optional = true }
+bevy_render = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36", optional = true }
+bevy_core_pipeline = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36", optional = true }
+bevy_pbr = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36", optional = true }
+bevy_image = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36", optional = true }
+bevy_gizmos = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36", optional = true }
 
 egui.workspace = true
-bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "df93e29", default-features = false }
+bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "47f73ef", default-features = false }
 
 bytemuck = "1.16.0"
 image = { version = "0.25", default-features = false }
@@ -87,7 +87,7 @@ uuid = "1.21.0"
 opener = "0.8.3"
 
 [dev-dependencies]
-bevy = { version = "0.19.0-dev", default-features = false, features = [
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36", default-features = false, features = [
     "std",
     "x11",
     "wayland",
@@ -109,7 +109,7 @@ bevy = { version = "0.19.0-dev", default-features = false, features = [
     "tonemapping_luts",
     "ktx2",
 ] }
-bevy_math = { version = "0.19.0-dev", features = ["mint"] }
+bevy_math = { git = "https://github.com/bevyengine/bevy.git", rev = "888ab36", features = ["mint"] }
 egui_dock = { git = "https://github.com/Avarel/egui_dock", branch = "egui_0.33" }
 transform-gizmo-bevy = { git = "https://github.com/taboky-dev/transform-gizmo", branch = "bevy-0.18" }
 # bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
