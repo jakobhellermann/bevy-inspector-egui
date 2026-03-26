@@ -3,5 +3,5 @@ resolver = "2"
 members = ["crates/*"]
 
 [workspace.dependencies]
-egui = "0.33"
-bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "eb7905a" }
+egui = "0.34"
+bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "f5b9707" }
