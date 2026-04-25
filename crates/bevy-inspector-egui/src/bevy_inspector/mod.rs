@@ -83,11 +83,11 @@ pub fn ui_for_value(value: &mut dyn Reflect, ui: &mut egui::Ui, world: &mut Worl
 }
 
 /// Display `Entities`, `Resources` and `Assets` using their respective functions inside headers
-pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui) {
+pub fn ui_for_world(world: &mut World, ui: &mut egui::Ui, hide_observers: &mut bool) {
     egui::CollapsingHeader::new("Entities")
         .default_open(true)
         .show(ui, |ui| {
-            ui_for_entities(world, ui);
+            ui_for_entities(world, ui, hide_observers);
         });
     egui::CollapsingHeader::new("Resources").show(ui, |ui| {
         ui_for_resources(world, ui);
@@ -244,7 +244,7 @@ pub fn ui_for_state<T: FreelyMutableState + Reflect>(world: &mut World, ui: &mut
 /// Includes basic [`EntityFilter`]
 #[deprecated(since = "0.28.1", note = "use ui_for_entities instead")]
 pub fn ui_for_world_entities(world: &mut World, ui: &mut egui::Ui) {
-    ui_for_entities(world, ui);
+    ui_for_entities(world, ui, &mut false);
 }
 /// Display all entities matching the static [`QueryFilter`]
 #[deprecated(since = "0.28.1", note = "use ui_for_entities_filtered instead")]
@@ -257,9 +257,20 @@ pub fn ui_for_world_entities_filtered<QF: WorldQuery + QueryFilter>(
 }
 
 /// Display all root entities.
-pub fn ui_for_entities(world: &mut World, ui: &mut egui::Ui) {
-    let filter: Filter = Filter::from_ui_fuzzy(ui, egui::Id::new("default_world_entities_filter"));
-    ui_for_entities_filtered(world, ui, true, &filter);
+pub fn ui_for_entities(world: &mut World, ui: &mut egui::Ui, hide_observers: &mut bool) {
+    ui.checkbox(hide_observers, "Hide observers");
+
+    if *hide_observers {
+        let filter = Filter::<(Without<ChildOf>, Without<Observer>)>::from_ui_fuzzy(
+            ui,
+            egui::Id::new("default_world_entities_filter"),
+        );
+        ui_for_entities_filtered(world, ui, true, &filter);
+    } else {
+        let filter: Filter =
+            Filter::from_ui_fuzzy(ui, egui::Id::new("default_world_entities_filter"));
+        ui_for_entities_filtered(world, ui, true, &filter);
+    }
 }
 
 /// Display all entities matching the given [`EntityFilter`].

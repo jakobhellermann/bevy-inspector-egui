@@ -88,7 +88,7 @@ impl Plugin for WorldInspectorPlugin {
     }
 }
 
-fn world_inspector_ui(world: &mut World) {
+fn world_inspector_ui(world: &mut World, mut hide_observers: Local<bool>) {
     let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single(world);
@@ -102,7 +102,7 @@ fn world_inspector_ui(world: &mut World) {
         .default_size(DEFAULT_SIZE)
         .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
-                bevy_inspector::ui_for_world(world, ui);
+                bevy_inspector::ui_for_world(world, ui, &mut hide_observers);
                 ui.allocate_space(ui.available_size());
             });
         });

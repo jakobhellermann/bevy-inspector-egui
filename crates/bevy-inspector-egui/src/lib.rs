@@ -91,7 +91,7 @@
 //!         .run();
 //! }
 //!
-//! fn inspector_ui(world: &mut World) {
+//! fn inspector_ui(world: &mut World, mut hide_observers: Local<bool>) {
 //!     let mut egui_context = world
 //!         .query_filtered::<&mut EguiContext, With<bevy_egui::PrimaryEguiContext>>()
 //!         .single(world)
@@ -101,7 +101,7 @@
 //!     egui::Window::new("UI").show(egui_context.get_mut(), |ui| {
 //!         egui::ScrollArea::both().show(ui, |ui| {
 //!             // equivalent to `WorldInspectorPlugin`
-//!             bevy_inspector::ui_for_world(world, ui);
+//!             bevy_inspector::ui_for_world(world, ui, hide_observers);
 //!
 //!             // works with any `Reflect` value, including `Handle`s
 //!             let mut any_reflect_value: i32 = 5;
