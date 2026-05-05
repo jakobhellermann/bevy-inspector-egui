@@ -4,33 +4,33 @@ members = ["crates/*"]
 
 [workspace.dependencies]
 egui = "0.34"
-bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "0e4e717" }
+bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "a81559d" }
 
 [patch."crates-io"]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_app = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_asset = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_color = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_input = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_platform = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_ecs = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_log = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_camera = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_math = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_mesh = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_light = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_reflect = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_shader = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_state = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_time = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_transform = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_window = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_render = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_core_pipeline = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_pbr = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_picking = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_image = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_gizmos = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
-bevy_winit = { git = "https://github.com/bevyengine/bevy.git", rev = "fb7f58b" }
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_app = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_asset = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_color = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_input = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_platform = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_ecs = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_log = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_camera = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_math = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_mesh = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_light = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_reflect = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_shader = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_state = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_time = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_transform = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_window = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_render = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_core_pipeline = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_pbr = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_picking = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_image = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_gizmos = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }
+bevy_winit = { git = "https://github.com/bevyengine/bevy.git", rev = "9bd7e1f" }

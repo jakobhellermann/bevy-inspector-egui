@@ -75,7 +75,7 @@ bevy_image = { version = "0.19.0-dev", optional = true }
 bevy_gizmos = { version = "0.19.0-dev", optional = true }
 
 egui.workspace = true
-bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "0e4e717", default-features = false }
+bevy_egui = { git = "https://github.com/taboky-dev/bevy_egui.git", rev = "a81559d", default-features = false }
 
 bytemuck = "1.16.0"
 image = { version = "0.25", default-features = false }
