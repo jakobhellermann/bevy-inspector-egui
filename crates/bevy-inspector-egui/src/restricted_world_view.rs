@@ -1,5 +1,6 @@
 //! A view into the world which may only access certain resources and components
 
+use bevy_ecs::component::Mutable;
 use bevy_ecs::ptr::Ptr;
 use bevy_ecs::world::unsafe_world_cell::GetEntityMutByIdError;
 use bevy_ecs::{
@@ -198,7 +199,7 @@ impl<'w> RestrictedWorldView<'w> {
     }
 
     /// Like [`RestrictedWorldView::split_off_resource`], but takes `self` and returns `'w` lifetimes.
-    pub fn split_off_resource_typed<R: Resource>(
+    pub fn split_off_resource_typed<R: Resource<Mutability = Mutable>>(
         self,
     ) -> Option<(Mut<'w, R>, RestrictedWorldView<'w>)> {
         let type_id = TypeId::of::<R>();
@@ -297,13 +298,18 @@ impl<'w> RestrictedWorldView<'w> {
     }
 
     /// Gets a mutable reference to the resource of the given type
-    pub fn get_resource_mut<R: Resource>(&mut self) -> Result<Mut<'_, R>, Error> {
+    pub fn get_resource_mut<R: Resource<Mutability = Mutable>>(
+        &mut self,
+    ) -> Result<Mut<'_, R>, Error> {
         // SAFETY: &mut self
         unsafe { self.get_resource_unchecked_mut() }
     }
 
     /// Gets mutable reference to two resources. Panics if `R1 = R2`.
-    pub fn get_two_resources_mut<R1: Resource, R2: Resource>(
+    pub fn get_two_resources_mut<
+        R1: Resource<Mutability = Mutable>,
+        R2: Resource<Mutability = Mutable>,
+    >(
         &mut self,
     ) -> (Result<Mut<'_, R1>, Error>, Result<Mut<'_, R2>, Error>) {
         assert_ne!(TypeId::of::<R1>(), TypeId::of::<R2>());
@@ -318,7 +324,9 @@ impl<'w> RestrictedWorldView<'w> {
     /// # Safety
     /// This method does validate that we have access to `R`, but takes `&self`
     /// and as such doesn't check unique access.
-    unsafe fn get_resource_unchecked_mut<R: Resource>(&self) -> Result<Mut<'_, R>, Error> {
+    unsafe fn get_resource_unchecked_mut<R: Resource<Mutability = Mutable>>(
+        &self,
+    ) -> Result<Mut<'_, R>, Error> {
         let type_id = TypeId::of::<R>();
         if !self.allows_access_to_resource(type_id) {
             return Err(Error::NoAccessToResource(type_id));
