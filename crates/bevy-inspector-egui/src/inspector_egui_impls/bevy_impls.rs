@@ -234,7 +234,7 @@ impl InspectorPrimitive for LinearRgba {
     fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
         let mut color = [self.red, self.green, self.blue, self.alpha];
         if ui
-            .color_edit_button_rgba_premultiplied(&mut color)
+            .color_edit_button_rgba_unmultiplied(&mut color)
             .changed()
         {
             self.red = color[0];
