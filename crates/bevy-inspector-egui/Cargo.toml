@@ -39,7 +39,9 @@ bevy = [
 # Enable showing documentation on hover.
 documentation = ["bevy_reflect/reflect_documentation"]
 
+# Enable `bevy_egui` clipboard management
 egui_clipboard = ["bevy_egui/manage_clipboard"]
+# Enable `bevy_egui` ability to open URLs
 egui_open_url = ["bevy_egui/open_url"]
 
 # Highlight changes to components in a different color.
