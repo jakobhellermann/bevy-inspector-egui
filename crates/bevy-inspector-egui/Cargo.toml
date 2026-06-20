@@ -23,9 +23,12 @@ default = [
 ]
 # Enable inspector UI for all optional bevy types
 bevy = [
+    "bevy_camera",
     "bevy_core_pipeline",
     "bevy_gizmos",
     "bevy_image",
+    "bevy_light",
+    "bevy_mesh",
     "bevy_mikktspace",
     "bevy_pbr",
     "bevy_render",
@@ -33,20 +36,30 @@ bevy = [
 # Enable showing documentation on hover.
 documentation = ["bevy_reflect/reflect_documentation"]
 
-# Show inspector UI for bevy_render types
-bevy_render = ["dep:bevy_render", "bevy_egui/render"]
-# Include bevy mikktspace tangents in inspector UI for meshes
-bevy_mikktspace = ["dep:bevy_mikktspace"]
-# Show inspector UI for bevy_gizmos types
-bevy_gizmos = ["dep:bevy_gizmos"]
-# Show inspector UI for bevy_core_pipeline types
-bevy_core_pipeline = ["dep:bevy_core_pipeline"]
-
 egui_clipboard = ["bevy_egui/manage_clipboard"]
 egui_open_url = ["bevy_egui/open_url"]
 
 # Highlight changes to components in a different color.
 highlight_changes = [] # this should ideally be runtime configurable.
+
+# Show inspector UI for `bevy_camera` types
+bevy_camera = ["dep:bevy_camera"]
+# Show inspector UI for `bevy_core_pipeline` types
+bevy_core_pipeline = ["dep:bevy_core_pipeline"]
+# Show inspector UI for `bevy_gizmos` types
+bevy_gizmos = ["dep:bevy_gizmos"]
+# Show inspector UI for `bevy_image` types
+bevy_image = ["dep:bevy_image", "bevy_render"]
+# Show inspector UI for `bevy_light` types
+bevy_light = ["dep:bevy_light"]
+# Show inspector UI for `bevy_mesh` types
+bevy_mesh = ["dep:bevy_mesh"]
+# Show inspector UI for `bevy_mikktspace` types
+bevy_mikktspace = ["dep:bevy_mikktspace"]
+# Show inspector UI for `bevy_pbr` types
+bevy_pbr = ["dep:bevy_pbr"]
+# Show inspector UI for `bevy_render` types
+bevy_render = ["dep:bevy_render", "bevy_egui/render"]
 
 [package.metadata.docs.rs]
 features = ["winit/x11"]
@@ -62,22 +75,22 @@ bevy_color = "0.19.0"
 bevy_platform = "0.19.0"
 bevy_ecs = "0.19.0"
 bevy_log = "0.19.0"
-bevy_camera = "0.19.0"
 bevy_math = "0.19.0"
-bevy_mesh = "0.19.0"
-bevy_light = "0.19.0"
 bevy_reflect = "0.19.0"
 bevy_state = "0.19.0"
 bevy_time = "0.19.0"
 bevy_utils = "0.19.0"
 bevy_window = "0.19.0"
 
-bevy_render = { version = "0.19.0", optional = true }
+bevy_camera = { version = "0.19.0", optional = true }
 bevy_core_pipeline = { version = "0.19.0", optional = true }
-bevy_pbr = { version = "0.19.0", optional = true }
-bevy_image = { version = "0.19.0", optional = true }
 bevy_gizmos = { version = "0.19.0", optional = true }
+bevy_image = { version = "0.19.0", optional = true }
+bevy_light = { version = "0.19.0", optional = true }
+bevy_mesh = { version = "0.19.0", optional = true }
 bevy_mikktspace = { version = "1.0", optional = true }
+bevy_pbr = { version = "0.19.0", optional = true }
+bevy_render = { version = "0.19.0", optional = true }
 
 egui.workspace = true
 bevy_egui = { version = "0.40.0", default-features = false }

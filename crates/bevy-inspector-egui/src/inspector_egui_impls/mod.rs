@@ -325,18 +325,23 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
     add::<bevy_color::Hsla>(type_registry);
     add::<bevy_color::Hsva>(type_registry);
 
-    #[cfg(feature = "bevy_render")]
+    #[cfg(feature = "bevy_camera")]
     {
-      type_registry.register::<bevy_camera::visibility::RenderLayers>();
-      add_of_with_many::<bevy_asset::Handle<bevy_mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_mesh::Mesh>>);
-      add::<bevy_camera::visibility::RenderLayers>(type_registry);
+        type_registry.register::<bevy_camera::visibility::RenderLayers>();
+        add::<bevy_camera::visibility::RenderLayers>(type_registry);
+    }
+    #[cfg(feature = "bevy_mesh")]
+    {
+        add_of_with_many::<bevy_asset::Handle<bevy_mesh::Mesh>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_mesh::Mesh>>);
     }
     #[cfg(feature = "bevy_image")]
     {
-      add_of_with_many::<bevy_asset::Handle<bevy_image::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_image::Image>>);
+        add_of_with_many::<bevy_asset::Handle<bevy_image::Image>>(type_registry, many_unimplemented::<bevy_asset::Handle<bevy_image::Image>>);
     }
     #[cfg(feature = "bevy_gizmos")]
-    add::<bevy_gizmos::config::GizmoConfigStore>(type_registry);
+    {
+        add::<bevy_gizmos::config::GizmoConfigStore>(type_registry);
+    }
 
     add::<uuid::Uuid>(type_registry);
 }
