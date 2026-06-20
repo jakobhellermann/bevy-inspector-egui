@@ -352,11 +352,12 @@ pub trait EntityFilter {
 }
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub struct Filter<F: QueryFilter = (Without<ChildOf>, Without<IsResource>)> {
     pub word: String,
     pub is_fuzzy: bool,
     pub show_observers: bool,
-    pub marker: PhantomData<F>,
+    marker: PhantomData<F>,
 }
 
 impl<F: QueryFilter + Clone> Clone for Filter<F> {
@@ -367,6 +368,12 @@ impl<F: QueryFilter + Clone> Clone for Filter<F> {
             show_observers: self.show_observers,
             marker: PhantomData,
         }
+    }
+}
+
+impl Default for Filter<(Without<ChildOf>, Without<IsResource>)> {
+    fn default() -> Self {
+        Filter::no_observers()
     }
 }
 
@@ -463,7 +470,17 @@ impl<F: QueryFilter> Filter<F> {
         .inner
     }
 
-    /// empty filter which does nothing
+    /// No filter word, not fuzzy, no observers
+    pub fn no_observers() -> Self {
+        Self {
+            word: String::from(""),
+            is_fuzzy: false,
+            show_observers: false,
+            marker: PhantomData,
+        }
+    }
+
+    /// No filter word, not fuzzy, including observers
     pub fn all() -> Self {
         Self {
             word: String::from(""),
