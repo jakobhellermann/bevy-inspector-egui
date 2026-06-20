@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use crate::bevy_inspector::{EntityFilter, Filter};
 use crate::utils::guess_entity_name;
+use bevy_ecs::resource::IsResource;
 use bevy_ecs::{prelude::*, query::QueryFilter};
 use egui::{CollapsingHeader, RichText};
 
@@ -78,7 +79,7 @@ impl<T> Hierarchy<'_, T> {
     {
         let mut root_query = self
             .world
-            .query_filtered::<Entity, (Without<ChildOf>, QF)>();
+            .query_filtered::<Entity, (Without<ChildOf>, Without<IsResource>, QF)>();
 
         let always_open: HashSet<Entity> = self
             .selected
