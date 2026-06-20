@@ -71,13 +71,18 @@ use crate::{
     utils::pretty_type_name_str,
 };
 use bevy_ecs::world::CommandQueue;
+use bevy_reflect::array::Array;
+use bevy_reflect::enums::{DynamicEnum, DynamicVariant, Enum, EnumInfo, VariantInfo, VariantType};
+use bevy_reflect::list::{List, ListInfo};
+use bevy_reflect::map::Map;
+use bevy_reflect::set::{Set, SetInfo};
+use bevy_reflect::std_traits::ReflectDefault;
+use bevy_reflect::structs::{DynamicStruct, Struct, StructInfo};
+use bevy_reflect::tuple::{DynamicTuple, Tuple, TupleInfo};
+use bevy_reflect::tuple_struct::{TupleStruct, TupleStructInfo};
 use bevy_reflect::{
-    Array, DynamicEnum, DynamicTuple, DynamicTyped, DynamicVariant, Enum, EnumInfo, List, ListInfo,
-    Map, Reflect, ReflectMut, ReflectRef, Struct, StructInfo, Tuple, TupleInfo, TupleStruct,
-    TupleStructInfo, TypeInfo, TypeRegistry, VariantInfo, VariantType,
+    DynamicTyped, PartialReflect, Reflect, ReflectMut, ReflectRef, TypeInfo, TypeRegistry,
 };
-use bevy_reflect::{DynamicStruct, std_traits::ReflectDefault};
-use bevy_reflect::{PartialReflect, Set, SetInfo};
 use egui::{Grid, WidgetText};
 use std::borrow::Cow;
 use std::{
@@ -1652,7 +1657,7 @@ impl InspectorUi<'_, '_> {
         id: egui::Id,
         ui: &mut egui::Ui,
         active_variant_idx: usize,
-        info: &bevy_reflect::EnumInfo,
+        info: &bevy_reflect::enums::EnumInfo,
     ) -> Option<(usize, DynamicEnum)> {
         let mut changed_variant = None;
 

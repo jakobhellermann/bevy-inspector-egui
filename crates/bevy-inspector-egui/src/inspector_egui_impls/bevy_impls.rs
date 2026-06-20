@@ -115,12 +115,12 @@ impl InspectorPrimitive for Handle<Mesh> {
                 return false;
             }
         };
-        let Some(mesh) = meshes.get_mut(handle) else {
+        let Some(mut mesh) = meshes.get_mut(handle) else {
             nonexistent_asset_handle(ui, handle.id().untyped());
             return false;
         };
 
-        mesh_ui_inner(mesh, ui);
+        mesh_ui_inner(&mesh, ui);
 
         ui.add_enabled_ui(mesh.indices().is_some(), |ui| {
             if ui.button("Duplicate vertices").clicked() {
@@ -237,10 +237,7 @@ impl InspectorPrimitive for Srgba {
 impl InspectorPrimitive for LinearRgba {
     fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, _: egui::Id, _: InspectorUi<'_, '_>) -> bool {
         let mut color = [self.red, self.green, self.blue, self.alpha];
-        if ui
-            .color_edit_button_rgba_premultiplied(&mut color)
-            .changed()
-        {
+        if ui.color_edit_button_rgba_unmultiplied(&mut color).changed() {
             self.red = color[0];
             self.green = color[1];
             self.blue = color[2];
