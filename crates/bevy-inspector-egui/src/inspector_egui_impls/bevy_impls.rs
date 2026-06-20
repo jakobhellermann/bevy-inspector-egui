@@ -132,8 +132,12 @@ impl InspectorPrimitive for Handle<Mesh> {
                 mesh.compute_flat_normals();
             }
         });
-        if ui.button("Generate tangents").clicked() {
-            let _ = mesh.generate_tangents();
+
+        #[cfg(feature = "bevy_mikktspace")]
+        {
+            if ui.button("Generate tangents").clicked() {
+                let _ = mesh.generate_tangents();
+            }
         }
 
         false
