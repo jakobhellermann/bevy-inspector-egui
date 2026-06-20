@@ -21,18 +21,21 @@ default = [
     "bevy",
     "egui_clipboard",
 ]
-# Enable inspector UI for all optional bevy types
+# COLLECTION: Enable inspector UI for all optional bevy types
 bevy = [
-    "bevy_camera",
-    "bevy_core_pipeline",
+    "2d", "3d",
     "bevy_gizmos",
-    "bevy_image",
-    "bevy_light",
-    "bevy_mesh",
-    "bevy_mikktspace",
-    "bevy_pbr",
-    "bevy_render",
 ]
+# COLLECTION: Enable inspector UI for the bevy 2d collection
+2d = [
+    "bevy_render", "bevy_core_pipeline", "bevy_camera", "bevy_image", "bevy_mesh" # common
+]
+# COLLECTION: Enable inspector UI for the bevy 3d collection
+3d = [
+    "bevy_light", "bevy_mikktspace", "bevy_pbr",
+    "bevy_render", "bevy_core_pipeline", "bevy_camera", "bevy_image", "bevy_mesh" # common
+]
+
 # Enable showing documentation on hover.
 documentation = ["bevy_reflect/reflect_documentation"]
 
