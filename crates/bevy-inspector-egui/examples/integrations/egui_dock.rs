@@ -7,17 +7,17 @@ use bevy::{
 use bevy_camera::{Viewport, visibility::RenderLayers};
 use bevy_egui::{EguiGlobalSettings, EguiPrimaryContextPass, PrimaryEguiContext};
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
-use bevy_inspector_egui::bevy_egui::{EguiContext, EguiContextSettings};
+use bevy_inspector_egui::bevy_egui::EguiContext;
 use bevy_inspector_egui::bevy_inspector::hierarchy::{SelectedEntities, hierarchy_ui};
 use bevy_inspector_egui::bevy_inspector::{
     self, ui_for_entities_shared_components, ui_for_entity_with_children,
 };
 use bevy_reflect::TypeRegistry;
 use bevy_window::{PrimaryWindow, Window};
-use egui::LayerId;
+use egui::{LayerId, UiBuilder};
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
 use std::any::TypeId;
-use transform_gizmo_bevy::{GizmoCamera, GizmoTarget, TransformGizmoPlugin};
+// use transform_gizmo_bevy::{GizmoCamera, GizmoTarget, TransformGizmoPlugin};
 
 fn main() {
     App::new()
@@ -49,12 +49,13 @@ fn draw_mesh_intersections(pointers: Query<&PointerInteraction>, mut gizmos: Giz
     }
 }
 
+#[allow(unused)]
 fn handle_pick_events(
     mut ui_state: ResMut<UiState>,
     mut click_events: MessageReader<PointerInput>,
     pointers: Query<&PointerInteraction>,
     button: Res<ButtonInput<KeyCode>>,
-    gizmo_targets: Query<(Entity, &GizmoTarget)>,
+    // gizmo_targets: Query<(Entity, &GizmoTarget)>,
     mut commands: Commands,
 ) {
     if !ui_state.pointer_in_viewport {
@@ -62,7 +63,7 @@ fn handle_pick_events(
     }
     for event in click_events.read() {
         if let PointerAction::Press(PointerButton::Primary) = event.action {
-            if gizmo_targets.iter().any(|(_, target)| target.is_focused()) {
+            /*if gizmo_targets.iter().any(|(_, target)| target.is_focused()) {
                 continue;
             }
 
@@ -82,22 +83,29 @@ fn handle_pick_events(
                         }
                     }
                 }
-            }
+            }*/
         }
     }
 }
 
 fn show_ui_system(world: &mut World) {
-    let Ok(egui_context) = world
+    let Ok(mut egui_context) = world
         .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
-        .single(world)
+        .single_mut(world)
     else {
         return;
     };
-    let mut egui_context = egui_context.clone();
+    let ctx = egui_context.get_mut();
+    let mut ui = egui::Ui::new(
+        ctx.clone(),
+        "viewport".into(),
+        UiBuilder::new()
+            .layer_id(LayerId::background())
+            .max_rect(ctx.viewport_rect()),
+    );
 
     world.resource_scope::<UiState, _>(|world, mut ui_state| {
-        ui_state.ui(world, egui_context.get_mut())
+        ui_state.ui(&mut ui, world);
     });
 }
 
@@ -106,9 +114,8 @@ fn set_camera_viewport(
     ui_state: Res<UiState>,
     window: Single<&Window, With<PrimaryWindow>>,
     mut cam: Single<&mut Camera, Without<PrimaryEguiContext>>,
-    egui_settings: Single<&EguiContextSettings>,
 ) {
-    let scale_factor = window.scale_factor() * egui_settings.scale_factor;
+    let scale_factor = window.scale_factor();
 
     let viewport_pos = ui_state.viewport_rect.left_top().to_vec2() * scale_factor;
     let viewport_size = ui_state.viewport_rect.size() * scale_factor;
@@ -163,7 +170,7 @@ impl UiState {
         }
     }
 
-    fn ui(&mut self, world: &mut World, ctx: &mut egui::Context) {
+    fn ui(&mut self, ui: &mut egui::Ui, world: &mut World) {
         let mut tab_viewer = TabViewer {
             world,
             viewport_rect: &mut self.viewport_rect,
@@ -171,9 +178,10 @@ impl UiState {
             selection: &mut self.selection,
             pointer_in_viewport: &mut self.pointer_in_viewport,
         };
+
         DockArea::new(&mut self.state)
-            .style(Style::from_egui(ctx.style().as_ref()))
-            .show(ctx, &mut tab_viewer);
+            .style(Style::from_egui(&ui.global_style()))
+            .show_inside(ui, &mut tab_viewer);
     }
 }
 
@@ -445,7 +453,7 @@ fn setup(
         Camera3d::default(),
         Transform::from_xyz(0.0, box_offset, 4.0)
             .looking_at(Vec3::new(0.0, box_offset, 0.0), Vec3::Y),
-        GizmoCamera,
+        // GizmoCamera,
         // PickRaycastSource,
     ));
 

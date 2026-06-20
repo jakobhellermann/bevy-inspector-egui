@@ -11,7 +11,7 @@ struct Config {
     // `f32` uses `NumberOptions<f32>`
     #[inspector(min = 10.0, max = 70.0, display = NumberDisplay::Slider)]
     font_size: f32,
-    #[inspector(min = -1.0, speed = 0.001)] // you can specify inner options for `Option<T>`
+    #[inspector(min = -1.0, speed = 0.001f32)] // you can specify inner options for `Option<T>`
     option: Option<f32>,
     #[inspector(min = 10, max = 20)] // same for Vec<T>
     vec: Vec<u32>,

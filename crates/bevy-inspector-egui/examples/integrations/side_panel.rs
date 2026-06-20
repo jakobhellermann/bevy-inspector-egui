@@ -1,5 +1,3 @@
-use std::ops::DerefMut;
-
 use bevy::{input::common_conditions::input_toggle_active, prelude::*};
 use bevy_egui::PrimaryEguiContext;
 use bevy_inspector_egui::{
@@ -7,6 +5,7 @@ use bevy_inspector_egui::{
     bevy_egui::{EguiContext, EguiPlugin, EguiPrimaryContextPass},
     bevy_inspector::hierarchy::SelectedEntities,
 };
+use egui::{LayerId, Ui, UiBuilder};
 
 fn main() {
     App::new()
@@ -29,11 +28,18 @@ fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities
     else {
         return;
     };
+    let ctx = ctx.get_mut();
+    let mut ui = Ui::new(
+        ctx.clone(),
+        "viewport".into(),
+        UiBuilder::new()
+            .layer_id(LayerId::background())
+            .max_rect(ctx.viewport_rect()),
+    );
 
-    let mut egui_context = ctx.deref_mut().clone();
-    egui::SidePanel::left("hierarchy")
-        .default_width(200.0)
-        .show(egui_context.get_mut(), |ui| {
+    egui::Panel::left("hierarchy")
+        .default_size(200.0)
+        .show_inside(&mut ui, |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
                 ui.heading("Hierarchy");
 
@@ -48,9 +54,9 @@ fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities
             });
         });
 
-    egui::SidePanel::right("inspector")
-        .default_width(250.0)
-        .show(egui_context.get_mut(), |ui| {
+    egui::Panel::right("inspector")
+        .default_size(250.0)
+        .show_inside(&mut ui, |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
                 ui.heading("Inspector");
 
