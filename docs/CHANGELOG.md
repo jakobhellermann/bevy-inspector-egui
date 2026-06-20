@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 0.37.0
+- update to `bevy` 0.19, `bevy_egui` 0.40 (@taboky-dev)
+- use unmultiplied LinearRgba (@NthMetal)
+- fix compile error when bevy doesn't include bevy_mikktspace (@Person-93)
+- properly exclude Observers again (@jsnelling)
+- make `Filter` type non-exhaustive and provider `::all`, `::no_observers`, `Default::default()`
+- reorganize features: (inspired by @taboky-dev)
+  - make `bevy_camera`, `bevy_mesh` and `bevy_light` optional
+  - add `2d`, `3d` collections for enabling the relevant features with `bevy-inspector-egui = { default-features = false, features = ["2d"] }`
+
 ## Version 0.36.0
 - update to `bevy` 0.18, `bevy_egui` 0.39
 - fix bug in editing of hashmaps #294 (@vultix)
