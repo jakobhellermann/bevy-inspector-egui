@@ -1,3 +1,7 @@
+#[cfg(feature = "bevy_mesh")]
+use bevy_asset::Assets;
+#[cfg(feature = "bevy_mesh")]
+use bevy_asset::Handle;
 use bevy_color::{Color, Hsla, Hsva, LinearRgba, Srgba};
 use bevy_ecs::entity::Entity;
 use bevy_ecs::world::CommandQueue;
@@ -5,13 +9,10 @@ use bevy_ecs::world::World;
 use egui::Color32;
 use std::any::Any;
 
-#[cfg(feature = "bevy_render")]
-use ::{
-    bevy_asset::Assets, bevy_asset::Handle, bevy_camera::visibility::RenderLayers, bevy_mesh::Mesh,
-};
-
-#[cfg(feature = "bevy_render")]
-use crate::bevy_inspector::errors::{no_access, nonexistent_asset_handle};
+#[cfg(feature = "bevy_mesh")]
+use crate::bevy_inspector::errors::no_access;
+#[cfg(feature = "bevy_mesh")]
+use crate::bevy_inspector::errors::nonexistent_asset_handle;
 use crate::{
     bevy_inspector::errors::no_world_in_context,
     egui_utils,
@@ -94,8 +95,8 @@ impl InspectorPrimitive for Entity {
     }
 }
 
-#[cfg(feature = "bevy_render")]
-impl InspectorPrimitive for Handle<Mesh> {
+#[cfg(feature = "bevy_mesh")]
+impl InspectorPrimitive for Handle<bevy_mesh::Mesh> {
     fn ui(
         &mut self,
         ui: &mut egui::Ui,
@@ -108,7 +109,7 @@ impl InspectorPrimitive for Handle<Mesh> {
             no_world_in_context(ui, "Handle<Mesh>");
             return false;
         };
-        let mut meshes = match world.get_resource_mut::<Assets<Mesh>>() {
+        let mut meshes = match world.get_resource_mut::<Assets<bevy_mesh::Mesh>>() {
             Ok(meshes) => meshes,
             Err(error) => {
                 no_access(error, ui, "Assets<Mesh>");
@@ -148,7 +149,7 @@ impl InspectorPrimitive for Handle<Mesh> {
             no_world_in_context(ui, "Handle<Mesh>");
             return;
         };
-        let meshes = match world.get_resource_mut::<Assets<Mesh>>() {
+        let meshes = match world.get_resource_mut::<Assets<bevy_mesh::Mesh>>() {
             Ok(meshes) => meshes,
             Err(error) => return no_access(error, ui, "Assets<Mesh>"),
         };
@@ -160,8 +161,8 @@ impl InspectorPrimitive for Handle<Mesh> {
     }
 }
 
-#[cfg(feature = "bevy_render")]
-fn mesh_ui_inner(mesh: &Mesh, ui: &mut egui::Ui) {
+#[cfg(feature = "bevy_mesh")]
+fn mesh_ui_inner(mesh: &bevy_mesh::Mesh, ui: &mut egui::Ui) {
     egui::Grid::new("mesh").show(ui, |ui| {
         ui.label("primitive_topology");
         ui.label(format!("{:?}", mesh.primitive_topology()));
@@ -184,14 +185,14 @@ fn mesh_ui_inner(mesh: &Mesh, ui: &mut egui::Ui) {
         ui.label("Vertex Attributes");
 
         let builtin_attributes = &[
-            Mesh::ATTRIBUTE_POSITION,
-            Mesh::ATTRIBUTE_COLOR,
-            Mesh::ATTRIBUTE_UV_0,
-            Mesh::ATTRIBUTE_NORMAL,
-            Mesh::ATTRIBUTE_TANGENT,
-            Mesh::ATTRIBUTE_COLOR,
-            Mesh::ATTRIBUTE_JOINT_INDEX,
-            Mesh::ATTRIBUTE_JOINT_WEIGHT,
+            bevy_mesh::Mesh::ATTRIBUTE_POSITION,
+            bevy_mesh::Mesh::ATTRIBUTE_COLOR,
+            bevy_mesh::Mesh::ATTRIBUTE_UV_0,
+            bevy_mesh::Mesh::ATTRIBUTE_NORMAL,
+            bevy_mesh::Mesh::ATTRIBUTE_TANGENT,
+            bevy_mesh::Mesh::ATTRIBUTE_COLOR,
+            bevy_mesh::Mesh::ATTRIBUTE_JOINT_INDEX,
+            bevy_mesh::Mesh::ATTRIBUTE_JOINT_WEIGHT,
         ];
 
         ui.vertical(|ui| {
@@ -347,8 +348,8 @@ impl InspectorPrimitive for Color {
     }
 }
 
-#[cfg(feature = "bevy_render")]
-impl InspectorPrimitive for RenderLayers {
+#[cfg(feature = "bevy_camera")]
+impl InspectorPrimitive for bevy_camera::visibility::RenderLayers {
     fn ui(&mut self, ui: &mut egui::Ui, _: &dyn Any, id: egui::Id, _: InspectorUi<'_, '_>) -> bool {
         let mut new_value = None;
         egui::Grid::new(id).num_columns(2).show(ui, |ui| {

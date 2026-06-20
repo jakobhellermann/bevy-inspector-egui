@@ -161,6 +161,15 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         ],
     );
 
+    type_registry.register::<bevy_time::Virtual>();
+    insert_options_struct::<bevy_time::Virtual>(
+        type_registry,
+        &[
+            ("relative_speed", &NumberOptions::<f64>::positive()),
+            ("effective_speed", &NumberOptions::<f64>::positive()),
+        ],
+    );
+
     #[cfg(feature = "bevy_render")]
     {
         #[rustfmt::skip]
@@ -189,16 +198,12 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         );
     }
 
-    #[cfg(feature = "bevy_pbr")]
+    #[cfg(feature = "bevy_light")]
     {
-        #[rustfmt::skip]
         insert_options_struct::<bevy_light::AmbientLight>(
             type_registry,
-            &[
-                ("brightness", &NumberOptions::<f32>::positive()),
-            ],
+            &[("brightness", &NumberOptions::<f32>::positive())],
         );
-
         insert_options_struct::<bevy_light::PointLight>(
             type_registry,
             &[
@@ -208,23 +213,9 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
             ],
         );
 
-        #[rustfmt::skip]
         insert_options_struct::<bevy_light::DirectionalLight>(
             type_registry,
-            &[
-                ("illuminance", &NumberOptions::<f32>::positive()),
-            ],
-        );
-
-        #[rustfmt::skip]
-        insert_options_struct::<bevy_pbr::StandardMaterial>(
-            type_registry,
-            &[
-                ("perceptual_roughness", &NumberOptions::<f32>::between(0.089, 1.0)),
-                ("metallic", &NumberOptions::<f32>::normalized()),
-                ("reflectance", &NumberOptions::<f32>::normalized()),
-                ("depth_bias", &NumberOptions::<f32>::positive()),
-            ],
+            &[("illuminance", &NumberOptions::<f32>::positive())],
         );
 
         #[rustfmt::skip]
@@ -237,8 +228,22 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         );
     }
 
+    #[cfg(feature = "bevy_pbr")]
+    {
+        #[rustfmt::skip]
+        insert_options_struct::<bevy_pbr::StandardMaterial>(
+            type_registry,
+            &[
+                ("perceptual_roughness", &NumberOptions::<f32>::between(0.089, 1.0)),
+                ("metallic", &NumberOptions::<f32>::normalized()),
+                ("reflectance", &NumberOptions::<f32>::normalized()),
+                ("depth_bias", &NumberOptions::<f32>::positive()),
+            ],
+        );
+    }
+
     #[rustfmt::skip]
-    #[cfg(feature = "bevy_core_pipeline")]
+    #[cfg(feature = "bevy_camera")]
     insert_options_enum::<bevy_camera::Camera3dDepthLoadOp>(
         type_registry,
         &[
@@ -246,13 +251,14 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
         ],
     );
 
-    type_registry.register::<bevy_time::Virtual>();
-
-    insert_options_struct::<bevy_time::Virtual>(
+    #[rustfmt::skip]
+    #[cfg(feature = "bevy_core_pipeline")]
+    insert_options_struct::<bevy_core_pipeline::oit::OrderIndependentTransparencySettings>(
         type_registry,
         &[
-            ("relative_speed", &NumberOptions::<f64>::positive()),
-            ("effective_speed", &NumberOptions::<f64>::positive()),
+            ("sorted_fragment_max_count", &NumberOptions::<u32>::at_least(1)),
+            ("fragments_per_pixel_average", &NumberOptions::<f32>::positive()),
+            ("alpha_threshold", &NumberOptions::<f32>::normalized()),
         ],
     );
 }
