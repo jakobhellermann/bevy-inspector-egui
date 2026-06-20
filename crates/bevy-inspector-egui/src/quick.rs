@@ -11,6 +11,7 @@ use std::{marker::PhantomData, sync::Mutex};
 use crate::{bevy_inspector::Filter, utils::pretty_type_name};
 use bevy_app::Plugin;
 use bevy_asset::Asset;
+use bevy_ecs::component::Mutable;
 use bevy_ecs::{prelude::*, query::QueryFilter, schedule::BoxedCondition};
 use bevy_egui::{EguiContext, EguiPlugin, EguiPrimaryContextPass, PrimaryEguiContext};
 use bevy_reflect::Reflect;
@@ -166,7 +167,7 @@ impl<T> ResourceInspectorPlugin<T> {
     }
 }
 
-impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
+impl<T: Resource<Mutability = Mutable> + Reflect> Plugin for ResourceInspectorPlugin<T> {
     fn build(&self, app: &mut bevy_app::App) {
         check_plugins(app, "ResourceInspectorPlugin");
 
@@ -183,7 +184,7 @@ impl<T: Resource + Reflect> Plugin for ResourceInspectorPlugin<T> {
     }
 }
 
-fn inspector_ui<T: Resource + Reflect>(world: &mut World) {
+fn inspector_ui<T: Resource<Mutability = Mutable> + Reflect>(world: &mut World) {
     let egui_context = world
         .query_filtered::<&mut EguiContext, With<PrimaryEguiContext>>()
         .single(world);

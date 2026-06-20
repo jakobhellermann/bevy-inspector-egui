@@ -43,7 +43,9 @@ use std::path::Path;
 
 use crate::utils::{self, pretty_type_name, pretty_type_name_str};
 use bevy_asset::{Asset, AssetServer, Assets, ReflectAsset, UntypedAssetId};
+use bevy_ecs::component::Mutable;
 use bevy_ecs::query::{QueryFilter, WorldQuery};
+use bevy_ecs::resource::IsResource;
 use bevy_ecs::world::CommandQueue;
 use bevy_ecs::{component::ComponentId, prelude::*};
 use bevy_reflect::{Reflect, TypeRegistry};
@@ -121,7 +123,10 @@ pub fn ui_for_resources(world: &mut World, ui: &mut egui::Ui) {
 }
 
 /// Display the resource `R`
-pub fn ui_for_resource<R: Resource + Reflect>(world: &mut World, ui: &mut egui::Ui) {
+pub fn ui_for_resource<R: Resource<Mutability = Mutable> + Reflect>(
+    world: &mut World,
+    ui: &mut egui::Ui,
+) {
     let type_registry = world.resource::<AppTypeRegistry>().0.clone();
     let type_registry = type_registry.read();
 
@@ -347,7 +352,7 @@ pub trait EntityFilter {
 }
 
 #[derive(Debug)]
-pub struct Filter<F: QueryFilter = Without<ChildOf>> {
+pub struct Filter<F: QueryFilter = (Without<ChildOf>, Without<IsResource>)> {
     pub word: String,
     pub is_fuzzy: bool,
     pub marker: PhantomData<F>,

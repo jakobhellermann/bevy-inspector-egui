@@ -115,12 +115,12 @@ impl InspectorPrimitive for Handle<Mesh> {
                 return false;
             }
         };
-        let Some(mesh) = meshes.get_mut(handle) else {
+        let Some(mut mesh) = meshes.get_mut(handle) else {
             nonexistent_asset_handle(ui, handle.id().untyped());
             return false;
         };
 
-        mesh_ui_inner(mesh, ui);
+        mesh_ui_inner(&mesh, ui);
 
         ui.add_enabled_ui(mesh.indices().is_some(), |ui| {
             if ui.button("Duplicate vertices").clicked() {

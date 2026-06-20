@@ -197,7 +197,11 @@ struct TabViewer<'a> {
 impl egui_dock::TabViewer for TabViewer<'_> {
     type Tab = EguiWindow;
 
-    fn ui(&mut self, ui: &mut egui_dock::egui::Ui, window: &mut Self::Tab) {
+    fn title(&mut self, window: &mut Self::Tab) -> egui::WidgetText {
+        format!("{window:?}").into()
+    }
+
+    fn ui(&mut self, ui: &mut egui::Ui, window: &mut Self::Tab) {
         let type_registry = self.world.resource::<AppTypeRegistry>().0.clone();
         let type_registry = type_registry.read();
 
@@ -242,10 +246,6 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         *self.pointer_in_viewport = ui
             .ctx()
             .rect_contains_pointer(LayerId::background(), self.viewport_rect.shrink(16.));
-    }
-
-    fn title(&mut self, window: &mut Self::Tab) -> egui_dock::egui::WidgetText {
-        format!("{window:?}").into()
     }
 
     fn clear_background(&self, window: &Self::Tab) -> bool {
