@@ -35,6 +35,9 @@ fn main() {
 }
 ```
 
+The `quick::WorldInspectorPlugin` is meant for simple use cases. If you want to customize it,
+it's actually very easy to copy the implementation and tweak it. An example of this can be found in the [world_inspector_manual.rs](crates/bevy-inspector-egui/examples/basic/world_inspector_manual.rs) example.
+
 ## ResourceInspectorPlugin
 
 Display a single resource in a window.
