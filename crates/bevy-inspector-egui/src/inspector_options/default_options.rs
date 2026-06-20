@@ -250,4 +250,15 @@ pub fn register_default_options(type_registry: &mut TypeRegistry) {
             ("Clear", "0", &NumberOptions::<f32>::normalized()),
         ],
     );
+
+    #[rustfmt::skip]
+    #[cfg(feature = "bevy_core_pipeline")]
+    insert_options_struct::<bevy_core_pipeline::oit::OrderIndependentTransparencySettings>(
+        type_registry,
+        &[
+            ("sorted_fragment_max_count", &NumberOptions::<u32>::at_least(1)),
+            ("fragments_per_pixel_average", &NumberOptions::<f32>::positive()),
+            ("alpha_threshold", &NumberOptions::<f32>::normalized()),
+        ],
+    );
 }
