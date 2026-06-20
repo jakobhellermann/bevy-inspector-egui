@@ -3,8 +3,11 @@
 - `basic` - Basic features of the crate
   - [`inspector_options.rs`](./basic/inspector_options.rs) Shows how to use `InspectorOptions` derive to tweak the UI
   - [`resource_inspector_manual.rs`](./basic/resource_inspector_manual.rs) Shows how to customize and build your own inspector windows
+  - [`world_inspector_manual.rs`](./basic/world_inspector_manual.rs) Shows how to build a custom world inspector window using `bevy_inspector::ui_for_world`
+  - [`custom_type_ui.rs`](./basic/custom_type_ui.rs) Shows how to implement a custom inspector UI for your own type via `InspectorPrimitive`
 - `quick` - Demonstrations of the quick plugins
   - [`world_inspector.rs`](./quick/world_inspector.rs) Example of the `WorldInspectorPlugin`
+  - [`world_inspector_assets.rs`](./quick/world_inspector_assets.rs) Example of the `WorldInspectorPlugin` in a scene with assets
   - [`resource_inspector.rs`](./quick/resource_inspector.rs) Example of the `ResourceInspectorPlugin`
   - [`filter_query_inspector.rs`](./quick/filter_query_inspector.rs) Example of the `FilterQueryInspectorPlugin`
   - [`asset_inspector.rs`](./quick/asset_inspector.rs) Example of the `AssetInspectorPlugin`
