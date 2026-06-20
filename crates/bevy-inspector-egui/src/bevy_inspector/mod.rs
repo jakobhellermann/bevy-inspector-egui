@@ -550,14 +550,13 @@ pub fn ui_for_entity_with_children(world: &mut World, entity: Entity, ui: &mut e
     let entity_name = guess_entity_name(world, entity);
     ui.label(entity_name);
 
-    let filter: Filter = Filter::all();
     ui_for_entity_with_children_inner(
         world,
         entity,
         ui,
         egui::Id::new(entity),
         &type_registry,
-        &filter,
+        &Filter::default(),
     )
 }
 

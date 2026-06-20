@@ -452,7 +452,8 @@ fn entity_query_ui<F: QueryFilter>(world: &mut World) {
         .default_size(DEFAULT_SIZE)
         .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
-                bevy_inspector::ui_for_entities_filtered(world, ui, false, &Filter::<F>::all());
+                let filter = Filter::<F>::no_observers();
+                bevy_inspector::ui_for_entities_filtered(world, ui, false, &filter);
                 ui.allocate_space(ui.available_size());
             });
         });

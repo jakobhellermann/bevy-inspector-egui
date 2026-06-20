@@ -55,8 +55,7 @@ impl<T> Hierarchy<'_, T> {
     where
         QF: QueryFilter,
     {
-        let filter: Filter = Filter::all();
-        self._show::<QF, _>(ui, filter)
+        self._show::<QF, _>(ui, Filter::default())
     }
     pub fn show_with_default_filter<QF>(&mut self, ui: &mut egui::Ui) -> bool
     where
