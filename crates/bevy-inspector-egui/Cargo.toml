@@ -98,7 +98,7 @@ bevy_pbr = { version = "0.19.0", optional = true }
 bevy_render = { version = "0.19.0", optional = true }
 
 egui.workspace = true
-bevy_egui = { version = "0.40.0", default-features = false }
+bevy_egui = { version = "0.41.0", default-features = false }
 
 bytemuck = "1.16.0"
 image = { version = "0.25", default-features = false }
@@ -133,7 +133,7 @@ bevy = { version = "0.19.0", default-features = false, features = [
     "ktx2",
 ] }
 bevy_math = { version = "0.19.0", features = ["mint"] }
-egui_dock = "0.19.1"
+egui_dock = "0.20.1"
 # transform-gizmo-bevy = { git = "https://github.com/taboky-dev/transform-gizmo", branch = "bevy-0.18" }
 # bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "554649a951689dce66d0d759839b326874e8826f", default-features = false, features = ["backend_raycast", "backend_egui", "backend_sprite"] }
 # bevy_framepace = "0.11"
