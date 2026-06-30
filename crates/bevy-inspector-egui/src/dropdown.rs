@@ -27,7 +27,7 @@ impl<'a, F: FnMut(&mut Ui, &str) -> Response, V: AsRef<str>, I: Iterator<Item = 
     /// Creates new dropdown box.
     pub fn from_iter(
         it: impl IntoIterator<IntoIter = I>,
-        id_source: impl Hash,
+        id_source: impl Hash + std::fmt::Debug,
         buf: &'a mut String,
         display: F,
     ) -> Self {
