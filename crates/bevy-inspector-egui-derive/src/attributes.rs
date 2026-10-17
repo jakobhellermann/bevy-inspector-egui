@@ -17,6 +17,7 @@ pub fn is_reflect_ignore_field(field: &syn::Field) -> bool {
     field.attrs.iter().any(is_reflect_ignore)
 }
 
+#[allow(clippy::large_enum_variant)]
 pub enum InspectorAttribute {
     Assignment(syn::Member, syn::Expr),
     Tag(syn::Member),

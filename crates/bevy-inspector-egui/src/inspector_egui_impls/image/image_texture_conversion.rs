@@ -87,7 +87,7 @@ pub fn from_dynamic(dyn_img: DynamicImage, is_srgb: bool) -> Image {
                 width as usize * height as usize * format.pixel_size().unwrap_or_default(),
             );
 
-            for pixel in image.into_raw().chunks_exact(3) {
+            for pixel in image.into_raw().as_chunks::<3>().0 {
                 let r = pixel[0];
                 let g = pixel[1];
                 let b = pixel[2];
@@ -119,7 +119,7 @@ pub fn from_dynamic(dyn_img: DynamicImage, is_srgb: bool) -> Image {
                 width as usize * height as usize * format.pixel_size().unwrap_or_default(),
             );
 
-            for pixel in image.into_raw().chunks_exact(3) {
+            for pixel in image.into_raw().as_chunks::<3>().0 {
                 let r = pixel[0];
                 let g = pixel[1];
                 let b = pixel[2];

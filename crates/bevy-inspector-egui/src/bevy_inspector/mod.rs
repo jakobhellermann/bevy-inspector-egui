@@ -114,7 +114,7 @@ pub fn ui_for_resources(world: &mut World, ui: &mut egui::Ui) {
             )
         })
         .collect();
-    resources.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
+    resources.sort_by_key(|(name_a, ..)| *name_a);
     for (name, type_id) in resources {
         ui.collapsing(name, |ui| {
             by_type_id::ui_for_resource(world, type_id, ui, name, &type_registry);
@@ -166,7 +166,7 @@ pub fn ui_for_all_assets(world: &mut World, ui: &mut egui::Ui) {
             )
         })
         .collect();
-    assets.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
+    assets.sort_by_key(|(name_a, ..)| *name_a);
     for (name, type_id) in assets {
         ui.collapsing(name, |ui| {
             by_type_id::ui_for_assets(world, type_id, ui, &type_registry);
@@ -196,7 +196,7 @@ pub fn ui_for_assets<A: Asset + Reflect>(world: &mut World, ui: &mut egui::Ui) {
     };
 
     let mut assets: Vec<_> = assets.iter_mut().collect();
-    assets.sort_by(|(a, _), (b, _)| a.cmp(b));
+    assets.sort_by_key(|(a, _)| *a);
     for (handle_id, asset) in assets {
         let id = egui::Id::new(handle_id);
 
