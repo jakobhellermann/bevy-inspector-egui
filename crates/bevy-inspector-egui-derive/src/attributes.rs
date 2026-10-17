@@ -40,7 +40,7 @@ impl InspectorAttribute {
 
 fn parse_inspectable_attributes(
     input: syn::parse::ParseStream,
-) -> syn::Result<impl Iterator<Item = InspectorAttribute>> {
+) -> syn::Result<impl Iterator<Item = InspectorAttribute> + use<>> {
     let parse_attribute = |input: syn::parse::ParseStream| {
         let ident: syn::Member = input.parse()?;
         if input.peek(syn::Token![=]) {

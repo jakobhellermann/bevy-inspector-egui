@@ -1,7 +1,7 @@
 [package]
 name = "bevy-inspector-egui-derive"
 version = "0.37.0"
-edition = "2021"
+edition = "2024"
 repository = "https://github.com/jakobhellermann/bevy-inspector-egui/"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
