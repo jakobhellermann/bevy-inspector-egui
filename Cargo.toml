@@ -2,6 +2,13 @@
 resolver = "2"
 members = ["crates/*"]
 
+[workspace.package]
+version = "0.37.0"
+edition = "2024"
+repository = "https://github.com/jakobhellermann/bevy-inspector-egui/"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/bevy-inspector-egui-derive"
+
 [workspace.dependencies]
 egui = "0.36"
 bevy_egui = { version = "0.43.0", default-features = false }
