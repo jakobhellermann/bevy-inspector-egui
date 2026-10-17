@@ -4,7 +4,7 @@ use bevy_inspector_egui::{
     inspector_options::{std_options::NumberOptions, Target},
     InspectorOptions,
 };
-use bevy_reflect::{FromType, Reflect};
+use bevy_reflect::{CreateTypeData, Reflect};
 
 #[test]
 fn generic_without_options() {
@@ -16,7 +16,7 @@ fn generic_without_options() {
         other: f32,
     }
 
-    let options = <InspectorOptions as FromType<Generic<f32>>>::from_type();
+    let options = <InspectorOptions as CreateTypeData<Generic<f32>>>::create_type_data(());
 
     let options = options
         .get(Target::Field(1))
@@ -37,7 +37,7 @@ fn phantom_data() {
         other: f32,
     }
 
-    let options = <InspectorOptions as FromType<Generic<f32>>>::from_type();
+    let options = <InspectorOptions as CreateTypeData<Generic<f32>>>::create_type_data(());
 
     let options = options
         .get(Target::Field(0))

@@ -5,7 +5,7 @@ use crate::{
     utils::pretty_type_name,
 };
 use bevy_platform::time::Instant;
-use bevy_reflect::{FromType, PartialReflect, Reflect, TypePath, TypeRegistry};
+use bevy_reflect::{CreateTypeData, PartialReflect, Reflect, TypePath, TypeRegistry};
 use std::{
     any::{Any, TypeId},
     borrow::Cow,
@@ -144,8 +144,8 @@ pub struct InspectorEguiImpl {
     fn_many: InspectorEguiImplFnMany,
 }
 
-impl<T: InspectorPrimitive> FromType<T> for InspectorEguiImpl {
-    fn from_type() -> Self {
+impl<T: InspectorPrimitive> CreateTypeData<T> for InspectorEguiImpl {
+    fn create_type_data(_input: ()) -> Self {
         InspectorEguiImpl::of_with_many::<T>(many_unimplemented::<T>)
     }
 }

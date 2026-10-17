@@ -2,7 +2,7 @@ use bevy_inspector_egui::{
     inspector_options::{std_options::NumberOptions, Target},
     InspectorOptions,
 };
-use bevy_reflect::{FromType, Reflect};
+use bevy_reflect::{CreateTypeData, Reflect};
 
 #[test]
 fn check_options_ignore_struct() {
@@ -14,7 +14,7 @@ fn check_options_ignore_struct() {
         b: f32,
     }
 
-    let options = <InspectorOptions as FromType<Test>>::from_type();
+    let options = <InspectorOptions as CreateTypeData<Test>>::create_type_data(());
     assert_eq!(options.iter().count(), 1);
 
     let b_options = options
@@ -37,7 +37,7 @@ fn check_options_ignore_enum() {
         },
     }
 
-    let options = <InspectorOptions as FromType<Test>>::from_type();
+    let options = <InspectorOptions as CreateTypeData<Test>>::create_type_data(());
     assert_eq!(options.iter().count(), 1);
 
     let field_options = options

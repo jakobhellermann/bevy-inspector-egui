@@ -470,7 +470,7 @@ unsafe fn mut_untyped_to_reflect<'a>(
 
     let value = value.map_unchanged(|ptr| {
         // SAFETY: ptr is of type type_id as required in safety contract, type_id was checked above
-        unsafe { reflect_from_ptr.as_reflect_mut(ptr) }
+        unsafe { reflect_from_ptr.ptr_as_reflect_mut(ptr) }
     });
 
     Ok(value)
@@ -492,7 +492,7 @@ unsafe fn ptr_untyped_to_reflect<'a>(
     assert_eq!(reflect_from_ptr.type_id(), type_id);
 
     // SAFETY: ptr is of type type_id as required in safety contract, type_id was checked above
-    let value = unsafe { reflect_from_ptr.as_reflect(value) };
+    let value = unsafe { reflect_from_ptr.ptr_as_reflect(value) };
 
     Ok(value)
 }

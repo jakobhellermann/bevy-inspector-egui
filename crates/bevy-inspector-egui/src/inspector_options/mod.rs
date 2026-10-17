@@ -2,7 +2,7 @@
 
 use std::{any::Any, collections::HashMap};
 
-use bevy_reflect::{FromType, TypeData};
+use bevy_reflect::{CreateTypeData, TypeData};
 
 pub(crate) mod default_options;
 
@@ -96,12 +96,14 @@ impl InspectorOptions {
 #[derive(Clone)]
 pub struct ReflectInspectorOptions(pub InspectorOptions);
 
-impl<T> FromType<T> for ReflectInspectorOptions
+impl<T> CreateTypeData<T> for ReflectInspectorOptions
 where
-    InspectorOptions: FromType<T>,
+    InspectorOptions: CreateTypeData<T>,
 {
-    fn from_type() -> Self {
-        ReflectInspectorOptions(InspectorOptions::from_type())
+    fn create_type_data(input: ()) -> Self {
+        ReflectInspectorOptions(<InspectorOptions as CreateTypeData<T>>::create_type_data(
+            input,
+        ))
     }
 }
 

@@ -7,7 +7,7 @@ use bevy_inspector_egui::{
     InspectorOptions,
 };
 use bevy_math::Quat;
-use bevy_reflect::{FromType, Reflect};
+use bevy_reflect::{CreateTypeData, Reflect};
 
 #[test]
 fn expr_attribute() {
@@ -23,7 +23,7 @@ fn expr_attribute() {
         entity_list: Vec<Entity>,
     }
 
-    let options = <InspectorOptions as FromType<Test>>::from_type();
+    let options = <InspectorOptions as CreateTypeData<Test>>::create_type_data(());
 
     let quat_options = options
         .get(Target::Field(0))

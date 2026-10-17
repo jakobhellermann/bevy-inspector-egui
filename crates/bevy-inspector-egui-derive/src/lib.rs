@@ -55,10 +55,10 @@ fn expand_struct(input: &DeriveInput, data: &DataStruct) -> syn::Result<TokenStr
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
     Ok(quote! {
-        impl #impl_generics #bevy_reflect::FromType<#type_name #ty_generics> for ::bevy_inspector_egui::InspectorOptions
+        impl #impl_generics #bevy_reflect::CreateTypeData<#type_name #ty_generics> for ::bevy_inspector_egui::InspectorOptions
         #where_clause
         {
-            fn from_type() -> Self {
+            fn create_type_data(_input: ()) -> Self {
                 let mut options = ::bevy_inspector_egui::InspectorOptions::default();
 
                 #(#fields)*
@@ -120,10 +120,10 @@ fn expand_enum(input: &DeriveInput, data: &DataEnum) -> syn::Result<TokenStream>
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
     Ok(quote! {
-        impl #impl_generics #bevy_reflect::FromType<#type_name #ty_generics> for ::bevy_inspector_egui::InspectorOptions
+        impl #impl_generics #bevy_reflect::CreateTypeData<#type_name #ty_generics> for ::bevy_inspector_egui::InspectorOptions
         #where_clause
         {
-            fn from_type() -> Self {
+            fn create_type_data(_input: ()) -> Self {
                 let mut options = ::bevy_inspector_egui::InspectorOptions::default();
 
                 #(#(#fields)*)*
