@@ -12,7 +12,7 @@ description = "Implementation detail of the `bevy-inspector-egui` crate"
 proc-macro = true
 
 [dependencies]
-syn = "2.0"
+syn = "3.0"
 quote = "1.0"
 proc-macro2 = "1.0"
 
