@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.38.0
+- update to `bevy` 0.20 (@taboky-dev)
+- add a UI impl for `Name`
+
 ## Version 0.37.0
 - update to `bevy` 0.19, `bevy_egui` 0.40 (@taboky-dev)
 - use unmultiplied LinearRgba (@NthMetal)
