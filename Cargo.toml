@@ -3,5 +3,5 @@ resolver = "2"
 members = ["crates/*"]
 
 [workspace.dependencies]
-egui = "0.34"
-bevy_egui = "0.40.0"
+egui = "0.36"
+bevy_egui = { version = "0.42", default-features = false }

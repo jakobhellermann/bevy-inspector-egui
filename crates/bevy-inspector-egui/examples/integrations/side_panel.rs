@@ -39,7 +39,7 @@ fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities
 
     egui::Panel::left("hierarchy")
         .default_size(200.0)
-        .show_inside(&mut ui, |ui| {
+        .show(&mut ui, |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
                 ui.heading("Hierarchy");
 
@@ -56,7 +56,7 @@ fn inspector_ui(world: &mut World, mut selected_entities: Local<SelectedEntities
 
     egui::Panel::right("inspector")
         .default_size(250.0)
-        .show_inside(&mut ui, |ui| {
+        .show(&mut ui, |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
                 ui.heading("Inspector");
 
