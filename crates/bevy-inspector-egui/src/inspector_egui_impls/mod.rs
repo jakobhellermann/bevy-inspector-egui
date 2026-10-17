@@ -4,6 +4,7 @@ use crate::{
     reflect_inspector::{InspectorUi, ProjectorReflect, errors::no_multiedit},
     utils::pretty_type_name,
 };
+use bevy_ecs::name::Name;
 use bevy_platform::time::Instant;
 use bevy_reflect::{CreateTypeData, PartialReflect, Reflect, TypePath, TypeRegistry};
 use std::{
@@ -344,6 +345,7 @@ pub fn register_bevy_impls(type_registry: &mut TypeRegistry) {
     }
 
     add::<uuid::Uuid>(type_registry);
+    add::<Name>(type_registry);
 }
 
 pub(crate) fn change_slider<T>(

@@ -4,6 +4,7 @@ use bevy_asset::Assets;
 use bevy_asset::Handle;
 use bevy_color::{Color, Hsla, Hsva, LinearRgba, Srgba};
 use bevy_ecs::entity::Entity;
+use bevy_ecs::name::Name;
 use bevy_ecs::world::CommandQueue;
 use bevy_ecs::world::World;
 use egui::Color32;
@@ -442,5 +443,29 @@ impl InspectorPrimitive for bevy_gizmos::config::GizmoConfigStore {
                     env.ui_for_reflect_readonly_with_options(value, ui, egui::Id::new("data"), &());
                 });
         }
+    }
+}
+
+impl InspectorPrimitive for Name {
+    fn ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    ) -> bool {
+        let mut changed = false;
+        self.mutate(|name| changed = name.ui(ui, options, id, env));
+        changed
+    }
+
+    fn ui_readonly(
+        &self,
+        ui: &mut egui::Ui,
+        options: &dyn Any,
+        id: egui::Id,
+        env: InspectorUi<'_, '_>,
+    ) {
+        String::ui_readonly(&self.to_string(), ui, options, id, env);
     }
 }
