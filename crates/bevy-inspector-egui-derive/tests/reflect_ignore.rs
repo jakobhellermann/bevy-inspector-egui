@@ -1,6 +1,6 @@
 use bevy_inspector_egui::{
-    inspector_options::{std_options::NumberOptions, Target},
     InspectorOptions,
+    inspector_options::{Target, std_options::NumberOptions},
 };
 use bevy_reflect::{CreateTypeData, Reflect};
 

@@ -1,10 +1,10 @@
 use bevy_ecs::entity::Entity;
 use bevy_inspector_egui::{
-    inspector_options::{
-        std_options::{EntityDisplay, EntityOptions, NumberOptions, QuatDisplay, QuatOptions},
-        Target,
-    },
     InspectorOptions,
+    inspector_options::{
+        Target,
+        std_options::{EntityDisplay, EntityOptions, NumberOptions, QuatDisplay, QuatOptions},
+    },
 };
 use bevy_math::Quat;
 use bevy_reflect::{CreateTypeData, Reflect};
