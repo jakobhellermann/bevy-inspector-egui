@@ -195,7 +195,7 @@ fn inspector_ui<T: Resource<Mutability = Mutable> + Reflect>(world: &mut World) 
     let mut egui_context = egui_context.clone();
 
     egui::Window::new(pretty_type_name::<T>())
-        .default_size((0., 0.))
+        .default_size(DEFAULT_SIZE)
         .show(egui_context.get_mut(), |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
                 bevy_inspector::ui_for_resource::<T>(world, ui);
